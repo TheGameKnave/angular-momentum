@@ -20,7 +20,7 @@ global.cache = {};
 
 function setupStaticFileServing(app: express.Application, env: string) {
   if (env === 'production' || env === 'staging' || env === 'development') {
-    const dirname = path.resolve(__dirname, '../client/dist/angular-boilerplate/browser');
+    const dirname = path.resolve(__dirname, '../client/dist/angular-momentum/browser');
     app.use(express.static(dirname, { maxAge: 3600000 }));
 
     app.get('*', (req, res) => {

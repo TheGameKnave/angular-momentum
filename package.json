@@ -1,7 +1,7 @@
 {
-  "name": "angular-boilerplate",
+  "name": "angular-momentum",
   "version": "0.18.2",
-  "siteUrl": "https://angular-node-boilerplate-c873a67b06f7.herokuapp.com/",
+  "siteUrl": "https://angular-node-momentum-c873a67b06f7.herokuapp.com/",
   "private": true,
   "engines": {
     "node": "20.16.0"

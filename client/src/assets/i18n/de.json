@@ -1,6 +1,6 @@
 {
   "Hello world": "Hallo Welt"
-  ,"Angular Boilerplate": "Angular Boilerplate"
+  ,"Angular Momentum": "Angular Momentum"
   ,"v.": "v."
   ,"There are {{count}} components.": "{count, plural, =0 {Es gibt keine Komponenten.} one {Es gibt 1 Komponente.} other {Es gibt # Komponenten.}}"
   ,"App Version": "App Version"

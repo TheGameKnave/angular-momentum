@@ -1,5 +1,5 @@
 {
-  "name": "angular-boilerplate-client",
+  "name": "angular-momentum-client",
   "scripts": {
     "ng": "ng",
     "build": "ng build",

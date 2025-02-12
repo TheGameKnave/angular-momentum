@@ -1,6 +1,6 @@
 {
   "Hello world": "你好，世界"
-  ,"Angular Boilerplate": "Angular 模板"
+  ,"Angular Momentum": "Angular 模板"
   ,"v.": "v."
   ,"There are {{count}} components.": "{count, plural, =0 {没有组件。} other {有 # 个组件。}}"
   ,"App Version": "应用版本"
