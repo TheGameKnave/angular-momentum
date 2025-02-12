@@ -50,9 +50,15 @@ export function setupApp(): express.Application {
 
   setupStaticFileServing(app, process.env.NODE_ENV || 'development');
   
+  const graphqlLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
   // Initialize GraphQL
   app.use(express.urlencoded({ extended: true })); // Add this line
-  app.all('/graphql', graphqlMiddleware());
+  app.all('/graphql', graphqlLimiter, graphqlMiddleware());
   
   return app;
 }
