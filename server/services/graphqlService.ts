@@ -1,24 +1,63 @@
 import { createHandler } from 'graphql-http/lib/use/express';
 import { buildSchema } from 'graphql';
 import express from 'express';
-import { readFeatureFlags } from './lowDBService'; // Import LowDB function
+import { readFeatureFlags, writeFeatureFlags } from './lowDBService'; // Import LowDB function
 
 
 // Define GraphQL schema
 const schema = buildSchema(`
   type Query {
-    hello: String
-    add(a: Int!, b: Int!): Int
-    api: String
+    featureFlags: [FeatureFlag]
+    featureFlag(key: String!): Boolean
+    docs: String
+  }
+
+  type Mutation {
+    updateFeatureFlag(key: String!, value: Boolean!): FeatureFlag
+  }
+
+  type FeatureFlag {
+    key: String
+    value: Boolean
   }
 `);
 
 // Define resolvers
 const root = {
-  hello: () => 'Hello, world!',
-  add: ({ a, b }: { a: number; b: number }) => a + b,
-  api: () => {
-    return JSON.stringify(readFeatureFlags()); // Read from LowDB
+  featureFlags: () => {
+    const featureFlags = readFeatureFlags();
+    return Object.keys(featureFlags).map(key => ({ key, value: featureFlags[key] }));
+  },
+
+  featureFlag: ({ key }: { key: string }) => {
+    const featureFlags = readFeatureFlags();
+    return featureFlags[key];
+  },
+
+  updateFeatureFlag: ({ key, value }: { key: string; value: boolean }) => {
+    writeFeatureFlags({ [key]: value });
+    return { key, value };
+  },
+  docs: () => {
+    return `
+      # API Documentation
+
+      This API provides access to feature flags and allows you to update their status.
+
+      ## Queries
+
+      * \`featureFlags\`: Returns a list of all feature flags.
+      * \`featureFlag(key: String!)\`: Returns the status of a specific feature flag.
+      * \`docs\`: Returns the API instructions (this document).
+
+      ## Mutations
+
+      * \`updateFeatureFlag(key: String!, value: Boolean!)\`: Updates the status of a feature flag.
+
+      ## Authentication
+
+      This API uses [insert authentication mechanism here].
+    `;
   },
 };
 
