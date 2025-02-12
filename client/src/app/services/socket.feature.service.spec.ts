@@ -38,9 +38,4 @@ describe('SocketFeatureService', () => {
     });
   });
 
-  it('should call emit on SocketIoService when requestFeatureFlags is called', () => {
-    service.requestFeatureFlags();
-    expect(socketIoServiceSpy.emit).toHaveBeenCalledTimes(1);
-    expect(socketIoServiceSpy.emit).toHaveBeenCalledWith('request-feature-flags');
-  });
 });

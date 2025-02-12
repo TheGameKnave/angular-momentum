@@ -18,8 +18,4 @@ export class SocketFeatureService {
     return this.socketIoService.listen<FeatureFlag[]>('update-feature-flags');
   }
 
-  // Emit an event to request feature flag updates
-  requestFeatureFlags(): void {
-    this.socketIoService.emit('request-feature-flags');
-  }
 }
