@@ -1,7 +1,7 @@
 // websocket.ts
 import { Server as SocketIOServer } from 'socket.io';
 import { createServer } from 'http';
-import { readFeatureFlags, writeFeatureFlags } from './featureFlagService';
+import { readFeatureFlags, writeFeatureFlags } from './lowDBService';
 
 export function setupWebSocket(server: any) {
   const io = new SocketIOServer(server, {

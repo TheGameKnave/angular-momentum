@@ -1,14 +1,12 @@
 import { createHandler } from 'graphql-http/lib/use/express';
 import { buildSchema } from 'graphql';
 import express from 'express';
-import { readFeatureFlags } from '../services/featureFlagService'; // Import LowDB function
+import { readFeatureFlags } from './lowDBService'; // Import LowDB function
 
 
 // Define GraphQL schema
 const schema = buildSchema(`
-  type Query
-
-  extend type Query {
+  type Query {
     hello: String
     add(a: Int!, b: Int!): Int
     api: String

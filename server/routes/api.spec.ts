@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import apiRouter from './api';
 
-jest.mock('../services/featureFlagService', () => ({
+jest.mock('../services/lowDBService', () => ({
   readFeatureFlags: jest.fn(),
   writeFeatureFlags: jest.fn(),
 }));
@@ -10,7 +10,7 @@ describe('API Router', () => {
   let request: Request;
   let response: Response;
   let next: jest.Mock; // Update next to use Jest's mocking capabilities
-  const featureFlagService = require('../services/featureFlagService');
+  const lowDBService = require('../services/lowDBService');
 
   beforeEach(() => {
     request = {} as Request;
@@ -33,14 +33,14 @@ describe('API Router', () => {
 
   it('should handle GET /flags request', async () => {
     const featureFlagsMock = { feature1: true, feature2: false };
-    featureFlagService.readFeatureFlags.mockResolvedValue(featureFlagsMock);
+    lowDBService.readFeatureFlags.mockResolvedValue(featureFlagsMock);
 
     const getHandler = apiRouter.stack.find((layer: any) => layer.route && layer.route.path === '/flags');
     if (getHandler && getHandler.route) {
       const handler = getHandler.route.stack[0].handle;
       await handler(request, response, next);
 
-      expect(featureFlagService.readFeatureFlags).toHaveBeenCalledTimes(1);
+      expect(lowDBService.readFeatureFlags).toHaveBeenCalledTimes(1);
       expect(response.send).toHaveBeenCalledWith(featureFlagsMock);
     } else {
       throw new Error('GET /flags handler not found');
@@ -49,14 +49,14 @@ describe('API Router', () => {
 
   it('should handle errors in GET /flags', async () => {
     const error = new Error('Failed to fetch feature flags');
-    featureFlagService.readFeatureFlags.mockRejectedValue(error);
+    lowDBService.readFeatureFlags.mockRejectedValue(error);
 
     const getHandler = apiRouter.stack.find((layer: any) => layer.route && layer.route.path === '/flags');
     if (getHandler && getHandler.route) {
       const handler = getHandler.route.stack[0].handle;
       await handler(request, response, next);
 
-      expect(featureFlagService.readFeatureFlags).toHaveBeenCalledTimes(2);
+      expect(lowDBService.readFeatureFlags).toHaveBeenCalledTimes(2);
       expect(next).toHaveBeenCalledWith(error);
     } else {
       throw new Error('GET /flags handler not found');
@@ -65,8 +65,8 @@ describe('API Router', () => {
 
   it('should handle PUT /flags request', async () => {
     const newFeatureFlags = { feature1: true, feature2: true };
-    featureFlagService.writeFeatureFlags.mockResolvedValue(undefined);
-    featureFlagService.readFeatureFlags.mockResolvedValue(newFeatureFlags);
+    lowDBService.writeFeatureFlags.mockResolvedValue(undefined);
+    lowDBService.readFeatureFlags.mockResolvedValue(newFeatureFlags);
 
     const putHandler = apiRouter.stack.find(
       (layer: any) => layer.route && layer.route.path === '/flags' && layer.route.methods.put
@@ -77,8 +77,8 @@ describe('API Router', () => {
 
       await handler(request, response, next);
 
-      expect(featureFlagService.writeFeatureFlags).toHaveBeenCalledWith(newFeatureFlags);
-      expect(featureFlagService.readFeatureFlags).toHaveBeenCalledTimes(3);
+      expect(lowDBService.writeFeatureFlags).toHaveBeenCalledWith(newFeatureFlags);
+      expect(lowDBService.readFeatureFlags).toHaveBeenCalledTimes(3);
       expect(response.send).toHaveBeenCalledWith(newFeatureFlags);
     } else {
       throw new Error('PUT /flags handler not found');
@@ -87,7 +87,7 @@ describe('API Router', () => {
 
   it('should handle errors in PUT /flags', async () => {
     const error = new Error('Failed to update feature flags');
-    featureFlagService.writeFeatureFlags.mockRejectedValue(error);
+    lowDBService.writeFeatureFlags.mockRejectedValue(error);
 
     const putHandler = apiRouter.stack.find(
       (layer: any) => layer.route && layer.route.path === '/flags' && layer.route.methods.put
@@ -98,7 +98,7 @@ describe('API Router', () => {
 
       await handler(request, response, next);
 
-      expect(featureFlagService.writeFeatureFlags).toHaveBeenCalledTimes(2);
+      expect(lowDBService.writeFeatureFlags).toHaveBeenCalledTimes(2);
       expect(next).toHaveBeenCalledWith(error);
     } else {
       throw new Error('PUT /flags handler not found');

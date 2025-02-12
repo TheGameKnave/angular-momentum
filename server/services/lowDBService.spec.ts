@@ -1,4 +1,4 @@
-import { readFeatureFlags, writeFeatureFlags } from './featureFlagService';
+import { readFeatureFlags, writeFeatureFlags } from './lowDBService';
 
 // Mock dependencies
 jest.mock('lowdb/adapters/FileSync', () => {
