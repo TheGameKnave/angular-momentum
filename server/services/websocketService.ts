@@ -1,7 +1,6 @@
-// websocket.ts
 import { Server as SocketIOServer } from 'socket.io';
 import { createServer } from 'http';
-import { readFeatureFlags, writeFeatureFlags } from './featureFlagService';
+import { readFeatureFlags } from './lowDBService';
 
 export function setupWebSocket(server: any) {
   const io = new SocketIOServer(server, {
@@ -36,15 +35,6 @@ export function setupWebSocket(server: any) {
 
     // istanbul ignore next
     socket.onAny((event, ...args) => {});
-    // Handle updates to the feature flags
-    socket.on('update-feature-flag', async (newFeatures: Record<string, boolean>) => {
-
-      // Write updates to the file
-     const updatedFeatures = await writeFeatureFlags(newFeatures);
-
-      // Broadcast the updated flags to all clients
-      io.emit('update-feature-flags', updatedFeatures);
-    });
 
     socket.on('disconnect', () => {
     });

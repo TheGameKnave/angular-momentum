@@ -1,4 +1,4 @@
-import { importProvidersFrom, isDevMode } from '@angular/core';
+import { importProvidersFrom, isDevMode, SecurityContext } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
@@ -8,6 +8,7 @@ import { provideTransloco } from '@jsverse/transloco';
 import { provideTranslocoMessageformat } from '@jsverse/transloco-messageformat';
 import { cookiesStorage, GetLangParams, provideTranslocoPersistLang } from '@jsverse/transloco-persist-lang';
 import { provideTranslocoLocale } from '@jsverse/transloco-locale';
+import { MarkdownModule } from 'ngx-markdown';
 
 import { SUPPORTED_LANGUAGES } from './app/helpers/constants';
 import { provideFeatureFlag } from './app/providers/feature-flag.provider';
@@ -25,6 +26,7 @@ const socketIoConfig: SocketIoConfig = { url: ENVIRONMENT.baseUrl, options: {} }
 export const appProviders = [
   importProvidersFrom(
     BrowserModule,
+    MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerImmediately',

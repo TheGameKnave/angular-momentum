@@ -7,7 +7,7 @@
       "type": "string",
       "description": "Main page greeting"
     }
-    ,"Angular Boilerplate": {
+    ,"Angular Momentum": {
       "type": "string",
       "description": "Main page title"
     }
@@ -62,7 +62,7 @@
   },
   "required": [
     "Hello world"
-    ,"Angular Boilerplate"
+    ,"Angular Momentum"
     ,"v."
     ,"There are {{count}} components."
     ,"App Version"

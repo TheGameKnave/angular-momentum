@@ -1,4 +1,4 @@
-# angular-boilerplate
+# angular-momentum
 
 This repo is intended to allow spooling up Angular projects in a monorepo rapidly, with a minimum of configuration.
 

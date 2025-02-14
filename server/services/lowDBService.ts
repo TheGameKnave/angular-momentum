@@ -6,17 +6,16 @@ const FileSync = require('lowdb/adapters/FileSync');
 const adapter = new FileSync('data/db.json');
 const db = low(adapter);
 
-// Read feature flags from the JSON file
+// Read feature flags from the JSON mock DB
 export const readFeatureFlags = () => {
   return db.get('featureFlags').value();
 };
 
 
-// Write updated feature flags to the JSON file
-export const writeFeatureFlags = (newFeatures: Record<string, boolean>) => {
-  const existingFeatures = readFeatureFlags();
-  console.log(existingFeatures)
+// Write updated feature flags to the JSON mock DB
+export const writeFeatureFlags = async (newFeatures: Record<string, boolean>) => {
+  const existingFeatures = await readFeatureFlags();
   const updatedFeatures = { ...existingFeatures, ...newFeatures };
-  db.set('featureFlags',updatedFeatures).write();
+  await db.set('featureFlags',updatedFeatures).write();
   return updatedFeatures;
 };

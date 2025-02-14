@@ -1,10 +1,10 @@
 // websocket.spec.ts
 import { setupWebSocket } from './websocketService';
-import { readFeatureFlags, writeFeatureFlags } from './featureFlagService';
+import { readFeatureFlags, writeFeatureFlags } from './lowDBService';
 import { Server as SocketIOServer } from 'socket.io';
 
 // Mock the feature flag service methods
-jest.mock('./featureFlagService', () => ({
+jest.mock('./lowDBService', () => ({
   writeFeatureFlags: jest.fn(),
   readFeatureFlags: jest.fn(),
 }));

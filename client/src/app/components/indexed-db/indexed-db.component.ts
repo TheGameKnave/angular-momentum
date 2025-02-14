@@ -41,7 +41,7 @@ export class IndexedDBComponent implements OnInit, OnDestroy {
     });
   }
 
-  dbPromise = openDB('boilerplate', 1, {
+  dbPromise = openDB('momentum', 1, {
     // TODO figure out why this has inconsistent coverage
     // istanbul ignore next
     upgrade(db) {
