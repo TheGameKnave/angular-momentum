@@ -3,7 +3,6 @@ import { buildSchema } from 'graphql';
 import express from 'express';
 import { readFeatureFlags, writeFeatureFlags } from './lowDBService'; // Import LowDB function
 
-
 // Define GraphQL schema
 const schema = buildSchema(`
   type Query {
@@ -23,7 +22,7 @@ const schema = buildSchema(`
 `);
 
 // Define resolvers
-const root = {
+const root = (io: any) => ({
   featureFlags: () => {
     const featureFlags = readFeatureFlags();
     return Object.keys(featureFlags).map(key => ({ key, value: featureFlags[key] }));
@@ -34,10 +33,13 @@ const root = {
     return featureFlags[key];
   },
 
-  updateFeatureFlag: ({ key, value }: { key: string; value: boolean }) => {
-    writeFeatureFlags({ [key]: value });
+  updateFeatureFlag: async ({ key, value }: { key: string; value: boolean }) => {
+    const updatedFeatures = await writeFeatureFlags({ [key]: value });
+    // Emit WebSocket event when a feature flag is updated
+    io.emit('update-feature-flags', updatedFeatures);
     return { key, value };
   },
+  
   docs: () => {
     return `
       # API Documentation
@@ -59,27 +61,22 @@ const root = {
       This API uses [insert authentication mechanism here].
     `;
   },
-};
+});
 
 // Create middleware function for GraphQL
 export function graphqlMiddleware() {
   return (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const isLocalhost = req.hostname === 'localhost' || req.ip === '127.0.0.1';
-
-    // only works locally.... use different thing, NEED URL OF DEPL
-    // to implement, have url sent down from client
-    if (isLocalhost) {
-      console.log('GraphQL request from localhost:', req.body);
-    } else {
-      console.log('GraphQL request from external source:', req.ip);
-    }
+    const io = req.app.get('io'); // Retrieve io instance
 
     if (req.method === 'POST') {
       express.json()(req, res, () => {
-        createHandler({ schema, rootValue: root })(req, res, next);
+        createHandler({
+          schema,
+          rootValue: root(io), // Pass io to root resolvers
+        })(req, res, next);
       });
     } else {
-      next();
+      res.status(405).send({ error: 'Method Not Allowed' });
     }
   };
 }

@@ -3,6 +3,10 @@
     "target": "http://localhost:4201",
     "secure": false
   },
+  "/graphql": {
+    "target": "http://localhost:4201",
+    "secure": false
+  },
   "/socket.io": {
     "target": "http://localhost:4201",
     "ws": true,

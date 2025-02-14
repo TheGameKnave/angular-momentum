@@ -2,41 +2,20 @@
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
 
-// server/services/mockDB.ts
-interface MockDB {
-  get(key: string): any;
-  set(key: string, value: any): void;
-}
-
-class LowDBMock implements MockDB {
-  private db: any;
-
-  constructor(adapter: any) {
-    this.db = low(adapter);
-  }
-
-  get(key: string) {
-    return this.db.get(key).value();
-  }
-
-  set(key: string, value: any) {
-    this.db.set(key, value).write();
-  }
-}
-
-// Usage
+// Path to the mock database file
 const adapter = new FileSync('data/db.json');
-const mockDB: MockDB = new LowDBMock(adapter);
+const db = low(adapter);
 
-// Read feature flags from the mock DB
+// Read feature flags from the JSON mock DB
 export const readFeatureFlags = () => {
-  return mockDB.get('featureFlags');
+  return db.get('featureFlags').value();
 };
 
-// Write updated feature flags to the mock DB
-export const writeFeatureFlags = (newFeatures: Record<string, boolean>) => {
-  const existingFeatures = readFeatureFlags();
+
+// Write updated feature flags to the JSON mock DB
+export const writeFeatureFlags = async (newFeatures: Record<string, boolean>) => {
+  const existingFeatures = await readFeatureFlags();
   const updatedFeatures = { ...existingFeatures, ...newFeatures };
-  mockDB.set('featureFlags', updatedFeatures);
+  await db.set('featureFlags',updatedFeatures).write();
   return updatedFeatures;
 };

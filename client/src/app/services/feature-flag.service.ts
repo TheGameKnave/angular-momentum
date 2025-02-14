@@ -1,8 +1,9 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Socket } from 'ngx-socket-io';
-import { Observable, tap } from 'rxjs';
+import { map, Observable, tap } from 'rxjs';
 import { componentList } from '../app.component';
+import equal from 'fast-deep-equal';
 
 type ArbitraryFeatures = {
   // 'New Feature': boolean;
@@ -25,7 +26,16 @@ export class FeatureFlagService {
   features = signal<Record<string, boolean>>({});
 
   getFeatureFlags(): Observable<FeatureFlagResponse> {
-    return this.http.get<FeatureFlagResponse>('/api/flags').pipe(tap((features) => this.features.set(features)));
+    const query = getFeatureFlagsQuery();
+    return this.http.post('/graphql', { query }).pipe(
+      tap((response: any) => {
+        const featureFlags: FeatureFlagResponse = {};
+        response.data.featureFlags.forEach((flag: any) => {
+          featureFlags[flag.key] = flag.value;
+        });
+        this.features.set(featureFlags);
+      }),
+    );
   }
   constructor() {
     // Listen for WebSocket updates
@@ -38,14 +48,20 @@ export class FeatureFlagService {
 
   /**
    * Update a feature flag both locally and on the backend.
-   * Sends updates via WebSocket.
+   * Sends updates via GraphQL.
    */
   setFeature(feature: FeatureFlagKeys, value: boolean) {
     const newFeatures = { ...this.features(), [feature]: value };
-    this.features.set(newFeatures);
-
-    // Notify backend of the updated flag
-    this.socket.emit('update-feature-flag', { [feature]: value });
+    if(!equal(newFeatures,this.features())){
+      this.features.set(newFeatures);
+    
+      // Notify backend of the updated flag using GraphQL request
+      const mutation = updateFeatureFlagMutation(feature, value);
+      this.http.post('/graphql', {
+        query: mutation,
+        variables: { key: feature, value },
+      }).subscribe();
+    }
   }
 
   /**
@@ -54,4 +70,29 @@ export class FeatureFlagService {
   getFeature(feature: FeatureFlagKeys): boolean {
     return this.features()[feature] ?? feature === 'Features';
   }
+
+}
+/**
+ * graphQL queries to handle feature flags
+ */
+export function getFeatureFlagsQuery() {
+  return `
+    query GetFeatureFlags {
+      featureFlags {
+        key
+        value
+      }
+    }
+  `;
+}
+
+export function updateFeatureFlagMutation(key: string | number, value: boolean) {
+  return `
+    mutation UpdateFeatureFlag($key: String!, $value: Boolean!) {
+      updateFeatureFlag(key: $key, value: $value) {
+        key
+        value
+      }
+    }
+  `;
 }
