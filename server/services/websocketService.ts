@@ -1,5 +1,4 @@
 import { Server as SocketIOServer } from 'socket.io';
-import { createServer } from 'http';
 import { readFeatureFlags } from './lowDBService';
 
 export function setupWebSocket(server: any) {

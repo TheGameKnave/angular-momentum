@@ -7,16 +7,6 @@ import rateLimit from 'express-rate-limit';
 import { setupWebSocket } from './services/websocketService';
 import { graphqlMiddleware } from './services/graphqlService';
 
-declare global {
-  var cache: {
-    [resource: string]: {
-      time: Date;
-      data: any;
-    };
-  };
-}
-global.cache = {};
-
 function setupStaticFileServing(app: express.Application, env: string) {
   if (env === 'production' || env === 'staging' || env === 'development') {
     const dirname = path.resolve(__dirname, '../client/dist/angular-momentum/browser');
