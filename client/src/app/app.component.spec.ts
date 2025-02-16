@@ -56,7 +56,7 @@ describe('AppComponent', () => {
 
   it('should have the correct english title', () => {
     fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('h1')).nativeElement.innerText).toBe('Angular Boilerplate');
+    expect(fixture.debugElement.query(By.css('h1')).nativeElement.innerText).toBe('Angular Momentum');
   });
 });
 

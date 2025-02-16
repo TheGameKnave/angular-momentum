@@ -28,7 +28,7 @@ export class ApiComponent {
         return of(null); // Return an empty observable to continue the chain
       })
     ).subscribe((response: any) => {
-      this.results = response['data'];
+      this.results = response?.['data'] || null;
       this.cd.detectChanges();
     });
   }

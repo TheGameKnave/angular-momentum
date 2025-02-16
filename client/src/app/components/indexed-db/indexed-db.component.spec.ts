@@ -11,7 +11,7 @@ describe('IndexedDBComponent initialization', () => {
   let db: IDBPDatabase;
 
   beforeEach(async () => {
-    db = await openDB('boilerplate', 1, {
+    db = await openDB('momentum', 1, {
       upgrade(db) {
         db.createObjectStore('keyval');
       },
@@ -70,7 +70,7 @@ describe('IndexedDBComponent operations', () => {
     fixture.detectChanges();
 
     // Create a mock IndexedDB instance
-    db = await openDB('boilerplate', 1, {
+    db = await openDB('momentum', 1, {
       upgrade(db) {
         db.createObjectStore('keyval');
       },
@@ -134,7 +134,7 @@ describe('IndexedDBComponent operations', () => {
   // TODO figure out how to test database upgrades without crashing the test suite
   // it('should create the object store on database upgrade', async () => {
   //   // Open the database with a higher version to trigger the upgrade
-  //   const upgradedDb = await openDB('boilerplate', 2, {
+  //   const upgradedDb = await openDB('momentum', 2, {
   //     upgrade(db) {
   //       // This block should be executed, covering the `upgrade` function
   //       if (!db.objectStoreNames.contains('keyval')) {
@@ -146,7 +146,7 @@ describe('IndexedDBComponent operations', () => {
   //   // Verify that the object store was created
   //   expect(upgradedDb.objectStoreNames.contains('keyval')).toBeTrue();
 
-  //   await deleteDB('boilerplate');
+  //   await deleteDB('momentum');
   // });
   
   it('should handle multiple simultaneous updates', fakeAsync(async () => {

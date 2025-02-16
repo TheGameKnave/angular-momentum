@@ -1,10 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { ApiComponent } from './api.component';
-import { ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, SecurityContext } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { HttpHandler } from '@angular/common/http';
 import { of } from 'rxjs';
 import { throwError } from 'rxjs';
+import { MarkdownModule } from 'ngx-markdown';
 
 describe('ApiComponent', () => {
   let component: ApiComponent;
@@ -14,17 +15,21 @@ describe('ApiComponent', () => {
   let httpClientSpy: jasmine.SpyObj<HttpClient>;
 
   beforeEach(async () => {
-    httpClientSpy = jasmine.createSpyObj('HttpClient', ['get']);
+    // Create the spy for `post()` instead of `get()`
+    httpClientSpy = jasmine.createSpyObj('HttpClient', ['post']);
 
     await TestBed.configureTestingModule({
-      imports: [ApiComponent],
+      imports: [
+        ApiComponent,
+        MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),
+      ],
       providers: [
         { provide: HttpClient, useValue: httpClientSpy },
         { provide: HttpHandler, useValue: {} },
-        ChangeDetectorRef
+        ChangeDetectorRef,
       ]
-    })
-      .compileComponents();
+    }).compileComponents();
+
     fixture = TestBed.createComponent(ApiComponent);
     component = fixture.componentInstance;
     httpHandler = TestBed.inject(HttpHandler);
@@ -39,26 +44,27 @@ describe('ApiComponent', () => {
     expect(fixture).toBeTruthy();
   });
 
-  it('should make a GET request to the API endpoint', () => {
-    const url = '/api';
-    httpClientSpy.get.and.returnValue(of({}));
+  it('should make a POST request to the GraphQL API', () => {
+    // Mock response for GraphQL API
+    httpClientSpy.post.and.returnValue(of({ data: { docs: ['Sample documentation'] } }));
+
     component.ngOnInit();
-    expect(httpClientSpy.get).toHaveBeenCalledTimes(1);
-    expect(httpClientSpy.get.calls.allArgs()[0].length).toBe(2);
-    expect(httpClientSpy.get.calls.allArgs()[0][0]).toBe(url);
+    
+    expect(httpClientSpy.post).toHaveBeenCalledTimes(1);
+    expect(httpClientSpy.post.calls.argsFor(0)[0]).toBe('/graphql');
   });
 
   it('should display the API data', () => {
-    const data = { message: 'Hello, World!' };
-    httpClientSpy.get.and.returnValue(of(data));
+    const data = { data: { docs: ['Sample documentation'] } };
+    httpClientSpy.post.and.returnValue(of(data));
     component.ngOnInit();
     fixture.detectChanges();
-    expect(component.results).toBe(data);
+    expect(component.results).toBe(data.data);
   });
-  
+
   it('should handle API errors', () => {
     const error = { message: 'Error message' };
-    httpClientSpy.get.and.returnValue(throwError(() => error));
+    httpClientSpy.post.and.returnValue(throwError(() => error));
     component.ngOnInit();
     fixture.detectChanges();
     expect(component.error).toEqual(error);

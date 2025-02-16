@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Socket } from 'ngx-socket-io';
-import { Observable, tap } from 'rxjs';
+import { map, Observable, tap } from 'rxjs';
 import { componentList } from '../app.component';
 import equal from 'fast-deep-equal';
 
@@ -27,14 +27,15 @@ export class FeatureFlagService {
 
   getFeatureFlags(): Observable<FeatureFlagResponse> {
     const query = getFeatureFlagsQuery();
-    return this.http.post('/graphql', { query }).pipe(
-      tap((response: any) => {
-        const featureFlags: FeatureFlagResponse = {};
-        response.data.featureFlags.forEach((flag: any) => {
-          featureFlags[flag.key] = flag.value;
-        });
-        this.features.set(featureFlags);
+    return this.http.post<{ data: { featureFlags: { key: FeatureFlagKeys; value: boolean }[] } }>('/graphql', { query }).pipe(
+      map((response) => {
+        const featureFlags = response.data.featureFlags.reduce((acc, flag) => {
+          acc[flag.key] = flag.value;
+          return acc;
+        }, {} as FeatureFlagResponse);
+        return featureFlags;
       }),
+      tap((featureFlags) => this.features.set(featureFlags))
     );
   }
   constructor() {
