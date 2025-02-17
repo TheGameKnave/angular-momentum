@@ -1,6 +1,22 @@
-# .slugignore
+# Ignore unnecessary dependencies (Heroku installs only what's in package.json)
+node_modules/
+client/node_modules/
 
-# Ignore test-related dependencies and files
+# Ignore test-related files
+tests/
+coverage/
+karma.conf.js
+tsconfig.spec.json
+
+# Ignore frontend source files (only deploy built `dist/`)
+client/src/
+client/angular.json
+client/tsconfig.json
+client/tsconfig.app.json
+client/tsconfig.spec.json
+client/transloco.config.ts
+
+# Ignore build tools not needed at runtime
 node_modules/karma/
 node_modules/jest-runner/
 node_modules/typescript/
@@ -15,6 +31,5 @@ node_modules/@types/
 node_modules/sass/
 node_modules/less/
 
-# Other potential candidates
-# *.ts
-# *.map
+# Ignore mappings and other unnecessary files
+*.map
