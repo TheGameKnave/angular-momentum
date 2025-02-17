@@ -6,32 +6,37 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>html{font-size: 62.5%;}</style>
-  <!-- Google Tag Manager -->
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer','GTM-<ABCDEFGH>');</script>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-NZS60CFH48"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-NZS60CFH48');
+  </script>
   <!-- End Google Tag Manager -->
+
   <!-- Hotjar Tracking Code -->
   <script>
-    (function (c, s, q, u, a) {
-      c.hj = c.hj || function () {
-        c.hj.q = c.hj.q || [];
-        c.hj.q.push(arguments);
-      };
+    (function (c, s, q, u, a, r, e) {
+      // Prevent loading on localhost
+      if (location.hostname === "localhost") {
+        /* keep this log */console.log('Not loading Hotjar Tracking Code on localhost');
+        return;
+      }
+      c.hj = c.hj || function () { (c.hj.q = c.hj.q || []).push(arguments) };
       c._hjSettings = { hjid: a };
-      const headElement = s.getElementsByTagName('head')[0];
-      const scriptElement = s.createElement('script');
-      scriptElement.async = true;
-      scriptElement.src = q + c._hjSettings.hjid + u;
-      headElement.appendChild(scriptElement);
-    })(window, document, 'https://static.hj.contentsquare.net/c/csq-', '.js', 12345678);
+      r = s.getElementsByTagName('head')[0];
+      e = s.createElement('script');
+      e.async = true;
+      e.src = q + c._hjSettings.hjid + u;
+      r.appendChild(e);
+    })(window, document, 'https://static.hj.contentsquare.net/c/csq-', '.js', 5307937);
   </script>
   <!-- End Hotjar Tracking Code -->
-  <script>
-    window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', '<GOOGLE_TAG>');
-  </script>
+
   <link rel="icon" type="image/png" href="assets/icons/android-chrome-192x192.png" sizes="192x192">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
