@@ -4,7 +4,7 @@
   "siteUrl": "https://angular-node-momentum-c873a67b06f7.herokuapp.com/",
   "private": true,
   "engines": {
-    "node": "20.16.0"
+    "node": "22.14.0"
   },
   "scripts": {
     "client": "cd client && npm run start -- --configuration development",
@@ -12,12 +12,11 @@
     "server": "cd server && node-env-run --exec nodemon | pino-colada",
     "server-prod": "NODE_ENV=production && cd server && node-env-run --exec nodemon",
     "heroku-postbuild": "cd client && npm install && npm run build -- --configuration ${NODE_ENV}",
-    "start": "cd server && ts-node index.ts",
-    "dev": "run-p client server",
+    "start": "run-p client server",
     "prod": "run-p client-prod server-prod",
     "sonar": "sonar-scanner -Dsonar.token=$(grep SONAR_TOKEN server/.env | cut -d '=' -f 2)",
     "test": "./tests/test.sh",
-    "test-translation": "cd tests/translation && ts-node translation-validation.ts",
+    "test-translation": "cd tests/translation && ts-node translation-validation.ts THIS BREAKS",
     "test-server": "cd server && npm test",
     "test-client": "cd client && npm test",
     "test-e2e": "cd tests/e2e && node clean_screenshots && node test_runner",

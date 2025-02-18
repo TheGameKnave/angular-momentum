@@ -1,6 +1,7 @@
 import { exec } from 'child_process';
 import { SUPPORTED_LANGUAGES } from '../../client/src/app/helpers/constants';
 import * as path from 'path';
+// TODO hire someone to fix this horrible crap
 
 const schemaPath = path.join(__dirname, 'translation.schema.json');
 const translationsDir = path.join(__dirname, '..', '..', 'client', 'src', 'assets', 'i18n');

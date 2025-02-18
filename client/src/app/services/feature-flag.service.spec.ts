@@ -11,8 +11,9 @@ describe('FeatureFlagService', () => {
   let socketSpy: jasmine.SpyObj<Socket>;
 
   beforeEach(() => {
-    socketSpy = jasmine.createSpyObj('Socket', ['on']);
-    socketSpy.ioSocket = { connected: true };
+    socketSpy = jasmine.createSpyObj('Socket', ['on'], {
+      ioSocket: { connected: true }
+    });
 
     TestBed.configureTestingModule({
       providers: [

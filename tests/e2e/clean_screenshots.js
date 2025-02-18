@@ -1,6 +1,11 @@
-// Import the necessary modules
-const fs = require('fs').promises;
-const path = require('path');
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// Get the current directory equivalent to __dirname in CommonJS
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Define the function to clean the tested screenshots
 async function cleanTestedScreenshots(rootDir) {

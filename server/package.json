@@ -3,7 +3,7 @@
   "private": true,
   "engineStrict": true,
   "engines": {
-    "node": "20.16.0"
+    "node": "22.14.0"
   },
   "scripts": {
     "start": "nodemon",
