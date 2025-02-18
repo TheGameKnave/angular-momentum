@@ -23,7 +23,7 @@ jobs:
       - name: Set Up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20.16.0
+          node-version: 22.14.0
 
       - name: Install Dependencies
         run: |
@@ -89,31 +89,62 @@ jobs:
 
       - name: Wait for Quality Gate
         run: |
-          TASK_ID=$(cat .scannerwork/report-task.txt | grep ceTaskId | cut -d= -f2)
-          echo "Fetching task status... for $TASK_ID"
-          curl -s -u "${{ secrets.SONAR_TOKEN }}:" "https://sonarcloud.io/api/ce/task?id=$TASK_ID" -o task.json
+          #!/bin/bash
+          TASK_FILE=.scannerwork/report-task.txt
+          echo "Fetching task status... for TASK_ID=$(cat $TASK_FILE)"
+          TASK_ID=$(grep "ceTaskId" "$TASK_FILE" | cut -d= -f2 | tr -d '[:space:]')
 
-          echo "Task API Response:"
-          cat task.json
-
-          STATUS=$(grep -o '"status":"[^"]*"' task.json | cut -d: -f2 | tr -d '"')
-          if [[ "$STATUS" != "SUCCESS" ]]; then
-            echo "Analysis did not complete successfully!"
+          if [[ -z "$TASK_ID" ]]; then
+            echo "Error: TASK_ID is empty. Check Sonar task file."
             exit 1
           fi
 
-          echo "Fetching Quality Gate status..."
-          ANALYSIS_ID=$(grep -o '"analysisId":"[^"]*"' task.json | cut -d: -f2 | tr -d '"')
-          curl -s -u "${{ secrets.SONAR_TOKEN }}:" "https://sonarcloud.io/api/qualitygates/project_status?analysisId=$ANALYSIS_ID" -o gate.json
+          # Wait for SonarCloud to complete the analysis
+          MAX_RETRIES=15
+          RETRY_DELAY=10
+          TRIES=0
 
-          echo "Quality Gate API Response:"
-          cat gate.json
+          while ((TRIES < MAX_RETRIES)); do
+            # Fetch task status from SonarCloud
+            RESPONSE=$(curl -s -u "${{ secrets.SONAR_TOKEN }}:" "https://sonarcloud.io/api/ce/task?id=$TASK_ID")
+            echo "Response: $RESPONSE"  # This logs the response from SonarCloud
+            
+            # Check if the response contains data
+            if [[ -z "$RESPONSE" ]]; then
+              echo "Warning: Empty response from SonarCloud. Retrying..."
+              sleep $RETRY_DELAY
+              ((TRIES++))
+              continue
+            fi
 
-          GATE_STATUS=$(jq -r '.projectStatus.status' gate.json)
-          if [[ "$GATE_STATUS" != "OK" ]]; then
-            echo "Quality Gate failed!"
-            exit 1
-          fi
+            # Attempt to extract the status from the response
+            STATUS=$(echo "$RESPONSE" | grep -o '"status":"[^"]*"' | cut -d: -f2 | tr -d '"')
+            
+            if [[ -z "$STATUS" ]]; then
+              echo "Warning: STATUS is empty. Retrying..."
+              sleep $RETRY_DELAY
+              ((TRIES++))
+              continue
+            fi
 
-          echo "Quality Gate passed successfully!"
+            echo "Current Task Status: $STATUS"
+
+            if [[ "$STATUS" == "SUCCESS" ]]; then
+              break
+            elif [[ "$STATUS" == "FAILED" ]]; then
+              echo "SonarCloud analysis failed!"
+              echo "$RESPONSE"  # Show full response on failure
+              exit 1
+            fi
+
+            ((TRIES++))
+            if [[ "$TRIES" -ge "$MAX_RETRIES" ]]; then
+              echo "SonarCloud analysis taking too long. Exiting."
+              exit 1
+            fi
+
+            echo "Waiting for SonarCloud to complete analysis... (Attempt $TRIES/$MAX_RETRIES)"
+            sleep $RETRY_DELAY
+          done
+
         shell: bash

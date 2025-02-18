@@ -7,7 +7,6 @@ import { TranslocoService } from '@jsverse/transloco';
 @Component({
     selector: 'app-footer',
     templateUrl: './footer.component.html',
-    standalone: true,
     imports: [NgClass],
     styles: ``
 })

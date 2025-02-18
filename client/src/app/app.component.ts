@@ -29,16 +29,15 @@ export const componentList: ComponentList = {
 
 @AutoUnsubscribe()
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    NgComponentOutlet,
-    TranslocoDirective,
-    FooterComponent,
-  ],
-  styles: ``
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        NgComponentOutlet,
+        TranslocoDirective,
+        FooterComponent,
+    ],
+    styles: ``
 })
 export class AppComponent implements OnDestroy {
   componentList = componentList;

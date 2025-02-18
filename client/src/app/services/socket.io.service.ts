@@ -10,7 +10,7 @@ export class SocketIoService {
 
   // Listen to an event
   listen<T>(event: string): Observable<T> {
-    return this.socket.fromEvent<T>(event);
+    return this.socket.fromEvent(event);
   }
 
   // Emit an event

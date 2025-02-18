@@ -4,13 +4,12 @@ import { MarkdownComponent } from 'ngx-markdown';
 import { catchError, of } from 'rxjs';
 
 @Component({
-  selector: 'app-api',
-  standalone: true,
-  imports: [
-    MarkdownComponent,
-  ],
-  templateUrl: './api.component.html',
-  styles: ``
+    selector: 'app-api',
+    imports: [
+        MarkdownComponent,
+    ],
+    templateUrl: './api.component.html',
+    styles: ``
 })
 export class ApiComponent {
   results: any = null;

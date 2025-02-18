@@ -20,20 +20,24 @@
 
   <!-- Hotjar Tracking Code -->
   <script>
-    (function (c, s, q, u, a, r, e) {
-      // Prevent loading on localhost
-      if (location.hostname === "localhost") {
-        /* keep this log */console.log('Not loading Hotjar Tracking Code on localhost');
-        return;
-      }
-      c.hj = c.hj || function () { (c.hj.q = c.hj.q || []).push(arguments) };
-      c._hjSettings = { hjid: a };
-      r = s.getElementsByTagName('head')[0];
-      e = s.createElement('script');
-      e.async = true;
-      e.src = q + c._hjSettings.hjid + u;
-      r.appendChild(e);
-    })(window, document, 'https://static.hj.contentsquare.net/c/csq-', '.js', 5307937);
+    // Prevent loading on localhost
+    if (location.hostname === "localhost") {
+      /* keep this */console.log('Not loading Hotjar Tracking Code on localhost');
+    } else {
+      (function (c, s, q, u, a) {
+        c.hj = c.hj || function () { hjQueue.push(arguments); };
+        const hjQueue = c.hj.q = c.hj.q || [];
+
+        c._hjSettings = { hjid: a };
+
+        const headElement = s.getElementsByTagName('head')[0];
+        const scriptElement = s.createElement('script');
+
+        scriptElement.async = true;
+        scriptElement.src = q + c._hjSettings.hjid + u;
+        headElement.appendChild(scriptElement);
+      })(window, document, 'https://static.hj.contentsquare.net/c/csq-', '.js', 5307937);
+    }
   </script>
   <!-- End Hotjar Tracking Code -->
 

@@ -8,7 +8,7 @@ const ajvPath = path.join(__dirname, '..', '..', 'node_modules', '.bin', 'ajv');
 
 
 SUPPORTED_LANGUAGES.forEach((lang) => {
-  const command = `${ajvPath} -s ${schemaPath} -d ${translationsDir}/${lang}.json --strict=false`;
+  const command = `${ajvPath} validate -s ${schemaPath} ${translationsDir}/${lang}.json --strict=false`;
 
   exec(command, (error, stdout, stderr) => {
     if (error) {

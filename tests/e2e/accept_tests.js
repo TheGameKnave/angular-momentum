@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 // Get the directory to traverse from the command line argument
 const dirToTraverse = path.resolve('screenshots', process.argv[2] || '');

@@ -1,6 +1,8 @@
-const createTestCafe = require("testcafe");
-const { exec } = require("child_process");
-const { promisify } = require("util");
+import createTestCafe from 'testcafe';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+// Create a promisified version of exec
 const execPromise = promisify(exec);
 
 process.env.TEST_MODE = process.argv[2] || process.env.TEST_MODE || 'tested';
