@@ -82,7 +82,7 @@ jobs:
         run: |
           sonar-scanner \
             -Dsonar.projectKey=TheGameKnave_angular-momentum \
-            -Dsonar.organization=TheGameKnave \
+            -Dsonar.organization=thegameknave \
             -Dsonar.host.url=https://sonarcloud.io
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
