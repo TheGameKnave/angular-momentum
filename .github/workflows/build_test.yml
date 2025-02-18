@@ -89,22 +89,40 @@ jobs:
 
       - name: Wait for Quality Gate
         run: |
-          TASK_ID=$(cat .scannerwork/report-task.txt | grep ceTaskId | cut -d= -f2)
+          TASK_ID=$(grep ceTaskId .scannerwork/report-task.txt | cut -d= -f2)
           echo "Fetching task status... for $TASK_ID"
-          curl -s -u "${{ secrets.SONAR_TOKEN }}:" "https://sonarcloud.io/api/ce/task?id=$TASK_ID" -o task.json
 
-          echo "Task API Response:"
-          cat task.json
+          # Wait for SonarCloud to complete the analysis
+          MAX_RETRIES=10  # Adjust this if needed
+          RETRY_DELAY=10  # Wait time in seconds
+          TRIES=0
 
-          STATUS=$(grep -o '"status":"[^"]*"' task.json | cut -d: -f2 | tr -d '"')
-          if [[ "$STATUS" != "SUCCESS" ]]; then
-            echo "Analysis did not complete successfully!"
-            exit 1
-          fi
+          while true; do
+            curl -s -u "***:" "https://sonarcloud.io/api/ce/task?id=$TASK_ID" -o task.json
+
+            STATUS=$(grep -o '"status":"[^"]*"' task.json | cut -d: -f2 | tr -d '"')
+            echo "Current Task Status: $STATUS"
+
+            if [[ "$STATUS" == "SUCCESS" ]]; then
+              break
+            elif [[ "$STATUS" == "FAILED" ]]; then
+              echo "SonarCloud analysis failed!"
+              exit 1
+            fi
+
+            ((TRIES++))
+            if [[ "$TRIES" -ge "$MAX_RETRIES" ]]; then
+              echo "SonarCloud analysis taking too long. Exiting."
+              exit 1
+            fi
+
+            echo "Waiting for SonarCloud to complete analysis... (Attempt $TRIES/$MAX_RETRIES)"
+            sleep $RETRY_DELAY
+          done
 
           echo "Fetching Quality Gate status..."
           ANALYSIS_ID=$(grep -o '"analysisId":"[^"]*"' task.json | cut -d: -f2 | tr -d '"')
-          curl -s -u "${{ secrets.SONAR_TOKEN }}:" "https://sonarcloud.io/api/qualitygates/project_status?analysisId=$ANALYSIS_ID" -o gate.json
+          curl -s -u "***:" "https://sonarcloud.io/api/qualitygates/project_status?analysisId=$ANALYSIS_ID" -o gate.json
 
           echo "Quality Gate API Response:"
           cat gate.json
@@ -116,4 +134,5 @@ jobs:
           fi
 
           echo "Quality Gate passed successfully!"
+
         shell: bash
