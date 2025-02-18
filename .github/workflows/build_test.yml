@@ -106,7 +106,7 @@ jobs:
 
           while ((TRIES < MAX_RETRIES)); do
             # Fetch task status from SonarCloud
-            RESPONSE=$(curl -s -u "***:" "https://sonarcloud.io/api/ce/task?id=$TASK_ID")
+            RESPONSE=$(curl -s -u "${{ secrets.SONAR_TOKEN }}:" "https://sonarcloud.io/api/ce/task?id=$TASK_ID")
             echo "Response: $RESPONSE"  # This logs the response from SonarCloud
             
             # Check if the response contains data
