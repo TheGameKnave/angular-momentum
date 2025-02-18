@@ -89,24 +89,56 @@ jobs:
 
       - name: Wait for Quality Gate
         run: |
-          TASK_ID=$(grep ceTaskId .scannerwork/report-task.txt | cut -d= -f2)
-          echo "Fetching task status... for $TASK_ID"
+          #!/bin/bash
+
+          # Extract TASK_ID safely
+          TASK_FILE=".scannerwork/report-task.txt"
+          if [[ ! -f "$TASK_FILE" ]]; then
+            echo "Error: Sonar task file not found: $TASK_FILE"
+            exit 1
+          fi
+
+          TASK_ID=$(grep "ceTaskId" "$TASK_FILE" | cut -d= -f2 | tr -d '[:space:]')
+
+          if [[ -z "$TASK_ID" ]]; then
+            echo "Error: TASK_ID is empty. Check Sonar task file."
+            exit 1
+          fi
+
+          echo "Fetching task status... for TASK_ID=$TASK_ID"
 
           # Wait for SonarCloud to complete the analysis
-          MAX_RETRIES=10  # Adjust this if needed
+          MAX_RETRIES=15  # Increased retries
           RETRY_DELAY=10  # Wait time in seconds
           TRIES=0
 
           while true; do
             curl -s -u "***:" "https://sonarcloud.io/api/ce/task?id=$TASK_ID" -o task.json
 
+            # Check if the response file exists and contains data
+            if [[ ! -s task.json ]]; then
+              echo "Warning: Empty response from SonarCloud. Retrying..."
+              sleep $RETRY_DELAY
+              ((TRIES++))
+              continue
+            fi
+
             STATUS=$(grep -o '"status":"[^"]*"' task.json | cut -d: -f2 | tr -d '"')
+            
+            if [[ -z "$STATUS" ]]; then
+              echo "Warning: STATUS is empty. Retrying..."
+              sleep $RETRY_DELAY
+              ((TRIES++))
+              continue
+            fi
+
             echo "Current Task Status: $STATUS"
 
             if [[ "$STATUS" == "SUCCESS" ]]; then
               break
             elif [[ "$STATUS" == "FAILED" ]]; then
               echo "SonarCloud analysis failed!"
+              cat task.json  # Show details on failure
               exit 1
             fi
 
@@ -122,6 +154,12 @@ jobs:
 
           echo "Fetching Quality Gate status..."
           ANALYSIS_ID=$(grep -o '"analysisId":"[^"]*"' task.json | cut -d: -f2 | tr -d '"')
+
+          if [[ -z "$ANALYSIS_ID" ]]; then
+            echo "Error: Failed to extract ANALYSIS_ID from task.json"
+            exit 1
+          fi
+
           curl -s -u "***:" "https://sonarcloud.io/api/qualitygates/project_status?analysisId=$ANALYSIS_ID" -o gate.json
 
           echo "Quality Gate API Response:"
