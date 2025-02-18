@@ -81,7 +81,7 @@ jobs:
       - name: Run SonarScanner
         run: |
           sonar-scanner \
-            -Dsonar.projectKey=TheGameKnave_angular-boilerplate \
+            -Dsonar.projectKey=TheGameKnave_angular-momentum \
             -Dsonar.organization=thegameknave \
             -Dsonar.host.url=https://sonarcloud.io
         env:

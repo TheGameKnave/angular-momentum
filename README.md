@@ -1,4 +1,4 @@
-# angular-boilerplate
+# angular-momentum
 
 This repo is intended to allow spooling up Angular projects in a monorepo rapidly, with a minimum of configuration.
 
@@ -31,9 +31,17 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * public api with GraphQL *
 * DB-agnostic query layer
 * Elf state management *
-* Immutable.js to minimize mutation
-* Ionic & Electron integration
+* Immutable.js or immer or Timm to minimize mutation
+* Capacitor & Electron integration for app bundling
+* Lighthouse CI to mitigate performance slip
 * Auth-agnostic (or maybe just Firebase) user management (emails and password resetting and deliverability) *
+
+## License
+This project is licensed under the MIT License (see [LICENSE](https://github.com/TheGameKnave/angular-momentum/blob/main/LICENSE) file for details).
+
+### Using This as a Base for Your Own App?
+- If you modify and distribute this **library itself**, you must keep it MIT-licensed.
+- If you use this library as a foundation to build **your own application**, you can license your application however you choose.
 
 ## Quick start
 

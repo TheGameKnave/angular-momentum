@@ -1,7 +1,7 @@
 {
-  "name": "angular-boilerplate",
-  "version": "0.18.2",
-  "siteUrl": "https://angular-node-boilerplate-c873a67b06f7.herokuapp.com/",
+  "name": "angular-momentum",
+  "version": "0.19.0",
+  "siteUrl": "https://angular-node-momentum-c873a67b06f7.herokuapp.com/",
   "private": true,
   "engines": {
     "node": "20.16.0"
@@ -35,5 +35,10 @@
     "testcafe-blink-diff": "^0.5.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "graphql": "^16.10.0",
+    "graphql-http": "^1.22.4",
+    "lowdb": "^7.0.1"
   }
 }

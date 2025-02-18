@@ -4,22 +4,12 @@ import { createServer } from 'http';
 import pino from 'express-pino-logger';
 import config from './config/environment';
 import rateLimit from 'express-rate-limit';
-import apiRouter from './routes/api';
 import { setupWebSocket } from './services/websocketService';
-
-declare global {
-  var cache: {
-    [resource: string]: {
-      time: Date;
-      data: any;
-    };
-  };
-}
-global.cache = {};
+import { graphqlMiddleware } from './services/graphqlService';
 
 function setupStaticFileServing(app: express.Application, env: string) {
   if (env === 'production' || env === 'staging' || env === 'development') {
-    const dirname = path.resolve(__dirname, '../client/dist/angular-boilerplate/browser');
+    const dirname = path.resolve(__dirname, '../client/dist/angular-momentum/browser');
     app.use(express.static(dirname, { maxAge: 3600000 }));
 
     app.get('*', (req, res) => {
@@ -35,20 +25,18 @@ export function setupApp(): express.Application {
   app.use(logger);
   app.use(express.json());
 
-  const apiLimiter = rateLimit({
-    windowMs: 10 * 60 * 1000,
-    max: 2000,
+  setupStaticFileServing(app, process.env.NODE_ENV || 'development');
+  
+  // Initialize GraphQL
+  const graphqlLimiter = rateLimit({
+    windowMs: 10/*minutes*/ * 60/*seconds*/ * 1000/*milliseconds*/,
+    max: 100,
     standardHeaders: true,
     legacyHeaders: false,
   });
-  app.use((req, res, next) => {
-    next();
-  });
-  app.use('/api', apiLimiter);
-  app.use('/api', apiRouter);
-
-  setupStaticFileServing(app, process.env.NODE_ENV || 'development');
-
+  app.use(express.urlencoded({ extended: true })); // Add this line
+  app.all('/graphql', graphqlLimiter, graphqlMiddleware());
+  
   return app;
 }
 

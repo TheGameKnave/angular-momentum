@@ -1,6 +1,6 @@
 {
   "Hello world": "Bonjour le monde"
-  ,"Angular Boilerplate": "Modèle Angular"
+  ,"Angular Momentum": "Modèle Angular"
   ,"v.": "v."
   ,"There are {{count}} components.": "{count, plural, =0 {Il n'y a pas de composants.} one {Il y a 1 composant.} other {Il y a # composants.}}"
   ,"App Version": "Version de l'application"

@@ -1,11 +1,14 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ChangeDetectorRef, Component } from '@angular/core';
+import { MarkdownComponent } from 'ngx-markdown';
 import { catchError, of } from 'rxjs';
 
 @Component({
   selector: 'app-api',
   standalone: true,
-  imports: [],
+  imports: [
+    MarkdownComponent,
+  ],
   templateUrl: './api.component.html',
   styles: ``
 })
@@ -24,8 +27,8 @@ export class ApiComponent {
         this.error = error;
         return of(null); // Return an empty observable to continue the chain
       })
-    ).subscribe(response => {
-      this.results = response;
+    ).subscribe((response: any) => {
+      this.results = response?.['data'] || null;
       this.cd.detectChanges();
     });
   }
@@ -35,6 +38,11 @@ export class ApiComponent {
         'Content-Type':  'application/json'
       })
     };
-    return this.http.get('/api', httpOptions);
+    const query = `
+      query GetApiData {
+        docs
+      }
+    `;
+    return this.http.post('/graphql', { query }, httpOptions);
   }
 }

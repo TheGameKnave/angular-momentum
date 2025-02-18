@@ -1,4 +1,4 @@
-import { readFeatureFlags, writeFeatureFlags } from './featureFlagService';
+import { readFeatureFlags, writeFeatureFlags } from './lowDBService';
 
 // Mock dependencies
 jest.mock('lowdb/adapters/FileSync', () => {
@@ -6,20 +6,23 @@ jest.mock('lowdb/adapters/FileSync', () => {
 });
 
 jest.mock('lowdb', () => {
-  return jest.fn(() => ({
-    get: jest.fn(() => ({
-      value: jest.fn(() => ({
-        featureA: true,
-        featureB: false,
-      })),
+  const mockDb = {
+    get: jest.fn().mockImplementation((key) => ({
+      value: jest.fn(() => {
+        if (key === 'featureFlags') {
+          return { featureA: true, featureB: false };
+        }
+        return undefined;
+      }),
     })),
     set: jest.fn().mockReturnValue({
       write: jest.fn(),
     }),
-  }));
+  };
+  return jest.fn(() => mockDb);
 });
 
-describe('FeatureFlagsService', () => {
+describe('LowDBService', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -35,9 +38,9 @@ describe('FeatureFlagsService', () => {
   });
 
   describe('writeFeatureFlags', () => {
-    it('should update and return the new feature flags', () => {
+    it('should update and return the new feature flags', async () => {
       const newFeatures = { featureC: true };
-      const result = writeFeatureFlags(newFeatures);
+      const result = await writeFeatureFlags(newFeatures);  // Await the result
 
       expect(result).toEqual({
         featureA: true,
