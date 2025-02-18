@@ -8,14 +8,13 @@ import { Subscription } from 'rxjs';
 
 @AutoUnsubscribe()
 @Component({
-  selector: 'app-features',
-  standalone: true,
-  imports: [
-    TranslocoDirective,
-    ReactiveFormsModule,
-  ],
-  templateUrl: './features.component.html',
-  styles: ``,
+    selector: 'app-features',
+    imports: [
+        TranslocoDirective,
+        ReactiveFormsModule,
+    ],
+    templateUrl: './features.component.html',
+    styles: ``
 })
 export class FeaturesComponent implements OnInit, OnDestroy {
   featureControls: { [key: string]: FormControl } = {};
