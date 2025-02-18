@@ -28,18 +28,12 @@
     "./server"
   ],
   "devDependencies": {
-    "@rodrigoff/ajv-cli": "^5.2.0",
+    "@jirutka/ajv-cli": "^6.0.0-beta.5",
     "ajv": "^8.17.1",
     "testcafe": "^3.6.2",
     "testcafe-angular-selectors": "^0.4.1",
     "testcafe-blink-diff": "^0.5.5",
-    "ts-node": "^10.9.2",
+    "ts-node": "^11.0.0-beta.1",
     "typescript": "^5.5.4"
-  },
-  "dependencies": {
-    "graphql": "^16.10.0",
-    "graphql-http": "^1.22.4",
-    "lowdb": "^7.0.1"
-  },
-  "type": "module"
+  }
 }
