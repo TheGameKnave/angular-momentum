@@ -2,15 +2,14 @@
   <h1>{{ t('Angular Momentum') }}</h1>
   <p>{{ t('Hello world') }}</p>
   <p>{{ t('There are {{count}} components.',{count: componentListArr.length}) }}</p>
-  <ion-button expand="full">Hello Ionic</ion-button>
 
   @for (component of componentListArr; track $index) {
     @if (featureFlagService.getFeature(component[0])) {
-      <button
+      <ion-button
         [class]="'component-' + component[0].replace(' ','-').toLowerCase()"
         [disabled]="activeComponent === component[0]"
         (click)="onComponentActivate(component[0])"
-      >{{ t(component[0]) }}</button>
+      >{{ t(component[0]) }}</ion-button>
     }
   }
   <button

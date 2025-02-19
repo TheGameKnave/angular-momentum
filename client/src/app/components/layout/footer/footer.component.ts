@@ -3,11 +3,21 @@ import { SUPPORTED_LANGUAGES } from 'src/app/helpers/constants';
 import { LANGUAGES } from 'i18n-l10n-flags';
 import { NgClass } from '@angular/common';
 import { TranslocoService } from '@jsverse/transloco';
+import {
+  IonFooter,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonMenu,
+  IonMenuButton,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular/standalone';
 
 @Component({
     selector: 'app-footer',
     templateUrl: './footer.component.html',
-    imports: [NgClass],
+    imports: [NgClass, IonFooter, IonButtons, IonContent, IonHeader, IonMenu, IonMenuButton, IonTitle, IonToolbar],
     styles: ``
 })
 export class FooterComponent {
