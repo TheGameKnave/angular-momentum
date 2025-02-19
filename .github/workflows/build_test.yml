@@ -13,8 +13,8 @@ jobs:
   build-and-test:
     runs-on: macos-latest
     env:
-      PORT: 4201
-      APP_PORT: 4200
+      PORT: 8101
+      APP_PORT: 8100
 
     steps:
       - name: Checkout Code
@@ -57,7 +57,7 @@ jobs:
 
       # - name: Wait for Angular server to start
       #   run: |
-      #     until curl --output /dev/null --silent --head --fail http://localhost:4200; do
+      #     until curl --output /dev/null --silent --head --fail http://localhost:8100; do
       #       echo 'Waiting for Angular server...'
       #       sleep 5
       #     done

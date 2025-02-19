@@ -7,7 +7,7 @@
     "node": "22.14.0"
   },
   "scripts": {
-    "client": "cd client && npm run start -- --configuration development",
+    "client": "cd client && npm run start",
     "client-prod": "NODE_ENV=production && cd client && npm run start -- --configuration production",
     "server": "cd server && node-env-run --exec nodemon | pino-colada",
     "server-prod": "NODE_ENV=production && cd server && node-env-run --exec nodemon",

@@ -45,7 +45,7 @@ const validateMemory = (memoryVal: { jsHeapSizeLimit: number; usedJSHeapSize: nu
 };
 
 fixture `App tests`
-    .page('http://localhost:4200')
+    .page('http://localhost:8100')
     .beforeEach(async () => {
         await waitForAngular();
     });

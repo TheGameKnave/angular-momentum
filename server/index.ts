@@ -52,5 +52,6 @@ if (require.main === module) {
 
   const PORT = config.server_port;
   server.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
   });
 }

@@ -33,7 +33,11 @@
               "src/manifest.webmanifest"
             ],
             "styles": [
-              "src/assets/styles/main.scss"
+              "src/assets/styles/main.scss",
+              "../node_modules/@ionic/angular/css/core.css",
+              "../node_modules/@ionic/angular/css/normalize.css",
+              "../node_modules/@ionic/angular/css/typography.css",
+              "../node_modules/@ionic/angular/css/display.css"
             ],
             "scripts": [],
             "browser": "src/main.ts"
@@ -74,7 +78,7 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
             "proxyConfig": "src/proxy.conf.json",
-            "port": 4200
+            "port": 8100
           },
           "configurations": {
             "production": {
@@ -109,7 +113,11 @@
               "src/manifest.webmanifest"
             ],
             "styles": [
-              "src/assets/styles/main.scss"
+              "src/assets/styles/main.scss",
+              "../node_modules/@ionic/angular/css/core.css",
+              "../node_modules/@ionic/angular/css/normalize.css",
+              "../node_modules/@ionic/angular/css/typography.css",
+              "../node_modules/@ionic/angular/css/display.css"
             ],
             "scripts": []
           },

@@ -3,7 +3,7 @@
   "scripts": {
     "ng": "ng",
     "build": "ng build",
-    "start": "ng serve --hmr --proxy-config src/proxy.conf.json",
+    "start": "ionic serve -no-open --proxy-config src/proxy.conf.json",
     "test": "ng test --configuration test --browsers=ChromeHeadless --watch=false",
     "watch": "ng test"
   },
@@ -21,6 +21,8 @@
     "@angular/platform-browser-dynamic": "^19.1.6",
     "@angular/router": "^19.1.6",
     "@angular/service-worker": "^19.1.6",
+    "@ionic/angular": "^8.4.3",
+    "@ionic/core": "^8.4.3",
     "@jsverse/transloco": "^7.4.3",
     "@jsverse/transloco-locale": "^7.0.1",
     "@jsverse/transloco-messageformat": "^7.0.1",

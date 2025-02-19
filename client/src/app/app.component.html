@@ -2,6 +2,7 @@
   <h1>{{ t('Angular Momentum') }}</h1>
   <p>{{ t('Hello world') }}</p>
   <p>{{ t('There are {{count}} components.',{count: componentListArr.length}) }}</p>
+  <ion-button expand="full">Hello Ionic</ion-button>
 
   @for (component of componentListArr; track $index) {
     @if (featureFlagService.getFeature(component[0])) {

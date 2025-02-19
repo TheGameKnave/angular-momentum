@@ -36,10 +36,10 @@ process.env.TEST_MODE = process.argv[2] || process.env.TEST_MODE || 'tested';
     await testcafe.close();
     serverProcess.kill();
 
-    // Kill processes on ports 4200 and 4201
+    // Kill processes on ports 8100 and 8101
     try {
-      await execPromise('lsof -ti :4200 | xargs kill -9');
-      await execPromise('lsof -ti :4201 | xargs kill -9');
+      await execPromise('lsof -ti :8100 | xargs kill -9');
+      await execPromise('lsof -ti :8101 | xargs kill -9');
     } catch (err) {
       console.error("Error killing processes:", err);
     }

@@ -79,15 +79,15 @@ Runs the front- and back-end concurrently. See above.
 
 ### `npm run client`
 
-Runs only the front-end of the app (on port 4200) in development mode.  
-Open [http://localhost:4200](http://localhost:4200) to view it in the browser.
+Runs only the front-end of the app (on port 8100) in development mode.  
+Open [http://localhost:8100](http://localhost:8100) to view it in the browser.
 
 The page will reload if you make edits.
 
 ### `npm run server`
 
-Runs only the back-end of the app (on port 4201) in development mode.  
-Open [http://localhost:4201/api](http://localhost:4201/api) to view it in the browser.
+Runs only the back-end of the app (on port 8101) in development mode.  
+Open [http://localhost:8101/api](http://localhost:8101/api) to view it in the browser.
 
 This will display the API responses.
 

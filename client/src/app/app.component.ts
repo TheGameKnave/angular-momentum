@@ -6,6 +6,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { UpdateService } from './services/update.service';
 import { AutoUnsubscribe } from "src/app/helpers/unsub";
 
+import { IonButton } from '@ionic/angular/standalone';
 import { TranslocoDirective } from '@jsverse/transloco';
 
 import { FooterComponent } from './components/layout/footer/footer.component';
@@ -36,6 +37,7 @@ export const componentList: ComponentList = {
         NgComponentOutlet,
         TranslocoDirective,
         FooterComponent,
+        IonButton,
     ],
     styles: ``
 })
