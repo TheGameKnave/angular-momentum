@@ -2,7 +2,7 @@
   "name": "angular-momentum-client",
   "scripts": {
     "ng": "ng",
-    "build": "ng build",
+    "build": "ionic build",
     "start": "ionic serve -no-open --proxy-config src/proxy.conf.json",
     "test": "ng test --configuration test --browsers=ChromeHeadless --watch=false",
     "watch": "ng test"

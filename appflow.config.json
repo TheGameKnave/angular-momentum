@@ -1,0 +1,11 @@
+{
+  "apps":
+  [
+      {
+          "appId": "80b42ce0",
+          "root": "client",
+          "iosPath": "dist/angular-momentum",
+          "androidPath": "dist/angular-momentum"
+      }
+  ]
+}
