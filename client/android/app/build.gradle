@@ -24,7 +24,6 @@ android {
         debug {
             // configuration for debug build type
         }
-    }
     },
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
