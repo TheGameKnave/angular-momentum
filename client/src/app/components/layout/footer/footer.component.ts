@@ -5,6 +5,7 @@ import { NgClass } from '@angular/common';
 import { TranslocoService } from '@jsverse/transloco';
 import {
   IonFooter,
+  IonButton,
   IonButtons,
   IonContent,
   IonHeader,
@@ -17,7 +18,7 @@ import {
 @Component({
     selector: 'app-footer',
     templateUrl: './footer.component.html',
-    imports: [NgClass, IonFooter, IonButtons, IonContent, IonHeader, IonMenu, IonMenuButton, IonTitle, IonToolbar],
+    imports: [NgClass, IonFooter, IonButton, IonButtons, IonContent, IonHeader, IonMenu, IonMenuButton, IonTitle, IonToolbar],
     styles: ``
 })
 export class FooterComponent {
