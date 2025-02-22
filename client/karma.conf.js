@@ -9,7 +9,6 @@ module.exports = function (config) {
       require('karma-jasmine'),
       require('karma-chrome-launcher'),
       require('karma-jasmine-html-reporter'),
-      require('karma-sabarivka-reporter'),
       require('karma-coverage'),
       require('@angular-devkit/build-angular/plugins/karma')
     ],
@@ -26,22 +25,20 @@ module.exports = function (config) {
       suppressAll: true // removes the duplicated traces
     },
     coverageReporter: {
-      dir: 'coverage/',
+      dir: require('path').join(__dirname, './coverage/app'),
+      subdir: '.',
       reporters: [
-        { type: 'lcov', subdir: '.' },
-        { type: 'text-summary', subdir: '.' },
-      ],
-      include: [
-        'src/**/*.(ts|js)',
-        '!src/**/*.spec.(ts|js)',
-        '!src/**/environment*.(ts|js)'
-      ],
+        { type: 'html' },
+        { type: 'text-summary' }
+      ]
     },
-    reporters: ['sabarivka', 'progress', 'kjhtml'],
+    reporters: ['progress', 'kjhtml'],
+    port: 9876,
+    colors: true,
+    logLevel: config.LOG_INFO,
+    autoWatch: true,
     browsers: ['Chrome'],
-    restartOnFileChange: true,
-    preprocessors: {
-      'src/**/*.ts': ['coverage']
-    },
+    singleRun: false,
+    restartOnFileChange: true
   });
 };

@@ -1,72 +1,19 @@
-import { ChangeDetectionStrategy, Component, OnDestroy } from '@angular/core';
-import { NgComponentOutlet } from '@angular/common';
-
-import { CookieService } from 'ngx-cookie-service';
-
-import { UpdateService } from './services/update.service';
-import { AutoUnsubscribe } from "src/app/helpers/unsub";
-
-import { IonButton } from '@ionic/angular/standalone';
-import { TranslocoDirective } from '@jsverse/transloco';
-
-import { FooterComponent } from './components/layout/footer/footer.component';
-import { AppVersionComponent } from './components/app-version/app-version.component';
-import { EnvironmentComponent } from './components/environment/environment.component';
-import { ApiComponent } from './components/api/api.component';
-import { IndexedDBComponent } from './components/indexed-db/indexed-db.component';
-import { FeatureFlagService } from './services/feature-flag.service';
-import { FeaturesComponent } from './components/features/features.component';
-  
-type ComponentList = {
-  [key: string]: any
-}
-export const componentList: ComponentList = {
-  'Features': FeaturesComponent,
-  'App Version': AppVersionComponent,
-  'Environment': EnvironmentComponent,
-  'API': ApiComponent,
-  'IndexedDB': IndexedDBComponent,
-};
-
-@AutoUnsubscribe()
+import { Component } from '@angular/core';
 @Component({
-    selector: 'app-root',
-    templateUrl: './app.component.html',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [
-        NgComponentOutlet,
-        TranslocoDirective,
-        FooterComponent,
-        IonButton,
-    ],
-    styles: ``
+  selector: 'app-root',
+  templateUrl: 'app.component.html',
+  styleUrls: ['app.component.scss'],
+  standalone: false,
 })
-export class AppComponent implements OnDestroy {
-  componentList = componentList;
-  componentListArr = Object.entries(componentList);
-  activeComponent: string | null = null;
-
-  constructor(
-    private updateService: UpdateService,
-    private cookieService: CookieService, 
-    protected featureFlagService: FeatureFlagService,
-  ){
-    this.updateService.checkForUpdates();
-  }
-
-  ngOnInit(): void {
-    let activeButton = this.cookieService.get('activeButton');
-    activeButton = this.featureFlagService.getFeature(activeButton) ? activeButton : '';
-    if(['', 'null'].includes(activeButton)) {
-      this.activeComponent = null;
-    }else {
-      this.activeComponent = activeButton;
-    }
-  }
-  onComponentActivate(component: string | null): void {
-    this.activeComponent = component;
-    this.cookieService.set("activeButton", component !== null ? component.toString() : "null");
-  }
-
-  ngOnDestroy(): void {}
+export class AppComponent {
+  public appPages = [
+    { title: 'Inbox', url: '/folder/inbox', icon: 'mail' },
+    { title: 'Outbox', url: '/folder/outbox', icon: 'paper-plane' },
+    { title: 'Favorites', url: '/folder/favorites', icon: 'heart' },
+    { title: 'Archived', url: '/folder/archived', icon: 'archive' },
+    { title: 'Trash', url: '/folder/trash', icon: 'trash' },
+    { title: 'Spam', url: '/folder/spam', icon: 'warning' },
+  ];
+  public labels = ['Family', 'Friends', 'Notes', 'Work', 'Travel', 'Reminders'];
+  constructor() {}
 }

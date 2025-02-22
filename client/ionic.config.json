@@ -1,11 +1,7 @@
 {
-  "defaultProject": "angular-momentum",
-  "projects": {
-    "angular-momentum": {
-      "name": "angular-momentum",
-      "type": "angular",
-      "ionicAngularVersion": "8.4.3",
-      "esm": true
-    }
-  }
+  "name": "Angular Momentum",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
 }

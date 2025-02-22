@@ -1,9 +1,9 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.angularmomentum',
+  appId: 'io.ionic.starter',
   appName: 'Angular Momentum',
-  webDir: 'dist/angular-momentum/browser'
+  webDir: 'www'
 };
 
 export default config;

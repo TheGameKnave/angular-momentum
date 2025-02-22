@@ -47,9 +47,9 @@ This project is licensed under the MIT License (see [LICENSE](https://github.com
 
 ### Node
 
-Install node `22.14.0` Recommended to install NVM to manage node versions.
+Install node `>=20.18.0` Recommended to install NVM to manage node versions.
 
-Install NPM 10.8.1 (should be bundled with node).
+Install NPM 10.8.2 (should be bundled with node).
 
 ### Angular cli
 
