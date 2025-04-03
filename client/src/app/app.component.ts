@@ -15,6 +15,8 @@ import { ApiComponent } from './components/api/api.component';
 import { IndexedDBComponent } from './components/indexed-db/indexed-db.component';
 import { FeatureFlagService } from './services/feature-flag.service';
 import { FeaturesComponent } from './components/features/features.component';
+
+import { ButtonModule } from 'primeng/button';
   
 type ComponentList = {
   [key: string]: any
@@ -36,6 +38,7 @@ export const componentList: ComponentList = {
         NgComponentOutlet,
         TranslocoDirective,
         FooterComponent,
+        ButtonModule,
     ],
     styles: ``
 })

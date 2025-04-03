@@ -2,26 +2,29 @@
   <h1>{{ t('Angular Momentum') }}</h1>
   <p>{{ t('Hello world') }}</p>
   <p>{{ t('There are {{count}} components.',{count: componentListArr.length}) }}</p>
-
+  <div class="card flex justify-center">
+    <p-button label="Check" />
+</div>
   @for (component of componentListArr; track $index) {
     @if (featureFlagService.getFeature(component[0])) {
-      <button
+      <p-button
         [class]="'component-' + component[0].replace(' ','-').toLowerCase()"
         [disabled]="activeComponent === component[0]"
         (click)="onComponentActivate(component[0])"
-      >{{ t(component[0]) }}</button>
+      >{{ t(component[0]) }}</p-button>
     }
   }
-  <button
+  <p-button
     class="component-clear"
     [disabled]="activeComponent === null"
     (click)="onComponentActivate(null)"
-  >🚫</button>
+  >🚫</p-button>
   <div class="component-container">
     @if (activeComponent !== null && featureFlagService.getFeature(activeComponent)) {
       <ng-container *ngComponentOutlet="componentList[activeComponent]"></ng-container>
     }
   </div>
+
 
   <app-footer></app-footer>
 </ng-container>

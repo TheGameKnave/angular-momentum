@@ -15,6 +15,11 @@ import { provideFeatureFlag } from './app/providers/feature-flag.provider';
 import { SocketIoConfig, SocketIoModule } from 'ngx-socket-io';
 import { ENVIRONMENT } from 'src/environments/environment';
 
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { providePrimeNG } from 'primeng/config';
+import Lara from '@primeng/themes/lara';
+
+
 export function getLangFn({ cachedLang, browserLang, cultureLang, defaultLang }: GetLangParams) {
   return cachedLang ?? browserLang ?? (cultureLang || defaultLang);
 }
@@ -53,4 +58,10 @@ export const appProviders = [
     },
   }),
   provideTranslocoLocale(),
+  provideAnimationsAsync(),
+        providePrimeNG({
+            theme: {
+                preset: Lara
+            }
+        })
 ];
