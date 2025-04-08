@@ -3,11 +3,11 @@
   <ul>
     @for (feature of Object.entries(featureFlagService.features()); track $index) {
       <li>
-        <input
+        <p-checkbox
           [id]="feature[0]"
-          type="checkbox"
           [formControl]="featureControl(feature[0])"
-        />
+          [binary]="true"
+        ></p-checkbox>
         <label
           [for]="feature[0]">{{ t(feature[0]) }}
         </label>

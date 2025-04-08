@@ -6,12 +6,15 @@ import { AutoUnsubscribe } from 'src/app/helpers/unsub';
 import { FeatureFlagService } from 'src/app/services/feature-flag.service';
 import { Subscription } from 'rxjs';
 
+import { CheckboxModule } from 'primeng/checkbox';
+
 @AutoUnsubscribe()
 @Component({
     selector: 'app-features',
     imports: [
         TranslocoDirective,
         ReactiveFormsModule,
+        CheckboxModule,
     ],
     templateUrl: './features.component.html',
     styles: ``
