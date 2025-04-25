@@ -1,4 +1,4 @@
-<ng-container *transloco="let t">
+<!-- <ng-container *transloco="let t">
   <h1>{{ t('Angular Momentum') }}</h1>
   <p>{{ t('Hello world') }}</p>
   <p>{{ t('There are {{count}} components.',{count: componentListArr.length}) }}</p>
@@ -24,4 +24,35 @@
 
 
   <app-footer></app-footer>
-</ng-container>
+</ng-container> -->
+
+<div class="app-shell" *transloco="let t">
+  <p-menubar>
+    <ng-template pTemplate="start">
+      <button pButton icon="pi pi-bars" (click)="toggleMenu()" class="p-button-text"></button>
+    </ng-template>
+    <div class="app-title">momentum{{ routePath }}</div>
+    <ng-template pTemplate="end">
+      <button *ngIf="featureFlagService.getFeature('Language')" pButton icon="pi pi-globe" (click)="toggleLanguage()"></button>
+    </ng-template>
+  </p-menubar>
+
+  <div class="app-body">
+    <div class="side-menu" [class.collapsed]="!menuVisible">
+      <app-menu-feature></app-menu-feature>
+    </div>
+
+    <div class="main-content">
+      <router-outlet></router-outlet>
+      @if (featureFlagService.getFeature('App Version')){
+        <footer>
+          <h2>{{ t('v.') }} {{ version }}</h2>
+        </footer>
+      }
+    </div>
+  </div>
+
+  <p-overlayPanel #langMenu *ngIf="featureFlagService.getFeature('Language')" [dismissable]="true">
+    <app-menu-language></app-menu-language>
+  </p-overlayPanel>
+</div>
