@@ -30,7 +30,7 @@ describe('Express server', () => {
       await startServer('production', 9200);
       const response = await request(app).get('/');
       expect(response.status).toBe(200);
-      expect(response.text).toContain('<!doctype html>'); // Adjust based on your index.html content
+      expect(response.text).toContain('<!DOCTYPE html>'); // Adjust based on your index.html content
       await stopServer();
     });
 
@@ -38,7 +38,7 @@ describe('Express server', () => {
       await startServer('development', 9201);
       const response = await request(app).get('/');
       expect(response.status).toBe(200);
-      expect(response.text).toContain('<!doctype html>'); // Adjust based on your index.html content
+      expect(response.text).toContain('<!DOCTYPE html>'); // Adjust based on your index.html content
 
       // Additional assertion to ensure the file is served from the correct path
       expect(response.headers['content-type']).toContain('text/html'); // Ensure the file is served correctly
@@ -50,7 +50,7 @@ describe('Express server', () => {
       await startServer('' as any, 9204); // Pass an empty string or undefined explicitly
       const response = await request(app).get('/');
       expect(response.status).toBe(200);
-      expect(response.text).toContain('<!doctype html>'); // Ensure that it falls back to serving static files as if in development
+      expect(response.text).toContain('<!DOCTYPE html>'); // Ensure that it falls back to serving static files as if in development
       await stopServer();
     });
 

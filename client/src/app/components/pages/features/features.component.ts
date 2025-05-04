@@ -14,7 +14,6 @@ import { Subscription } from 'rxjs';
         ReactiveFormsModule,
     ],
     templateUrl: './features.component.html',
-    styles: ``
 })
 export class FeaturesComponent implements OnInit, OnDestroy {
   featureControls: { [key: string]: FormControl } = {};

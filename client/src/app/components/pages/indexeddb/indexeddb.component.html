@@ -1,0 +1,8 @@
+<p *transloco="let t">
+  <span slot="label">{{ t('Enter some text to have it persist between page reloads') }}</span>
+  <textarea
+    id="textAreaData" 
+    [formControl]="textAreaData"
+  >
+  </textarea>
+</p>

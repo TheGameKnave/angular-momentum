@@ -1,0 +1,12 @@
+<ng-container *transloco="let t">
+  {{ t('Language') }}
+  @for (ln of supportedLanguages; track ln) {
+    <div
+      [class]="'i18n-' + ln"
+      [ngClass]="{'selected': ln === translate.getActiveLang()}"
+      (click)="onI18n($event)"
+    >
+      {{ getFlag(ln) }} {{ getNativeName(ln) }}
+    </div>
+  }
+</ng-container>

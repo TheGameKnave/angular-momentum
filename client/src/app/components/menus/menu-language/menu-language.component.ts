@@ -1,16 +1,20 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { SUPPORTED_LANGUAGES } from 'src/app/helpers/constants';
 import { LANGUAGES } from 'i18n-l10n-flags';
 import { NgClass } from '@angular/common';
-import { TranslocoService } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { AutoUnsubscribe } from 'src/app/helpers/unsub';
 
+@AutoUnsubscribe()
 @Component({
-    selector: 'app-footer',
-    templateUrl: './footer.component.html',
-    imports: [NgClass],
-    styles: ``
+  selector: 'app-menu-language',
+  templateUrl: './menu-language.component.html',
+  imports: [
+    TranslocoDirective,
+    NgClass,
+  ],
 })
-export class FooterComponent {
+export class MenuLanguageComponent implements OnDestroy {
   Object = Object;
   supportedLanguages: string[] = SUPPORTED_LANGUAGES;
   languages = LANGUAGES;
@@ -40,7 +44,7 @@ export class FooterComponent {
 
   onI18n(event: Event): void {
     if (event.type === 'click' || (event.type === 'keydown' && event instanceof KeyboardEvent && event.key === 'Enter')) {
-      const target = (event.target as HTMLElement).closest('li');
+      const target = (event.target as HTMLElement).closest('div');
       if (target?.classList) {
         
         const classList = Array.from(target.classList);
@@ -57,4 +61,5 @@ export class FooterComponent {
   stopEventPropagation(event: Event): void {
     event.stopPropagation();
   }
+  ngOnDestroy(): void {}
 }

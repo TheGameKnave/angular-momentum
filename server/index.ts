@@ -35,7 +35,7 @@ export function setupApp(): express.Application {
     legacyHeaders: false,
   });
   app.use(express.urlencoded({ extended: true })); // Add this line
-  app.all('/graphql', graphqlLimiter, graphqlMiddleware());
+  app.all('/api', graphqlLimiter, graphqlMiddleware());
   
   return app;
 }
@@ -52,5 +52,6 @@ if (require.main === module) {
 
   const PORT = config.server_port;
   server.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
   });
 }

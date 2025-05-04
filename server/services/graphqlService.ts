@@ -44,7 +44,7 @@ const root = (io: any) => ({
     return `
       # API Documentation
 
-      This API provides access to feature flags and allows you to update their status.
+      This GraphQL-powered API provides access to feature flags and allows you to update their status.
 
       ## Queries
 
