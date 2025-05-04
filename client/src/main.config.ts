@@ -59,9 +59,16 @@ export const appProviders = [
   }),
   provideTranslocoLocale(),
   provideAnimationsAsync(),
-        providePrimeNG({
-            theme: {
-                preset: Lara
-            }
-        })
+  providePrimeNG({
+    theme: {
+      preset: Lara,
+      options: {
+        darkModeSelector: '.app-dark',
+        theme: 'emerald',
+        dark: true,
+      }
+    },
+    ripple: true,
+    
+  }),
 ];

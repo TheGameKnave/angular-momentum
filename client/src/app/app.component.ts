@@ -17,6 +17,7 @@ import { FeatureFlagService } from './services/feature-flag.service';
 import { FeaturesComponent } from './components/features/features.component';
 
 import { ButtonModule } from 'primeng/button';
+import { PrimeNG } from 'primeng/config';
   
 type ComponentList = {
   [key: string]: any
@@ -46,16 +47,19 @@ export class AppComponent implements OnDestroy {
   componentList = componentList;
   componentListArr = Object.entries(componentList);
   activeComponent: string | null = null;
+  menuTransitionOptions = '0.3s cubic-bezier(0, 0, 0.2, 1) transform';
 
   constructor(
     private updateService: UpdateService,
     private cookieService: CookieService, 
     protected featureFlagService: FeatureFlagService,
+    private primeng: PrimeNG,
   ){
     this.updateService.checkForUpdates();
   }
 
   ngOnInit(): void {
+    this.primeng.ripple.set(true);
     let activeButton = this.cookieService.get('activeButton');
     activeButton = this.featureFlagService.getFeature(activeButton) ? activeButton : '';
     if(['', 'null'].includes(activeButton)) {
