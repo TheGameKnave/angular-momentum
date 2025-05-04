@@ -17,13 +17,7 @@ import { FeatureFlagService } from './services/feature-flag.service';
 import { FeaturesComponent } from './components/features/features.component';
 
 import { ButtonModule } from 'primeng/button';
-import { OverlayPanelModule } from 'primeng/overlaypanel';
-import { MenuModule } from 'primeng/menu';
-import { MenubarModule } from 'primeng/menubar';
-import { AppRoutingModule } from './app.routing';
-import packageJson from '../../../package.json';
-
-
+  
 type ComponentList = {
   [key: string]: any
 }
@@ -42,25 +36,17 @@ export const componentList: ComponentList = {
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         NgComponentOutlet,
-        AppRoutingModule,
         TranslocoDirective,
         FooterComponent,
         ButtonModule,
-        MenuModule,
-        OverlayPanelModule,
-        MenubarModule,
     ],
     styles: ``
 })
 export class AppComponent implements OnDestroy {
-  menuVisible = false;
-  version = packageJson.version;
   componentList = componentList;
   componentListArr = Object.entries(componentList);
   activeComponent: string | null = null;
-  routePath = '';
 
-  
   constructor(
     private updateService: UpdateService,
     private cookieService: CookieService, 
@@ -84,12 +70,4 @@ export class AppComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {}
-
-  toggleMenu(): void {
-    this.menuVisible = !this.menuVisible;
-  }
-
-  toggleLanguage(langPanel: any, event: MouseEvent): void {
-    langPanel.toggle(event);
-  }
 }
