@@ -18,7 +18,6 @@ import { FeatureFlagService } from 'src/app/services/feature-flag.service';
 })
 export class MenuFeatureComponent  implements OnInit, OnDestroy {
   componentList!: any[];
-  componentCount!: number;
 
   constructor(
     private componentListService: ComponentListService,
@@ -27,7 +26,11 @@ export class MenuFeatureComponent  implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.componentList = this.componentListService.getComponentList();
-    this.componentCount = this.componentList.filter(component => this.featureFlagService.getFeature(component.name)).length;
+  }
+
+
+  componentCount(): number {
+    return this.componentList.filter(component => this.featureFlagService.getFeature(component.name)).length;
   }
   
   ngOnDestroy() {}

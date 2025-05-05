@@ -4,6 +4,7 @@ import { LANGUAGES } from 'i18n-l10n-flags';
 import { NgClass } from '@angular/common';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AutoUnsubscribe } from 'src/app/helpers/unsub';
+import { TranslocoHttpLoader } from 'src/app/services/transloco-loader.service';
 
 @AutoUnsubscribe()
 @Component({
@@ -22,29 +23,14 @@ export class MenuLanguageComponent implements OnDestroy {
 
   constructor(
     public translate: TranslocoService,
+    public translocoLoader: TranslocoHttpLoader,
   ){
     this.supportedLanguages.forEach(lang => this.classToLang[`i18n-${lang}`] = lang);
   }
 
-  getFlag(ln: string): string {
-    if (!ln.includes('-')) {
-      return Object.values(this.languages[ln].locales)[0].flag;
-    } else {
-      return this.languages[ln.split('-')[0]].locales[ln].flag;
-    }
-  }
-  
-  getNativeName(ln: string): string {
-    if (!ln.includes('-')) {
-      return this.languages[ln].nativeName;
-    } else {
-      return `${this.languages[ln.split('-')[0]].nativeName} (${this.languages[ln.split('-')[0]].locales[ln].nativeName})`;
-    }
-  }
-
   onI18n(event: Event): void {
     if (event.type === 'click' || (event.type === 'keydown' && event instanceof KeyboardEvent && event.key === 'Enter')) {
-      const target = (event.target as HTMLElement).closest('div');
+      const target = (event.target as HTMLElement).closest('li');
       if (target?.classList) {
         
         const classList = Array.from(target.classList);

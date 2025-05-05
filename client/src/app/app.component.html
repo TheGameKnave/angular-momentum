@@ -1,7 +1,9 @@
 <ng-container *transloco="let t">
   <header>
-    momentum{{ routePath }}
-    <app-menu-feature></app-menu-feature>
+    <button (click)="toggleMenu('feature', $event)" class="featureButton">
+      ☰
+    </button>
+    momentum {{ routePath }}
   </header>
 
   <div class="main">
@@ -13,8 +15,16 @@
       <h2>{{ t('v.') }} {{ version }}</h2>
     }
     @if (featureFlagService.getFeature('Language')) {
-      language button
-      <app-menu-language></app-menu-language>
+      <button (click)="toggleMenu('language', $event)" class="languageButton">
+        🌐 {{ translocoLoader.getFlag(translate.getActiveLang()) }}
+      </button>
     }
   </footer>
+
+  @if (openMenu === 'feature') {
+    <app-menu-feature (click)="toggleMenu('feature', $event)" />
+  }
+  @if (openMenu === 'language') {
+    <app-menu-language (click)="toggleMenu('language', $event)" />
+  }
 </ng-container>
