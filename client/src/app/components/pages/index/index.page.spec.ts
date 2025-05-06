@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
 
 import { By } from '@angular/platform-browser';
 import { IndexPage } from './index.page';
@@ -16,7 +15,6 @@ describe('IndexPage', () => {
     await TestBed.configureTestingModule({
       imports: [
         IndexPage,
-        IonicModule.forRoot(),
         RouterModule.forRoot([]),
         getTranslocoModule(),
         MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),
