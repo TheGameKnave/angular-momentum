@@ -4,14 +4,13 @@ import { MarkdownComponent } from 'ngx-markdown';
 import { catchError, of } from 'rxjs';
 
 @Component({
-    selector: 'app-api',
-    imports: [
-        MarkdownComponent,
-    ],
-    templateUrl: './api.component.html',
-    styles: ``
+  selector: 'app-graphql-api',
+  imports: [
+    MarkdownComponent,
+  ],
+  templateUrl: './graphql-api.component.html',
 })
-export class ApiComponent {
+export class GraphqlApiComponent {
   results: any = null;
   error: any = null;
 
@@ -42,6 +41,6 @@ export class ApiComponent {
         docs
       }
     `;
-    return this.http.post('/graphql', { query }, httpOptions);
+    return this.http.post('/api', { query }, httpOptions);
   }
 }

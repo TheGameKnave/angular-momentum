@@ -2,7 +2,6 @@ import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { FeatureFlagService } from './feature-flag.service';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { of } from 'rxjs';
 import { Socket } from 'ngx-socket-io';
 
 describe('FeatureFlagService', () => {
@@ -36,29 +35,29 @@ describe('FeatureFlagService', () => {
     const graphqlResponse = {
       data: {
         featureFlags: [
-          { key: 'App Version', value: true },
-          { key: 'Environment', value: false },
+          { key: 'Environment', value: true },
+          { key: 'GraphQL API', value: false },
         ],
       },
     };
   
     const expectedFlags = {
-      'App Version': true,
-      'Environment': false,
+      'Environment': true,
+      'GraphQL API': false,
     };
   
     service.getFeatureFlags().subscribe((flags) => {
       expect(flags).toEqual(expectedFlags);
     });
   
-    const req = httpMock.expectOne('/graphql');
+    const req = httpMock.expectOne('/api');
     expect(req.request.method).toBe('POST');
     req.flush(graphqlResponse);
   });
   
 
   it('should update feature flags via GraphQL mutation', fakeAsync(() => {
-    const feature = 'App Version';
+    const feature = 'Environment';
     const value = false;
     const expectedMutation = `
     mutation UpdateFeatureFlag($key: String!, $value: Boolean!) {
@@ -71,7 +70,7 @@ describe('FeatureFlagService', () => {
     service.setFeature(feature, value);
     tick();
 
-    const req = httpMock.expectOne('/graphql');
+    const req = httpMock.expectOne('/api');
     expect(req.request.method).toBe('POST');
     expect(req.request.body.query).toContain('mutation UpdateFeatureFlag');
     expect(req.request.body.variables).toEqual({ key: feature, value });
@@ -80,19 +79,19 @@ describe('FeatureFlagService', () => {
   }));
 
   it('should update features when WebSocket emits an update', () => {
-    const updatePayload = { 'App Version': false, 'New Feature': true };
-    const initialFeatures = { 'App Version': true };
+    const updatePayload = { 'GraphQL API': false, 'New Feature': true };
+    const initialFeatures = { 'GraphQL API': true };
 
     service.features.set(initialFeatures);
 
     const onCallback = socketSpy.on.calls.mostRecent().args[1];
     onCallback(updatePayload);
 
-    expect(service.features()).toEqual({ 'App Version': false, 'New Feature': true });
+    expect(service.features()).toEqual({ 'GraphQL API': false, 'New Feature': true });
   });
 
   it('should return false for unknown feature', () => {
-    const features = { 'App Version': true, 'Environment': true };
+    const features = { 'GraphQL API': true, 'IndexedDB': true };
     service.features.set(features);
     expect(service.getFeature('Unknown Feature')).toBe(false);
   });

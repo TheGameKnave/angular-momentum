@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ApiComponent } from './api.component';
+import { GraphqlApiComponent } from './graphql-api.component';
 import { ChangeDetectorRef, SecurityContext } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { HttpHandler } from '@angular/common/http';
@@ -7,8 +7,8 @@ import { of } from 'rxjs';
 import { throwError } from 'rxjs';
 import { MarkdownModule } from 'ngx-markdown';
 
-describe('ApiComponent', () => {
-  let component: ApiComponent;
+describe('GraphqlApiComponent', () => {
+  let component: GraphqlApiComponent;
   let fixture: any;
   let httpHandler: HttpHandler;
   let httpClient: HttpClient;
@@ -20,7 +20,7 @@ describe('ApiComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [
-        ApiComponent,
+        GraphqlApiComponent,
         MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),
       ],
       providers: [
@@ -30,7 +30,7 @@ describe('ApiComponent', () => {
       ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ApiComponent);
+    fixture = TestBed.createComponent(GraphqlApiComponent);
     component = fixture.componentInstance;
     httpHandler = TestBed.inject(HttpHandler);
     httpClient = TestBed.inject(HttpClient);
@@ -51,7 +51,7 @@ describe('ApiComponent', () => {
     component.ngOnInit();
     
     expect(httpClientSpy.post).toHaveBeenCalledTimes(1);
-    expect(httpClientSpy.post.calls.argsFor(0)[0]).toBe('/graphql');
+    expect(httpClientSpy.post.calls.argsFor(0)[0]).toBe('/api');
   });
 
   it('should display the API data', () => {

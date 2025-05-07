@@ -14,6 +14,8 @@ import { SUPPORTED_LANGUAGES } from './app/helpers/constants';
 import { provideFeatureFlag } from './app/providers/feature-flag.provider';
 import { SocketIoConfig, SocketIoModule } from 'ngx-socket-io';
 import { ENVIRONMENT } from 'src/environments/environment';
+import { provideRouter } from '@angular/router';
+import { routes } from './app/app.routing';
 
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
@@ -39,6 +41,7 @@ export const appProviders = [
     SocketIoModule.forRoot(socketIoConfig),
   ),
   provideHttpClient(withInterceptorsFromDi()),
+  provideRouter(routes),
   // istanbul ignore next
   !isTestEnvironment ? provideFeatureFlag() : [], // TODO figure out how to mock this in test environment without putting it in the code!!
   provideTransloco({

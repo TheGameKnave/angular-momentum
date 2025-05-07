@@ -1,7 +1,7 @@
 // client/src/app/indexed-db/indexed-db.component.spec.ts
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { IndexedDBComponent } from './indexed-db.component';
-import { getTranslocoModule } from '../../../../../tests/helpers/transloco-testing.module';
+import { IndexedDBComponent } from './indexeddb.component';
+import { getTranslocoModule } from '../../../../../../tests/helpers/transloco-testing.module';
 import { ReactiveFormsModule } from '@angular/forms';
 import { openDB, IDBPDatabase, deleteDB } from 'idb';
 

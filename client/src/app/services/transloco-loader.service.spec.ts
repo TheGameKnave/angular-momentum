@@ -3,6 +3,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { TranslocoHttpLoader } from './transloco-loader.service';
 import { ENVIRONMENT } from '../../environments/environment';
 import { provideHttpClient } from '@angular/common/http';
+import { LANGUAGES } from 'i18n-l10n-flags';
 
 describe('TranslocoHttpLoader', () => {
   let loader: TranslocoHttpLoader;
@@ -38,4 +39,30 @@ describe('TranslocoHttpLoader', () => {
 
     req.flush(mockTranslation); // Respond with the mock data
   });
+
+
+  it('should return the correct flag for a language without a locale', () => {
+    const ln = 'en';
+    const expectedFlag = Object.values(LANGUAGES[ln].locales)[0].flag;
+    expect(loader.getFlag(ln)).toEqual(expectedFlag);
+  });
+
+  it('should return the correct flag for a language with a locale', () => {
+    const ln = 'en-US';
+    const expectedFlag = LANGUAGES[ln.split('-')[0]].locales[ln].flag;
+    expect(loader.getFlag(ln)).toEqual(expectedFlag);
+  });
+
+  it('should return the correct native name for a language without a locale', () => {
+    const ln = 'en';
+    const expectedNativeName = LANGUAGES[ln].nativeName;
+    expect(loader.getNativeName(ln)).toEqual(expectedNativeName);
+  });
+
+  it('should return the correct native name for a language with a locale', () => {
+    const ln = 'en-US';
+    const expectedNativeName = `${LANGUAGES[ln.split('-')[0]].nativeName} (${loader.languages[ln.split('-')[0]].locales[ln].nativeName})`;
+    expect(loader.getNativeName(ln)).toEqual(expectedNativeName);
+  });
+
 });

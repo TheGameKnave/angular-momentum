@@ -1,16 +1,21 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { SUPPORTED_LANGUAGES } from 'src/app/helpers/constants';
 import { LANGUAGES } from 'i18n-l10n-flags';
 import { NgClass } from '@angular/common';
-import { TranslocoService } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { AutoUnsubscribe } from 'src/app/helpers/unsub';
+import { TranslocoHttpLoader } from 'src/app/services/transloco-loader.service';
 
+@AutoUnsubscribe()
 @Component({
-    selector: 'app-footer',
-    templateUrl: './footer.component.html',
-    imports: [NgClass],
-    styles: ``
+  selector: 'app-menu-language',
+  templateUrl: './menu-language.component.html',
+  imports: [
+    TranslocoDirective,
+    NgClass,
+  ],
 })
-export class FooterComponent {
+export class MenuLanguageComponent implements OnDestroy {
   Object = Object;
   supportedLanguages: string[] = SUPPORTED_LANGUAGES;
   languages = LANGUAGES;
@@ -18,24 +23,9 @@ export class FooterComponent {
 
   constructor(
     public translate: TranslocoService,
+    public translocoLoader: TranslocoHttpLoader,
   ){
     this.supportedLanguages.forEach(lang => this.classToLang[`i18n-${lang}`] = lang);
-  }
-
-  getFlag(ln: string): string {
-    if (!ln.includes('-')) {
-      return Object.values(this.languages[ln].locales)[0].flag;
-    } else {
-      return this.languages[ln.split('-')[0]].locales[ln].flag;
-    }
-  }
-  
-  getNativeName(ln: string): string {
-    if (!ln.includes('-')) {
-      return this.languages[ln].nativeName;
-    } else {
-      return `${this.languages[ln.split('-')[0]].nativeName} (${this.languages[ln.split('-')[0]].locales[ln].nativeName})`;
-    }
   }
 
   onI18n(event: Event): void {
@@ -57,4 +47,5 @@ export class FooterComponent {
   stopEventPropagation(event: Event): void {
     event.stopPropagation();
   }
+  ngOnDestroy(): void {}
 }

@@ -39,14 +39,13 @@ describe('FeaturesComponent', () => {
       ],
       providers: [{ provide: FeatureFlagService, useValue: featureFlagServiceSpy }]
     }).compileComponents();
-  }));
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(FeaturesComponent);
     component = fixture.componentInstance;
     featureFlagService = TestBed.inject(FeatureFlagService) as jasmine.SpyObj<FeatureFlagService>;
     fixture.detectChanges();
-  });
+  }));
+
   afterEach(() => {
     mockFeaturesSignal.set({
       ...features,
@@ -75,7 +74,7 @@ describe('FeaturesComponent', () => {
   it('should update feature flag service when checkbox state changes', () => {
     const checkboxes = fixture.nativeElement.querySelectorAll('input[type="checkbox"]');
     const feature1Checkbox = checkboxes[0];
-    const feature1Name = 'App Version'; // Hardcode the feature name
+    const feature1Name = 'Environment'; // Hardcode the feature name
   
     feature1Checkbox.click();
     fixture.detectChanges();
@@ -87,21 +86,21 @@ describe('FeaturesComponent', () => {
     mockFeaturesSignal.set({...features});
     fixture.detectChanges();
   
-    // Get the form control for the 'App Version' feature
-    const appVersionFormControl = fixture.componentInstance.featureControls['App Version'];
+    // Get the form control for the 'Environment' feature
+    const appVersionFormControl = fixture.componentInstance.featureControls['Environment'];
   
     // Set the initial value of the form control to true
-    appVersionFormControl.setValue(features['App Version']);
+    appVersionFormControl.setValue(features['Environment']);
   
     // Update the signal's value to false
     mockFeaturesSignal.set({
       ...features,
-      'App Version': !features['App Version'],
+      'Environment': !features['Environment'],
     });
     fixture.detectChanges();
   
     // Verify that the form control's value is updated to false
-    expect(appVersionFormControl.value).toBe(!features['App Version']);
+    expect(appVersionFormControl.value).toBe(!features['Environment']);
   });
 
 });

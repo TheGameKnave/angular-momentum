@@ -2,14 +2,16 @@ import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Socket } from 'ngx-socket-io';
 import { map, Observable, tap } from 'rxjs';
-import { componentList } from '../app.component';
 import equal from 'fast-deep-equal';
+import { ComponentListService, ComponentInstance } from './component-list.service';
 
 type ArbitraryFeatures = {
   // 'New Feature': boolean;
   // Add more arbitrary features here
 };
-type ComponentFlags = typeof componentList;
+type ComponentFlags = {
+  [K in ComponentInstance['name']]: boolean;
+}
 
 type FeatureFlagResponse = ArbitraryFeatures & ComponentFlags;
 
@@ -27,7 +29,7 @@ export class FeatureFlagService {
 
   getFeatureFlags(): Observable<FeatureFlagResponse> {
     const query = getFeatureFlagsQuery();
-    return this.http.post<{ data: { featureFlags: { key: FeatureFlagKeys; value: boolean }[] } }>('/graphql', { query }).pipe(
+    return this.http.post<{ data: { featureFlags: { key: FeatureFlagKeys; value: boolean }[] } }>('/api', { query }).pipe(
       map((response) => {
         const featureFlags = response.data.featureFlags.reduce((acc, flag) => {
           acc[flag.key] = flag.value;
@@ -38,10 +40,12 @@ export class FeatureFlagService {
       tap((featureFlags) => this.features.set(featureFlags))
     );
   }
-  constructor() {
+  constructor(
+    private componentListService: ComponentListService,
+  ) {
     // Listen for WebSocket updates
     this.socket.on('update-feature-flags', (update: Partial<FeatureFlagResponse>) => {
-      const newFeatures = { ...this.features(), ...update };
+      const newFeatures: ArbitraryFeatures = { ...this.features(), ...update };
       this.features.set(newFeatures);
     });
   }
@@ -58,7 +62,7 @@ export class FeatureFlagService {
     
       // Notify backend of the updated flag using GraphQL request
       const mutation = updateFeatureFlagMutation(feature, value);
-      this.http.post('/graphql', {
+      this.http.post('/api', {
         query: mutation,
         variables: { key: feature, value },
       }).subscribe();

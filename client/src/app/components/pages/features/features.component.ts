@@ -17,7 +17,6 @@ import { CheckboxModule } from 'primeng/checkbox';
         CheckboxModule,
     ],
     templateUrl: './features.component.html',
-    styles: ``
 })
 export class FeaturesComponent implements OnInit, OnDestroy {
   featureControls: { [key: string]: FormControl } = {};

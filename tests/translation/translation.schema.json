@@ -3,17 +3,25 @@
   "title": "Translation File Schema",
   "type": "object",
   "properties": {
-    "Hello world": {
-      "type": "string",
-      "description": "Main page greeting"
-    }
-    ,"Angular Momentum": {
+    "Angular Momentum": {
       "type": "string",
       "description": "Main page title"
+    }
+    ,"This project is designed to rapidly spin up Angular applications...": {
+      "type": "string",
+      "description": "Main page description"
+    }
+    ,"If you find this project helpful and want to see it grow, consider...": {
+      "type": "string",
+      "description": "Main page beg for support"
     }
     ,"v.": {
       "type": "string",
       "description": "Main page version"
+    }
+    ,"Language": {
+      "type": "string",
+      "description": "Name of the language menu"
     }
     ,"There are {{count}} components.": {
       "type": "string",
@@ -39,7 +47,7 @@
       "type": "string",
       "description": "Environment name for production"
     }
-    ,"API": {
+    ,"GraphQL API": {
       "type": "string",
       "description": "API button label"
     }
@@ -61,16 +69,18 @@
     }
   },
   "required": [
-    "Hello world"
-    ,"Angular Momentum"
+    "Angular Momentum"
+    ,"This project is designed to rapidly spin up Angular applications..."
+    ,"If you find this project helpful and want to see it grow, consider..."
     ,"v."
+    ,"Language"
     ,"There are {{count}} components."
     ,"App Version"
     ,"Environment"
     ,"Using {{environmentName}} environment."
     ,"Development"
     ,"Production"
-    ,"API"
+    ,"GraphQL API"
     ,"IndexedDB"
     ,"Features"
     ,"Enter some text to have it persist between page reloads"

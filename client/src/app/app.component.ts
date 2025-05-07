@@ -1,76 +1,77 @@
-import { ChangeDetectionStrategy, Component, OnDestroy } from '@angular/core';
-import { NgComponentOutlet } from '@angular/common';
-
-import { CookieService } from 'ngx-cookie-service';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 
 import { UpdateService } from './services/update.service';
 import { AutoUnsubscribe } from "src/app/helpers/unsub";
 
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
-import { FooterComponent } from './components/layout/footer/footer.component';
-import { AppVersionComponent } from './components/app-version/app-version.component';
-import { EnvironmentComponent } from './components/environment/environment.component';
-import { ApiComponent } from './components/api/api.component';
-import { IndexedDBComponent } from './components/indexed-db/indexed-db.component';
 import { FeatureFlagService } from './services/feature-flag.service';
-import { FeaturesComponent } from './components/features/features.component';
+import packageJson from '../../../package.json';
 
-import { ButtonModule } from 'primeng/button';
+import { MenuLanguageComponent } from './components/menus/menu-language/menu-language.component';
+import { MenuFeatureComponent } from './components/menus/menu-feature/menu-feature.component';
+import { SlugPipe } from './pipes/slug.pipe';
+import { ComponentListService } from './services/component-list.service';
+import { TranslocoHttpLoader } from './services/transloco-loader.service';
 import { PrimeNG } from 'primeng/config';
-  
-type ComponentList = {
-  [key: string]: any
-}
-export const componentList: ComponentList = {
-  'Features': FeaturesComponent,
-  'App Version': AppVersionComponent,
-  'Environment': EnvironmentComponent,
-  'API': ApiComponent,
-  'IndexedDB': IndexedDBComponent,
-};
 
-@AutoUnsubscribe()
+@AutoUnsubscribe() // we never destroy the root component but this is here for consistency
 @Component({
-    selector: 'app-root',
-    templateUrl: './app.component.html',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [
-        NgComponentOutlet,
-        TranslocoDirective,
-        FooterComponent,
-        ButtonModule,
-    ],
-    styles: ``
+  selector: 'app-root',
+  templateUrl: 'app.component.html',
+  imports: [
+    RouterModule,
+    MenuLanguageComponent,
+    MenuFeatureComponent,
+    TranslocoDirective,
+  ],
+  providers: [
+    SlugPipe,
+  ],
 })
-export class AppComponent implements OnDestroy {
-  componentList = componentList;
-  componentListArr = Object.entries(componentList);
-  activeComponent: string | null = null;
+export class AppComponent implements OnInit, OnDestroy {
+  openMenu: string = '';
+  routePath: string = '';
+  version: string = packageJson.version;
   menuTransitionOptions = '0.3s cubic-bezier(0, 0, 0.2, 1) transform';
 
   constructor(
     private updateService: UpdateService,
-    private cookieService: CookieService, 
     protected featureFlagService: FeatureFlagService,
     private primeng: PrimeNG,
+    private router: Router,
+    private slugPipe: SlugPipe,
+    private componentListService: ComponentListService,
+    protected translocoLoader: TranslocoHttpLoader,
+    protected translate: TranslocoService,
   ){
     this.updateService.checkForUpdates();
   }
 
-  ngOnInit(): void {
-    this.primeng.ripple.set(true);
-    let activeButton = this.cookieService.get('activeButton');
-    activeButton = this.featureFlagService.getFeature(activeButton) ? activeButton : '';
-    if(['', 'null'].includes(activeButton)) {
-      this.activeComponent = null;
-    }else {
-      this.activeComponent = activeButton;
-    }
+  async ngOnInit() {
+    // long-form checking if navigated page is an allowed feature
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd){
+        this.routePath = event.urlAfterRedirects.replace('/', '');
+        const routeFeatureFlags: any = {};
+        this.componentListService.getComponentList().forEach((component) => {
+          const routePath = this.slugPipe.transform(component.name);
+          const featureFlag = component.name;
+          routeFeatureFlags[routePath] = featureFlag;
+        });
+        const featureFlag = routeFeatureFlags[this.routePath];
+        if (featureFlag && !this.featureFlagService.getFeature(featureFlag)) {
+          // navigate to a different page or display an error message
+          this.router.navigate(['/']);
+        }
+      }
+    });
   }
-  onComponentActivate(component: string | null): void {
-    this.activeComponent = component;
-    this.cookieService.set("activeButton", component !== null ? component.toString() : "null");
+  toggleMenu(menu: string, event: Event): void {
+    if (event.type === 'click' || (event.type === 'keydown' && event instanceof KeyboardEvent && event.key === 'Enter')) {
+      this.openMenu = this.openMenu === menu ? '' : menu;
+    }
   }
 
   ngOnDestroy(): void {}

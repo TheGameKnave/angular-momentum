@@ -8,13 +8,12 @@ import { AutoUnsubscribe } from 'src/app/helpers/unsub';
 
 @AutoUnsubscribe()
 @Component({
-    selector: 'app-indexed-db',
-    imports: [
-        ReactiveFormsModule,
-        TranslocoDirective,
-    ],
-    templateUrl: './indexed-db.component.html',
-    styles: ``
+  selector: 'app-indexeddb',
+  imports: [
+    ReactiveFormsModule,
+    TranslocoDirective,
+  ],
+  templateUrl: './indexeddb.component.html',
 })
 export class IndexedDBComponent implements OnInit, OnDestroy {
   textAreaData = new FormControl('');

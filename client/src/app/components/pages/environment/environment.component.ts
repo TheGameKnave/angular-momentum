@@ -1,0 +1,15 @@
+import { Component, isDevMode } from '@angular/core';
+import { TranslocoDirective } from '@jsverse/transloco';
+import { AutoUnsubscribe } from 'src/app/helpers/unsub';
+
+@AutoUnsubscribe()
+@Component({
+  selector: 'app-environment',
+  imports: [
+    TranslocoDirective,
+  ],
+  templateUrl: './environment.component.html',
+})
+export class EnvironmentComponent {
+  isDevMode = isDevMode();
+}

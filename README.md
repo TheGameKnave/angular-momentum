@@ -24,11 +24,11 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * CI/CD (github actions, sonar)
 * Hotjar script for user behavior analysis
 * Websockets to reconcile disparities between server and local data *
+* public api with GraphQL *
 
 (* indicates a feature that’s visible in the sample app)
 
 ## Future features:
-* public api with GraphQL *
 * DB-agnostic query layer
 * Elf state management *
 * Immutable.js or immer or Timm to minimize mutation

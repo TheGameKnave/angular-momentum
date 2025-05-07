@@ -42,7 +42,7 @@ describe('GraphQL API', () => {
       `;
 
       const response = await request(app)
-        .post('/graphql')
+        .post('/api')
         .send({ query });
 
       expect(response.status).toBe(200);
@@ -64,7 +64,7 @@ describe('GraphQL API', () => {
       `;
 
       const response = await request(app)
-        .post('/graphql')
+        .post('/api')
         .send({ query });
 
       expect(response.status).toBe(200);
@@ -79,7 +79,7 @@ describe('GraphQL API', () => {
       `;
 
       const response = await request(app)
-        .post('/graphql')
+        .post('/api')
         .send({ query });
 
       expect(response.status).toBe(200);
@@ -104,7 +104,7 @@ describe('GraphQL API', () => {
       const emitSpy = jest.spyOn(io, 'emit'); // Spy on the `emit` method
 
       const response = await request(app)
-        .post('/graphql')
+        .post('/api')
         .send({ query: mutation });
 
       expect(response.status).toBe(200);
@@ -119,7 +119,7 @@ describe('GraphQL API', () => {
   it('should return 405 for non-POST methods', async () => {
     // Make a GET request to trigger the else case
     const response = await request(app)
-      .get('/graphql');
+      .get('/api');
   
     expect(response.status).toBe(405);
     expect(response.body).toEqual({ error: 'Method Not Allowed' });
