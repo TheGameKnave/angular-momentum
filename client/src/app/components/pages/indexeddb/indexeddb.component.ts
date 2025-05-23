@@ -6,12 +6,17 @@ import { Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { AutoUnsubscribe } from 'src/app/helpers/unsub';
 
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { InputTextModule } from 'primeng/inputtext';
+
 @AutoUnsubscribe()
 @Component({
   selector: 'app-indexeddb',
   imports: [
     ReactiveFormsModule,
     TranslocoDirective,
+    FloatLabelModule,
+    InputTextModule,
   ],
   templateUrl: './indexeddb.component.html',
 })

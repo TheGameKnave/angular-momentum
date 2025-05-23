@@ -1,8 +1,13 @@
 <p *transloco="let t">
-  <span slot="label">{{ t('Enter some text to have it persist between page reloads') }}</span>
-  <textarea
+  <!-- <span slot="label">{{ t('Enter some text to have it persist between page reloads') }}</span> -->
+  <p-floatlabel variant="in">
+    <label for="indexeddb">{{ t('Enter some text to have it persist between page reloads') }}</label>
+    <input pInputText id="indexeddb" aria-describedby="indexeddb-help" [formControl]="textAreaData" />
+    <!-- <small id="indexeddb-help">{{ t('Enter some text to have it persist between page reloads') }}</small> -->
+  </p-floatlabel>
+  <!-- <textarea
     id="textAreaData" 
     [formControl]="textAreaData"
   >
-  </textarea>
+  </textarea> -->
 </p>
