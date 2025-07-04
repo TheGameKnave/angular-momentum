@@ -6,6 +6,8 @@ import { MarkdownModule } from 'ngx-markdown';
 import { Subscription } from 'rxjs';
 import { AutoUnsubscribe } from 'src/app/helpers/unsub';
 
+import {CardModule} from 'primeng/card';
+
 @AutoUnsubscribe()
 @Component({
   selector: 'app-index',
@@ -13,6 +15,7 @@ import { AutoUnsubscribe } from 'src/app/helpers/unsub';
   imports: [
     CommonModule,
     MarkdownModule,
+    CardModule,
   ],
 })
 export class IndexPage implements OnInit, OnDestroy {
