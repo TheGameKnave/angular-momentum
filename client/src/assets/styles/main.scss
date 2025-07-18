@@ -12,7 +12,7 @@ $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono',
 
 
 $brand-color: rgb(28, 130, 137) !default;
-.app-dark {
+.app-dark { // Dark theme for PrimeNG, apply to body
   background-color: #333;
   color: #f4f4f4;
   --p-card-background:#4a4a4a;
