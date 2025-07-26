@@ -1,0 +1,150 @@
+name: Build and SonarQube Analysis
+on:
+  pull_request:
+    branches:
+      # - dev # when working with a development seat of sonarServer
+      - main
+  push:
+    branches:
+      # - dev # when working with a development seat of sonarServer
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    env:
+      PORT: 4201
+      APP_PORT: 4200
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set Up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22.14.0
+
+      - name: Install Dependencies
+        run: |
+          echo "\nInstalling dependencies\n\n"
+          npm ci
+
+      - name: Run Translation Validation
+        run: |
+          echo "\nRunning translation validation\n\n"
+          cd tests/translation && npx ts-node translation-validation.ts
+
+      - name: Build the Client
+        run: |
+          echo "\nBuilding the client\n\n"
+          cd client && npm run build
+
+      - name: Run Server Tests
+        run: |
+          echo "\nRunning server tests\n\n"
+          cd server && npm test
+
+      - name: Run Client Tests
+        run: |
+          echo "\nRunning client tests\n\n"
+          cd client && npm test
+          
+      # #e2e Tests
+      # TODO uncomment once testcafe works with chrome latest
+      # - name: Start Angular server
+      #   run: npm run prod &
+
+      # - name: Wait for Angular server to start
+      #   run: |
+      #     until curl --output /dev/null --silent --head --fail http://localhost:4200; do
+      #       echo 'Waiting for Angular server...'
+      #       sleep 5
+      #     done
+
+      # - name: Run E2E Tests
+      #   run: |
+      #     echo "\nRunning e2e tests\n\n"
+      #     cd tests/e2e && node clean_screenshots && node test_runner
+
+      # - name: Run Screenshot Diff Tests
+      #   run: |
+      #     echo "\nRunning screenshot diff tests\n\n"
+      #     cd tests/e2e && npx testcafe-blink-diff screenshots --compare accepted:tested --open --threshold 0.003
+
+      - name: Install SonarScanner
+        run: |
+          curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-6.2.1.4610-macosx-aarch64.zip
+          unzip -q sonar-scanner-cli.zip -d $HOME/sonar-scanner
+          echo "$HOME/sonar-scanner/sonar-scanner-6.2.1.4610-macosx-aarch64/bin" >> $GITHUB_PATH
+
+      - name: Run SonarScanner
+        run: |
+          sonar-scanner \
+            -Dsonar.projectKey=TheGameKnave_angular-momentum \
+            -Dsonar.organization=thegameknave \
+            -Dsonar.host.url=https://sonarcloud.io
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Wait for Quality Gate
+        run: |
+          #!/bin/bash
+          TASK_FILE=.scannerwork/report-task.txt
+          echo "Fetching task status... for TASK_ID=$(cat $TASK_FILE)"
+          TASK_ID=$(grep "ceTaskId" "$TASK_FILE" | cut -d= -f2 | tr -d '[:space:]')
+
+          if [[ -z "$TASK_ID" ]]; then
+            echo "Error: TASK_ID is empty. Check Sonar task file."
+            exit 1
+          fi
+
+          # Wait for SonarCloud to complete the analysis
+          MAX_RETRIES=15
+          RETRY_DELAY=10
+          TRIES=0
+
+          while ((TRIES < MAX_RETRIES)); do
+            # Fetch task status from SonarCloud
+            RESPONSE=$(curl -s -u "${{ secrets.SONAR_TOKEN }}:" "https://sonarcloud.io/api/ce/task?id=$TASK_ID")
+            echo "Response: $RESPONSE"  # This logs the response from SonarCloud
+            
+            # Check if the response contains data
+            if [[ -z "$RESPONSE" ]]; then
+              echo "Warning: Empty response from SonarCloud. Retrying..."
+              sleep $RETRY_DELAY
+              ((TRIES++))
+              continue
+            fi
+
+            # Attempt to extract the status from the response
+            STATUS=$(echo "$RESPONSE" | grep -o '"status":"[^"]*"' | cut -d: -f2 | tr -d '"')
+            
+            if [[ -z "$STATUS" ]]; then
+              echo "Warning: STATUS is empty. Retrying..."
+              sleep $RETRY_DELAY
+              ((TRIES++))
+              continue
+            fi
+
+            echo "Current Task Status: $STATUS"
+
+            if [[ "$STATUS" == "SUCCESS" ]]; then
+              break
+            elif [[ "$STATUS" == "FAILED" ]]; then
+              echo "SonarCloud analysis failed!"
+              echo "$RESPONSE"  # Show full response on failure
+              exit 1
+            fi
+
+            ((TRIES++))
+            if [[ "$TRIES" -ge "$MAX_RETRIES" ]]; then
+              echo "SonarCloud analysis taking too long. Exiting."
+              exit 1
+            fi
+
+            echo "Waiting for SonarCloud to complete analysis... (Attempt $TRIES/$MAX_RETRIES)"
+            sleep $RETRY_DELAY
+          done
+
+        shell: bash
