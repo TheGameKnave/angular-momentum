@@ -1,5 +1,5 @@
 import { Subscription } from 'rxjs';
-import { AutoUnsubscribe } from './unsub';
+import { AutoUnsubscribe } from '@app/helpers/unsub';
 
 describe('AutoUnsubscribe Decorator', () => {
   let originalSetTimeout: typeof setTimeout;

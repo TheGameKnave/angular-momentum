@@ -4,7 +4,7 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { openDB } from 'idb';
 import { Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
-import { AutoUnsubscribe } from 'src/app/helpers/unsub';
+import { AutoUnsubscribe } from '@app/helpers/unsub';
 
 @AutoUnsubscribe()
 @Component({

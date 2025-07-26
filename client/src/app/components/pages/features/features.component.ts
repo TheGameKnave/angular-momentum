@@ -2,8 +2,8 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { TranslocoDirective} from '@jsverse/transloco';
-import { AutoUnsubscribe } from 'src/app/helpers/unsub';
-import { FeatureFlagService } from 'src/app/services/feature-flag.service';
+import { AutoUnsubscribe } from '@app/helpers/unsub';
+import { FeatureFlagService } from '@app/services/feature-flag.service';
 import { Subscription } from 'rxjs';
 
 @AutoUnsubscribe()

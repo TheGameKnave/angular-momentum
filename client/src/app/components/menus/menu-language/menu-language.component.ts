@@ -1,10 +1,10 @@
 import { Component, OnDestroy } from '@angular/core';
-import { SUPPORTED_LANGUAGES } from 'src/app/helpers/constants';
+import { SUPPORTED_LANGUAGES } from '@app/helpers/constants';
 import { LANGUAGES } from 'i18n-l10n-flags';
 import { NgClass } from '@angular/common';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { AutoUnsubscribe } from 'src/app/helpers/unsub';
-import { TranslocoHttpLoader } from 'src/app/services/transloco-loader.service';
+import { AutoUnsubscribe } from '@app/helpers/unsub';
+import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 
 @AutoUnsubscribe()
 @Component({

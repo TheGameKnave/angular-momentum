@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { SwUpdate, VersionEvent } from '@angular/service-worker';
-import { AutoUnsubscribe } from 'src/app/helpers/unsub';
+import { AutoUnsubscribe } from '@app/helpers/unsub';
 import { interval } from 'rxjs';
 
 @Injectable({

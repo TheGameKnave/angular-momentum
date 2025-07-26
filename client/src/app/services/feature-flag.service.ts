@@ -1,9 +1,9 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Socket } from 'ngx-socket-io';
-import { map, Observable, tap } from 'rxjs';
+import { catchError, map, Observable, of, tap } from 'rxjs';
 import equal from 'fast-deep-equal';
-import { ComponentListService, ComponentInstance } from './component-list.service';
+import { ComponentListService, ComponentInstance } from '@app/services/component-list.service';
 
 type ArbitraryFeatures = {
   // 'New Feature': boolean;
@@ -37,7 +37,12 @@ export class FeatureFlagService {
         }, {} as FeatureFlagResponse);
         return featureFlags;
       }),
-      tap((featureFlags) => this.features.set(featureFlags))
+      tap((featureFlags) => this.features.set(featureFlags)),
+      catchError((error: HttpErrorResponse) => {
+        console.error('Error getting feature flags:', error);
+        // Return a default value or an empty observable
+        return of({} as FeatureFlagResponse);
+      })
     );
   }
   constructor(

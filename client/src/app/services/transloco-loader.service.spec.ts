@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { TranslocoHttpLoader } from './transloco-loader.service';
-import { ENVIRONMENT } from '../../environments/environment';
+import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
+import { ENVIRONMENT } from 'src/environments/environment';
 import { provideHttpClient } from '@angular/common/http';
 import { LANGUAGES } from 'i18n-l10n-flags';
 

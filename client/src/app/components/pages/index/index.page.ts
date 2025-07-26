@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
 import { MarkdownModule } from 'ngx-markdown';
 import { Subscription } from 'rxjs';
-import { AutoUnsubscribe } from 'src/app/helpers/unsub';
+import { AutoUnsubscribe } from '@app/helpers/unsub';
 
 @AutoUnsubscribe()
 @Component({

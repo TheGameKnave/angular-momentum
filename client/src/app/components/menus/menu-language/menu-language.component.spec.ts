@@ -1,10 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { SUPPORTED_LANGUAGES } from 'src/app/helpers/constants';
+import { SUPPORTED_LANGUAGES } from '@app/helpers/constants';
 import { MenuLanguageComponent } from './menu-language.component';
 import { TranslocoLoader, TranslocoService } from '@jsverse/transloco';
 import { NgClass } from '@angular/common';
 import { TranslocoDirective } from '@jsverse/transloco';
-import { TranslocoHttpLoader } from 'src/app/services/transloco-loader.service';
+import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 
 describe('MenuLanguageComponent', () => {
   let component: MenuLanguageComponent;

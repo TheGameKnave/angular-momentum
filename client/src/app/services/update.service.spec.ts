@@ -1,7 +1,7 @@
 import { TestBed, discardPeriodicTasks, fakeAsync, flush, tick } from '@angular/core/testing';
-import { UpdateService } from './update.service';
-import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
-import { Observable, of, Subject, Subscription } from 'rxjs';
+import { UpdateService } from '@app/services/update.service';
+import { SwUpdate } from '@angular/service-worker';
+import { Observable, of, Subject } from 'rxjs';
 import { VersionEvent, UnrecoverableStateEvent } from '@angular/service-worker'; // Import the VersionEvent type
 import { Injectable } from '@angular/core';
 

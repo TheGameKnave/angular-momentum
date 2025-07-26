@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FeaturesComponent } from './features.component';
-import { FeatureFlagService } from 'src/app/services/feature-flag.service';
+import { FeatureFlagService } from '@app/services/feature-flag.service';
 import db from 'src/../../server/data/db.json';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { signal } from '@angular/core';

@@ -1,6 +1,6 @@
 import { Route } from '@angular/router';
-import { ComponentListService } from './services/component-list.service'; 
-import { SlugPipe } from './pipes/slug.pipe';
+import { ComponentListService } from '@app/services/component-list.service'; 
+import { SlugPipe } from '@app/pipes/slug.pipe';
 
 // Instantiate the service (without DI, since it's outside Angular context)
 const componentService = new ComponentListService();

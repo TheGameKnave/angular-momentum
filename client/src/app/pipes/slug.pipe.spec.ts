@@ -1,4 +1,4 @@
-import { SlugPipe } from './slug.pipe';
+import { SlugPipe } from '@app/pipes/slug.pipe';
 
 describe('SlugPipe', () => {
   it('create an instance', () => {

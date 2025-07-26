@@ -1,19 +1,19 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { AutoUnsubscribe } from '@app/helpers/unsub';
 
-import { UpdateService } from './services/update.service';
-import { AutoUnsubscribe } from "src/app/helpers/unsub";
+import { UpdateService } from '@app/services/update.service';
 
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
-import { FeatureFlagService } from './services/feature-flag.service';
-import packageJson from '../../../package.json';
+import { FeatureFlagService } from '@app/services/feature-flag.service';
+import packageJson from 'src/../package.json';
 
-import { MenuLanguageComponent } from './components/menus/menu-language/menu-language.component';
-import { MenuFeatureComponent } from './components/menus/menu-feature/menu-feature.component';
-import { SlugPipe } from './pipes/slug.pipe';
-import { ComponentListService } from './services/component-list.service';
-import { TranslocoHttpLoader } from './services/transloco-loader.service';
+import { MenuLanguageComponent } from '@app/components/menus/menu-language/menu-language.component';
+import { MenuFeatureComponent } from '@app/components/menus/menu-feature/menu-feature.component';
+import { SlugPipe } from '@app/pipes/slug.pipe';
+import { ComponentListService } from '@app/services/component-list.service';
+import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 
 @AutoUnsubscribe() // we never destroy the root component but this is here for consistency
 @Component({

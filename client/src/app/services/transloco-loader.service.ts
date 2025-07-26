@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { TranslocoLoader, Translation } from '@jsverse/transloco';
-import { Observable } from 'rxjs';
-import { ENVIRONMENT } from '../../environments/environment';
+import { catchError, Observable, of } from 'rxjs';
+import { ENVIRONMENT } from 'src/environments/environment';
 import { LANGUAGES } from 'i18n-l10n-flags';
 
 @Injectable({
@@ -12,8 +12,17 @@ export class TranslocoHttpLoader implements TranslocoLoader {
   languages = LANGUAGES;
   constructor(private http: HttpClient) {}
 
-  getTranslation(lang: string): Observable<Translation> {
-    return this.http.get(`${ENVIRONMENT.baseUrl}/assets/i18n/${lang}.json`);
+  getTranslation(lang: string): Observable<any> {
+    return this.http.get(`/assets/i18n/${lang}.json`).pipe(
+      catchError((error) => {
+        if (error.status === 0) {
+          // backend is not available, return a fallback translation
+          return of({}); // or return a default translation object
+        } else {
+          throw error;
+        }
+      })
+    );
   }
 
   getFlag(ln: string): string {

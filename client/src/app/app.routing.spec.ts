@@ -1,5 +1,5 @@
 import { routes } from './app.routing';
-import { ComponentListService } from './services/component-list.service';
+import { ComponentListService } from '@app/services/component-list.service';
 
 describe('App Routing Configuration', () => {
   let componentService: ComponentListService;
