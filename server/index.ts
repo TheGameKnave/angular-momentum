@@ -22,6 +22,7 @@ export function setupApp(): express.Application {
   const app = express();
   const logger = pino({level: 'error'});
   
+  app.set('trust proxy', true);
   app.use(logger);
   app.use(express.json());
 
