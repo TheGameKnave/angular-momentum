@@ -3,7 +3,7 @@ import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
 import { MarkdownModule } from 'ngx-markdown';
-import { Subscription } from 'rxjs';
+import { Subscription, take } from 'rxjs';
 import { AutoUnsubscribe } from '@app/helpers/unsub';
 
 @AutoUnsubscribe()
@@ -39,7 +39,7 @@ export class IndexPage implements OnInit, OnDestroy {
   }
 
   private setData() {
-    this.transloco.selectTranslate('Angular Momentum').subscribe(translation => {
+    this.transloco.selectTranslate('Angular Momentum').pipe(take(1)).subscribe(translation => {
       this.data = `# ${this.transloco.translate('Angular Momentum')}
 
 ${this.transloco.translate('This project is designed to rapidly spin up Angular applications...')}
