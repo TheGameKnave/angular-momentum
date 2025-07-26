@@ -22,7 +22,7 @@ describe('SlugPipe', () => {
     const input = 'Hello@World!';
     const expectedOutput = 'hello-world';
     expect(pipe.transform(input)).toEqual(expectedOutput);
-  }),
+  });
   it('should handle strings with multiple spaces', () => {
     const pipe = new SlugPipe();
     const input = 'Hello   World';

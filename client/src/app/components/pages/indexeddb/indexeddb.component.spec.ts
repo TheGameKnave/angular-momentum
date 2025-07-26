@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { IndexedDBComponent } from './indexeddb.component';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { ReactiveFormsModule } from '@angular/forms';
-import { openDB, IDBPDatabase, deleteDB } from 'idb';
+import { openDB, IDBPDatabase } from 'idb';
 
 describe('IndexedDBComponent initialization', () => {
   let component: IndexedDBComponent;
@@ -85,7 +85,7 @@ describe('IndexedDBComponent operations', () => {
 
   it('should store text area value in IndexedDB', fakeAsync(async () => {
     const testData = 'Test data';
-    let storedValue: any;
+    let storedValue: string | undefined;
     component.textAreaData.setValue(testData);
   
     // Simulate the passage of time for the debounce
@@ -156,12 +156,6 @@ describe('IndexedDBComponent operations', () => {
     tick(400);
     await component.getDbValue();
     expect(component.textAreaData.value).toBe('test2');
-  }));
-  
-  it('should clean up subscription', fakeAsync(() => {
-    component.ngOnDestroy();
-    tick(1100);
-    expect(component.textAreaSub?.closed).toBe(true);
   }));
   
   it('should debounce updates', fakeAsync(async () => {

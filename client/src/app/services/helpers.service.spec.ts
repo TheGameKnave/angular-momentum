@@ -6,7 +6,7 @@ describe('HelpersService', () => {
   let service: HelpersService;
 
   afterEach(() => {
-    delete (window as any).helpersService;
+    delete (window as Window).helpersService;
   });
 
   it('should be created', () => {
@@ -28,7 +28,7 @@ describe('HelpersService', () => {
       ]
     });
     service = TestBed.inject(HelpersService);
-    expect((window as any).helpersService).toBe(service);
+    expect((window as Window).helpersService).toBe(service);
   });
 
   it('should not set window.helpersService if in production', () => {
@@ -39,7 +39,7 @@ describe('HelpersService', () => {
       ]
     });
     service = TestBed.inject(HelpersService);
-    expect((window as any).helpersService).toBeUndefined();
+    expect((window as Window).helpersService).toBeUndefined();
   });
 });
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Socket } from 'ngx-socket-io';
 import { Observable } from 'rxjs';
 
@@ -6,7 +6,8 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class SocketIoService {
-  constructor(private socket: Socket) {}
+  private socket = inject(Socket);
+
 
   // Listen to an event
   listen<T>(event: string): Observable<T> {

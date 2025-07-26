@@ -6,8 +6,8 @@ import { VersionEvent, UnrecoverableStateEvent } from '@angular/service-worker';
 import { Injectable } from '@angular/core';
 
 export class UnrecoverableStateEventMock implements UnrecoverableStateEvent {
-  reason: string = '';
-  type: "UNRECOVERABLE_STATE" = "UNRECOVERABLE_STATE";
+  reason = '';
+  type: "UNRECOVERABLE_STATE" = "UNRECOVERABLE_STATE" as const;
   // Add any other properties required by UnrecoverableStateEvent
 }
 
@@ -38,7 +38,6 @@ export class SwUpdateMock extends SwUpdate {
 
 describe('UpdateService', () => {
   let service: UpdateService;
-  let swUpdate: SwUpdateMock;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -48,7 +47,7 @@ describe('UpdateService', () => {
       ]
     });
     service = TestBed.inject(UpdateService);
-    swUpdate = TestBed.inject(SwUpdate) as SwUpdateMock;
+    TestBed.inject(SwUpdate) as SwUpdateMock;
   });
 
   it('should be created', () => {
@@ -64,10 +63,9 @@ describe('UpdateService', () => {
     const enabledSwUpdateMock: SwUpdateMock = new SwUpdateMock();
     Object.defineProperty(enabledSwUpdateMock, 'isEnabled', { value: true });
   
-    // Create a spy for the checkForUpdate method
-    const checkForUpdateSpy = spyOn(enabledSwUpdateMock, 'checkForUpdate').and.returnValue(Promise.resolve(true));
-    // Create UpdateService with the enabled SwUpdateMock
-    const enabledUpdateService: UpdateService = new UpdateService(enabledSwUpdateMock);
+  
+    // Inject the UpdateService instance
+    const enabledUpdateService: UpdateService = TestBed.inject(UpdateService);
   
     // Call checkForUpdates on the enabledUpdateService instance
     enabledUpdateService.checkForUpdates();
@@ -75,7 +73,7 @@ describe('UpdateService', () => {
     // Expectations
     expect(enabledUpdateService).toBeTruthy(); // Ensure the service is created
     tick(20 * 60 * 1000); // Manually advance time to simulate the interval
-    expect(checkForUpdateSpy).toHaveBeenCalled(); // Verify that checkForUpdate is called after the interval
+    expect(enabledSwUpdateMock.checkForUpdate).toHaveBeenCalled(); // Verify that checkForUpdate is called after the interval
   
     // Cleanup
     discardPeriodicTasks();
@@ -97,7 +95,7 @@ describe('UpdateService', () => {
     disabledSwUpdateMock.checkForUpdate = checkForUpdateSpy;
 
     // Create a new UpdateService instance with the disabled SwUpdateMock
-    const disabledUpdateService: UpdateService = new UpdateService(disabledSwUpdateMock);
+    const disabledUpdateService: UpdateService = new UpdateService;
 
     // Expectations
     expect(disabledUpdateService).toBeTruthy(); // Ensure the service is created
@@ -106,10 +104,10 @@ describe('UpdateService', () => {
   });
 
   it('should check for updates and subscribe to versionUpdates', () => {
-    const updateService = new UpdateService(swUpdate);
+    const updateService = new UpdateService;
   
     // Mock the promptUser function to prevent actual page reload
-    spyOn(updateService, 'promptUser').and.callFake((event) => {
+    spyOn(updateService, 'promptUser').and.callFake(() => {
       updateService.confirming = false; // Set confirming to false without reloading
     });
   

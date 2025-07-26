@@ -1,17 +1,14 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { SocketIoService } from '@app/services/socket.io.service';
-
-export interface FeatureFlag {
-  key: string;
-  value: boolean;
-}
+import { FeatureFlag } from '@app/models/data.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SocketFeatureService {
-  constructor(private socketIoService: SocketIoService) {}
+  private socketIoService = inject(SocketIoService);
+
 
   // Subscribe to feature flag updates
   getFeatureFlags(): Observable<FeatureFlag[]> {

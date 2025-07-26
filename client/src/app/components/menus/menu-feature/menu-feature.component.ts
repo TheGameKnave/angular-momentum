@@ -1,12 +1,11 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
-import { AutoUnsubscribe } from '@app/helpers/unsub';
 import { SlugPipe } from '@app/pipes/slug.pipe';
 import { ComponentListService } from '@app/services/component-list.service';
 import { FeatureFlagService } from '@app/services/feature-flag.service';
+import { ComponentInstance } from '@app/models/data.model';
 
-@AutoUnsubscribe()
 @Component({
   selector: 'app-menu-feature',
   templateUrl: './menu-feature.component.html',
@@ -16,13 +15,11 @@ import { FeatureFlagService } from '@app/services/feature-flag.service';
     TranslocoDirective,
   ],
 })
-export class MenuFeatureComponent  implements OnInit, OnDestroy {
-  componentList!: any[];
+export class MenuFeatureComponent  implements OnInit {
+  private componentListService = inject(ComponentListService);
+  protected featureFlagService = inject(FeatureFlagService);
 
-  constructor(
-    private componentListService: ComponentListService,
-    protected featureFlagService: FeatureFlagService,
-  ) { }
+  componentList!: ComponentInstance[];
 
   ngOnInit(): void {
     this.componentList = this.componentListService.getComponentList();
@@ -32,7 +29,5 @@ export class MenuFeatureComponent  implements OnInit, OnDestroy {
   componentCount(): number {
     return this.componentList.filter(component => this.featureFlagService.getFeature(component.name)).length;
   }
-  
-  ngOnDestroy() {}
 
 }

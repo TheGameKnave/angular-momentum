@@ -1,8 +1,18 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { MarkdownComponent } from 'ngx-markdown';
-import { catchError, of } from 'rxjs';
+import { catchError, first, of } from 'rxjs';
 
+const query = `
+query GetApiData {
+  docs
+}
+`;
+interface InitializeApiRes {
+  data: {
+    docs: string;
+  };
+}
 @Component({
   selector: 'app-graphql-api',
   imports: [
@@ -10,23 +20,22 @@ import { catchError, of } from 'rxjs';
   ],
   templateUrl: './graphql-api.component.html',
 })
-export class GraphqlApiComponent {
-  results: any = null;
-  error: any = null;
+export class GraphqlApiComponent implements OnInit {
+  private http = inject(HttpClient);
+  private cd = inject(ChangeDetectorRef);
 
-  constructor(
-    private http: HttpClient,
-    private cd: ChangeDetectorRef,
-  ) { }
+  results!: InitializeApiRes;
+  error: unknown = null;
 
   ngOnInit(): void {
     this.initializeApi().pipe(
-      catchError(error => {
+      catchError((error: unknown) => {
         this.error = error;
         return of(null); // Return an empty observable to continue the chain
-      })
-    ).subscribe((response: any) => {
-      this.results = response?.['data'] || null;
+      }),
+      first()
+    ).subscribe((response: unknown) => {
+      this.results = (response as InitializeApiRes) || null;
       this.cd.detectChanges();
     });
   }
@@ -36,11 +45,7 @@ export class GraphqlApiComponent {
         'Content-Type':  'application/json'
       })
     };
-    const query = `
-      query GetApiData {
-        docs
-      }
-    `;
+
     return this.http.post('/api', { query }, httpOptions);
   }
 }

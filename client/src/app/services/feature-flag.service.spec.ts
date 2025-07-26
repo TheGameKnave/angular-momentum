@@ -59,13 +59,6 @@ describe('FeatureFlagService', () => {
   it('should update feature flags via GraphQL mutation', fakeAsync(() => {
     const feature = 'Environment';
     const value = false;
-    const expectedMutation = `
-    mutation UpdateFeatureFlag($key: String!, $value: Boolean!) {
-      updateFeatureFlag(key: $key, value: $value) {
-        key
-        value
-      }
-    }`;
 
     service.setFeature(feature, value);
     tick();

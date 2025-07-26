@@ -12,7 +12,6 @@ describe('FeaturesComponent', () => {
   const features = {...db.featureFlags};
   let component: FeaturesComponent;
   let fixture: ComponentFixture<FeaturesComponent>;
-  let featureFlagService: jasmine.SpyObj<FeatureFlagService>;
   let featureFlagServiceSpy: jasmine.SpyObj<FeatureFlagService>;
   const mockFeaturesSignal = signal({...features});
 
@@ -42,7 +41,7 @@ describe('FeaturesComponent', () => {
 
     fixture = TestBed.createComponent(FeaturesComponent);
     component = fixture.componentInstance;
-    featureFlagService = TestBed.inject(FeatureFlagService) as jasmine.SpyObj<FeatureFlagService>;
+    TestBed.inject(FeatureFlagService) as jasmine.SpyObj<FeatureFlagService>;
     fixture.detectChanges();
   }));
 

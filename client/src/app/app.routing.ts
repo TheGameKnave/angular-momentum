@@ -11,7 +11,7 @@ const slugPipe = new SlugPipe();
 export const routes: Route[] = [
   {
     path: '',
-    loadComponent: () => import('./components/pages/index/index.page').then(m => m.IndexPage)
+    loadComponent: () => import('./components/pages/index/index.component').then(m => m.IndexComponent)
   },
   ...componentList.map(component => ({
     path: slugPipe.transform(component.name),

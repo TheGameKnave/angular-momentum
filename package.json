@@ -18,6 +18,7 @@
     "prod": "run-p client-prod server-prod",
     "sonar": "sonar-scanner -Dsonar.token=$(grep SONAR_TOKEN server/.env | cut -d '=' -f 2)",
     "test": "./tests/test.sh",
+    "lint": "run-p lint-client lint-server",
     "test-translation": "cd tests/translation && ts-node translation-validation.ts",
     "test-server": "cd server && npm test",
     "test-client": "cd client && npm test",
