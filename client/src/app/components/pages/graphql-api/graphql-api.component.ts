@@ -1,4 +1,5 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { ENVIRONMENT } from 'src/environments/environment';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { MarkdownComponent } from 'ngx-markdown';
 import { catchError, of } from 'rxjs';
@@ -41,6 +42,6 @@ export class GraphqlApiComponent {
         docs
       }
     `;
-    return this.http.post('/api', { query }, httpOptions);
+    return this.http.post(ENVIRONMENT.baseUrl + '/api', { query }, httpOptions);
   }
 }

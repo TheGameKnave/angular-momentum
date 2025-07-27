@@ -3,7 +3,7 @@
     "Environment": true,
     "GraphQL API": true,
     "IndexedDB": true,
-    "App Version": true,
-    "Language": false
+    "App Version": false,
+    "Language": true
   }
 }

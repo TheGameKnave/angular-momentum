@@ -1,6 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Socket } from 'ngx-socket-io';
+import { ENVIRONMENT } from 'src/environments/environment';
 import { catchError, map, Observable, of, tap } from 'rxjs';
 import equal from 'fast-deep-equal';
 import { ComponentListService, ComponentInstance } from '@app/services/component-list.service';
@@ -29,7 +30,7 @@ export class FeatureFlagService {
 
   getFeatureFlags(): Observable<FeatureFlagResponse> {
     const query = getFeatureFlagsQuery();
-    return this.http.post<{ data: { featureFlags: { key: FeatureFlagKeys; value: boolean }[] } }>('/api', { query }).pipe(
+    return this.http.post<{ data: { featureFlags: { key: FeatureFlagKeys; value: boolean }[] } }>(ENVIRONMENT.baseUrl + '/api', { query }).pipe(
       map((response) => {
         const featureFlags = response.data.featureFlags.reduce((acc, flag) => {
           acc[flag.key] = flag.value;
@@ -39,7 +40,7 @@ export class FeatureFlagService {
       }),
       tap((featureFlags) => this.features.set(featureFlags)),
       catchError((error: HttpErrorResponse) => {
-        console.error('Error getting feature flags:', error);
+        /**/console.error('Error getting feature flags:', error);
         // Return a default value or an empty observable
         return of({} as FeatureFlagResponse);
       })
@@ -67,7 +68,7 @@ export class FeatureFlagService {
     
       // Notify backend of the updated flag using GraphQL request
       const mutation = updateFeatureFlagMutation(feature, value);
-      this.http.post('/api', {
+      this.http.post(ENVIRONMENT.baseUrl + '/api', {
         query: mutation,
         variables: { key: feature, value },
       }).subscribe();

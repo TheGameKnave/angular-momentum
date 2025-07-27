@@ -6,7 +6,6 @@ export function AutoUnsubscribe( ) {
       for ( let prop in this ) {
         const property = this[ prop ];
         if ( property && ( typeof property.unsubscribe === "function" ) ) {
-          console.log(`Unsubscribing from ${prop}`);
           property.unsubscribe();
         }else if(typeof property === 'object'){
           this[prop] = null; // TODO remove this band-aid when we determine components are properly released

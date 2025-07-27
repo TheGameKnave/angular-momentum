@@ -177,7 +177,7 @@ describe('setupWebSocket', () => {
       mockError
     );
 
-    consoleErrorSpy.mockRestore();
+    /**/consoleErrorSpy.mockRestore();
   });
 
   it('should set up middleware and engine event listeners', () => {

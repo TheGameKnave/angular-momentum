@@ -4,9 +4,9 @@
   "version": "0.19.4",
   "identifier": "app.angularmomentum",
   "build": {
-    "beforeDevCommand": "npm run start",
+    "beforeDevCommand": "ng serve --hmr --proxy-config src/proxy.conf.json --configuration=tauri-local",
     "devUrl": "http://localhost:4200",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "npm run build --configuration=production",
     "frontendDist": "../dist/angular-momentum/browser"
   },
   "app": {

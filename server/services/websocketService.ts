@@ -4,7 +4,12 @@ import { readFeatureFlags } from './lowDBService';
 export function setupWebSocket(server: any) {
   const io = new SocketIOServer(server, {
     cors: {
-      origin: '*', // Replace with your frontend's actual origin for production
+      origin: [
+        'http://localhost:4200',
+        'http://192.168.1.x:4200',
+        'http://tauri.localhost',
+        'https://angularmomentum.app',
+      ], // Replace with your frontend's actual origin for production
       methods: ["GET", "POST"],
       allowedHeaders: ["Authorization"],
       credentials: true
@@ -23,7 +28,7 @@ export function setupWebSocket(server: any) {
     next();
   });
   io.on('connect_error', (err) => {
-    console.error('WebSocket connection error:', err);
+    /**/console.error('WebSocket connection error:', err);
   });  
   // Handle WebSocket connections
   io.on('connection', async (socket) => {

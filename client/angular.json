@@ -61,6 +61,18 @@
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
+            },
+            "tauri-local": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.local.ts"
+                }
+              ],
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
             }
           },
           "defaultConfiguration": "production"
@@ -78,6 +90,9 @@
             },
             "development": {
               "buildTarget": "angular-momentum:build:development"
+            },
+            "tauri-local": {
+              "buildTarget": "angular-momentum:build:tauri-local"
             }
           },
           "defaultConfiguration": "development"

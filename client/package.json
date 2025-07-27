@@ -7,7 +7,11 @@
     "build": "ng build",
     "test": "ng test --configuration test --browsers=ChromeHeadless --watch=false",
     "watch": "ng test",
-    "tauri": "tauri"
+    "prebuild": "node ./scripts/set-local-env.js",
+    "tauri": "tauri",
+    "tauri:android": "npm run prebuild && tauri android dev",
+    "tauri:ios": "npm run prebuild && tauri ios dev",
+    "lint": "ng lint"
   },
   "private": true,
   "dependencies": {
