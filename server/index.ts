@@ -30,6 +30,7 @@ export function setupApp(): express.Application {
       'http://192.168.1.x:4200',
       'http://tauri.localhost',
       'https://angularmomentum.app',
+      'app://.', // for tauri
     ],
     credentials: true,
   }));
