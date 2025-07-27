@@ -9,6 +9,8 @@ export function setupWebSocket(server: any) {
         'http://192.168.1.x:4200',
         'http://tauri.localhost',
         'https://angularmomentum.app',
+        'app://.', // for tauri
+        'tauri://.', // for tauri
       ], // Replace with your frontend's actual origin for production
       methods: ["GET", "POST"],
       allowedHeaders: ["Authorization"],
