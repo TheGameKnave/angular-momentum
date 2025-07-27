@@ -1,22 +1,13 @@
-import { Injectable, InjectionToken, inject } from '@angular/core';
-
-declare global {
-  interface Window {
-    helpersService?: HelpersService;
-  }
-}
-
-const ENVIRONMENT_TOKEN = new InjectionToken<{ baseUrl: string; env: string }>('ENVIRONMENT');
+import { Injectable, Inject } from '@angular/core';
+import { ENVIRONMENT } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class HelpersService {
-  private env = inject(ENVIRONMENT_TOKEN);
-
-  constructor() {
+  constructor(@Inject(ENVIRONMENT) private env: any) {
     if (this.env.env !== 'production') {
-      window.helpersService = this;
+      (window as any).helpersService = this;
     }
   }
 }

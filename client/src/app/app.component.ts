@@ -1,5 +1,6 @@
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { AutoUnsubscribe } from '@app/helpers/unsub';
 
 import { UpdateService } from '@app/services/update.service';
 
@@ -13,8 +14,8 @@ import { MenuFeatureComponent } from '@app/components/menus/menu-feature/menu-fe
 import { SlugPipe } from '@app/pipes/slug.pipe';
 import { ComponentListService } from '@app/services/component-list.service';
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+@AutoUnsubscribe() // we never destroy the root component but this is here for consistency
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -28,31 +29,30 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     SlugPipe,
   ],
 })
-export class AppComponent implements OnInit {
-  destroyRef = inject(DestroyRef);
-  private updateService = inject(UpdateService);
-  protected featureFlagService = inject(FeatureFlagService);
-  private router = inject(Router);
-  private slugPipe = inject(SlugPipe);
-  private componentListService = inject(ComponentListService);
-  protected translocoLoader = inject(TranslocoHttpLoader);
-  protected translate = inject(TranslocoService);
-
-  openMenu = '';
-  routePath = '';
+export class AppComponent implements OnInit, OnDestroy {
+  openMenu: string = '';
+  routePath: string = '';
   version: string = packageJson.version;
   menuTransitionOptions = '0.3s cubic-bezier(0, 0, 0.2, 1) transform';
 
-  constructor(){
+  constructor(
+    private updateService: UpdateService,
+    protected featureFlagService: FeatureFlagService,
+    private router: Router,
+    private slugPipe: SlugPipe,
+    private componentListService: ComponentListService,
+    protected translocoLoader: TranslocoHttpLoader,
+    protected translate: TranslocoService,
+  ){
     this.updateService.checkForUpdates();
   }
 
   async ngOnInit() {
     // long-form checking if navigated page is an allowed feature
-    this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+    this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd){
         this.routePath = event.urlAfterRedirects.replace('/', '');
-        const routeFeatureFlags: Record<string, string> = {};
+        const routeFeatureFlags: any = {};
         this.componentListService.getComponentList().forEach((component) => {
           const routePath = this.slugPipe.transform(component.name);
           const featureFlag = component.name;
@@ -72,4 +72,5 @@ export class AppComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {}
 }

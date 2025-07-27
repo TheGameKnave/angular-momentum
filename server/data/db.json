@@ -4,6 +4,6 @@
     "GraphQL API": true,
     "IndexedDB": true,
     "App Version": true,
-    "Language": true
+    "Language": false
   }
 }

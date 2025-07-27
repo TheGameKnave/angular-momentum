@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { UpdateService } from '@app/services/update.service';
 import { FeatureFlagService } from '@app/services/feature-flag.service';

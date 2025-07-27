@@ -2,26 +2,26 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 
 import { By } from '@angular/platform-browser';
-import { IndexComponent } from './index.component';
+import { IndexPage } from './index.page';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { MarkdownModule } from 'ngx-markdown';
 import { SecurityContext } from '@angular/core';
 
-describe('IndexComponent', () => {
-  let component: IndexComponent;
-  let fixture: ComponentFixture<IndexComponent>;
+describe('IndexPage', () => {
+  let component: IndexPage;
+  let fixture: ComponentFixture<IndexPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
-        IndexComponent,
+        IndexPage,
         RouterModule.forRoot([]),
         getTranslocoModule(),
         MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),
       ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(IndexComponent);
+    fixture = TestBed.createComponent(IndexPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

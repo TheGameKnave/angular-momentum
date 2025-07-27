@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { GraphqlApiComponent } from './graphql-api.component';
 import { ChangeDetectorRef, SecurityContext } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -9,7 +9,9 @@ import { MarkdownModule } from 'ngx-markdown';
 
 describe('GraphqlApiComponent', () => {
   let component: GraphqlApiComponent;
-  let fixture: ComponentFixture<GraphqlApiComponent>;
+  let fixture: any;
+  let httpHandler: HttpHandler;
+  let httpClient: HttpClient;
   let httpClientSpy: jasmine.SpyObj<HttpClient>;
 
   beforeEach(async () => {
@@ -30,8 +32,8 @@ describe('GraphqlApiComponent', () => {
 
     fixture = TestBed.createComponent(GraphqlApiComponent);
     component = fixture.componentInstance;
-    TestBed.inject(HttpHandler);
-    TestBed.inject(HttpClient);
+    httpHandler = TestBed.inject(HttpHandler);
+    httpClient = TestBed.inject(HttpClient);
   });
 
   it('should create', () => {
@@ -53,11 +55,11 @@ describe('GraphqlApiComponent', () => {
   });
 
   it('should display the API data', () => {
-    const data = { data: { docs: 'Sample documentation' } };
+    const data = { data: { docs: ['Sample documentation'] } };
     httpClientSpy.post.and.returnValue(of(data));
     component.ngOnInit();
     fixture.detectChanges();
-    expect(component.results).toBe(data);
+    expect(component.results).toBe(data.data);
   });
 
   it('should handle API errors', () => {

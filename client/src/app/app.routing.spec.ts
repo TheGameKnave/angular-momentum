@@ -1,10 +1,9 @@
-import { Type } from '@angular/core';
 import { routes } from './app.routing';
 import { ComponentListService } from '@app/services/component-list.service';
 
 describe('App Routing Configuration', () => {
   let componentService: ComponentListService;
-  let componentList: { name: string; component: Type<unknown> }[];
+  let componentList: { name: string; component: any }[];
 
   beforeEach(() => {
     componentService = new ComponentListService();

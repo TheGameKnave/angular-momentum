@@ -1,10 +1,12 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { SUPPORTED_LANGUAGES } from '@app/helpers/constants';
 import { LANGUAGES } from 'i18n-l10n-flags';
 import { NgClass } from '@angular/common';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { AutoUnsubscribe } from '@app/helpers/unsub';
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 
+@AutoUnsubscribe()
 @Component({
   selector: 'app-menu-language',
   templateUrl: './menu-language.component.html',
@@ -13,16 +15,16 @@ import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
     NgClass,
   ],
 })
-export class MenuLanguageComponent {
-  translate = inject(TranslocoService);
-  translocoLoader = inject(TranslocoHttpLoader);
-
+export class MenuLanguageComponent implements OnDestroy {
   Object = Object;
   supportedLanguages: string[] = SUPPORTED_LANGUAGES;
   languages = LANGUAGES;
-  classToLang: Record<string, string> = {};
+  classToLang: {[className: string]: string} = {};
 
-  constructor(){
+  constructor(
+    public translate: TranslocoService,
+    public translocoLoader: TranslocoHttpLoader,
+  ){
     this.supportedLanguages.forEach(lang => this.classToLang[`i18n-${lang}`] = lang);
   }
 
@@ -45,4 +47,5 @@ export class MenuLanguageComponent {
   stopEventPropagation(event: Event): void {
     event.stopPropagation();
   }
+  ngOnDestroy(): void {}
 }

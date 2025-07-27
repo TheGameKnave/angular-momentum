@@ -13,7 +13,7 @@ export const readFeatureFlags = () => {
 
 
 // Write updated feature flags to the JSON mock DB
-export const writeFeatureFlags = async (newFeatures: Record<string, boolean | undefined>) => {
+export const writeFeatureFlags = async (newFeatures: Record<string, boolean>) => {
   const existingFeatures = await readFeatureFlags();
   const updatedFeatures = { ...existingFeatures, ...newFeatures };
   await db.set('featureFlags',updatedFeatures).write();
