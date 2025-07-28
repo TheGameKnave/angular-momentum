@@ -6,7 +6,7 @@
   "engines": {
     "node": "22.14.0"
   },
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "client": "cd client && npm run start -- --configuration development",
     "client-prod": "NODE_ENV=production && cd client && npm run start -- --configuration production",

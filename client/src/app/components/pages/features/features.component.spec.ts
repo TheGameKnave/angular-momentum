@@ -5,6 +5,7 @@ import { FeatureFlagService } from '@app/services/feature-flag.service';
 import db from 'src/../../server/data/db.json';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { signal } from '@angular/core';
+import { Subscription } from 'rxjs';
 
 // Path to the mock database file
 
@@ -101,6 +102,20 @@ describe('FeaturesComponent', () => {
   
     // Verify that the form control's value is updated to false
     expect(appVersionFormControl.value).toBe(!features['Environment']);
+  });
+
+  it('should unsubscribe all feature subscriptions on destroy', () => {
+    // Add mock subscriptions
+    const mockSub1 = jasmine.createSpyObj<Subscription>('Subscription', ['unsubscribe']);
+    const mockSub2 = jasmine.createSpyObj<Subscription>('Subscription', ['unsubscribe']);
+    component.featureSubs = [mockSub1, mockSub2];
+  
+    // Call lifecycle hook
+    component.ngOnDestroy();
+  
+    // Assert both unsubscribed
+    expect(mockSub1.unsubscribe).toHaveBeenCalled();
+    expect(mockSub2.unsubscribe).toHaveBeenCalled();
   });
 
 });

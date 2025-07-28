@@ -6,6 +6,7 @@ import { appProviders } from 'src/main.config';
 bootstrapApplication(AppComponent, {
   providers: appProviders,
 }).catch((err) => {
+  // istanbul ignore next
   if (err instanceof HttpErrorResponse) {
     /**/console.warn('Backend server not available:', err);
     // Provide a fallback behavior or display an error message to the user

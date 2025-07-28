@@ -61,7 +61,14 @@ describe('setupWebSocket', () => {
 
     expect(SocketIOServer).toHaveBeenCalledWith(mockServer, {
       cors: {
-        origin: '*',
+        origin: [
+          'http://localhost:4200',
+          'http://192.168.1.x:4200',
+          'http://tauri.localhost',
+          'https://angularmomentum.app',,
+          'tauri://localhost', // for tauri ios
+          'http://tauri.localhost', // for tauri android
+        ],
         methods: ['GET', 'POST'],
         allowedHeaders: ['Authorization'],
         credentials: true,

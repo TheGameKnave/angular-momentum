@@ -1,5 +1,5 @@
 echo "\nRunning translation validation\n\n"
-cd tests/translation && ts-node translation-validation.ts
+cd tests/translation && npx ts-node translation-validation.ts
 
 echo "\nBuilding the client\n\n"
 cd ../../client && npm run build

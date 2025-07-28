@@ -2,11 +2,9 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { TranslocoDirective} from '@jsverse/transloco';
-import { AutoUnsubscribe } from '@app/helpers/unsub';
 import { FeatureFlagService } from '@app/services/feature-flag.service';
 import { Subscription } from 'rxjs';
 
-@AutoUnsubscribe()
 @Component({
     selector: 'app-features',
     imports: [
@@ -46,6 +44,6 @@ export class FeaturesComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.featureSubs.forEach((sub) => sub.unsubscribe());
+    this.featureSubs?.forEach((sub) => sub.unsubscribe());
   }
 }
