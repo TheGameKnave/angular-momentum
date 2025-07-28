@@ -1,7 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
-
-import { By } from '@angular/platform-browser';
 import { IndexPage } from './index.page';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { MarkdownModule } from 'ngx-markdown';
@@ -30,8 +28,15 @@ describe('IndexPage', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should have the correct english title', () => {
+  it('should provide the correct markdown content from the signal', () => {
+    const value = component.data(); // Access the signal value
+    expect(value).toContain('# Angular Momentum');
+    expect(value).toContain('This project is designed');
+  });
+
+  it('should render the translated markdown content', () => {
     fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('h1')).nativeElement.innerText).toBe('Angular Momentum');
+    const markdownElement: HTMLElement = fixture.nativeElement.querySelector('#container markdown');
+    expect(markdownElement.textContent).toContain('Angular Momentum');
   });
 });

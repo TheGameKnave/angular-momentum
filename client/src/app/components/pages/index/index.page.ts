@@ -1,54 +1,35 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
 import { MarkdownModule } from 'ngx-markdown';
-import { Subscription, take } from 'rxjs';
-import { AutoUnsubscribe } from '@app/helpers/unsub';
 
-@AutoUnsubscribe()
 @Component({
   selector: 'app-index',
   templateUrl: './index.page.html',
-  imports: [
-    CommonModule,
-    MarkdownModule,
-  ],
+  standalone: true,
+  imports: [CommonModule, MarkdownModule],
 })
-export class IndexPage implements OnInit, OnDestroy {
-  folder!: string;
-  activatedRoute = inject(ActivatedRoute);
-  transloco = inject(TranslocoService);
-  langChangeSubscription$!: Subscription;
+export class IndexPage {
+  private activatedRoute = inject(ActivatedRoute);
+  private transloco = inject(TranslocoService);
 
-  data!: string;
+  // Signals
+  readonly lang = toSignal(this.transloco.langChanges$, {
+    initialValue: this.transloco.getActiveLang(),
+  });
 
-  constructor() {}
+  readonly folder = this.activatedRoute.snapshot.paramMap.get('id')!;
 
-  ngOnInit() {
-    // Initialize data
-    this.setData();
+  readonly data = computed(() => {
+    // Trigger recompute when language changes
+    this.lang();
 
-    // Subscribe to language changes
-    this.langChangeSubscription$ = this.transloco.langChanges$.subscribe(() => {
-      this.setData(); // Re-evaluate data on language change
-    });
-
-    // Set folder from route params
-    this.folder = this.activatedRoute.snapshot.paramMap.get('id') as string;
-  }
-
-  private setData() {
-    this.transloco.selectTranslate('Angular Momentum').pipe(take(1)).subscribe(translation => {
-      this.data = `# ${this.transloco.translate('Angular Momentum')}
+    return `# ${this.transloco.translate('Angular Momentum')}
 
 ${this.transloco.translate('This project is designed to rapidly spin up Angular applications...')}
 
-${this.transloco.translate('If you find this project helpful and want to see it grow, consider...')}
-      `;
-    });
-  }
-
-  ngOnDestroy() {}
-
+${this.transloco.translate('If you find this project helpful and want to see it grow, consider...')}`;
+  });
 }
