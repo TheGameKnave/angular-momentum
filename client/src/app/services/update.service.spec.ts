@@ -4,6 +4,7 @@ import { SwUpdate } from '@angular/service-worker';
 import { Observable, of, Subject } from 'rxjs';
 import { VersionEvent, UnrecoverableStateEvent } from '@angular/service-worker'; // Import the VersionEvent type
 import { Injectable } from '@angular/core';
+import { ENVIRONMENT } from 'src/environments/environment';
 
 export class UnrecoverableStateEventMock implements UnrecoverableStateEvent {
   reason: string = '';
@@ -120,4 +121,51 @@ describe('UpdateService', () => {
     expect(updateService.promptUser).toHaveBeenCalled();
     expect(updateService.confirming).toBe(false);
   });
+});
+describe('UpdateService updateIntervalMinutes', () => {
+  let service: UpdateService;
+  let swUpdate: SwUpdateMock;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        UpdateService,
+        { provide: SwUpdate, useClass: SwUpdateMock }
+      ]
+    });
+    service = TestBed.inject(UpdateService);
+    swUpdate = TestBed.inject(SwUpdate) as SwUpdateMock;
+  });
+
+  it('should use 4 minutes interval in production', fakeAsync(() => {
+    // Override ENVIRONMENT.env to 'production'
+    (ENVIRONMENT as any).env = 'production';
+
+    const checkSpy = spyOn(swUpdate, 'checkForUpdate').and.returnValue(Promise.resolve(true));
+    
+    service.checkForUpdates();
+
+    // 4 minutes = 4 * 60 * 1000 ms
+    tick(4 * 60 * 1000);
+
+    expect(checkSpy).toHaveBeenCalled();
+
+    discardPeriodicTasks();
+  }));
+
+  it('should use 0.1 minute interval in non-production', fakeAsync(() => {
+    // Override ENVIRONMENT.env to 'development' or anything not 'production'
+    (ENVIRONMENT as any).env = 'development';
+
+    const checkSpy = spyOn(swUpdate, 'checkForUpdate').and.returnValue(Promise.resolve(true));
+    
+    service.checkForUpdates();
+
+    // 0.1 minutes = 0.1 * 60 * 1000 = 6000 ms
+    tick(6000);
+
+    expect(checkSpy).toHaveBeenCalled();
+
+    discardPeriodicTasks();
+  }));
 });

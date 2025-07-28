@@ -19,7 +19,7 @@ export class UpdateService {
       this.promptUser(event);
     });
 
-    const updateIntervalMinutes = ENVIRONMENT.env == 'production' ? 4 : 0.1;
+    const updateIntervalMinutes = ENVIRONMENT.env === 'production' ? 4 : 0.1;
     interval(updateIntervalMinutes * 60 * 1000).subscribe(() => {
       this.updates.checkForUpdate().then(() => {
         /*keep this*/console.log('checked for updates');
