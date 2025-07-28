@@ -26,16 +26,18 @@ module.exports = function (config) {
       suppressAll: true // removes the duplicated traces
     },
     coverageReporter: {
-      dir: 'coverage/',
-      reporters: [
-        { type: 'lcov', subdir: '.' },
-        { type: 'text-summary', subdir: '.' },
-      ],
+      dir: require('path').join(__dirname, './coverage'),
+      subdir: '.',
       include: [
         'src/**/*.(ts|js)',
         '!src/**/*.spec.(ts|js)',
         '!src/**/environment*.(ts|js)'
       ],
+      reporters: [
+        { type: 'html' },
+        { type: 'text-summary' },
+        { type: 'lcovonly' }
+      ]
     },
     reporters: ['sabarivka', 'progress', 'kjhtml'],
     browsers: ['Chrome'],
