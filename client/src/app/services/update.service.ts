@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { SwUpdate, VersionEvent } from '@angular/service-worker';
 import { AutoUnsubscribe } from '@app/helpers/unsub';
 import { interval } from 'rxjs';
+import { ENVIRONMENT } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +19,8 @@ export class UpdateService {
       this.promptUser(event);
     });
 
-    interval(20 * 60 * 1000).subscribe(() => {
+    const updateIntervalMinutes = ENVIRONMENT.env == 'production' ? 4 : 0.1;
+    interval(updateIntervalMinutes * 60 * 1000).subscribe(() => {
       this.updates.checkForUpdate().then(() => {
         /*keep this*/console.log('checked for updates');
       });
