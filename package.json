@@ -1,6 +1,6 @@
 {
   "name": "angular-momentum",
-  "version": "0.19.2",
+  "version": "0.19.4",
   "siteUrl": "https://angularmomentum.app",
   "private": true,
   "engines": {
@@ -33,7 +33,9 @@
     "testcafe": "^3.6.2",
     "testcafe-angular-selectors": "^0.4.1",
     "testcafe-blink-diff": "^0.5.5",
-    "ts-node": "^11.0.0-beta.1",
     "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "ts-node": "^11.0.0-beta.1"
   }
 }

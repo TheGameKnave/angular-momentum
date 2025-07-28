@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { ComponentListService } from './component-list.service';
+import { ComponentListService } from '@app/services/component-list.service';
 
 describe('ComponentListService', () => {
   let service: ComponentListService;

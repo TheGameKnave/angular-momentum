@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { HelpersService } from './helpers.service';
+import { HelpersService } from '@app/services/helpers.service';
 import { ENVIRONMENT } from 'src/environments/environment';
 
 describe('HelpersService', () => {

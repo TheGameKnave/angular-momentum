@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { IndexedDBComponent } from '../components/pages/indexeddb/indexeddb.component';
-import { GraphqlApiComponent } from '../components/pages/graphql-api/graphql-api.component';
-import { EnvironmentComponent } from '../components/pages/environment/environment.component';
-import { FeaturesComponent } from '../components/pages/features/features.component';
+import { IndexedDBComponent } from '@app/components/pages/indexeddb/indexeddb.component';
+import { GraphqlApiComponent } from '@app/components/pages/graphql-api/graphql-api.component';
+import { EnvironmentComponent } from '@app/components/pages/environment/environment.component';
+import { FeaturesComponent } from '@app/components/pages/features/features.component';
 
 export type ComponentInstance = {
   name: string,

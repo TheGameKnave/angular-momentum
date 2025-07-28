@@ -1,11 +1,11 @@
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { AppComponent } from './app.component';
-import { UpdateService } from './services/update.service';
-import { FeatureFlagService } from './services/feature-flag.service';
-import { ComponentListService } from './services/component-list.service';
-import { SlugPipe } from './pipes/slug.pipe';
+import { UpdateService } from '@app/services/update.service';
+import { FeatureFlagService } from '@app/services/feature-flag.service';
+import { ComponentListService } from '@app/services/component-list.service';
+import { SlugPipe } from '@app/pipes/slug.pipe';
 import { Router, NavigationEnd } from '@angular/router';
-import { getTranslocoModule } from '../../../tests/helpers/transloco-testing.module';
+import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Socket } from 'ngx-socket-io';

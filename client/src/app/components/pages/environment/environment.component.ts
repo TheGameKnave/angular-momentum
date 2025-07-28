@@ -1,6 +1,6 @@
 import { Component, isDevMode } from '@angular/core';
 import { TranslocoDirective } from '@jsverse/transloco';
-import { AutoUnsubscribe } from 'src/app/helpers/unsub';
+import { AutoUnsubscribe } from '@app/helpers/unsub';
 
 @AutoUnsubscribe()
 @Component({

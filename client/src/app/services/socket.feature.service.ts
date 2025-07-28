@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { SocketIoService } from './socket.io.service';
+import { SocketIoService } from '@app/services/socket.io.service';
 
 export interface FeatureFlag {
   key: string;

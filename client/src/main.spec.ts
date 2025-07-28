@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { AppComponent } from './app/app.component';
-import { appProviders } from './main.config';
+import { AppComponent } from '@app/app.component';
+import { appProviders } from 'src/main.config';
 // Import the main.ts file to ensure it's executed
 import './main';
 

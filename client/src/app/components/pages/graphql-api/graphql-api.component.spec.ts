@@ -51,7 +51,7 @@ describe('GraphqlApiComponent', () => {
     component.ngOnInit();
     
     expect(httpClientSpy.post).toHaveBeenCalledTimes(1);
-    expect(httpClientSpy.post.calls.argsFor(0)[0]).toBe('/api');
+    expect(httpClientSpy.post.calls.argsFor(0)[0]).toBe('http://localhost:4200/api');
   });
 
   it('should display the API data', () => {

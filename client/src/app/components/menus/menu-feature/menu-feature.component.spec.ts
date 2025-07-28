@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MenuFeatureComponent } from './menu-feature.component';
-import { ComponentListService } from 'src/app/services/component-list.service';
-import { FeatureFlagService } from 'src/app/services/feature-flag.service';
-import { getTranslocoModule } from '../../../../../../tests/helpers/transloco-testing.module';
+import { ComponentListService } from '@app/services/component-list.service';
+import { FeatureFlagService } from '@app/services/feature-flag.service';
+import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 
 describe('MenuFeatureComponent', () => {
   let component: MenuFeatureComponent;

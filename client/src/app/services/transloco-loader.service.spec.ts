@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { TranslocoHttpLoader } from './transloco-loader.service';
-import { ENVIRONMENT } from '../../environments/environment';
+import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
+import { ENVIRONMENT } from 'src/environments/environment';
 import { provideHttpClient } from '@angular/common/http';
 import { LANGUAGES } from 'i18n-l10n-flags';
 
@@ -34,12 +34,44 @@ describe('TranslocoHttpLoader', () => {
       expect(translation).toEqual(mockTranslation);
     });
 
-    const req = httpMock.expectOne(`${ENVIRONMENT.baseUrl}/assets/i18n/${lang}.json`);
+    const req = httpMock.expectOne(`/assets/i18n/${lang}.json`);
     expect(req.request.method).toBe('GET');
 
     req.flush(mockTranslation); // Respond with the mock data
   });
 
+  it('should return fallback {} when backend is not available (status 0)', () => {
+    const lang = 'en';
+  
+    loader.getTranslation(lang).subscribe({
+      next: (translation) => {
+        expect(translation).toEqual({}); // fallback object
+      },
+      error: () => {
+        fail('Expected fallback value, not error');
+      }
+    });
+  
+    const req = httpMock.expectOne(`/assets/i18n/${lang}.json`);
+    req.error(new ProgressEvent('error'), { status: 0 }); // simulate network failure (backend down)
+  });
+  
+  it('should propagate error when backend returns error status other than 0', () => {
+    const lang = 'en';
+    const mockError = { message: 'Not found' };
+  
+    loader.getTranslation(lang).subscribe({
+      next: () => {
+        fail('Expected error, but got success');
+      },
+      error: (error) => {
+        expect(error.status).toBe(404);
+      }
+    });
+  
+    const req = httpMock.expectOne(`/assets/i18n/${lang}.json`);
+    req.flush(mockError, { status: 404, statusText: 'Not Found' }); // simulate 404 error
+  });
 
   it('should return the correct flag for a language without a locale', () => {
     const ln = 'en';

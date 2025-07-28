@@ -1,6 +1,6 @@
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { FeatureFlagService } from './feature-flag.service';
-import { provideHttpClient } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Socket } from 'ngx-socket-io';
 
@@ -50,7 +50,7 @@ describe('FeatureFlagService', () => {
       expect(flags).toEqual(expectedFlags);
     });
   
-    const req = httpMock.expectOne('/api');
+    const req = httpMock.expectOne('http://localhost:4200/api');
     expect(req.request.method).toBe('POST');
     req.flush(graphqlResponse);
   });
@@ -70,7 +70,7 @@ describe('FeatureFlagService', () => {
     service.setFeature(feature, value);
     tick();
 
-    const req = httpMock.expectOne('/api');
+    const req = httpMock.expectOne('http://localhost:4200/api');
     expect(req.request.method).toBe('POST');
     expect(req.request.body.query).toContain('mutation UpdateFeatureFlag');
     expect(req.request.body.variables).toEqual({ key: feature, value });
@@ -89,6 +89,26 @@ describe('FeatureFlagService', () => {
 
     expect(service.features()).toEqual({ 'GraphQL API': false, 'New Feature': true });
   });
+
+  it('should catch error and return empty feature flags object', () => {
+    const errorResponse = new HttpErrorResponse({
+      error: 'Network error',
+      status: 0,
+      statusText: 'Unknown Error',
+    });
+  
+    spyOn(console, 'error'); // Optional: spy on console.error to check logging
+  
+    service.getFeatureFlags().subscribe((flags) => {
+      expect(flags).toEqual({});  // fallback empty object
+    });
+  
+    const req = httpMock.expectOne('http://localhost:4200/api');
+    req.error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
+  
+    expect(console.error).toHaveBeenCalledWith('Error getting feature flags:', jasmine.any(HttpErrorResponse));
+  });
+  
 
   it('should return false for unknown feature', () => {
     const features = { 'GraphQL API': true, 'IndexedDB': true };

@@ -1,5 +1,4 @@
-
 export const ENVIRONMENT = {
-  baseUrl: 'http://localhost:4200',
+  baseUrl: window.location.origin,
   env: 'development',
 };

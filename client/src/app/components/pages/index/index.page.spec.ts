@@ -3,7 +3,7 @@ import { RouterModule } from '@angular/router';
 
 import { By } from '@angular/platform-browser';
 import { IndexPage } from './index.page';
-import { getTranslocoModule } from '../../../../../../tests/helpers/transloco-testing.module';
+import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { MarkdownModule } from 'ngx-markdown';
 import { SecurityContext } from '@angular/core';
 

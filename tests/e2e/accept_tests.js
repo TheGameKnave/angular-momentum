@@ -19,11 +19,11 @@ async function traverseDirectory(dirPath) {
                 await fs.promises.copyFile(filePath, newFilePath);
                 // log filepath after tests/e2e/screenshots/
                 const screenshotsDir = path.resolve('tests/e2e/screenshots/');
-                console.log(`Copied ${path.relative(screenshotsDir, filePath)} to ${newFileName}`);
+                /**/console.log(`Copied ${path.relative(screenshotsDir, filePath)} to ${newFileName}`);
             }
         }
     } catch (err) {
-        console.error(`Error: ${err.message}`);
+        /**/console.error(`Error: ${err.message}`);
     }
 }
 

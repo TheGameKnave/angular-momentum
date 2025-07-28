@@ -31,7 +31,7 @@ process.env.TEST_MODE = process.argv[2] || process.env.TEST_MODE || 'tested';
       .run({
       });
 
-    console.log("Tests failed: " + failedCount);
+    /**/console.log("Tests failed: " + failedCount);
   } finally {
     await testcafe.close();
     serverProcess.kill();
@@ -41,7 +41,7 @@ process.env.TEST_MODE = process.argv[2] || process.env.TEST_MODE || 'tested';
       await execPromise('lsof -ti :4200 | xargs kill -9');
       await execPromise('lsof -ti :4201 | xargs kill -9');
     } catch (err) {
-      console.error("Error killing processes:", err);
+      /**/console.error("Error killing processes:", err);
     }
   }
 })();

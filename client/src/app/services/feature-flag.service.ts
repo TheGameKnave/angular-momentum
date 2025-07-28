@@ -1,9 +1,10 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Socket } from 'ngx-socket-io';
-import { map, Observable, tap } from 'rxjs';
+import { ENVIRONMENT } from 'src/environments/environment';
+import { catchError, map, Observable, of, tap } from 'rxjs';
 import equal from 'fast-deep-equal';
-import { ComponentListService, ComponentInstance } from './component-list.service';
+import { ComponentListService, ComponentInstance } from '@app/services/component-list.service';
 
 type ArbitraryFeatures = {
   // 'New Feature': boolean;
@@ -29,7 +30,7 @@ export class FeatureFlagService {
 
   getFeatureFlags(): Observable<FeatureFlagResponse> {
     const query = getFeatureFlagsQuery();
-    return this.http.post<{ data: { featureFlags: { key: FeatureFlagKeys; value: boolean }[] } }>('/api', { query }).pipe(
+    return this.http.post<{ data: { featureFlags: { key: FeatureFlagKeys; value: boolean }[] } }>(ENVIRONMENT.baseUrl + '/api', { query }).pipe(
       map((response) => {
         const featureFlags = response.data.featureFlags.reduce((acc, flag) => {
           acc[flag.key] = flag.value;
@@ -37,7 +38,12 @@ export class FeatureFlagService {
         }, {} as FeatureFlagResponse);
         return featureFlags;
       }),
-      tap((featureFlags) => this.features.set(featureFlags))
+      tap((featureFlags) => this.features.set(featureFlags)),
+      catchError((error: HttpErrorResponse) => {
+        /**/console.error('Error getting feature flags:', error);
+        // Return a default value or an empty observable
+        return of({} as FeatureFlagResponse);
+      })
     );
   }
   constructor(
@@ -62,7 +68,7 @@ export class FeatureFlagService {
     
       // Notify backend of the updated flag using GraphQL request
       const mutation = updateFeatureFlagMutation(feature, value);
-      this.http.post('/api', {
+      this.http.post(ENVIRONMENT.baseUrl + '/api', {
         query: mutation,
         variables: { key: feature, value },
       }).subscribe();

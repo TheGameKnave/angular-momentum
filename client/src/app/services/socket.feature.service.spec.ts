@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { SocketFeatureService } from './socket.feature.service';
-import { SocketIoService } from './socket.io.service';
+import { SocketFeatureService } from '@app/services/socket.feature.service';
+import { SocketIoService } from '@app/services/socket.io.service';
 import { of } from 'rxjs';
 
 describe('SocketFeatureService', () => {
