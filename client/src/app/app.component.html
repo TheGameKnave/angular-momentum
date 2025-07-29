@@ -22,9 +22,15 @@
   </footer>
 
   @if (openMenu === 'feature') {
-    <app-menu-feature (click)="toggleMenu('feature', $event)" />
+    <app-menu-feature
+      (click)="toggleMenu('feature', $event)"
+      (keydown.enter)="toggleMenu('feature', $event)"
+    />
   }
   @if (openMenu === 'language') {
-    <app-menu-language (click)="toggleMenu('language', $event)" />
+    <app-menu-language
+      (click)="toggleMenu('language', $event)"
+      (keydown.enter)="toggleMenu('language', $event)"
+    />
   }
 </ng-container>

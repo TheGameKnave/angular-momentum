@@ -1,36 +1,36 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { openDB } from 'idb';
-import { Subscription } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
-import { AutoUnsubscribe } from '@app/helpers/unsub';
-
+import { debounceTime } from 'rxjs';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
 
-@AutoUnsubscribe()
 @Component({
   selector: 'app-indexeddb',
+  templateUrl: './indexeddb.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     TranslocoDirective,
     FloatLabelModule,
     InputTextModule,
   ],
-  templateUrl: './indexeddb.component.html',
 })
-export class IndexedDBComponent implements OnInit, OnDestroy {
+export class IndexedDBComponent implements OnInit {
   textAreaData = new FormControl('');
-  textAreaSub: Subscription | undefined;
+
+  constructor(
+    private destroyRef: DestroyRef,
+  ){}
 
   ngOnInit() {
-  
-    this.getDbValue().then(() => {});
+    this.getDbValue().then();
 
-    this.textAreaSub = this.textAreaData.valueChanges.pipe(
-      debounceTime(400)
-    ).subscribe((data) => {
+    this.textAreaData.valueChanges.pipe(
+      debounceTime(400),
+    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data) => {
       this.set('key', data);
     });
   
@@ -52,13 +52,13 @@ export class IndexedDBComponent implements OnInit, OnDestroy {
     },
   });
   
-  async get(key:any) {
+  async get(key: string | number) {
     return (await this.dbPromise).get('keyval', key);
   }
-  async set(key:any, val:any) {
+  async set(key: string | number, val: unknown) {
     return (await this.dbPromise).put('keyval', val, key);
   }
-  async del(key:any) {
+  async del(key: string | number) {
     return (await this.dbPromise).delete('keyval', key);
   }
   async clear() {
@@ -67,6 +67,4 @@ export class IndexedDBComponent implements OnInit, OnDestroy {
   async keys() {
     return (await this.dbPromise).getAllKeys('keyval');
   }
-
-  ngOnDestroy(): void {}
 }

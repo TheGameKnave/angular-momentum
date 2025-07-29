@@ -1,28 +1,32 @@
-import { Injectable } from '@angular/core';
+import { DestroyRef, Injectable } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SwUpdate, VersionEvent } from '@angular/service-worker';
-import { AutoUnsubscribe } from '@app/helpers/unsub';
 import { interval } from 'rxjs';
+import { ENVIRONMENT } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
-@AutoUnsubscribe()
 export class UpdateService {
-  confirming: boolean = false;
+  confirming = false;
+  
   constructor(
-    private updates: SwUpdate
+    private updates: SwUpdate,
+    private destroyRef: DestroyRef,
   ){}
 
   public checkForUpdates(): void {
-    this.updates.versionUpdates.subscribe(event => {
+    this.updates.versionUpdates.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => {
       this.promptUser(event);
     });
 
-    interval(20 * 60 * 1000).subscribe(() => {
-      this.updates.checkForUpdate().then(() => {
-        /*keep this*/console.log('checked for updates');
+    if(ENVIRONMENT.env === 'production'){
+      interval(5 * 60 * 1000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+        this.updates.checkForUpdate().then(() => {
+          /*keep this*/console.log('checked for updates');
+        });
       });
-    });
+    }
 
   }
 

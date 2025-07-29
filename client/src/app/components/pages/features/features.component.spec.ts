@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FeaturesComponent } from './features.component';
-import { FeatureFlagService } from '@app/services/feature-flag.service';
+import { FeatureFlagKeys, FeatureFlagService } from '@app/services/feature-flag.service';
 import db from 'src/../../server/data/db.json';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { signal } from '@angular/core';
@@ -67,8 +67,8 @@ describe('FeaturesComponent', () => {
     const currentFeatures = featureFlagServiceSpy.features();
     const existingKeys = Object.keys(currentFeatures);
     existingKeys.forEach((key) => {
-      expect(fixture.componentInstance.featureControls[key]).toBeDefined();
-      expect(fixture.componentInstance.featureControls[key].value).toBe(currentFeatures[key]);
+      expect(fixture.componentInstance.featureForm.get(key)).toBeDefined();
+      expect(fixture.componentInstance.featureForm.get(key)?.value).toBe(currentFeatures[key]);
     });
   });
 
@@ -88,8 +88,8 @@ describe('FeaturesComponent', () => {
     fixture.detectChanges();
   
     // Get the form control for the 'Environment' feature
-    const appVersionFormControl = fixture.componentInstance.featureControls['Environment'];
-  
+    const appVersionFormControl = fixture.componentInstance.featureForm.get('Environment') as FormControl;
+    
     // Set the initial value of the form control to true
     appVersionFormControl.setValue(features['Environment']);
   
@@ -102,20 +102,6 @@ describe('FeaturesComponent', () => {
   
     // Verify that the form control's value is updated to false
     expect(appVersionFormControl.value).toBe(!features['Environment']);
-  });
-
-  it('should unsubscribe all feature subscriptions on destroy', () => {
-    // Add mock subscriptions
-    const mockSub1 = jasmine.createSpyObj<Subscription>('Subscription', ['unsubscribe']);
-    const mockSub2 = jasmine.createSpyObj<Subscription>('Subscription', ['unsubscribe']);
-    component.featureSubs = [mockSub1, mockSub2];
-  
-    // Call lifecycle hook
-    component.ngOnDestroy();
-  
-    // Assert both unsubscribed
-    expect(mockSub1.unsubscribe).toHaveBeenCalled();
-    expect(mockSub2.unsubscribe).toHaveBeenCalled();
   });
 
 });

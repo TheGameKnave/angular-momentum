@@ -3,6 +3,10 @@ import { MenuFeatureComponent } from './menu-feature.component';
 import { ComponentListService } from '@app/services/component-list.service';
 import { FeatureFlagService } from '@app/services/feature-flag.service';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
+import { ComponentInstance } from '@app/models/data.model';
+import { Component } from '@angular/core';
+@Component({selector: 'mock-comp-a', template: '' })
+class MockComponentA {}
 
 describe('MenuFeatureComponent', () => {
   let component: MenuFeatureComponent;
@@ -36,10 +40,10 @@ describe('MenuFeatureComponent', () => {
   });
 
   it('should initialize component list and count on ngOnInit', () => {
-    const mockList = [
-      { name: 'FeatureA', component: {}, icon: 'iconA' },
-      { name: 'FeatureB', component: {}, icon: 'iconB' },
-      { name: 'FeatureC', component: {}, icon: 'iconC' }
+    const mockList: ComponentInstance[] = [
+      { name: 'FeatureA', component: MockComponentA, icon: 'iconA' },
+      { name: 'FeatureB', component: MockComponentA, icon: 'iconB' },
+      { name: 'FeatureC', component: MockComponentA, icon: 'iconC' }
     ];
     componentListService.getComponentList.and.returnValue(mockList);
     featureFlagService.getFeature.and.callFake(name => name !== 'FeatureB');
@@ -49,9 +53,5 @@ describe('MenuFeatureComponent', () => {
   
     expect(component.componentList).toEqual(mockList);
     expect(component.componentCount()).toBe(2);
-  });
-
-  it('should handle ngOnDestroy without errors', () => {
-    expect(() => component.ngOnDestroy()).not.toThrow();
   });
 });

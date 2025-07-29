@@ -3,12 +3,7 @@ import { IndexedDBComponent } from '@app/components/pages/indexeddb/indexeddb.co
 import { GraphqlApiComponent } from '@app/components/pages/graphql-api/graphql-api.component';
 import { EnvironmentComponent } from '@app/components/pages/environment/environment.component';
 import { FeaturesComponent } from '@app/components/pages/features/features.component';
-
-export type ComponentInstance = {
-  name: string,
-  component: any,
-  icon: string,
-}
+import { ComponentInstance } from '@app/models/data.model';
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +15,6 @@ export class ComponentListService {
     { name: 'GraphQL API', component: GraphqlApiComponent, icon: 'cloud' },
     { name: 'IndexedDB', component: IndexedDBComponent, icon: 'save' },
   ];
-  constructor() { }
 
   getComponentList() {
     return this.componentList;

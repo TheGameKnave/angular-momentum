@@ -1,47 +1,49 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ENVIRONMENT } from 'src/environments/environment';
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { MarkdownComponent } from 'ngx-markdown';
-import { catchError, of } from 'rxjs';
+import { catchError, of, Observable } from 'rxjs';
+import { AsyncPipe } from '@angular/common';
+
+const query = `
+query GetApiData {
+  docs
+}
+`;
+
+export interface InitializeApiRes {
+  data: {
+    docs: string;
+  };
+}
 
 @Component({
   selector: 'app-graphql-api',
+  templateUrl: './graphql-api.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MarkdownComponent,
+    AsyncPipe,
   ],
-  templateUrl: './graphql-api.component.html',
 })
-export class GraphqlApiComponent {
-  results: any = null;
-  error: any = null;
+export class GraphqlApiComponent implements OnInit {
+  results$: Observable<InitializeApiRes | null> = of(null);
+  error: unknown = null;
 
-  constructor(
-    private http: HttpClient,
-    private cd: ChangeDetectorRef,
-  ) { }
+  constructor(private http: HttpClient) {}
 
-  ngOnInit(): void {
-    this.initializeApi().pipe(
-      catchError(error => {
+  ngOnInit() {
+    this.results$ = this.initializeApi().pipe(
+      catchError((error: unknown) => {
         this.error = error;
-        return of(null); // Return an empty observable to continue the chain
+        return of(null);
       })
-    ).subscribe((response: any) => {
-      this.results = response?.['data'] || null;
-      this.cd.detectChanges();
-    });
+    );
   }
-  initializeApi(){
-    const httpOptions = {
-      headers: new HttpHeaders({
-        'Content-Type':  'application/json'
-      })
-    };
-    const query = `
-      query GetApiData {
-        docs
-      }
-    `;
-    return this.http.post(ENVIRONMENT.baseUrl + '/api', { query }, httpOptions);
+
+  private initializeApi(): Observable<InitializeApiRes> {
+    return this.http.post<InitializeApiRes>(ENVIRONMENT.baseUrl + '/api', { query }, {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+    });
   }
 }

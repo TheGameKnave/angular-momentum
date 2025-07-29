@@ -4,8 +4,10 @@
     @for (ln of supportedLanguages; track ln) {
       <li [class]="'i18n-' + ln">
         <a
+          href="javascript:void(0)"
           [ngClass]="{'selected': ln === translate.getActiveLang()}"
           (click)="onI18n($event)"
+          (keydown.enter)="onI18n($event)"
         >{{ translocoLoader.getFlag(ln) }} {{ translocoLoader.getNativeName(ln) }}</a>
       </li>
     }

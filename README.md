@@ -3,7 +3,7 @@
 This repo is intended to allow spooling up Angular projects in a monorepo rapidly, with a minimum of configuration.
 
 ## Current features
-* Angular 18 (with Node 20)
+* Angular 20 (with Node 22.14)
 * Parallel server/client execution
 * Bare-bones api proxy to the back-end *
 * SASS boilerplate included
@@ -25,6 +25,7 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Hotjar script for user behavior analysis
 * Websockets to reconcile disparities between server and local data *
 * public api with GraphQL *
+* Tauri integration for app bundling
 
 (* indicates a feature that’s visible in the sample app)
 
@@ -32,7 +33,6 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * DB-agnostic query layer
 * Elf state management *
 * Immutable.js or immer or Timm to minimize mutation
-* Capacitor & Electron integration for app bundling
 * Lighthouse CI to mitigate performance slip
 * Auth-agnostic (or maybe just Firebase) user management (emails and password resetting and deliverability) *
 

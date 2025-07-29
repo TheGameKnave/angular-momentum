@@ -2,7 +2,7 @@
   "featureFlags": {
     "Environment": true,
     "GraphQL API": true,
-    "IndexedDB": true,
+    "IndexedDB": false,
     "App Version": true,
     "Language": true
   }

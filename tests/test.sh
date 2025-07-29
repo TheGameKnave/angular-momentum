@@ -7,6 +7,9 @@ cd ../../client && npm run build
 echo "\nRunning server tests\n\n"
 cd ../server && npm test
 
+echo "\nRunning client linting\n\n"
+cd ../client && npx eslint --ext .ts src/
+
 echo "\nRunning client tests\n\n"
 cd ../client && npm test
 

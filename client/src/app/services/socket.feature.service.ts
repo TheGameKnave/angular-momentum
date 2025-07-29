@@ -1,11 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { SocketIoService } from '@app/services/socket.io.service';
-
-export interface FeatureFlag {
-  key: string;
-  value: boolean;
-}
+import { FeatureFlag } from '@app/models/data.model';
 
 @Injectable({
   providedIn: 'root',

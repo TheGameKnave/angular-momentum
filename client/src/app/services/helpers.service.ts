@@ -5,8 +5,10 @@ import { ENVIRONMENT } from 'src/environments/environment';
   providedIn: 'root',
 })
 export class HelpersService {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(@Inject(ENVIRONMENT) private env: any) {
     if (this.env.env !== 'production') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).helpersService = this;
     }
   }
