@@ -13,7 +13,6 @@ import { MenuFeatureComponent } from '@app/components/menus/menu-feature/menu-fe
 import { SlugPipe } from '@app/pipes/slug.pipe';
 import { ComponentListService } from '@app/services/component-list.service';
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
-import { PrimeNG } from 'primeng/config';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
@@ -37,20 +36,19 @@ export class AppComponent implements OnInit {
   menuTransitionOptions = '0.3s cubic-bezier(0, 0, 0.2, 1) transform';
 
   constructor(
-    private updateService: UpdateService,
+    readonly updateService: UpdateService,
     protected featureFlagService: FeatureFlagService,
-    private primeng: PrimeNG,
-    private router: Router,
-    private slugPipe: SlugPipe,
-    private componentListService: ComponentListService,
+    readonly router: Router,
+    readonly slugPipe: SlugPipe,
+    readonly componentListService: ComponentListService,
     protected translocoLoader: TranslocoHttpLoader,
     protected translate: TranslocoService,
-    private destroyRef: DestroyRef,
+    readonly destroyRef: DestroyRef,
   ){
     this.updateService.checkForUpdates();
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     // long-form checking if navigated page is an allowed feature
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd){

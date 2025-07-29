@@ -20,7 +20,7 @@ export class MenuFeatureComponent  implements OnInit {
   componentList!: ComponentInstance[];
 
   constructor(
-    private componentListService: ComponentListService,
+    readonly componentListService: ComponentListService,
     protected featureFlagService: FeatureFlagService,
   ) { }
 

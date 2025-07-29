@@ -4,7 +4,6 @@ import { Socket } from 'ngx-socket-io';
 import { ENVIRONMENT } from 'src/environments/environment';
 import { catchError, map, Observable, of, take, tap } from 'rxjs';
 import equal from 'fast-deep-equal';
-import { ComponentListService } from '@app/services/component-list.service';
 import { ArbitraryFeatures, FeatureFlagResponse } from '@app/models/data.model';
 
 type _FeatureFlagKeys = keyof FeatureFlagResponse;
@@ -19,9 +18,7 @@ export class FeatureFlagService {
 
   features = signal<Record<string, boolean>>({});
 
-  constructor(
-    private componentListService: ComponentListService,
-  ) {
+  constructor() {
     // Listen for WebSocket updates
     this.socket.on('update-feature-flags', (update: FeatureFlagResponse) => {
       const newFeatures: ArbitraryFeatures = { ...this.features(), ...update };

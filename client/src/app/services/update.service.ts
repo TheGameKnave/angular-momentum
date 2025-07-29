@@ -11,8 +11,8 @@ export class UpdateService {
   confirming = false;
   
   constructor(
-    private updates: SwUpdate,
-    private destroyRef: DestroyRef,
+    readonly updates: SwUpdate,
+    readonly destroyRef: DestroyRef,
   ){}
 
   public checkForUpdates(): void {
