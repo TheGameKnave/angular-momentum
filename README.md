@@ -30,6 +30,7 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 (* indicates a feature that’s visible in the sample app)
 
 ## Future features:
+* Tauri app signing and auto-updating for distribution.
 * DB-agnostic query layer
 * Elf state management *
 * Immutable.js or immer or Timm to minimize mutation
@@ -61,12 +62,12 @@ From the root, run `npm ci`
 
 ### Environment variables
 
-Create your `.env` file from the `.env.example` **and never commit sensitive information like API keys or passwords or usernames or email addresses**
+Create your `.env` file from the `.env.example` **and** ***never*** **commit sensitive information like API keys or passwords or usernames or email addresses**
 
 
 ### git branches
 
-Develop against branches from `dev` feature branch using prefix `feature/`. `main` is for production releases, `staging` is to test prod.
+Develop against branches from `dev` feature branch using prefix `feature/` or `defect/`. `main` is for production releases, `staging` is to test prod.
 
 ## Available Scripts
 
@@ -169,3 +170,17 @@ from staging branch:
 
 from main branch:  
 `git push production main:main`
+
+## Tauri
+
+This repo utilizes Tauri to publish native apps for Windows, MacOS, Linux, Android, and iOS. Some of the scripts are fairly straightforward, but all require external dependencies: at the very least, Rust; and likely xCode and/or Android Studio. For more information, see the [Tauri documentation](https://tauri.app/). It's best to spin up a completely blank repo and follow the instructions on the Tauri website along with generous usage of ChatGPT to get your external tools running.
+
+After your pipeline is configured, the following scripts are useful.
+
+from `client`
+* `npm run tauri dev` to dev-build and deploy to local machine.
+* `npm run tauri:android` to dev-build and deploy to Android simulator.
+* `npm run tauri:ios` to dev-build and deploy to iOS simulator.
+* `npm run tauri build` to build a release for Windows, MacOS, and Linux.
+* `npm run tauri android dev` to build a release for Android. (set `tauri.conf.json` devUrl to `https://angularmomentum.app`) to enable live server features.
+* `npm run tauri ios` to build a release for iOS.
