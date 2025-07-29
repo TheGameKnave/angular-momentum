@@ -44,7 +44,8 @@ module.exports = tseslint.config(
       'rxjs-x/no-ignored-subscription': [
         'error',
         {
-          allowTeardownOperators: ['take', 'takeUntil', 'first', 'last']
+          allowTeardownOperators: ['take', 'takeUntil', 'first', 'last'],
+          allowIgnoredSubscriptions: false,
         }
       ]
     },

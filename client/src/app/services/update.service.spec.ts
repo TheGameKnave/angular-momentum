@@ -3,7 +3,7 @@ import { UpdateService } from '@app/services/update.service';
 import { SwUpdate } from '@angular/service-worker';
 import { Observable, of, Subject } from 'rxjs';
 import { VersionEvent, UnrecoverableStateEvent } from '@angular/service-worker'; // Import the VersionEvent type
-import { Injectable } from '@angular/core';
+import { DestroyRef, Injectable } from '@angular/core';
 import { ENVIRONMENT } from 'src/environments/environment';
 
 export class UnrecoverableStateEventMock implements UnrecoverableStateEvent {
@@ -36,20 +36,38 @@ export class SwUpdateMock extends SwUpdate {
     return Promise.resolve(true);
   }
 }
+export class DestroyRefMock {
+  private callbacks: (() => void)[] = [];
+  public destroyed = false;
+
+  onDestroy(callback: () => void) {
+    this.callbacks.push(callback);
+    return () => this.callbacks.splice(this.callbacks.indexOf(callback), 1);
+  }
+
+  destroy() {
+    this.destroyed = true;
+    this.callbacks.forEach((cb) => cb());
+    this.callbacks = [];
+  }
+}
 
 describe('UpdateService', () => {
   let service: UpdateService;
   let swUpdate: SwUpdateMock;
+  let dstRef: DestroyRefMock;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
         UpdateService,
+        { provide: DestroyRef, useClass: DestroyRefMock },
         { provide: SwUpdate, useClass: SwUpdateMock }
       ]
     });
     service = TestBed.inject(UpdateService);
     swUpdate = TestBed.inject(SwUpdate) as SwUpdateMock;
+    dstRef = TestBed.inject(DestroyRef) as unknown as DestroyRefMock;
   });
 
   it('should be created', () => {
@@ -59,6 +77,9 @@ describe('UpdateService', () => {
 
 
   it('should check for updates if SwUpdate is enabled', fakeAsync(() => {
+    // Override ENVIRONMENT.env to 'production'
+    (ENVIRONMENT as any).env = 'production';
+    
     spyOn(console, 'log'); // Spy on console.log to check if it's called
   
     // Create a mock SwUpdate that is enabled
@@ -68,7 +89,7 @@ describe('UpdateService', () => {
     // Create a spy for the checkForUpdate method
     const checkForUpdateSpy = spyOn(enabledSwUpdateMock, 'checkForUpdate').and.returnValue(Promise.resolve(true));
     // Create UpdateService with the enabled SwUpdateMock
-    const enabledUpdateService: UpdateService = new UpdateService(enabledSwUpdateMock);
+    const enabledUpdateService: UpdateService = new UpdateService(enabledSwUpdateMock, new DestroyRefMock());
   
     // Call checkForUpdates on the enabledUpdateService instance
     enabledUpdateService.checkForUpdates();
@@ -98,7 +119,7 @@ describe('UpdateService', () => {
     disabledSwUpdateMock.checkForUpdate = checkForUpdateSpy;
 
     // Create a new UpdateService instance with the disabled SwUpdateMock
-    const disabledUpdateService: UpdateService = new UpdateService(disabledSwUpdateMock);
+    const disabledUpdateService: UpdateService = new UpdateService(disabledSwUpdateMock, new DestroyRefMock());
 
     // Expectations
     expect(disabledUpdateService).toBeTruthy(); // Ensure the service is created
@@ -107,7 +128,7 @@ describe('UpdateService', () => {
   });
 
   it('should check for updates and subscribe to versionUpdates', () => {
-    const updateService = new UpdateService(swUpdate);
+    const updateService = new UpdateService(swUpdate, new DestroyRefMock());
   
     // Mock the promptUser function to prevent actual page reload
     spyOn(updateService, 'promptUser').and.callFake((event) => {
@@ -137,7 +158,7 @@ describe('UpdateService updateIntervalMinutes', () => {
     swUpdate = TestBed.inject(SwUpdate) as SwUpdateMock;
   });
 
-  it('should use 4 minutes interval in production', fakeAsync(() => {
+  it('should use 5 minutes interval in production', fakeAsync(() => {
     // Override ENVIRONMENT.env to 'production'
     (ENVIRONMENT as any).env = 'production';
 
@@ -146,14 +167,14 @@ describe('UpdateService updateIntervalMinutes', () => {
     service.checkForUpdates();
 
     // 4 minutes = 4 * 60 * 1000 ms
-    tick(4 * 60 * 1000);
+    tick(6 * 60 * 1000);
 
     expect(checkSpy).toHaveBeenCalled();
 
     discardPeriodicTasks();
   }));
 
-  it('should use 0.1 minute interval in non-production', fakeAsync(() => {
+  it('should not update in non-production', fakeAsync(() => {
     // Override ENVIRONMENT.env to 'development' or anything not 'production'
     (ENVIRONMENT as any).env = 'development';
 
@@ -161,10 +182,9 @@ describe('UpdateService updateIntervalMinutes', () => {
     
     service.checkForUpdates();
 
-    // 0.1 minutes = 0.1 * 60 * 1000 = 6000 ms
-    tick(6000);
+    tick(1000);
 
-    expect(checkSpy).toHaveBeenCalled();
+    expect(checkSpy).toHaveBeenCalledTimes(0);
 
     discardPeriodicTasks();
   }));

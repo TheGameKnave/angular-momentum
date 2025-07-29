@@ -2,7 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Socket } from 'ngx-socket-io';
 import { ENVIRONMENT } from 'src/environments/environment';
-import { catchError, map, Observable, of, tap } from 'rxjs';
+import { catchError, map, Observable, of, take, tap } from 'rxjs';
 import equal from 'fast-deep-equal';
 import { ComponentListService } from '@app/services/component-list.service';
 import { ArbitraryFeatures, FeatureFlagResponse } from '@app/models/data.model';
@@ -62,7 +62,7 @@ export class FeatureFlagService {
       this.http.post(ENVIRONMENT.baseUrl + '/api', {
         query: mutation,
         variables: { key: feature, value },
-      }).subscribe();
+      }).pipe(take(1)).subscribe();
     }
   }
 

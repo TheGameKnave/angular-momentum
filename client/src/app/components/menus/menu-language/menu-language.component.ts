@@ -1,12 +1,10 @@
-import { ChangeDetectionStrategy, Component, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { SUPPORTED_LANGUAGES } from '@app/helpers/constants';
 import { LANGUAGES } from 'i18n-l10n-flags';
 import { NgClass } from '@angular/common';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { AutoUnsubscribe } from '@app/helpers/unsub';
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 
-@AutoUnsubscribe()
 @Component({
   selector: 'app-menu-language',
   templateUrl: './menu-language.component.html',
@@ -16,7 +14,7 @@ import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
     NgClass,
   ],
 })
-export class MenuLanguageComponent implements OnDestroy {
+export class MenuLanguageComponent {
   Object = Object;
   supportedLanguages: string[] = SUPPORTED_LANGUAGES;
   languages = LANGUAGES;
@@ -48,5 +46,4 @@ export class MenuLanguageComponent implements OnDestroy {
   stopEventPropagation(event: Event): void {
     event.stopPropagation();
   }
-  ngOnDestroy(): void {}
 }

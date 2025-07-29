@@ -54,8 +54,4 @@ describe('MenuFeatureComponent', () => {
     expect(component.componentList).toEqual(mockList);
     expect(component.componentCount()).toBe(2);
   });
-
-  it('should handle ngOnDestroy without errors', () => {
-    expect(() => component.ngOnDestroy()).not.toThrow();
-  });
 });

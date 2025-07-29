@@ -1,12 +1,10 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { openDB } from 'idb';
-import { Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs';
-import { AutoUnsubscribe } from '@app/helpers/unsub';
 
-@AutoUnsubscribe()
 @Component({
   selector: 'app-indexeddb',
   templateUrl: './indexeddb.component.html',
@@ -16,17 +14,19 @@ import { AutoUnsubscribe } from '@app/helpers/unsub';
     TranslocoDirective,
   ],
 })
-export class IndexedDBComponent implements OnInit, OnDestroy {
+export class IndexedDBComponent implements OnInit {
   textAreaData = new FormControl('');
-  textAreaSub: Subscription | undefined;
+
+  constructor(
+    private destroyRef: DestroyRef,
+  ){}
 
   ngOnInit() {
-  
     this.getDbValue().then();
 
-    this.textAreaSub = this.textAreaData.valueChanges.pipe(
-      debounceTime(400)
-    ).subscribe((data) => {
+    this.textAreaData.valueChanges.pipe(
+      debounceTime(400),
+    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data) => {
       this.set('key', data);
     });
   
@@ -63,6 +63,4 @@ export class IndexedDBComponent implements OnInit, OnDestroy {
   async keys() {
     return (await this.dbPromise).getAllKeys('keyval');
   }
-
-  ngOnDestroy(): void {}
 }

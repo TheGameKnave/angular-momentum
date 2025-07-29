@@ -158,12 +158,6 @@ describe('IndexedDBComponent operations', () => {
     expect(component.textAreaData.value).toBe('test2');
   }));
   
-  it('should clean up subscription', fakeAsync(() => {
-    component.ngOnDestroy();
-    tick(1100);
-    expect(component.textAreaSub?.closed).toBe(true);
-  }));
-  
   it('should debounce updates', fakeAsync(async () => {
     spyOn(component, 'set');
     component.textAreaData.setValue('test');
