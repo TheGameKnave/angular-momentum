@@ -6,7 +6,9 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class SocketIoService {
-  constructor(private socket: Socket) {}
+  constructor(
+    readonly socket: Socket,
+  ) {}
 
   // Listen to an event
   listen<T>(event: string): Observable<T> {

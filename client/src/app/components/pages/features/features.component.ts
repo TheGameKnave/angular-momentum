@@ -19,7 +19,7 @@ export class FeaturesComponent implements OnInit {
 
   constructor(
     protected featureFlagService: FeatureFlagService,
-    private destroyRef: DestroyRef,
+    readonly destroyRef: DestroyRef,
   ) {
     // Keep form in sync with signal changes
     effect(() => {

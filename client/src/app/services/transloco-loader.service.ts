@@ -9,7 +9,9 @@ import { LANGUAGES } from 'i18n-l10n-flags';
 })
 export class TranslocoHttpLoader implements TranslocoLoader {
   languages = LANGUAGES;
-  constructor(private http: HttpClient) {}
+  constructor(
+    readonly http: HttpClient
+  ) {}
 
   getTranslation(lang: string): Observable<Translation> {
     return this.http.get(`/assets/i18n/${lang}.json`).pipe(

@@ -6,7 +6,7 @@ import { ENVIRONMENT } from 'src/environments/environment';
 })
 export class HelpersService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(@Inject(ENVIRONMENT) private env: any) {
+  constructor(@Inject(ENVIRONMENT) readonly env: any) {
     if (this.env.env !== 'production') {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).helpersService = this;

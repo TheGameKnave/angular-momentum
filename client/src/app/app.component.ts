@@ -36,19 +36,19 @@ export class AppComponent implements OnInit {
   menuTransitionOptions = '0.3s cubic-bezier(0, 0, 0.2, 1) transform';
 
   constructor(
-    private updateService: UpdateService,
+    readonly updateService: UpdateService,
     protected featureFlagService: FeatureFlagService,
-    private router: Router,
-    private slugPipe: SlugPipe,
-    private componentListService: ComponentListService,
+    readonly router: Router,
+    readonly slugPipe: SlugPipe,
+    readonly componentListService: ComponentListService,
     protected translocoLoader: TranslocoHttpLoader,
     protected translate: TranslocoService,
-    private destroyRef: DestroyRef,
+    readonly destroyRef: DestroyRef,
   ){
     this.updateService.checkForUpdates();
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     // long-form checking if navigated page is an allowed feature
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd){

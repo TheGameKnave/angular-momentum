@@ -7,7 +7,9 @@ import { FeatureFlag } from '@app/models/data.model';
   providedIn: 'root',
 })
 export class SocketFeatureService {
-  constructor(private socketIoService: SocketIoService) {}
+  constructor(
+    readonly socketIoService: SocketIoService,
+  ) {}
 
   // Subscribe to feature flag updates
   getFeatureFlags(): Observable<FeatureFlag[]> {

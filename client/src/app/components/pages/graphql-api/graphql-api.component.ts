@@ -30,7 +30,9 @@ export class GraphqlApiComponent implements OnInit {
   results$: Observable<InitializeApiRes | null> = of(null);
   error: unknown = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    readonly http: HttpClient,
+  ) {}
 
   ngOnInit() {
     this.results$ = this.initializeApi().pipe(
