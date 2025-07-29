@@ -6,6 +6,6 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class SlugPipe implements PipeTransform {
   transform(value: string): string {
-    return value.toLowerCase().replace(/^(?:[^a-z0-9]+)|(?:[^a-z0-9]+)$/g, '').replace(/[^a-z0-9]+/gi, '-');
+    return value.toLowerCase().replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi, '').replace(/[^a-z0-9]+/gi, '-');
   }
 }

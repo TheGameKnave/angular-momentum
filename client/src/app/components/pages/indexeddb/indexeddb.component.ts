@@ -18,7 +18,7 @@ export class IndexedDBComponent implements OnInit {
   textAreaData = new FormControl('');
 
   constructor(
-    private destroyRef: DestroyRef,
+    readonly destroyRef: DestroyRef,
   ){}
 
   ngOnInit() {
