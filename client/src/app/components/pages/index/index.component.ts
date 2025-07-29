@@ -1,37 +1,33 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoService } from '@jsverse/transloco';
 import { MarkdownModule } from 'ngx-markdown';
+import { map, combineLatest } from 'rxjs';
 
 @Component({
   selector: 'app-index',
   templateUrl: './index.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
   imports: [CommonModule, MarkdownModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class IndexComponent {
-  readonly folder = this.activatedRoute.snapshot.paramMap.get('id')!;
+export class IndexComponent implements OnInit {
+  indexText = signal<string>('');
 
   constructor(
-    readonly activatedRoute: ActivatedRoute,
     readonly transloco: TranslocoService,
-  ) {}
+    private readonly destroyRef: DestroyRef,
+  ){}
 
-  // Signals
-  readonly lang = toSignal(this.transloco.langChanges$, {
-    initialValue: this.transloco.getActiveLang(),
-  });
-
-  readonly data = computed(() => {
-    // Trigger recompute when language changes
-    this.lang();
-
-    return `# ${this.transloco.translate('Angular Momentum')}
-
-${this.transloco.translate('This project is designed to rapidly spin up Angular applications...')}
-
-${this.transloco.translate('If you find this project helpful and want to see it grow, consider...')}`;
-  });
+  ngOnInit() {
+    combineLatest([
+      this.transloco.selectTranslate('Angular Momentum'),
+      this.transloco.selectTranslate('This project is designed to rapidly spin up Angular applications...'),
+      this.transloco.selectTranslate('If you find this project helpful and want to see it grow, consider...')
+    ]).pipe(
+      map(([title, line1, line2]) => `# ${title}\n\n${line1}\n\n${line2}`),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(value => this.indexText.set(value));
+  }
 }
