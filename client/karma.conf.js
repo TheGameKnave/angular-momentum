@@ -30,6 +30,7 @@ module.exports = function (config) {
       subdir: '.',
       include: [
         'src/**/*.(ts|js)',
+        '!src/main.ts',
         '!src/**/*.spec.(ts|js)',
         '!src/**/environment*.(ts|js)'
       ],

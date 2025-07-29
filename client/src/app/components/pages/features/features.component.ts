@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { TranslocoDirective} from '@jsverse/transloco';
@@ -6,21 +6,24 @@ import { FeatureFlagService } from '@app/services/feature-flag.service';
 import { Subscription } from 'rxjs';
 
 @Component({
-    selector: 'app-features',
-    imports: [
-        TranslocoDirective,
-        ReactiveFormsModule,
-    ],
-    templateUrl: './features.component.html',
+  selector: 'app-features',
+  templateUrl: './features.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+      TranslocoDirective,
+      ReactiveFormsModule,
+  ],
 })
 export class FeaturesComponent implements OnInit, OnDestroy {
-  featureControls: { [key: string]: FormControl } = {};
+  featureControls: Record<string, FormControl> = {};
   featureSubs: Subscription[] = [];
   features$ = toObservable(this.featureFlagService.features);
   Object = Object;
+  
   constructor(
     protected featureFlagService: FeatureFlagService,
   ){}
+  
   ngOnInit() {
     Object.keys(this.featureFlagService.features()).forEach((feature) => {
       this.featureControls[feature] = new FormControl(this.featureFlagService.getFeature(feature));
@@ -32,7 +35,7 @@ export class FeaturesComponent implements OnInit, OnDestroy {
   
     this.features$.subscribe(features => {
       Object.keys(features).forEach((feature) => {
-        if (this.featureControls.hasOwnProperty(feature) && this.featureControls[feature].value !== features[feature]) {
+        if (feature in this.featureControls && this.featureControls[feature].value !== features[feature]) {
           this.featureControls[feature].setValue(features[feature]);
         }
       });

@@ -1,20 +1,11 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Socket } from 'ngx-socket-io';
 import { ENVIRONMENT } from 'src/environments/environment';
 import { catchError, map, Observable, of, tap } from 'rxjs';
 import equal from 'fast-deep-equal';
-import { ComponentListService, ComponentInstance } from '@app/services/component-list.service';
-
-type ArbitraryFeatures = {
-  // 'New Feature': boolean;
-  // Add more arbitrary features here
-};
-type ComponentFlags = {
-  [K in ComponentInstance['name']]: boolean;
-}
-
-type FeatureFlagResponse = ArbitraryFeatures & ComponentFlags;
+import { ComponentListService } from '@app/services/component-list.service';
+import { ArbitraryFeatures, FeatureFlagResponse } from '@app/models/data.model';
 
 type _FeatureFlagKeys = keyof FeatureFlagResponse;
 export type FeatureFlagKeys = {
@@ -28,6 +19,16 @@ export class FeatureFlagService {
 
   features = signal<Record<string, boolean>>({});
 
+  constructor(
+    private componentListService: ComponentListService,
+  ) {
+    // Listen for WebSocket updates
+    this.socket.on('update-feature-flags', (update: FeatureFlagResponse) => {
+      const newFeatures: ArbitraryFeatures = { ...this.features(), ...update };
+      this.features.set(newFeatures);
+    });
+  }
+
   getFeatureFlags(): Observable<FeatureFlagResponse> {
     const query = getFeatureFlagsQuery();
     return this.http.post<{ data: { featureFlags: { key: FeatureFlagKeys; value: boolean }[] } }>(ENVIRONMENT.baseUrl + '/api', { query }).pipe(
@@ -39,23 +40,13 @@ export class FeatureFlagService {
         return featureFlags;
       }),
       tap((featureFlags) => this.features.set(featureFlags)),
-      catchError((error: HttpErrorResponse) => {
+      catchError((error: unknown) => {
         /**/console.error('Error getting feature flags:', error);
         // Return a default value or an empty observable
         return of({} as FeatureFlagResponse);
       })
     );
   }
-  constructor(
-    private componentListService: ComponentListService,
-  ) {
-    // Listen for WebSocket updates
-    this.socket.on('update-feature-flags', (update: Partial<FeatureFlagResponse>) => {
-      const newFeatures: ArbitraryFeatures = { ...this.features(), ...update };
-      this.features.set(newFeatures);
-    });
-  }
-
 
   /**
    * Update a feature flag both locally and on the backend.
@@ -67,7 +58,7 @@ export class FeatureFlagService {
       this.features.set(newFeatures);
     
       // Notify backend of the updated flag using GraphQL request
-      const mutation = updateFeatureFlagMutation(feature, value);
+      const mutation = updateFeatureFlagMutation();
       this.http.post(ENVIRONMENT.baseUrl + '/api', {
         query: mutation,
         variables: { key: feature, value },
@@ -97,7 +88,7 @@ export function getFeatureFlagsQuery() {
   `;
 }
 
-export function updateFeatureFlagMutation(key: string | number, value: boolean) {
+export function updateFeatureFlagMutation() {
   return `
     mutation UpdateFeatureFlag($key: String!, $value: Boolean!) {
       updateFeatureFlag(key: $key, value: $value) {

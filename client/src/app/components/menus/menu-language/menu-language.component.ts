@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy } from '@angular/core';
 import { SUPPORTED_LANGUAGES } from '@app/helpers/constants';
 import { LANGUAGES } from 'i18n-l10n-flags';
 import { NgClass } from '@angular/common';
@@ -10,6 +10,7 @@ import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 @Component({
   selector: 'app-menu-language',
   templateUrl: './menu-language.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     TranslocoDirective,
     NgClass,
@@ -19,7 +20,7 @@ export class MenuLanguageComponent implements OnDestroy {
   Object = Object;
   supportedLanguages: string[] = SUPPORTED_LANGUAGES;
   languages = LANGUAGES;
-  classToLang: {[className: string]: string} = {};
+  classToLang: Record<string, string> = {};
 
   constructor(
     public translate: TranslocoService,

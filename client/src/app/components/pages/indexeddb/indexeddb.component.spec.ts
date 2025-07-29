@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { IndexedDBComponent } from './indexeddb.component';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { ReactiveFormsModule } from '@angular/forms';
-import { openDB, IDBPDatabase, deleteDB } from 'idb';
+import { openDB, IDBPDatabase } from 'idb';
 
 describe('IndexedDBComponent initialization', () => {
   let component: IndexedDBComponent;

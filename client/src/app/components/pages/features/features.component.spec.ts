@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FeaturesComponent } from './features.component';
-import { FeatureFlagService } from '@app/services/feature-flag.service';
+import { FeatureFlagKeys, FeatureFlagService } from '@app/services/feature-flag.service';
 import db from 'src/../../server/data/db.json';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { signal } from '@angular/core';
@@ -89,7 +89,7 @@ describe('FeaturesComponent', () => {
   
     // Get the form control for the 'Environment' feature
     const appVersionFormControl = fixture.componentInstance.featureControls['Environment'];
-  
+    
     // Set the initial value of the form control to true
     appVersionFormControl.setValue(features['Environment']);
   

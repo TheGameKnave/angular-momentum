@@ -1,72 +1,61 @@
 import { TestBed } from '@angular/core/testing';
-import { GraphqlApiComponent } from './graphql-api.component';
-import { ChangeDetectorRef, SecurityContext } from '@angular/core';
+import { GraphqlApiComponent, InitializeApiRes } from './graphql-api.component';
 import { HttpClient } from '@angular/common/http';
-import { HttpHandler } from '@angular/common/http';
-import { of } from 'rxjs';
-import { throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { MarkdownModule } from 'ngx-markdown';
+import { SecurityContext } from '@angular/core';
 
 describe('GraphqlApiComponent', () => {
   let component: GraphqlApiComponent;
-  let fixture: any;
-  let httpHandler: HttpHandler;
-  let httpClient: HttpClient;
   let httpClientSpy: jasmine.SpyObj<HttpClient>;
 
   beforeEach(async () => {
-    // Create the spy for `post()` instead of `get()`
     httpClientSpy = jasmine.createSpyObj('HttpClient', ['post']);
 
     await TestBed.configureTestingModule({
-      imports: [
-        GraphqlApiComponent,
-        MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),
-      ],
-      providers: [
-        { provide: HttpClient, useValue: httpClientSpy },
-        { provide: HttpHandler, useValue: {} },
-        ChangeDetectorRef,
-      ]
+      imports: [GraphqlApiComponent, MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE })],
+      providers: [{ provide: HttpClient, useValue: httpClientSpy }],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(GraphqlApiComponent);
+    const fixture = TestBed.createComponent(GraphqlApiComponent);
     component = fixture.componentInstance;
-    httpHandler = TestBed.inject(HttpHandler);
-    httpClient = TestBed.inject(HttpClient);
   });
 
-  it('should create', () => {
+  it('should create the component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should be created', () => {
-    expect(fixture).toBeTruthy();
+  it('should make a POST request and emit API data on results$', (done) => {
+    const mockResponse: InitializeApiRes = { data: { docs: 'Sample docs' } };
+    httpClientSpy.post.and.returnValue(of(mockResponse));
+
+    component.ngOnInit();  // <---- IMPORTANT: call lifecycle hook!
+
+    component.results$.subscribe((res) => {
+      expect(res).toEqual(mockResponse);
+      expect(httpClientSpy.post).toHaveBeenCalledWith(
+        'http://localhost:4200/api',
+        { query: `
+query GetApiData {
+  docs
+}
+` },
+        jasmine.any(Object) // headers object
+      );
+      done();
+    });
   });
 
-  it('should make a POST request to the GraphQL API', () => {
-    // Mock response for GraphQL API
-    httpClientSpy.post.and.returnValue(of({ data: { docs: ['Sample documentation'] } }));
+  it('should set error and emit null when HTTP POST fails', (done) => {
+    const mockError = new Error('Network error');
+    httpClientSpy.post.and.returnValue(throwError(() => mockError));
 
-    component.ngOnInit();
-    
-    expect(httpClientSpy.post).toHaveBeenCalledTimes(1);
-    expect(httpClientSpy.post.calls.argsFor(0)[0]).toBe('http://localhost:4200/api');
-  });
+    component.ngOnInit();  // <---- call lifecycle hook
 
-  it('should display the API data', () => {
-    const data = { data: { docs: ['Sample documentation'] } };
-    httpClientSpy.post.and.returnValue(of(data));
-    component.ngOnInit();
-    fixture.detectChanges();
-    expect(component.results).toBe(data.data);
-  });
-
-  it('should handle API errors', () => {
-    const error = { message: 'Error message' };
-    httpClientSpy.post.and.returnValue(throwError(() => error));
-    component.ngOnInit();
-    fixture.detectChanges();
-    expect(component.error).toEqual(error);
+    component.results$.subscribe((res) => {
+      expect(res).toBeNull();
+      expect(component.error).toEqual(mockError); // use .toEqual, not .toBe
+      done();
+    });
   });
 });

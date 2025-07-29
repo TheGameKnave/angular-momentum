@@ -1,1 +1,3 @@
-<markdown [data]="results?.docs"></markdown>
+@if (results$ | async; as results) {
+  <markdown [data]="results.data.docs || ''"></markdown>
+}

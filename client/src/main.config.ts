@@ -1,4 +1,4 @@
-import { importProvidersFrom, isDevMode, provideZonelessChangeDetection, SecurityContext } from '@angular/core';
+import { importProvidersFrom, isDevMode, SecurityContext } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
@@ -26,7 +26,6 @@ export const isTestEnvironment = ENVIRONMENT.env === 'testing'; // TODO figure o
 const socketIoConfig: SocketIoConfig = { url: ENVIRONMENT.baseUrl, options: {} };
 
 export const appProviders = [
-  provideZonelessChangeDetection(),
   importProvidersFrom(
     BrowserModule,
     MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),

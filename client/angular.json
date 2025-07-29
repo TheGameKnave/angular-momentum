@@ -8,7 +8,8 @@
       "schematics": {
         "@schematics/angular:component": {
           "inlineStyle": false,
-          "style": "none"
+          "style": "none",
+          "changeDetection": "OnPush"
         }
       },
       "root": "",
@@ -133,6 +134,15 @@
                 }
               ]
             }
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
           }
         }
       }

@@ -9,7 +9,8 @@ import { ENVIRONMENT } from 'src/environments/environment';
 })
 @AutoUnsubscribe()
 export class UpdateService {
-  confirming: boolean = false;
+  confirming = false;
+  
   constructor(
     private updates: SwUpdate
   ){}

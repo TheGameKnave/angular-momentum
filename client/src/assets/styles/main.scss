@@ -1,6 +1,6 @@
 @charset "UTF-8";
 
-// @use "tailwindcss";
+@use "tailwindcss";
 
 $brand-color: rgb(28, 130, 137) !default;
 
@@ -25,6 +25,7 @@ body {
   font-feature-settings: "lnum";
   h1 {
     font-weight: 600;
+    font-size: 2.8rem;
   }
   h2,
   h3,
@@ -32,9 +33,6 @@ body {
   h5,
   h6 {
     font-weight: 500;
-  }
-  h1 {
-    font-size: 2.8rem;
   }
   h2 {
     font-size: 2.4rem;

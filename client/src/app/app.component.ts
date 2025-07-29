@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AutoUnsubscribe } from '@app/helpers/unsub';
 
@@ -19,6 +19,7 @@ import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterModule,
     MenuLanguageComponent,
@@ -30,8 +31,8 @@ import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
   ],
 })
 export class AppComponent implements OnInit, OnDestroy {
-  openMenu: string = '';
-  routePath: string = '';
+  openMenu = '';
+  routePath = '';
   version: string = packageJson.version;
   menuTransitionOptions = '0.3s cubic-bezier(0, 0, 0.2, 1) transform';
 
@@ -52,7 +53,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd){
         this.routePath = event.urlAfterRedirects.replace('/', '');
-        const routeFeatureFlags: any = {};
+        const routeFeatureFlags: Record<string, string> = {};
         this.componentListService.getComponentList().forEach((component) => {
           const routePath = this.slugPipe.transform(component.name);
           const featureFlag = component.name;
