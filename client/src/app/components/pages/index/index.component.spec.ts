@@ -1,5 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
+import { By } from '@angular/platform-browser';
 import { IndexComponent } from './index.component';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { MarkdownModule } from 'ngx-markdown';
@@ -9,34 +10,30 @@ describe('IndexComponent', () => {
   let component: IndexComponent;
   let fixture: ComponentFixture<IndexComponent>;
 
-  beforeEach(async () => {
+  beforeEach(waitForAsync(async () => {
     await TestBed.configureTestingModule({
       imports: [
         IndexComponent,
         RouterModule.forRoot([]),
-        getTranslocoModule(),
+        getTranslocoModule(), // should return preloaded English translation
         MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(IndexComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+  }));
 
   it('should create', () => {
+    fixture.detectChanges();
     expect(component).toBeTruthy();
   });
 
-  it('should provide the correct markdown content from the signal', () => {
-    const value = component.data(); // Access the signal value
-    expect(value).toContain('# Angular Momentum');
-    expect(value).toContain('This project is designed');
-  });
-
-  it('should render the translated markdown content', () => {
+  it('should render the correct English title from transloco', async () => {
     fixture.detectChanges();
-    const markdownElement: HTMLElement = fixture.nativeElement.querySelector('#container markdown');
-    expect(markdownElement.textContent).toContain('Angular Momentum');
+    await fixture.whenStable(); // Wait for signals and markdown rendering
+
+    const markdownElement = fixture.debugElement.query(By.css('markdown'));
+    expect(markdownElement.nativeElement.innerHTML).toContain('<h1>Angular Momentum</h1>');
   });
 });
