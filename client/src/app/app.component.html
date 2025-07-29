@@ -1,27 +1,36 @@
 <ng-container *transloco="let t">
-  <h1>{{ t('Angular Momentum') }}</h1>
-  <p>{{ t('Hello world') }}</p>
-  <p>{{ t('There are {{count}} components.',{count: componentListArr.length}) }}</p>
+  <header>
+    <button (click)="toggleMenu('feature', $event)" class="featureButton">
+      ☰
+    </button>
+    momentum {{ routePath }}
+  </header>
 
-  @for (component of componentListArr; track $index) {
-    @if (featureFlagService.getFeature(component[0])) {
-      <button
-        [class]="'component-' + component[0].replace(' ','-').toLowerCase()"
-        [disabled]="activeComponent === component[0]"
-        (click)="onComponentActivate(component[0])"
-      >{{ t(component[0]) }}</button>
-    }
-  }
-  <button
-    class="component-clear"
-    [disabled]="activeComponent === null"
-    (click)="onComponentActivate(null)"
-  >🚫</button>
-  <div class="component-container">
-    @if (activeComponent !== null && featureFlagService.getFeature(activeComponent)) {
-      <ng-container *ngComponentOutlet="componentList[activeComponent]"></ng-container>
-    }
+  <div class="main">
+    <router-outlet></router-outlet>
   </div>
 
-  <app-footer></app-footer>
+  <footer>
+    @if (featureFlagService.getFeature('App Version')) {
+      <h2>{{ t('v.') }} {{ version }}</h2>
+    }
+    @if (featureFlagService.getFeature('Language')) {
+      <button (click)="toggleMenu('language', $event)" class="languageButton">
+        🌐 {{ translocoLoader.getFlag(translate.getActiveLang()) }}
+      </button>
+    }
+  </footer>
+
+  @if (openMenu === 'feature') {
+    <app-menu-feature
+      (click)="toggleMenu('feature', $event)"
+      (keydown.enter)="toggleMenu('feature', $event)"
+    />
+  }
+  @if (openMenu === 'language') {
+    <app-menu-language
+      (click)="toggleMenu('language', $event)"
+      (keydown.enter)="toggleMenu('language', $event)"
+    />
+  }
 </ng-container>

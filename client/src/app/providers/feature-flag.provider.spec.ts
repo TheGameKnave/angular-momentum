@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { provideFeatureFlag } from './feature-flag.provider';
-import { FeatureFlagService } from '../services/feature-flag.service';
+import { provideFeatureFlag } from '@app/providers/feature-flag.provider';
+import { FeatureFlagService } from '@app/services/feature-flag.service';
 import { APP_INITIALIZER } from '@angular/core';
 
 describe('provideFeatureFlag', () => {

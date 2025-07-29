@@ -76,7 +76,7 @@ async function cleanTestedScreenshots(rootDir) {
         await removeEmptySubDirs(dir);
       }
     } catch (err) {
-      console.error(`Error walking directory ${dir}: ${err.message}`);
+      /**/console.error(`Error walking directory ${dir}: ${err.message}`);
     }
   }
 
@@ -102,7 +102,7 @@ async function cleanTestedScreenshots(rootDir) {
         }
       }
     } catch (err) {
-      console.error(`Error removing empty subdirectories ${dir}: ${err.message}`);
+      /**/console.error(`Error removing empty subdirectories ${dir}: ${err.message}`);
     }
   }
 
@@ -110,7 +110,7 @@ async function cleanTestedScreenshots(rootDir) {
   try {
     await walkDir(rootDir);
   } catch (err) {
-    console.error(`Error cleaning screenshots: ${err.message}`);
+    /**/console.error(`Error cleaning screenshots: ${err.message}`);
   }
 }
 

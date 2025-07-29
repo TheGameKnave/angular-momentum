@@ -3,17 +3,19 @@ import { BrowserModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
-import { TranslocoHttpLoader } from './app/services/transloco-loader.service';
+import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 import { provideTransloco } from '@jsverse/transloco';
 import { provideTranslocoMessageformat } from '@jsverse/transloco-messageformat';
 import { cookiesStorage, GetLangParams, provideTranslocoPersistLang } from '@jsverse/transloco-persist-lang';
 import { provideTranslocoLocale } from '@jsverse/transloco-locale';
 import { MarkdownModule } from 'ngx-markdown';
 
-import { SUPPORTED_LANGUAGES } from './app/helpers/constants';
-import { provideFeatureFlag } from './app/providers/feature-flag.provider';
+import { SUPPORTED_LANGUAGES } from '@app/helpers/constants';
+import { provideFeatureFlag } from '@app/providers/feature-flag.provider';
 import { SocketIoConfig, SocketIoModule } from 'ngx-socket-io';
 import { ENVIRONMENT } from 'src/environments/environment';
+import { provideRouter } from '@angular/router';
+import { routes } from '@app/app.routing';
 
 export function getLangFn({ cachedLang, browserLang, cultureLang, defaultLang }: GetLangParams) {
   return cachedLang ?? browserLang ?? (cultureLang || defaultLang);
@@ -34,6 +36,7 @@ export const appProviders = [
     SocketIoModule.forRoot(socketIoConfig),
   ),
   provideHttpClient(withInterceptorsFromDi()),
+  provideRouter(routes),
   // istanbul ignore next
   !isTestEnvironment ? provideFeatureFlag() : [], // TODO figure out how to mock this in test environment without putting it in the code!!
   provideTransloco({

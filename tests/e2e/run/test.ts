@@ -34,7 +34,7 @@ const isPageLoaded = ClientFunction(() => {return document.readyState === 'compl
 const getMemory = async t => JSON.parse(
     await t.eval(() => {
     const { jsHeapSizeLimit, totalJSHeapSize, usedJSHeapSize } = window.performance.memory;
-    console.log({ jsHeapSizeLimit, totalJSHeapSize, usedJSHeapSize });
+    /**/console.log({ jsHeapSizeLimit, totalJSHeapSize, usedJSHeapSize });
     return JSON.stringify({ jsHeapSizeLimit, totalJSHeapSize, usedJSHeapSize });
 }));
 //compare current memory against memory threshold
@@ -58,7 +58,7 @@ test('Measure Page Load Time', async t => {
     const endTime = await t.eval(() => performance.now());
     const pageLoadTime = endTime - startTime;
     await t.expect(pageLoadTime).lt(getThreshold("pageLoad"));
-    console.log(`Page load time: ${pageLoadTime} milliseconds`);
+    /**/console.log(`Page load time: ${pageLoadTime} milliseconds`);
     const savePath = `${t.browser.alias.replace(/[^a-z0-9]/gi, '_')}/${screenshotMode}.png`;
     const screenshotDir = `Page_load/${savePath}`;
     await takeScreenshot(t, screenshotDir);

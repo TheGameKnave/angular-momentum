@@ -1,0 +1,462 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		16E44CEFA4835F54049D3358 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 3CBC0DE401E92674B8A0EC0E /* assets */; };
+		348357ACF86DA1C89C5C4AF9 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 776F69AA464D6DD9A8B7AE98 /* WebKit.framework */; };
+		3B8B324DCD22700F652C355A /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5E8EC543E316D65D824B9E8 /* QuartzCore.framework */; };
+		60E911504186633655655594 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 81557BE14A2C3A9FF1F346F4 /* Security.framework */; };
+		70D1DCA9DA20CFD4A83C940A /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AD1A5D0C5B56B0AF2739778 /* MetalKit.framework */; };
+		B6A5F6DCC1AF9EC65F35733A /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = A888F6A0C8531C15597473A7 /* main.mm */; };
+		BB9E2E09382A98D6221CEA87 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D2C786A32967266941DDF658 /* UIKit.framework */; };
+		BF28BC19CD8620521F7AA008 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E41BEE6F146D5B828BAD7C5B /* Metal.framework */; };
+		C7799A3CF15825989D2B58F7 /* libapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8EB4B28203CD07C30917DC3D /* libapp.a */; };
+		DE132B6757F6D7D736662B45 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F03BA08A7CADDE8023BC149C /* Assets.xcassets */; };
+		E3AF5DE219E0368FC223E78B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 37F14360F2EEAA9CCC8B7644 /* LaunchScreen.storyboard */; };
+		FD467D1BFBC4375242799E2E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ED8C9E82797173C584B9B178 /* CoreGraphics.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		37F14360F2EEAA9CCC8B7644 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		3CBC0DE401E92674B8A0EC0E /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = assets; sourceTree = SOURCE_ROOT; };
+		5544D4A3F49146D11A962F7A /* angular-momentum_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "angular-momentum_iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		776F69AA464D6DD9A8B7AE98 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		81557BE14A2C3A9FF1F346F4 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		8AD1A5D0C5B56B0AF2739778 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		8EB4B28203CD07C30917DC3D /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
+		8FE5BD15BDB407329862304C /* main.rs */ = {isa = PBXFileReference; path = main.rs; sourceTree = "<group>"; };
+		91CE5C0BD8F5835055CE2248 /* angular-momentum_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "angular-momentum_iOS.entitlements"; sourceTree = "<group>"; };
+		A39AD9C135E7EC5D629A4447 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		A888F6A0C8531C15597473A7 /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
+		AB19195ECC1CAE31EF53415E /* lib.rs */ = {isa = PBXFileReference; path = lib.rs; sourceTree = "<group>"; };
+		ABF7EEBD3FDCC27793249F38 /* bindings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bindings.h; sourceTree = "<group>"; };
+		D2C786A32967266941DDF658 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		D5E8EC543E316D65D824B9E8 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		E41BEE6F146D5B828BAD7C5B /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		ED8C9E82797173C584B9B178 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		F03BA08A7CADDE8023BC149C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		664443B123CA343CB88FDDDB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C7799A3CF15825989D2B58F7 /* libapp.a in Frameworks */,
+				FD467D1BFBC4375242799E2E /* CoreGraphics.framework in Frameworks */,
+				BF28BC19CD8620521F7AA008 /* Metal.framework in Frameworks */,
+				70D1DCA9DA20CFD4A83C940A /* MetalKit.framework in Frameworks */,
+				3B8B324DCD22700F652C355A /* QuartzCore.framework in Frameworks */,
+				60E911504186633655655594 /* Security.framework in Frameworks */,
+				BB9E2E09382A98D6221CEA87 /* UIKit.framework in Frameworks */,
+				348357ACF86DA1C89C5C4AF9 /* WebKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		29CC31190BEA59B2554504D8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5544D4A3F49146D11A962F7A /* angular-momentum_iOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		4C38BAA04EA3033CCFB58009 /* angular-momentum */ = {
+			isa = PBXGroup;
+			children = (
+				A888F6A0C8531C15597473A7 /* main.mm */,
+				E8F96A44BBBF0F3E33B469A4 /* bindings */,
+			);
+			path = "angular-momentum";
+			sourceTree = "<group>";
+		};
+		6C62A58DE54065E010111602 /* Externals */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Externals;
+			sourceTree = "<group>";
+		};
+		6ECDB84058BC6FE4D7678802 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				AB19195ECC1CAE31EF53415E /* lib.rs */,
+				8FE5BD15BDB407329862304C /* main.rs */,
+			);
+			name = src;
+			path = ../../src;
+			sourceTree = "<group>";
+		};
+		77D5CAA87DB735ED5CB93EC4 = {
+			isa = PBXGroup;
+			children = (
+				3CBC0DE401E92674B8A0EC0E /* assets */,
+				F03BA08A7CADDE8023BC149C /* Assets.xcassets */,
+				37F14360F2EEAA9CCC8B7644 /* LaunchScreen.storyboard */,
+				7E5F44F418B37C825D58718F /* angular-momentum_iOS */,
+				6C62A58DE54065E010111602 /* Externals */,
+				EF924AE3C899FD158935CF8F /* Sources */,
+				6ECDB84058BC6FE4D7678802 /* src */,
+				949FEF1EEB50F6C3C0FC7E4F /* Frameworks */,
+				29CC31190BEA59B2554504D8 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7E5F44F418B37C825D58718F /* angular-momentum_iOS */ = {
+			isa = PBXGroup;
+			children = (
+				91CE5C0BD8F5835055CE2248 /* angular-momentum_iOS.entitlements */,
+				A39AD9C135E7EC5D629A4447 /* Info.plist */,
+			);
+			path = "angular-momentum_iOS";
+			sourceTree = "<group>";
+		};
+		949FEF1EEB50F6C3C0FC7E4F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				ED8C9E82797173C584B9B178 /* CoreGraphics.framework */,
+				8EB4B28203CD07C30917DC3D /* libapp.a */,
+				E41BEE6F146D5B828BAD7C5B /* Metal.framework */,
+				8AD1A5D0C5B56B0AF2739778 /* MetalKit.framework */,
+				D5E8EC543E316D65D824B9E8 /* QuartzCore.framework */,
+				81557BE14A2C3A9FF1F346F4 /* Security.framework */,
+				D2C786A32967266941DDF658 /* UIKit.framework */,
+				776F69AA464D6DD9A8B7AE98 /* WebKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E8F96A44BBBF0F3E33B469A4 /* bindings */ = {
+			isa = PBXGroup;
+			children = (
+				ABF7EEBD3FDCC27793249F38 /* bindings.h */,
+			);
+			path = bindings;
+			sourceTree = "<group>";
+		};
+		EF924AE3C899FD158935CF8F /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				4C38BAA04EA3033CCFB58009 /* angular-momentum */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F15FC484A0B84A1714199A61 /* angular-momentum_iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 923E037271656F256E069804 /* Build configuration list for PBXNativeTarget "angular-momentum_iOS" */;
+			buildPhases = (
+				63FB1ED132EF828553B737FA /* Build Rust Code */,
+				5112FF7F056D9C6213471CC0 /* Sources */,
+				289779EF7918257ACD3F9E8C /* Resources */,
+				664443B123CA343CB88FDDDB /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "angular-momentum_iOS";
+			packageProductDependencies = (
+			);
+			productName = "angular-momentum_iOS";
+			productReference = 5544D4A3F49146D11A962F7A /* angular-momentum_iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		FFA0BC2ABD40EB3599D5E15E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = A7011538647D871BA000D22C /* Build configuration list for PBXProject "angular-momentum" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 77D5CAA87DB735ED5CB93EC4;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 54;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F15FC484A0B84A1714199A61 /* angular-momentum_iOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		289779EF7918257ACD3F9E8C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DE132B6757F6D7D736662B45 /* Assets.xcassets in Resources */,
+				E3AF5DE219E0368FC223E78B /* LaunchScreen.storyboard in Resources */,
+				16E44CEFA4835F54049D3358 /* assets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		63FB1ED132EF828553B737FA /* Build Rust Code */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build Rust Code";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Externals/x86_64/${CONFIGURATION}/libapp.a",
+				"$(SRCROOT)/Externals/arm64/${CONFIGURATION}/libapp.a",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "npm run -- tauri ios xcode-script -v --platform ${PLATFORM_DISPLAY_NAME:?} --sdk-root ${SDKROOT:?} --framework-search-paths \"${FRAMEWORK_SEARCH_PATHS:?}\" --header-search-paths \"${HEADER_SEARCH_PATHS:?}\" --gcc-preprocessor-definitions \"${GCC_PREPROCESSOR_DEFINITIONS:-}\" --configuration ${CONFIGURATION:?} ${FORCE_COLOR} ${ARCHS:?}";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5112FF7F056D9C6213471CC0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B6A5F6DCC1AF9EC65F35733A /* main.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		3350994653560A331D1301E8 /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ARCHS = (
+					arm64,
+				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "angular-momentum_iOS/angular-momentum_iOS.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".\"",
+				);
+				INFOPLIST_FILE = "angular-momentum_iOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = app.angularmomentum;
+				PRODUCT_NAME = "Angular Momentum";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = arm64;
+				DEVELOPMENT_TEAM = "7386GL7C2C";
+			};
+			name = release;
+		};
+		56F8649B32DFCB590A7DD595 /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = release;
+		};
+		C6700C8CF04B28EF95D802F3 /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = debug;
+		};
+		DBEE82060359374936BD6CA4 /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ARCHS = (
+					arm64,
+				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "angular-momentum_iOS/angular-momentum_iOS.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".\"",
+				);
+				INFOPLIST_FILE = "angular-momentum_iOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = app.angularmomentum;
+				PRODUCT_NAME = "Angular Momentum";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = arm64;
+				DEVELOPMENT_TEAM = "7386GL7C2C";
+			};
+			name = debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		923E037271656F256E069804 /* Build configuration list for PBXNativeTarget "angular-momentum_iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DBEE82060359374936BD6CA4 /* debug */,
+				3350994653560A331D1301E8 /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+		A7011538647D871BA000D22C /* Build configuration list for PBXProject "angular-momentum" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C6700C8CF04B28EF95D802F3 /* debug */,
+				56F8649B32DFCB590A7DD595 /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = FFA0BC2ABD40EB3599D5E15E /* Project object */;
+}

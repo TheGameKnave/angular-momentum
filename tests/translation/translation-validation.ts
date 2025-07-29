@@ -12,9 +12,9 @@ SUPPORTED_LANGUAGES.forEach((lang) => {
 
   exec(command, (error, stdout, stderr) => {
     if (error) {
-      console.error(`Validation failed for ${lang}.json:\n`, stderr);
+      /**/console.error(`Validation failed for ${lang}.json:\n`, stderr);
     } else {
-      console.log(`Validation passed for ${lang}.json`);
+      /**/console.log(`Validation passed for ${lang}.json`);
     }
   });
 });

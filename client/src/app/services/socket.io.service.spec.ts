@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { SocketIoService } from './socket.io.service';
+import { SocketIoService } from '@app/services/socket.io.service';
 import { Socket } from 'ngx-socket-io';
 
 describe('SocketIoService', () => {

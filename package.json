@@ -1,11 +1,12 @@
 {
   "name": "angular-momentum",
-  "version": "0.19.0",
-  "siteUrl": "https://angular-node-momentum-c873a67b06f7.herokuapp.com/",
+  "version": "0.20.0",
+  "siteUrl": "https://angularmomentum.app",
   "private": true,
   "engines": {
     "node": "22.14.0"
   },
+  "type": "commonjs",
   "scripts": {
     "client": "cd client && npm run start -- --configuration development",
     "client-prod": "NODE_ENV=production && cd client && npm run start -- --configuration production",

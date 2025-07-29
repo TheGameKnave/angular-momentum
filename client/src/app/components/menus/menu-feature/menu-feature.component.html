@@ -1,0 +1,19 @@
+<ng-container *transloco="let t">
+  <a
+    [routerLink]="''"
+    routerLinkActive="selected"
+    [routerLinkActiveOptions]="{ exact: true }"
+  >{{ t('Angular Momentum') }}</a>
+  <hr />
+  <h3>{{ t('There are {{count}} components.',{count: componentCount()}) }}</h3>
+  <hr />
+  <ul>
+    @for (p of componentList; track p; let i = $index) {
+      @if (featureFlagService.getFeature(p.name)) {
+        <li>
+          <a [routerLink]="[p.name | slug]" routerLinkActive="selected">{{ t(p.name) }}</a>
+        </li>
+      }
+    }
+  </ul>
+</ng-container>
