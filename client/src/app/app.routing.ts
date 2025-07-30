@@ -1,6 +1,7 @@
 import { Route } from '@angular/router';
 import { ComponentListService } from '@app/services/component-list.service'; 
-import { SlugPipe } from '@app/pipes/slug.pipe';
+import { FeatureFlagGuard } from './guards/feature-flag.guard';
+import { SlugPipe } from './pipes/slug.pipe';
 
 // Instantiate the service (without DI, since it's outside Angular context)
 const componentService = new ComponentListService();
@@ -15,7 +16,8 @@ export const routes: Route[] = [
   },
   ...componentList.map(component => ({
     path: slugPipe.transform(component.name),
-    component: component.component
+    component: component.component,
+    canActivate: [FeatureFlagGuard]
   })),
   {
     path: '**',

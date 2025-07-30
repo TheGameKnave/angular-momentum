@@ -16,6 +16,7 @@ import { SocketIoConfig, SocketIoModule } from 'ngx-socket-io';
 import { ENVIRONMENT } from 'src/environments/environment';
 import { provideRouter } from '@angular/router';
 import { routes } from '@app/app.routing';
+import { SlugPipe } from '@app/pipes/slug.pipe';
 
 export function getLangFn({ cachedLang, browserLang, cultureLang, defaultLang }: GetLangParams) {
   return cachedLang ?? browserLang ?? (cultureLang || defaultLang);
@@ -26,6 +27,7 @@ export const isTestEnvironment = ENVIRONMENT.env === 'testing'; // TODO figure o
 const socketIoConfig: SocketIoConfig = { url: ENVIRONMENT.baseUrl, options: {} };
 
 export const appProviders = [
+  SlugPipe,
   importProvidersFrom(
     BrowserModule,
     MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),
