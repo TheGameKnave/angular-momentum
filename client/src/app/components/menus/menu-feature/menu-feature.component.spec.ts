@@ -17,7 +17,7 @@ describe('MenuFeatureComponent', () => {
   let fixture: ComponentFixture<MenuFeatureComponent>;
   let helpersServiceSpy: jasmine.SpyObj<HelpersService>;
 
-  const mockAllowedComponents = signal<ComponentInstance[]>([
+  const mockaEnabledComponents = signal<ComponentInstance[]>([
     { name: 'FeatureA', component: MockComponentA, icon: 'iconA' },
     { name: 'FeatureB', component: MockComponentA, icon: 'iconB' },
     { name: 'FeatureC', component: MockComponentA, icon: 'iconC' },
@@ -28,7 +28,7 @@ describe('MenuFeatureComponent', () => {
     const featureFlagServiceSpy = jasmine.createSpyObj('FeatureFlagService', ['getFeature']);
     
     helpersServiceSpy = jasmine.createSpyObj('HelpersService', [], {
-      enabledComponents: mockAllowedComponents
+      enabledComponents: mockaEnabledComponents
     });
 
     await TestBed.configureTestingModule({
@@ -55,11 +55,11 @@ describe('MenuFeatureComponent', () => {
   });
 
   it('should return correct component count', () => {
-    expect(component.componentCount()).toBe(mockAllowedComponents().length);
+    expect(component.componentCount()).toBe(mockaEnabledComponents().length);
   });
 
   it('should return 0 when enabledComponents is empty', () => {
-    mockAllowedComponents.set([]);
+    mockaEnabledComponents.set([]);
     fixture.detectChanges();
     expect(component.componentCount()).toBe(0);
   });
