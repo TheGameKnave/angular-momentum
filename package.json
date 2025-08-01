@@ -12,7 +12,7 @@
     "client:prod": "NODE_ENV=production && cd client && npm run start -- --configuration production",
     "server": "cd server && node-env-run --exec nodemon | pino-colada",
     "server:prod": "NODE_ENV=production && cd server && node-env-run --exec nodemon",
-    "heroku-postbuild": "cd client && npm install && npm run build -- --configuration ${NODE_ENV}",
+    "heroku-postbuild": "cd client && npm install && npm run heroku-postbuild",
     "start": "cd server && ts-node index.ts",
     "dev": "run-p client server",
     "prod": "run-p client-prod server-prod",
