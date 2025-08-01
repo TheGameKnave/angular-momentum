@@ -26,12 +26,12 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Websockets to reconcile disparities between server and local data *
 * public api with GraphQL *
 * Tauri integration for app bundling
+* CDN for static assets and binary distros
 
 (* indicates a feature that’s visible in the sample app)
 
 ## Future features:
 * Tauri app signing and auto-updating for distribution.
-* CDN for static assets and binary distros
 * DB-agnostic query layer
 * Elf state management *
 * Immutable.js or immer or Timm to minimize mutation
@@ -177,8 +177,8 @@ from `client`, while running a server locally:
 * `npm run tauri:ios` to dev-build and deploy to iOS simulator.
 
 from `client`, while remote server is running:
-* `npm run tauri build` to build a release for Windows, MacOS, and Linux.
-* `npm run tauri android dev` to build a release for Android. (set `tauri.conf.json` devUrl to `https://angularmomentum.app`) to enable live server features.
+* `npm run tauri build` to build a standalone dev release for Windows, MacOS, and Linux.
+* `npm run tauri android dev` to build a standalone dev release for Android. (set `tauri.conf.json` devUrl to `https://angularmomentum.app`) to enable live server features.
 * `npm run tauri ios` to build a release for iOS.
 
 ## CDN
