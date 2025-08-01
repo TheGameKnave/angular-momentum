@@ -12,7 +12,7 @@ export class TranslocoHttpLoader implements TranslocoLoader {
   languages = LANGUAGES;
   constructor(
     readonly http: HttpClient,
-    private assetPathPipe: AssetPathPipe,
+    private readonly assetPathPipe: AssetPathPipe,
   ) {}
 
   getTranslation(lang: string): Observable<Translation> {

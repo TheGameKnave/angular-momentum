@@ -9,9 +9,9 @@ import { HelpersService } from '@app/services/helpers.service';
 export class FeatureFlagGuard implements CanActivate {
 
   constructor(
-    private router: Router,
-    private helpersService: HelpersService,
-    private slugPipe: SlugPipe,
+    private readonly router: Router,
+    private readonly helpersService: HelpersService,
+    private readonly slugPipe: SlugPipe,
   ){}
 
   canActivate(route: ActivatedRouteSnapshot): boolean {

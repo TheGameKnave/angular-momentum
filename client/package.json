@@ -12,6 +12,7 @@
     "heroku-postbuild": "npm run copy-dev-assets && npm run build-heroku",
     "setLocal": "node ./scripts/set-local-env.js",
     "tauri": "tauri",
+    "tauri:dev": "npm run setLocal && tauri dev",
     "tauri:android": "npm run setLocal && tauri android dev",
     "tauri:ios": "npm run setLocal && tauri ios dev",
     "lint": "ng lint"
