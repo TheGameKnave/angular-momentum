@@ -8,8 +8,8 @@ import { ComponentListService } from './component-list.service';
 })
 export class HelpersService {
   constructor(
-    private featureFlagService: FeatureFlagService,
-    private componentListService: ComponentListService,
+    private readonly featureFlagService: FeatureFlagService,
+    private readonly componentListService: ComponentListService,
   ) {
     // istanbul ignore next
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

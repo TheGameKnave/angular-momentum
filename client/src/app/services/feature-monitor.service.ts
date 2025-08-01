@@ -6,9 +6,9 @@ import { SlugPipe } from '@app/pipes/slug.pipe';
 @Injectable({ providedIn: 'root' })
 export class FeatureMonitorService {
   constructor(
-    private router: Router,
-    private helpersService: HelpersService,
-    private slugPipe: SlugPipe,
+    private readonly router: Router,
+    private readonly helpersService: HelpersService,
+    private readonly slugPipe: SlugPipe,
   ) {
     effect(() => {
       const url = this.router.url;

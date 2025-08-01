@@ -113,7 +113,12 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
-              "namedChunks": true
+              "namedChunks": true,
+              "assets": [
+                "src/favicon.ico",
+                "src/assets",
+                "src/manifest.webmanifest"
+              ]
             }
           },
           "defaultConfiguration": "production"

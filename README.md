@@ -171,10 +171,12 @@ This repo utilizes Tauri to publish native apps for Windows, MacOS, Linux, Andro
 
 After your pipeline is configured, the following scripts are useful.
 
-from `client`
-* `npm run tauri dev` to dev-build and deploy to local machine.
+from `client`, while running a server locally:
+* `npm run tauri:dev` to dev-build and deploy to local machine.
 * `npm run tauri:android` to dev-build and deploy to Android simulator.
 * `npm run tauri:ios` to dev-build and deploy to iOS simulator.
+
+from `client`, while remote server is running:
 * `npm run tauri build` to build a release for Windows, MacOS, and Linux.
 * `npm run tauri android dev` to build a release for Android. (set `tauri.conf.json` devUrl to `https://angularmomentum.app`) to enable live server features.
 * `npm run tauri ios` to build a release for iOS.
