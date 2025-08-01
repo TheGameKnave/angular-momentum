@@ -17,6 +17,7 @@ import { ENVIRONMENT } from 'src/environments/environment';
 import { provideRouter } from '@angular/router';
 import { routes } from '@app/app.routing';
 import { SlugPipe } from '@app/pipes/slug.pipe';
+import { AssetPathPipe } from '@app/pipes/asset-path.pipe';
 
 export function getLangFn({ cachedLang, browserLang, cultureLang, defaultLang }: GetLangParams) {
   return cachedLang ?? browserLang ?? (cultureLang || defaultLang);
@@ -28,6 +29,7 @@ const socketIoConfig: SocketIoConfig = { url: ENVIRONMENT.baseUrl, options: {} }
 
 export const appProviders = [
   SlugPipe,
+  AssetPathPipe,
   importProvidersFrom(
     BrowserModule,
     MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),

@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Translation, TranslocoLoader } from '@jsverse/transloco';
 import { catchError, Observable, of } from 'rxjs';
 import { LANGUAGES } from 'i18n-l10n-flags';
+import { AssetPathPipe } from '@app/pipes/asset-path.pipe';
 
 @Injectable({
   providedIn: 'root'
@@ -10,11 +11,12 @@ import { LANGUAGES } from 'i18n-l10n-flags';
 export class TranslocoHttpLoader implements TranslocoLoader {
   languages = LANGUAGES;
   constructor(
-    readonly http: HttpClient
+    readonly http: HttpClient,
+    private assetPathPipe: AssetPathPipe,
   ) {}
 
   getTranslation(lang: string): Observable<Translation> {
-    return this.http.get(`/assets/i18n/${lang}.json`).pipe(
+    return this.http.get(this.assetPathPipe.transform(`i18n/${lang}.json`)).pipe(
       catchError((error: unknown) => {
         // backend is not available, return a fallback translation
         // might I add that this is ridiculous. bad lint rule to disallow HTTP error typing

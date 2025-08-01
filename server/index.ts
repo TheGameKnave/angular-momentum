@@ -29,6 +29,9 @@ export function setupApp(): express.Application {
       'http://localhost:4200',
       'http://192.168.1.x:4200',
       'http://tauri.localhost',
+      'https://dev.angularmomentum.app',
+      'https://staging.angularmomentum.app',
+      'https://angularmomentum.app',
       'https://angularmomentum.app',
       'tauri://localhost', // for tauri ios
       'http://tauri.localhost', // for tauri android

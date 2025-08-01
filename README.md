@@ -31,6 +31,7 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 
 ## Future features:
 * Tauri app signing and auto-updating for distribution.
+* CDN for static assets and binary distros
 * DB-agnostic query layer
 * Elf state management *
 * Immutable.js or immer or Timm to minimize mutation
@@ -157,19 +158,12 @@ Download SonarScanner and run from project root: `npm run sonar`
 `heroku git:remote -a <APP_NAME>`  
 `git remote rename heroku production`
 
-### Deploy dev
+### Deploy
 
-`git push dev dev:main`
-
-### Deploy staging
-
-from staging branch:  
-`git push staging staging:main`
-
-### Deploy production
-
-from main branch:  
-`git push production main:main`
+From root:  
+`npm run deploy:dev`  
+`npm run deploy:staging`  
+`npm run deploy:production`
 
 ## Tauri
 
@@ -184,3 +178,18 @@ from `client`
 * `npm run tauri build` to build a release for Windows, MacOS, and Linux.
 * `npm run tauri android dev` to build a release for Android. (set `tauri.conf.json` devUrl to `https://angularmomentum.app`) to enable live server features.
 * `npm run tauri ios` to build a release for iOS.
+
+## CDN
+
+This repo relies on serving assets from a CDN. The current implementation is linode/akamai but you'll want to replace that with your preferred provider.
+
+### Structure
+
+```
+angularmomentum/
+├── assets/
+│   ├── production/
+│   └── staging/
+├── dist/
+│   └── (future versioned releases folders here)
+```

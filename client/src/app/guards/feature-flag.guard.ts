@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { CanActivate, Router, ActivatedRouteSnapshot } from '@angular/router';
 import { SlugPipe } from '@app/pipes/slug.pipe';
 import { HelpersService } from '@app/services/helpers.service';
@@ -7,11 +7,11 @@ import { HelpersService } from '@app/services/helpers.service';
   providedIn: 'root'
 })
 export class FeatureFlagGuard implements CanActivate {
-  private slugPipe = inject(SlugPipe);
 
   constructor(
     private router: Router,
     private helpersService: HelpersService,
+    private slugPipe: SlugPipe,
   ){}
 
   canActivate(route: ActivatedRouteSnapshot): boolean {

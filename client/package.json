@@ -3,10 +3,10 @@
   "version": "0.20.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --hmr --proxy-config src/proxy.conf.json",
+    "start": "node scripts/copy-dev-assets.js && ng serve --hmr --proxy-config src/proxy.conf.json",
     "build": "ng build",
-    "test": "ng test --configuration test --browsers=ChromeHeadless --watch=false",
-    "watch": "ng test",
+    "test": "node scripts/copy-dev-assets.js && ng test --configuration test --browsers=ChromeHeadless --watch=false",
+    "watch": "node scripts/copy-dev-assets.js && ng test",
     "setLocal": "node ./scripts/set-local-env.js",
     "tauri": "tauri",
     "tauri:android": "npm run setLocal && tauri android dev",
