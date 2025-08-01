@@ -1,5 +1,6 @@
 export const ENVIRONMENT = {
+  env: 'development',
   baseUrl: window.location.origin,
   // baseUrl: 'https://angularmomentum.app',
-  env: 'development',
+  assetBasePath: '/assets/dev',
 };

@@ -20,7 +20,7 @@ export class UpdateService {
       this.promptUser(event);
     });
 
-    if(ENVIRONMENT.env === 'production'){
+    if(['production', 'staging'].includes(ENVIRONMENT.env)){
       interval(5 * 60 * 1000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.updates.checkForUpdate().then(() => {
           /*keep this*/console.log('checked for updates');
