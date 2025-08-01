@@ -1,14 +1,18 @@
 {
   "name": "angular-momentum",
-  "version": "0.20.0",
+  "version": "0.20.1",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --hmr --proxy-config src/proxy.conf.json",
+    "start": "node scripts/copy-dev-assets.js && ng serve --hmr --proxy-config src/proxy.conf.json",
     "build": "ng build",
-    "test": "ng test --configuration test --browsers=ChromeHeadless --watch=false",
-    "watch": "ng test",
+    "test": "node scripts/copy-dev-assets.js && ng test --configuration test --browsers=ChromeHeadless --watch=false",
+    "watch": "node scripts/copy-dev-assets.js && ng test",
+    "copy-dev-assets": "node scripts/copy-dev-assets.js",
+    "build-heroku": "ng build --configuration=${NODE_ENV}",
+    "heroku-postbuild": "npm run copy-dev-assets && npm run build-heroku",
     "setLocal": "node ./scripts/set-local-env.js",
     "tauri": "tauri",
+    "tauri:dev": "npm run setLocal && tauri dev",
     "tauri:android": "npm run setLocal && tauri android dev",
     "tauri:ios": "npm run setLocal && tauri ios dev",
     "lint": "ng lint"

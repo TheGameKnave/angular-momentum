@@ -4,6 +4,7 @@ import { IndexedDBComponent } from './indexeddb.component';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { ReactiveFormsModule } from '@angular/forms';
 import { openDB, IDBPDatabase } from 'idb';
+import { FeatureMonitorService } from '@app/services/feature-monitor.service';
 
 describe('IndexedDBComponent initialization', () => {
   let component: IndexedDBComponent;
@@ -16,12 +17,15 @@ describe('IndexedDBComponent initialization', () => {
         db.createObjectStore('keyval');
       },
     });
-  
+    
     await TestBed.configureTestingModule({
       imports: [
         IndexedDBComponent,
         getTranslocoModule(),
         ReactiveFormsModule,
+      ],
+      providers: [
+        { provide: FeatureMonitorService, useValue: { watchRouteFeatureAndRedirect: jasmine.createSpy() } },
       ]
     }).compileComponents();
   
@@ -62,6 +66,9 @@ describe('IndexedDBComponent operations', () => {
         IndexedDBComponent,
         getTranslocoModule(),
         ReactiveFormsModule,
+      ],
+      providers: [
+        { provide: FeatureMonitorService, useValue: { watchRouteFeatureAndRedirect: jasmine.createSpy() } },
       ]
     }).compileComponents();
 

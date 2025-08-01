@@ -25,17 +25,21 @@
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "assets": [
-              "src/favicon.ico",
-              "src/assets",
-              "src/manifest.webmanifest"
-            ],
             "styles": [
               "src/assets/styles/main.scss"
             ]
           },
           "configurations": {
             "production": {
+              "assets": [
+                "src/favicon.ico",
+                "src/manifest.webmanifest",
+                {
+                  "glob": "**/*",
+                  "input": "src/assets/icons",
+                  "output": "assets/icons"
+                }
+              ],
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
@@ -57,11 +61,47 @@
               "outputHashing": "all",
               "serviceWorker": "ngsw-config.json"
             },
+            "staging": {
+              "assets": [
+                "src/favicon.ico",
+                "src/manifest.webmanifest",
+                {
+                  "glob": "**/*",
+                  "input": "src/assets/icons",
+                  "output": "assets/icons"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.stage.ts"
+                }
+              ],
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kb",
+                  "maximumError": "1mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kb",
+                  "maximumError": "4kb"
+                }
+              ],
+              "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json"
+            },
             "development": {
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
-              "namedChunks": true
+              "namedChunks": true,
+              "assets": [
+                "src/favicon.ico",
+                "src/assets",
+                "src/manifest.webmanifest"
+              ]
             },
             "tauri-local": {
               "fileReplacements": [
@@ -73,7 +113,12 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
-              "namedChunks": true
+              "namedChunks": true,
+              "assets": [
+                "src/favicon.ico",
+                "src/assets",
+                "src/manifest.webmanifest"
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -116,8 +161,8 @@
             "codeCoverage": true,
             "inlineStyleLanguage": "scss",
             "assets": [
-              "src/favicon.ico",
               "src/assets",
+              "src/favicon.ico",
               "src/manifest.webmanifest"
             ],
             "styles": [

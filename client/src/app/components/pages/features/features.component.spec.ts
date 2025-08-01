@@ -6,6 +6,7 @@ import db from 'src/../../server/data/db.json';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { signal } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { FeatureMonitorService } from '@app/services/feature-monitor.service';
 
 // Path to the mock database file
 
@@ -38,7 +39,10 @@ describe('FeaturesComponent', () => {
         FeaturesComponent,
         getTranslocoModule(),
       ],
-      providers: [{ provide: FeatureFlagService, useValue: featureFlagServiceSpy }]
+      providers: [
+        { provide: FeatureFlagService, useValue: featureFlagServiceSpy },
+        { provide: FeatureMonitorService, useValue: jasmine.createSpyObj('FeatureMonitorService', ['watchRouteFeatureAndRedirect']) },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(FeaturesComponent);

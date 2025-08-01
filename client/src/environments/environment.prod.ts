@@ -1,5 +1,6 @@
 // Dynamic environment configuration
 export const ENVIRONMENT = {
-  baseUrl: 'https://angularmomentum.app',
   env: 'production',
+  baseUrl: 'https://angularmomentum.app',
+  assetBasePath: 'https://cdn.angularmomentum.app/assets/production',
 };

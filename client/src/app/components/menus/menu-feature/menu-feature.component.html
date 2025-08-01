@@ -8,12 +8,10 @@
   <h3>{{ t('There are {{count}} components.',{count: componentCount()}) }}</h3>
   <hr />
   <ul>
-    @for (p of componentList; track p; let i = $index) {
-      @if (featureFlagService.getFeature(p.name)) {
-        <li>
-          <a [routerLink]="[p.name | slug]" routerLinkActive="selected">{{ t(p.name) }}</a>
-        </li>
-      }
+    @for (p of helpersService.enabledComponents(); track p; let i = $index) {
+      <li>
+        <a [routerLink]="[p.name | slug]" routerLinkActive="selected">{{ t(p.name) }}</a>
+      </li>
     }
   </ul>
 </ng-container>

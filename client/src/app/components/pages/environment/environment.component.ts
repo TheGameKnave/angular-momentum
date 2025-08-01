@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, isDevMode } from '@angular/core';
+import { FeatureMonitorService } from '@app/services/feature-monitor.service';
 import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
@@ -11,4 +12,8 @@ import { TranslocoDirective } from '@jsverse/transloco';
 })
 export class EnvironmentComponent {
   isDevMode = isDevMode();
+
+  constructor(
+    private readonly featureMonitorService: FeatureMonitorService
+  ){}
 }

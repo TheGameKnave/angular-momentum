@@ -1,6 +1,7 @@
 // client/src/app/pipes/slug.pipe.ts
-import { Pipe, PipeTransform } from '@angular/core';
+import { Injectable, Pipe, PipeTransform } from '@angular/core';
 
+@Injectable()
 @Pipe({
   name: 'slug'
 })

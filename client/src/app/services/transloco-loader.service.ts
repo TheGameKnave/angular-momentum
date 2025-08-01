@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Translation, TranslocoLoader } from '@jsverse/transloco';
 import { catchError, Observable, of } from 'rxjs';
 import { LANGUAGES } from 'i18n-l10n-flags';
+import { AssetPathPipe } from '@app/pipes/asset-path.pipe';
 
 @Injectable({
   providedIn: 'root'
@@ -10,27 +11,23 @@ import { LANGUAGES } from 'i18n-l10n-flags';
 export class TranslocoHttpLoader implements TranslocoLoader {
   languages = LANGUAGES;
   constructor(
-    readonly http: HttpClient
+    readonly http: HttpClient,
+    private readonly assetPathPipe: AssetPathPipe,
   ) {}
 
   getTranslation(lang: string): Observable<Translation> {
-    return this.http.get(`/assets/i18n/${lang}.json`).pipe(
-      catchError((error: unknown) => {
-        // backend is not available, return a fallback translation
-        // might I add that this is ridiculous. bad lint rule to disallow HTTP error typing
-        if (
-          typeof error === 'object' &&
-          error !== null &&
-          'status' in error &&
-          typeof (error as { status: unknown }).status === 'number' &&
-          (error as { status: number }).status === 0
-        ) {
-          return of({});
-        }
-        throw error;
-      })
-    );
-  }
+  const url = this.assetPathPipe.transform(`i18n/${lang}.json`);
+
+  return this.http.get<Translation>(url).pipe(
+    catchError((error: unknown) => {
+      // Malformed JSON, network error, or 404
+      console.error(`[i18n] Failed to load or parse ${url}:`, error);
+
+      // Return empty translation object to prevent app crash
+      return of({});
+    })
+  );
+}
 
   getFlag(ln: string): string {
     if (!ln.includes('-')) {
