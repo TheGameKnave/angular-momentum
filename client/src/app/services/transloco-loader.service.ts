@@ -16,23 +16,18 @@ export class TranslocoHttpLoader implements TranslocoLoader {
   ) {}
 
   getTranslation(lang: string): Observable<Translation> {
-    return this.http.get(this.assetPathPipe.transform(`i18n/${lang}.json`)).pipe(
-      catchError((error: unknown) => {
-        // backend is not available, return a fallback translation
-        // might I add that this is ridiculous. bad lint rule to disallow HTTP error typing
-        if (
-          typeof error === 'object' &&
-          error !== null &&
-          'status' in error &&
-          typeof (error as { status: unknown }).status === 'number' &&
-          (error as { status: number }).status === 0
-        ) {
-          return of({});
-        }
-        throw error;
-      })
-    );
-  }
+  const url = this.assetPathPipe.transform(`i18n/${lang}.json`);
+
+  return this.http.get<Translation>(url).pipe(
+    catchError((error: unknown) => {
+      // Malformed JSON, network error, or 404
+      console.error(`[i18n] Failed to load or parse ${url}:`, error);
+
+      // Return empty translation object to prevent app crash
+      return of({});
+    })
+  );
+}
 
   getFlag(ln: string): string {
     if (!ln.includes('-')) {

@@ -1,6 +1,6 @@
 {
   "name": "angular-momentum",
-  "version": "0.20.0",
+  "version": "0.20.1",
   "scripts": {
     "ng": "ng",
     "start": "node scripts/copy-dev-assets.js && ng serve --hmr --proxy-config src/proxy.conf.json",
