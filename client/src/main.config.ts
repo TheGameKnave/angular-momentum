@@ -4,7 +4,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
-import { provideTransloco } from '@jsverse/transloco';
+import { provideTransloco, TRANSLOCO_MISSING_HANDLER, TranslocoMissingHandler } from '@jsverse/transloco';
 import { provideTranslocoMessageformat } from '@jsverse/transloco-messageformat';
 import { cookiesStorage, GetLangParams, provideTranslocoPersistLang } from '@jsverse/transloco-persist-lang';
 import { provideTranslocoLocale } from '@jsverse/transloco-locale';
@@ -26,6 +26,12 @@ export function getLangFn({ cachedLang, browserLang, cultureLang, defaultLang }:
 export const isTestEnvironment = ENVIRONMENT.env === 'testing'; // TODO figure out how to mock this in test environment without putting it in the code!!
 
 const socketIoConfig: SocketIoConfig = { url: ENVIRONMENT.baseUrl, options: {} };
+
+export class PrefixedMissingHandler implements TranslocoMissingHandler {
+  handle(key: string): string {
+    return `⁈ ${key}`;
+  }
+}
 
 export const appProviders = [
   SlugPipe,
@@ -50,8 +56,12 @@ export const appProviders = [
       reRenderOnLangChange: true,
       prodMode: !isDevMode(),
     },
-    loader: TranslocoHttpLoader
+    loader: TranslocoHttpLoader,
   }),
+  {
+    provide: TRANSLOCO_MISSING_HANDLER,
+    useClass: PrefixedMissingHandler,
+  },
   provideTranslocoMessageformat(),
   provideTranslocoPersistLang({
     getLangFn,
