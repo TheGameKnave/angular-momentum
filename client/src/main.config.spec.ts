@@ -4,11 +4,27 @@ import { SwRegistrationOptions } from '@angular/service-worker';
 import { HttpClient } from '@angular/common/http';
 
 import { appProviders, getLangFn } from './main.config';
+
+import { PrefixedMissingHandler } from './main.config';
 import { TranslocoHttpLoader } from './app/services/transloco-loader.service';
 import { TranslocoService } from '@jsverse/transloco';
 import { SUPPORTED_LANGUAGES } from './app/helpers/constants';
 import { cookiesStorage, GetLangParams } from '@jsverse/transloco-persist-lang';
 import { isDevMode } from '@angular/core';
+
+describe('PrefixedMissingHandler', () => {
+  let handler: PrefixedMissingHandler;
+
+  beforeEach(() => {
+    handler = new PrefixedMissingHandler();
+  });
+
+  it('should prefix the missing key with ⁈', () => {
+    const key = 'some.missing.key';
+    const result = handler.handle(key);
+    expect(result).toBe(`⁈ ${key}`);
+  });
+});
 
 describe('Main Config Providers', () => {
   beforeEach(() => {

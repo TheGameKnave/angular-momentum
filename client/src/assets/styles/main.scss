@@ -108,6 +108,26 @@ ul {
   margin: 0;
   padding: 0;
 }
+.kofiButton {
+  position: absolute;
+  bottom: 1rem;
+  button {
+    background-color: $brand-color;
+    background-image: url("https://storage.ko-fi.com/cdn/logomarkLogo.png");
+    background-size: 24px;
+    background-position: 3% center;
+    background-repeat: no-repeat;
+    color: #fff;
+    border: 1px solid $brand-color;
+    border-radius: 5px;
+    padding: 0.5rem 0.5rem 0.5rem 3.5rem;
+    font-size: 1.6rem;
+    cursor: pointer;
+    &:hover {
+      border-color: #fff;
+    }
+  }
+}
 
 footer {
   display: flex;

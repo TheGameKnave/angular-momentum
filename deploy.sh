@@ -25,7 +25,7 @@ case "$ENV" in
     ;;
   production)
     GIT_REMOTE="production"
-    GIT_BRANCH="main"
+    GIT_BRANCH="origin/main"
     LINODE_FOLDER="production"
     USE_LINODE=true
     ;;
@@ -36,6 +36,7 @@ case "$ENV" in
 esac
 
 # Push to the appropriate Heroku remote
+git fetch --all
 echo "📦 Pushing branch '$GIT_BRANCH' to remote '$GIT_REMOTE'..."
 git push $GIT_REMOTE $GIT_BRANCH:main
 
