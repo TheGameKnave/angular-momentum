@@ -55,6 +55,10 @@
       "type": "string",
       "description": "IndexedDB button label"
     }
+    ,"Donate to Support": {
+      "type": "string",
+      "description": "Donate button label"
+    }
     ,"Enter some text to have it persist between page reloads": {
       "type": "string",
       "description": "IndexedDB component description"
