@@ -1,0 +1,12 @@
+<div class="sidebar" [class.expanded]="expanded">
+  <ul>
+    @for (item of menuItems; track $index) {
+      <li (click)="toggleMenu()">
+        <i class="{{ item.icon }}"></i>
+        @if (expanded) {
+          <span>{{ item.label }}</span>
+        }
+      </li>
+    }
+  </ul>
+</div>

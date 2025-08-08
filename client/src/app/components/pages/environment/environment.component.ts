@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, isDevMode } from '@angular/core';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { SidebarComponent } from '@app/sidebar/sidebar.component';
 
 @Component({
   selector: 'app-environment',
@@ -7,6 +8,7 @@ import { TranslocoDirective } from '@jsverse/transloco';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     TranslocoDirective,
+    SidebarComponent,
   ],
 })
 export class EnvironmentComponent {

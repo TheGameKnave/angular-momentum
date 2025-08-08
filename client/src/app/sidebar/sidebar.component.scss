@@ -1,0 +1,43 @@
+/* sidebar.component.scss */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: var(--surface-card);
+  box-shadow: 2px 0 6px rgba(0,0,0,0.15);
+  width: 60px;
+  overflow: hidden;
+  transition: width 0.3s ease;
+  z-index: 1000;
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      cursor: pointer;
+
+      i {
+        font-size: 1.5rem;
+      }
+
+      span {
+        margin-left: 1rem;
+        white-space: nowrap;
+      }
+
+      &:hover {
+        background: var(--surface-hover);
+      }
+    }
+  }
+
+  &.expanded {
+    width: 200px;
+  }
+}
