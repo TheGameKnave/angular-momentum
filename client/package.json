@@ -42,6 +42,7 @@
     "ngx-markdown": "^20.0.0",
     "ngx-socket-io": "~4.9.3",
     "postcss": "^8.5.3",
+    "primeicons": "^7.0.0",
     "primeng": "^20.0.0",
     "rxjs": "~7.8.0",
     "tailwindcss": "^4.1.5",

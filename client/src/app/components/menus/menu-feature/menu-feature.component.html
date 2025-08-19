@@ -10,10 +10,19 @@
   <ul>
     @for (p of componentList; track p; let i = $index) {
       @if (featureFlagService.getFeature(p.name)) {
-        <li>
+        <li (click)="toggleMenu()">
+          @if (expanded) {
+            <i class="{{ p.icon }}" style="font-size: 2rem;"></i>
+            <a [routerLink]="[p.name | slug]" routerLinkActive="selected">{{ t(p.name) }}</a>
+         }@else {
+          <i class="{{ p.icon }}" style="font-size: 4rem;"></i>
+         }
+      </li>
+        <!-- <li>
           <a [routerLink]="[p.name | slug]" routerLinkActive="selected">{{ t(p.name) }}</a>
-        </li>
+        </li> -->
+        
       }
-    }
+    } <span>?</span>
   </ul>
 </ng-container>

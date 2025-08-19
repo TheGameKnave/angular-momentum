@@ -1,15 +1,21 @@
 /* sidebar.component.scss */
+@import "primeicons/primeicons.css";
+
 .sidebar {
+  --surface-card: #4a4a4a;
+  --surface-hover: #ff0000;
   position: fixed;
   left: 0;
   top: 0;
   height: 100%;
   background: var(--surface-card);
+  border-right: 1px solid #666;
   box-shadow: 2px 0 6px rgba(0,0,0,0.15);
   width: 60px;
   overflow: hidden;
   transition: width 0.3s ease;
   z-index: 1000;
+
 
   ul {
     list-style: none;
