@@ -10,7 +10,7 @@ $text-font-stack: 'Raleway', 'Helvetica Neue', Arial, sans-serif !default;
 /// @type List
 $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Monaco', monospace !default;
 
-
+@import "primeicons/primeicons.css";
 $brand-color: rgb(28, 130, 137) !default;
 .app-dark { // Dark theme for PrimeNG, apply to body
   background-color: #333;
@@ -99,7 +99,7 @@ app-menu-feature, app-menu-language {
   background: #444;
   top: 0;
   bottom: 0;
-  width: 200px;
+
   font-size: 2.4rem;
   padding: 1rem;
 }
@@ -108,6 +108,7 @@ app-menu-feature {
 }
 app-menu-language {
   right: 0;
+    width: 200px;
 }
 ul {
   list-style-type: none;

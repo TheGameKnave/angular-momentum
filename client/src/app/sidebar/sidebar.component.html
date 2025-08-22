@@ -2,9 +2,12 @@
   <ul>
     @for (item of menuItems; track $index) {
       <li (click)="toggleMenu()">
-        <i class="{{ item.icon }}"></i>
+        
         @if (expanded) {
           <span>{{ item.label }}</span>
+          <i class="{{ item.icon }}" style="font-size: 2rem;"></i>
+        }@else{
+          <i class="{{ item.icon }}" size="larger"></i>
         }
       </li>
     }

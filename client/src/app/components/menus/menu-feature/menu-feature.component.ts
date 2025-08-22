@@ -19,9 +19,10 @@ import { ComponentInstance } from '@app/models/data.model';
 })
 export class MenuFeatureComponent  implements OnInit {
   componentList!: ComponentInstance[];
-  expanded = false;
-  toggleMenu() {
+  expanded = true;
+  toggleExpand() {
       this.expanded = !this.expanded;
+      console.log(this.expanded);
     }
   constructor(
     readonly componentListService: ComponentListService,

@@ -21,12 +21,13 @@
     }
   </footer>
 
-  @if (openMenu === 'feature') {
+  <app-menu-feature></app-menu-feature>  
+  <!-- @if (openMenu === 'feature') {
     <app-menu-feature
       (click)="toggleMenu('feature', $event)"
       (keydown.enter)="toggleMenu('feature', $event)"
     />
-  }
+  } -->
   @if (openMenu === 'language') {
     <app-menu-language
       (click)="toggleMenu('language', $event)"
