@@ -1,5 +1,5 @@
 <ng-container *transloco="let t" class="sidebar"[class.expanded]="expanded">
-  @if (!expanded) {
+  
   <a
     [routerLink]="''"
     routerLinkActive="selected"
@@ -8,21 +8,25 @@
   <hr />
   <h3>{{ t('There are {{count}} components.',{count: componentCount()}) }}</h3>
   <hr />
-  }
-  <ul>
+  {{expanded}}
+  <ul>    
     @for (p of componentList; track p; let i = $index) {
       @if (featureFlagService.getFeature(p.name)) {
-        <li (click)="toggleExpand()">
+        <li>
             <a (click)="toggleExpand()" [routerLink]="[p.name | slug]" routerLinkActive="selected">
-              <i class="{{ p.icon }}" style="font-size: 2rem;"></i>{{ t(p.name) }}
+              <i class="{{ p.icon }}" style="font-size: 2rem;"></i> 
+              @if(expanded) {
+                {{ t(p.name) }}
+                }
             </a>
+        </li>
+        
           <!-- <i class="{{ p.icon }}" style="font-size: 4rem;"></i> -->
-      </li>
+      
         <!-- <li>
           <a [routerLink]="[p.name | slug]" routerLinkActive="selected">{{ t(p.name) }}</a>
         </li> -->
-        
       }
-    } <span>?</span>
+    }
   </ul>
 </ng-container>

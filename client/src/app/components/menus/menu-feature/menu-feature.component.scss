@@ -47,3 +47,9 @@
     width: 200px;
   }
 }
+  .sidebar *{
+    display: none;
+  }
+  .sidebar > .expanded{
+    display: flex;
+  }

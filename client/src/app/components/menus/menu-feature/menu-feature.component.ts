@@ -19,7 +19,7 @@ import { ComponentInstance } from '@app/models/data.model';
 })
 export class MenuFeatureComponent  implements OnInit {
   componentList!: ComponentInstance[];
-  expanded = true;
+  expanded = false;
   toggleExpand() {
       this.expanded = !this.expanded;
       console.log(this.expanded);
@@ -31,6 +31,7 @@ export class MenuFeatureComponent  implements OnInit {
 
   ngOnInit(): void {
     this.componentList = this.componentListService.getComponentList();
+    console.log(this.expanded);
   }
 
 
