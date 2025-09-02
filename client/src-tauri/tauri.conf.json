@@ -14,7 +14,9 @@
       {
         "title": "Angular Momentum",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "resizable": true,
+        "maximized": true
       }
     ],
     "security": {
@@ -23,13 +25,28 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["dmg", "app"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "createUpdaterArtifacts": true,
+    "macOS": {
+      "signingIdentity": "Developer ID Application: Kevin Duda (7386GL7C2C)",
+      "entitlements": "entitlements.plist"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "dialog": true,
+      "endpoints": [
+        "https://cdn.angularmomentum.app/dist/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZDREQ2RjQxQzA2RDRFNDIKUldSQ1RtM0FRVy9kYkxGUy9xZVRzRlZFeEx2MXhUMVBrZDA5dUcwK1E4ZFlVendQcEloemhEUTIK"
+    }
   }
 }

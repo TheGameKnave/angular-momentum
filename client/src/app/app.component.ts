@@ -34,9 +34,7 @@ export class AppComponent {
     protected translocoLoader: TranslocoHttpLoader,
     protected translate: TranslocoService,
     protected featureFlagService: FeatureFlagService,
-  ){
-    this.updateService.checkForUpdates();
-  }
+  ){}
 
   toggleMenu(menu: string, event: Event): void {
     if (event.type === 'click' || (event.type === 'keydown' && event instanceof KeyboardEvent && event.key === 'Enter')) {
