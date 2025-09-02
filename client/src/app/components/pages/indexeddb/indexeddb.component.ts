@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FeatureMonitorService } from '@app/services/feature-monitor.service';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { openDB } from 'idb';
 import { debounceTime } from 'rxjs';
@@ -23,6 +24,7 @@ export class IndexedDBComponent implements OnInit {
 
   constructor(
     readonly destroyRef: DestroyRef,
+    private readonly featureMonitorService: FeatureMonitorService,
   ){}
 
   ngOnInit() {

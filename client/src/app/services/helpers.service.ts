@@ -1,15 +1,24 @@
-import { Injectable, Inject } from '@angular/core';
+import { computed, Injectable } from '@angular/core';
 import { ENVIRONMENT } from 'src/environments/environment';
+import { FeatureFlagService } from './feature-flag.service';
+import { ComponentListService } from './component-list.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class HelpersService {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(@Inject(ENVIRONMENT) readonly env: any) {
-    if (this.env.env !== 'production') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).helpersService = this;
-    }
+  constructor(
+    private readonly featureFlagService: FeatureFlagService,
+    private readonly componentListService: ComponentListService,
+  ) {
+    // istanbul ignore next
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (ENVIRONMENT.env !== 'production') (window as any).helpersService = this;
   }
+
+  enabledComponents = computed(() =>
+    this.componentListService.getComponentList().filter(
+      (component) => this.featureFlagService.getFeature(component.name) !== false
+    )
+  );
 }

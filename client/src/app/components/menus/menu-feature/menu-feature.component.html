@@ -10,7 +10,7 @@
   <hr />
   {{expanded}}
   <ul>    
-    @for (p of componentList; track p; let i = $index) {
+    @for (p of helpersService.enabledComponents(); track p; let i = $index) {
       @if (featureFlagService.getFeature(p.name)) {
         <li>
             <a (click)="toggleExpand()" [routerLink]="[p.name | slug]" routerLinkActive="selected">
@@ -20,13 +20,16 @@
                 }
             </a>
         </li>
-        
-          <!-- <i class="{{ p.icon }}" style="font-size: 4rem;"></i> -->
-      
-        <!-- <li>
-          <a [routerLink]="[p.name | slug]" routerLinkActive="selected">{{ t(p.name) }}</a>
-        </li> -->
       }
     }
   </ul>
+  <a
+    class="kofiButton"
+    href="https://ko-fi.com/K3K81AQJZO"
+    target="_blank"
+  >
+    <button>
+      {{ t('Donate to Support') }}
+    </button>
+  </a>
 </ng-container>

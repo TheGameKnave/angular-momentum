@@ -4,6 +4,7 @@ import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { MarkdownComponent } from 'ngx-markdown';
 import { catchError, of, Observable } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
+import { FeatureMonitorService } from '@app/services/feature-monitor.service';
 
 const query = `
 query GetApiData {
@@ -32,7 +33,8 @@ export class GraphqlApiComponent implements OnInit {
 
   constructor(
     readonly http: HttpClient,
-  ) {}
+    private readonly featureMonitorService: FeatureMonitorService,
+  ){}
 
   ngOnInit() {
     this.results$ = this.initializeApi().pipe(

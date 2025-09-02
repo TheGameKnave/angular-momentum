@@ -4,7 +4,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
-import { provideTransloco } from '@jsverse/transloco';
+import { provideTransloco, TRANSLOCO_MISSING_HANDLER, TranslocoMissingHandler } from '@jsverse/transloco';
 import { provideTranslocoMessageformat } from '@jsverse/transloco-messageformat';
 import { cookiesStorage, GetLangParams, provideTranslocoPersistLang } from '@jsverse/transloco-persist-lang';
 import { provideTranslocoLocale } from '@jsverse/transloco-locale';
@@ -16,6 +16,8 @@ import { SocketIoConfig, SocketIoModule } from 'ngx-socket-io';
 import { ENVIRONMENT } from 'src/environments/environment';
 import { provideRouter } from '@angular/router';
 import { routes } from '@app/app.routing';
+import { SlugPipe } from '@app/pipes/slug.pipe';
+import { AssetPathPipe } from '@app/pipes/asset-path.pipe';
 
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
@@ -30,7 +32,15 @@ export const isTestEnvironment = ENVIRONMENT.env === 'testing'; // TODO figure o
 
 const socketIoConfig: SocketIoConfig = { url: ENVIRONMENT.baseUrl, options: {} };
 
+export class PrefixedMissingHandler implements TranslocoMissingHandler {
+  handle(key: string): string {
+    return `⁈ ${key}`;
+  }
+}
+
 export const appProviders = [
+  SlugPipe,
+  AssetPathPipe,
   importProvidersFrom(
     BrowserModule,
     MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),
@@ -51,8 +61,12 @@ export const appProviders = [
       reRenderOnLangChange: true,
       prodMode: !isDevMode(),
     },
-    loader: TranslocoHttpLoader
+    loader: TranslocoHttpLoader,
   }),
+  {
+    provide: TRANSLOCO_MISSING_HANDLER,
+    useClass: PrefixedMissingHandler,
+  },
   provideTranslocoMessageformat(),
   provideTranslocoPersistLang({
     getLangFn,

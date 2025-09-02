@@ -34,7 +34,7 @@ describe('TranslocoHttpLoader', () => {
       expect(translation).toEqual(mockTranslation);
     });
 
-    const req = httpMock.expectOne(`/assets/i18n/${lang}.json`);
+    const req = httpMock.expectOne(`/assets/dev/i18n/${lang}.json`);
     expect(req.request.method).toBe('GET');
 
     req.flush(mockTranslation); // Respond with the mock data
@@ -52,25 +52,25 @@ describe('TranslocoHttpLoader', () => {
       }
     });
   
-    const req = httpMock.expectOne(`/assets/i18n/${lang}.json`);
+    const req = httpMock.expectOne(`/assets/dev/i18n/${lang}.json`);
     req.error(new ProgressEvent('error'), { status: 0 }); // simulate network failure (backend down)
   });
   
-  it('should propagate error when backend returns error status other than 0', () => {
+  it('should return fallback {} on any error', () => {
     const lang = 'en';
     const mockError = { message: 'Not found' };
-  
+
     loader.getTranslation(lang).subscribe({
-      next: () => {
-        fail('Expected error, but got success');
+      next: (translation) => {
+        expect(translation).toEqual({});
       },
-      error: (error) => {
-        expect(error.status).toBe(404);
+      error: () => {
+        fail('Expected fallback, not error');
       }
     });
-  
-    const req = httpMock.expectOne(`/assets/i18n/${lang}.json`);
-    req.flush(mockError, { status: 404, statusText: 'Not Found' }); // simulate 404 error
+
+    const req = httpMock.expectOne(`/assets/dev/i18n/${lang}.json`);
+    req.flush(mockError, { status: 404, statusText: 'Not Found' });
   });
 
   it('should return the correct flag for a language without a locale', () => {

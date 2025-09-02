@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective} from '@jsverse/transloco';
 import { FeatureFlagService } from '@app/services/feature-flag.service';
 import { CheckboxModule } from 'primeng/checkbox';
+import { FeatureMonitorService } from '@app/services/feature-monitor.service';
 
 @Component({
   selector: 'app-features',
@@ -22,7 +23,8 @@ export class FeaturesComponent implements OnInit {
   constructor(
     protected featureFlagService: FeatureFlagService,
     readonly destroyRef: DestroyRef,
-  ) {
+    private readonly featureMonitorService: FeatureMonitorService,
+  ){
     // Keep form in sync with signal changes
     effect(() => {
       const features = this.featureFlagService.features();

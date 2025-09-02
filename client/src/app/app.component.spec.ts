@@ -56,28 +56,6 @@ describe('AppComponent', () => {
     expect(updateService.checkForUpdates).toHaveBeenCalled();
   });
 
-  it('should redirect to root if feature flag is disabled', async () => {
-    const testRoute = 'environment';
-    slugPipe.transform.and.returnValue(testRoute);
-    componentListService.getComponentList();
-    featureFlagService.getFeature.and.returnValue(false);
-
-    await component.ngOnInit();
-
-    expect(router.navigate).toHaveBeenCalledWith(['/']);
-  });
-
-  it('should not redirect if feature flag is enabled', async () => {
-    const testRoute = 'environment';
-    slugPipe.transform.and.returnValue(testRoute);
-    componentListService.getComponentList();
-    featureFlagService.getFeature.and.returnValue(true);
-
-    await component.ngOnInit();
-
-    expect(router.navigate).not.toHaveBeenCalled();
-  });
-
   it('should toggle menu on click', () => {
     const menu = 'feature';
     const event = new Event('click');

@@ -9,6 +9,7 @@ import { ComponentInstance } from '@app/models/data.model';
   providedIn: 'root'
 })
 export class ComponentListService {
+
   componentList: ComponentInstance[] = [
     { name: 'Features', component: FeaturesComponent, icon: 'pi pi-list' },
     { name: 'Environment', component: EnvironmentComponent, icon: 'pi pi-box' },

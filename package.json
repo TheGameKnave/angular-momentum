@@ -1,27 +1,32 @@
 {
   "name": "angular-momentum",
-  "version": "0.20.0",
+  "version": "0.20.1",
   "siteUrl": "https://angularmomentum.app",
+  "repository": "https://github.com/angular-momentum/angular-momentum",
   "private": true,
   "engines": {
     "node": "22.14.0"
   },
   "scripts": {
-    "client": "cd client && npm run start -- --configuration development",
-    "client-prod": "NODE_ENV=production && cd client && npm run start -- --configuration production",
-    "server": "cd server && node-env-run --exec nodemon | pino-colada",
-    "server-prod": "NODE_ENV=production && cd server && node-env-run --exec nodemon",
-    "heroku-postbuild": "cd client && npm install && npm run build -- --configuration ${NODE_ENV}",
+    "client": "cd client && NODE_ENV=development npm run start -- --configuration development",
+    "client:prod": "cd client && NODE_ENV=production npm run start -- --configuration production",
+    "server": "cd server && NODE_ENV=development node-env-run --exec nodemon | pino-colada",
+    "server:prod": "cd server && NODE_ENV=production node-env-run --exec nodemon",
+    "heroku-postbuild": "cd client && npm install && npm run heroku-postbuild",
     "start": "cd server && ts-node index.ts",
     "dev": "run-p client server",
     "prod": "run-p client-prod server-prod",
     "sonar": "sonar-scanner -Dsonar.token=$(grep SONAR_TOKEN server/.env | cut -d '=' -f 2)",
     "test": "./tests/test.sh",
-    "test-translation": "cd tests/translation && ts-node translation-validation.ts",
-    "test-server": "cd server && npm test",
-    "test-client": "cd client && npm test",
-    "test-e2e": "cd tests/e2e && node clean_screenshots && node test_runner",
-    "accept": "cd tests/e2e && node accept_tests"
+    "test:translation": "cd tests/translation && ts-node translation-validation.ts",
+    "test:server": "cd server && npm test",
+    "test:client": "cd client && npm test",
+    "test:e2e": "cd tests/e2e && node clean_screenshots && node test_runner",
+    "accept": "cd tests/e2e && node accept_tests",
+    "deploy:dev": "./deploy.sh dev",
+    "deploy:staging": "./deploy.sh staging",
+    "bump-version": "node bump_version.js",
+    "deploy:production": "./deploy.sh production"
   },
   "workspaces": [
     "./client",
