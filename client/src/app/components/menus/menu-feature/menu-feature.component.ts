@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostListener } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { SlugPipe } from '@app/pipes/slug.pipe';
@@ -18,37 +18,25 @@ import { HelpersService } from '@app/services/helpers.service';
   styleUrls: ['./menu-feature.component.scss'],
 })
 export class MenuFeatureComponent {
-  expanded = false;
-  toggleExpand() {
-      this.expanded = !this.expanded;
-      console.log(this.expanded);
-    }
-
+  expanded = signal(false);
   constructor(
     readonly componentListService: ComponentListService,
     protected featureFlagService: FeatureFlagService,
-    public helpersService: HelpersService,
-  ) { }
+    protected readonly helpersService: HelpersService,
+  ) {}
+
 
   componentCount(): number {
     return this.helpersService.enabledComponents().length;
   }
-  // Detect click outside the menu
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.sidebar')) {
-      this.expanded = false;
-    }
+  // Detect mouseEnter and expand
+  @HostListener('mouseenter')
+  onMouseEnter() {
+    this.expanded.set(true);
   }
-    // Collapse if window resized to mobile width
-  @HostListener('window:resize')
-  onResize() {
-    this.checkScreenSize();
+  @HostListener('mouseleave')
+  onMouseLeave() {
+    this.expanded.set(false);
   }
-
-  private checkScreenSize() {
-    const mobile = window.innerWidth <= 768; // you can adjust breakpoint
-    this.expanded = !mobile; // collapsed if mobile
-  }
+  
 }

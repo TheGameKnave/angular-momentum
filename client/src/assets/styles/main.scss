@@ -66,6 +66,9 @@ body {
 }
 
 .main {
+  padding-left: 6rem;
+}
+.content {
   padding: 1rem;
 }
 
@@ -106,6 +109,18 @@ app-menu-feature, app-menu-language {
 }
 app-menu-feature {
   left: 0;
+  .link-home {
+    white-space: nowrap;
+    img {
+      width: 3.6rem;
+      display: inline-block;
+      vertical-align: middle;
+    }
+  }
+  i.pi {
+    font-size: 3.6rem;
+    vertical-align: middle;
+  }
 }
 app-menu-language {
   right: 0;
@@ -123,12 +138,12 @@ ul {
     background-color: $brand-color;
     background-image: url("https://storage.ko-fi.com/cdn/logomarkLogo.png");
     background-size: 24px;
-    background-position: 3% center;
+    background-position: .5rem center;
     background-repeat: no-repeat;
     color: #fff;
     border: 1px solid $brand-color;
     border-radius: 5px;
-    padding: 0.5rem 0.5rem 0.5rem 3.5rem;
+    padding: 0.5rem 0.5rem 0.5rem 3rem;
     font-size: 1.6rem;
     cursor: pointer;
     &:hover {

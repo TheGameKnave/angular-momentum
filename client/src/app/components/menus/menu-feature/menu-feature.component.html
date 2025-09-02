@@ -1,21 +1,28 @@
-<ng-container *transloco="let t" class="sidebar"[class.expanded]="expanded">
-  
+<ng-container *transloco="let t">
+  <!-- class="sidebar" [class.expanded]="expanded()" -->
   <a
+    class="link-home"
     [routerLink]="''"
     routerLinkActive="selected"
     [routerLinkActiveOptions]="{ exact: true }"
-  >{{ t('Angular Momentum') }}</a>
+  >
+    <img src="assets/icons/icon-72x72.png" alt="Angular Logo" />
+    @if (expanded()) {
+      {{ t('Angular Momentum') }}
+    }
+  </a>
   <hr />
-  <h3>{{ t('There are {{count}} components.',{count: componentCount()}) }}</h3>
+  @if (expanded()) {
+    <h3>{{ t('There are {{count}} components.',{count: componentCount()}) }}</h3>
+  }
   <hr />
-  {{expanded}}
   <ul>    
     @for (p of helpersService.enabledComponents(); track p; let i = $index) {
       @if (featureFlagService.getFeature(p.name)) {
         <li>
-            <a (click)="toggleExpand()" [routerLink]="[p.name | slug]" routerLinkActive="selected">
-              <i class="{{ p.icon }}" style="font-size: 2rem;"></i> 
-              @if(expanded) {
+            <a [routerLink]="[p.name | slug]" routerLinkActive="selected">
+              <i class="{{ p.icon }}"></i> 
+              @if(expanded()) {
                 {{ t(p.name) }}
                 }
             </a>
@@ -29,7 +36,9 @@
     target="_blank"
   >
     <button>
-      {{ t('Donate to Support') }}
+      @if (expanded()) {
+        &nbsp;{{ t('Donate to Support') }}
+      }
     </button>
   </a>
 </ng-container>
