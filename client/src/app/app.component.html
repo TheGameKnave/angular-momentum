@@ -12,6 +12,8 @@
     <footer>
       @if (featureFlagService.getFeature('App Version')) {
         <h2>{{ t('v.') }} {{ version }}</h2>
+      }
+      @if (featureFlagService.getFeature('Environment')) {
         <h4>{{ t('{{environmentName}} environment.',{ environmentName: isDevMode ? t('Development') : t('Production') }) }}</h4>
       }
       @if (featureFlagService.getFeature('Language')) {

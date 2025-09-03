@@ -53,6 +53,7 @@ export class AppComponent implements OnInit {
     // there might be a better way to detect the current component for the breadcrumbs...
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd){
+        this.openMenu = '';
         const routePath = event.urlAfterRedirects.replace('/', '');
         this.componentListService.getComponentList().forEach((component) => {
           if(this.slugPipe.transform(component.name) === routePath){
