@@ -1,5 +1,12 @@
 <ng-container *transloco="let t">
-  {{ t('Language') }}
+  <h3>
+    <i class="pi pi-language"></i>
+    {{ t('Language') }}
+    <a href="javascript:void(0)" class="close">
+      <i class="pi pi-times"></i>
+    </a>
+  </h3>
+  <hr />
   <ul>
     @for (ln of supportedLanguages; track ln) {
       <li [class]="'i18n-' + ln">

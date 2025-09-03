@@ -23,10 +23,6 @@
       "type": "string",
       "description": "Name of the language menu"
     }
-    ,"There are {{count}} components.": {
-      "type": "string",
-      "description": "Message about the number of components, using a pluralization format"
-    }
     ,"App Version": {
       "type": "string",
       "description": "Name of the application version component"
@@ -35,7 +31,7 @@
       "type": "string",
       "description": "Name of the environment component"
     }
-    ,"Using {{environmentName}} environment.": {
+    ,"{{environmentName}} environment.": {
       "type": "string",
       "description": "Message about the environment"
     }
@@ -78,10 +74,9 @@
     ,"If you find this project helpful and want to see it grow, consider..."
     ,"v."
     ,"Language"
-    ,"There are {{count}} components."
     ,"App Version"
     ,"Environment"
-    ,"Using {{environmentName}} environment."
+    ,"{{environmentName}} environment."
     ,"Development"
     ,"Production"
     ,"GraphQL API"

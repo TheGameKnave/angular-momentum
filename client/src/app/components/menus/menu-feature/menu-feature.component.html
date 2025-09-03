@@ -12,10 +12,6 @@
     }
   </a>
   <hr />
-  @if (expanded()) {
-    <h3>{{ t('There are {{count}} components.',{count: componentCount()}) }}</h3>
-  }
-  <hr />
   <ul>    
     @for (p of helpersService.enabledComponents(); track p; let i = $index) {
       @if (featureFlagService.getFeature(p.name)) {
@@ -35,10 +31,9 @@
     href="https://ko-fi.com/K3K81AQJZO"
     target="_blank"
   >
-    <button>
-      @if (expanded()) {
-        &nbsp;{{ t('Donate to Support') }}
-      }
-    </button>
+    <img src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="Ko-fi Logo" />
+    @if (expanded()) {
+      {{ t('Donate to Support') }}
+    }
   </a>
 </ng-container>

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, HostListener, isDevMode, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 
 import { UpdateService } from '@app/services/update.service';
@@ -14,6 +14,7 @@ import { FeatureFlagService } from './services/feature-flag.service';
 import { SlugPipe } from './pipes/slug.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ComponentListService } from './services/component-list.service';
+import { SCREEN_SIZES } from './helpers/constants';
 
 @Component({
   selector: 'app-root',
@@ -27,6 +28,11 @@ import { ComponentListService } from './services/component-list.service';
   ],
 })
 export class AppComponent implements OnInit {
+  @HostListener('window:resize')
+  onResize() {
+    this.addMobileClass();
+  }
+  isDevMode = isDevMode();
   openMenu = '';
   breadcrumb = '';
   version: string = packageJson.version;
@@ -44,7 +50,7 @@ export class AppComponent implements OnInit {
   ){}
 
   ngOnInit() {
-    // long-form checking if navigated page is an allowed feature
+    // there might be a better way to detect the current component for the breadcrumbs...
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd){
         const routePath = event.urlAfterRedirects.replace('/', '');
@@ -58,6 +64,17 @@ export class AppComponent implements OnInit {
         }
       }
     });
+
+    this.addMobileClass();
+  }
+
+  addMobileClass(): void {
+    //set class of body to 'mobile' for small screens
+    if (window.innerWidth < SCREEN_SIZES.md) {
+      document.body.classList.add('mobile');
+    }else{
+      document.body.classList.remove('mobile');
+    }
   }
 
   toggleMenu(menu: string, event: Event): void {

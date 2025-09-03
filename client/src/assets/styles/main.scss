@@ -12,8 +12,14 @@ $text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC
 $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Monaco', monospace !default;
 
 @import "primeicons/primeicons.css";
-$brand-color: rgb(28, 130, 137) !default;
+$light-brand: #0ca !default;
+$brand: #1b9 !default;
+$dark-brand: #278 !default;
+$light-gray: #eee !default;
+$gray: #ccc !default;
+$dark-gray: #aaa !default;
 .app-dark { // Dark theme for PrimeNG, apply to body
+  --p-icon-size: 2rem;
   background-color: #333;
   color: #f4f4f4;
   --p-card-background:#4a4a4a;
@@ -64,16 +70,27 @@ body {
 .monospace {
   font-family: $code-font-stack;
 }
-
-.main {
-  padding-left: 6rem;
-}
-.content {
-  padding: 1rem;
+hr {
+  border: 0;
+  margin-block-end: 0;
+  margin-block-start: 0;
+  padding: 0.3em 0;
+  position: relative;
+  overflow: hidden;
+  min-height: 0.3rem;
+  &:before {
+    content: "";
+    width: 100%;
+    position: absolute;
+    left: 0;
+    border: 0;
+    height: 1.5px;
+    background-image: linear-gradient(to right, rgba(200,200,200, 0), rgba(200,200,200, 0.75), rgba(200,200,200, 0));
+  }
 }
 
 a {
-  color: $brand-color;
+  color: $light-brand;
   text-decoration: none;
   cursor: pointer;
   &.selected {
@@ -97,34 +114,82 @@ label[for]
   cursor: pointer;
 }
 
+.main > * {
+  padding-left: 6.6rem !important;
+}
+.content {
+  padding: 1rem;
+}
+
 app-menu-feature, app-menu-language {
   position: absolute;
   z-index: 100;
   background: #444;
   top: 0;
   bottom: 0;
-
-  font-size: 2.4rem;
-  padding: 1rem;
+  font-size: 1.6rem;
+  padding: .6rem;
+  a {
+    color: #fff;
+    &:hover, &.selected {
+      color: $light-brand;
+    }
+    &.selected {
+      cursor: default;
+    }
+  }
 }
 app-menu-feature {
   left: 0;
   .link-home {
     white-space: nowrap;
     img {
-      width: 3.6rem;
+      width: 4rem;
       display: inline-block;
       vertical-align: middle;
     }
   }
-  i.pi {
-    font-size: 3.6rem;
+  a {
+    display: block;
+    &.link-home {
+      img {
+        -webkit-filter: grayscale(100%);
+        filter: grayscale(100%);
+      }
+      &:hover, &.selected {
+        img {
+          -webkit-filter: grayscale(0);
+          filter: grayscale(0);
+        }
+      }
+    }
+  }
+  i.pi, .link-home img {
+    font-size: 2.6rem;
     vertical-align: middle;
+    border-radius: 1rem;
+    padding: 0.6rem;
+  }
+  width: calc-size(auto, size);
+  transition: width ease 0.3s;
+  &.expanded {
+    width: calc-size(max-content, size);
   }
 }
 app-menu-language {
   right: 0;
-    width: 200px;
+  padding: 1rem;
+  a.close i {
+    padding-left: 0.6rem; 
+    font-size: 1.8rem;
+    position: relative;
+    top: -0.4rem;
+    right: -0.4rem;
+  }
+  ul li a {
+    padding: 0.4rem 0;
+    display: block;
+  }
 }
 ul {
   list-style-type: none;
@@ -133,22 +198,27 @@ ul {
 }
 .kofiButton {
   position: absolute;
-  bottom: 1rem;
-  button {
-    background-color: $brand-color;
-    background-image: url("https://storage.ko-fi.com/cdn/logomarkLogo.png");
-    background-size: 24px;
-    background-position: .5rem center;
-    background-repeat: no-repeat;
-    color: #fff;
-    border: 1px solid $brand-color;
-    border-radius: 5px;
-    padding: 0.5rem 0.5rem 0.5rem 3rem;
-    font-size: 1.6rem;
-    cursor: pointer;
-    &:hover {
-      border-color: #fff;
-    }
+  bottom: 0.6rem;
+  background-color: $dark-brand;
+  color: #fff;
+  border: 1px solid $dark-brand;
+  border-radius: .6rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 1.6rem;
+  white-space: nowrap;
+  cursor: pointer;
+  width: calc(100% - 1.2rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  img {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 0.6rem;
+    width: 2.6rem;
+  }
+  cursor: pointer;
+  &:hover {
+    border-color: $light-brand;
   }
 }
 
@@ -160,4 +230,11 @@ footer {
   height: 40px;
   border-top: 1px solid #666;
   justify-content: space-around;
+  .language-button {
+    color: #fff;
+    font-size: 2rem;
+    &:hover {
+      color: $light-brand;
+    }
+  }
 }

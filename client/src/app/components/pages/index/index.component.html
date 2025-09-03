@@ -1,4 +1,5 @@
-<div id="container">
+<div *transloco="let t" id="container">
+  <h1>{{ t('Angular Momentum') }}</h1>
   <p-card>
     <markdown [data]="indexText()"></markdown>
   </p-card>

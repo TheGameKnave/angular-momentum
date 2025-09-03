@@ -32,7 +32,7 @@ export class UpdateService {
       .subscribe(event => this.handleSwEvent(event));
 
     // Run immediate and interval-based update checks
-    interval(.5 * 60 * 1000)
+    interval(15 * 60 * 1000)
       .pipe(startWith(6000), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.log.log(this.constructor.name,'Checking for updates...');

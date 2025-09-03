@@ -2,7 +2,7 @@
   <div class="main">
     <header>
       Momentum 
-      @if(breadcrumb){ {{ breadcrumb }}}
+      @if(breadcrumb){ | {{ breadcrumb }}}
     </header>
   
     <div class="content">
@@ -12,11 +12,18 @@
     <footer>
       @if (featureFlagService.getFeature('App Version')) {
         <h2>{{ t('v.') }} {{ version }}</h2>
+        <h4>{{ t('{{environmentName}} environment.',{ environmentName: isDevMode ? t('Development') : t('Production') }) }}</h4>
       }
       @if (featureFlagService.getFeature('Language')) {
-        <button (click)="toggleMenu('language', $event)" class="languageButton">
-          🌐 {{ translocoLoader.getFlag(translate.getActiveLang()) }}
-        </button>
+        <a
+          href="javascript:void(0)"
+          (click)="toggleMenu('language', $event)"
+          (keydown.enter)="toggleMenu('language', $event)"
+          class="language-button"
+        >
+          <i class="pi pi-language"></i>
+          {{ translocoLoader.getFlag(translate.getActiveLang()) }}
+        </a>
       }
     </footer>
   </div>

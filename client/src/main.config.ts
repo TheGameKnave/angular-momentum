@@ -34,7 +34,7 @@ const socketIoConfig: SocketIoConfig = { url: ENVIRONMENT.baseUrl, options: {} }
 
 export class PrefixedMissingHandler implements TranslocoMissingHandler {
   handle(key: string): string {
-    return `⁈ ${key}`;
+    return `tx⁈ ${key}`;
   }
 }
 

@@ -25,7 +25,6 @@ export class MenuFeatureComponent {
     protected readonly helpersService: HelpersService,
   ) {}
 
-
   componentCount(): number {
     return this.helpersService.enabledComponents().length;
   }
@@ -38,5 +37,11 @@ export class MenuFeatureComponent {
   onMouseLeave() {
     this.expanded.set(false);
   }
+  // close the menu on click
+  @HostListener('click')
+  onClick() {
+    this.expanded.set(false);
+  }
+  
   
 }
