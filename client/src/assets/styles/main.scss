@@ -151,7 +151,7 @@ footer {
 }
 
 app-menu-feature, app-menu-language {
-  position: absolute;
+  position: fixed;
   z-index: 100;
   background: #444;
   top: 0;
@@ -276,6 +276,7 @@ ul {
     overflow-x: auto;
     > * {
       margin: 0 0.4rem;
+      transition: transform 0.2s ease;
     }
     ul {
       display: flex;
@@ -289,7 +290,7 @@ ul {
         width: calc(50vw - 3.4rem);
       }
       > * {
-        margin: 0 0.4rem;
+        margin: 0 0.6rem;
         flex: 0 0 auto;
       }
     }
