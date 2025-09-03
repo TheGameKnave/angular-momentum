@@ -10,9 +10,9 @@ import { ComponentInstance } from '@app/models/data.model';
 export class ComponentListService {
 
   componentList: ComponentInstance[] = [
-    { name: 'Features', component: FeaturesComponent, icon: 'pi pi-list' },
-    { name: 'GraphQL API', component: GraphqlApiComponent, icon: 'pi pi-cloud' },
-    { name: 'IndexedDB', component: IndexedDBComponent, icon: 'pi pi-save' },
+    { name: 'Features', component: FeaturesComponent, icon: 'pi pi-list-check' },
+    { name: 'GraphQL API', component: GraphqlApiComponent, icon: 'pi pi-cloud-download' },
+    { name: 'IndexedDB', component: IndexedDBComponent, icon: 'pi pi-database' },
   ];
 
   getComponentList() {

@@ -1,18 +1,19 @@
 <ng-container *transloco="let t">
-  <!-- class="sidebar" [class.expanded]="expanded()" -->
-  <a
-    class="link-home"
-    [routerLink]="''"
-    routerLinkActive="selected"
-    [routerLinkActiveOptions]="{ exact: true }"
-  >
-    <img src="assets/icons/icon-72x72.png" alt="Angular Logo" />
-    @if (expanded()) {
-      {{ t('Angular Momentum') }}
-    }
-  </a>
-  <hr />
-  <ul>    
+  <ul>
+    <li>
+      <a
+        class="link-home"
+        [routerLink]="''"
+        routerLinkActive="selected"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <img src="assets/icons/icon-72x72.png" alt="Angular Logo" />
+        @if (expanded()) {
+          {{ t('Angular Momentum') }}
+        }
+      </a>
+    </li>
+    <hr />
     @for (p of helpersService.enabledComponents(); track p; let i = $index) {
       @if (featureFlagService.getFeature(p.name)) {
         <li>
@@ -25,15 +26,17 @@
         </li>
       }
     }
+    <hr />
+    <li class="kofi-button">
+      <a
+        href="https://ko-fi.com/K3K81AQJZO"
+        target="_blank"
+      >
+        <img src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="Ko-fi Logo" />
+        @if (expanded()) {
+          {{ t('Donate to Support') }}
+        }
+      </a>
+    </li>
   </ul>
-  <a
-    class="kofiButton"
-    href="https://ko-fi.com/K3K81AQJZO"
-    target="_blank"
-  >
-    <img src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="Ko-fi Logo" />
-    @if (expanded()) {
-      {{ t('Donate to Support') }}
-    }
-  </a>
 </ng-container>
