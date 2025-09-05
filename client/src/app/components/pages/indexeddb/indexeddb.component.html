@@ -1,5 +1,5 @@
-<p *transloco="let t" class="flex-col gap-2">
+<p-card *transloco="let t" class="flex-col gap-2 indexeddb">
   <label for="indexeddb">{{ t('IndexedDB') }}</label>
   <input pInputText id="indexeddb" aria-describedby="indexeddb-help" [formControl]="textAreaData" class="block"/>
   <small id="indexeddb-help">{{ t('Enter some text to have it persist between page reloads') }}</small>
-</p>
+</p-card> 

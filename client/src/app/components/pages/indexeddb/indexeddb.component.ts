@@ -7,6 +7,7 @@ import { openDB } from 'idb';
 import { debounceTime } from 'rxjs';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
+import { Card, CardModule } from "primeng/card";
 
 @Component({
   selector: 'app-indexeddb',
@@ -17,7 +18,8 @@ import { InputTextModule } from 'primeng/inputtext';
     TranslocoDirective,
     FloatLabelModule,
     InputTextModule,
-  ],
+    CardModule,
+],
 })
 export class IndexedDBComponent implements OnInit {
   textAreaData = new FormControl('');
