@@ -6,7 +6,8 @@ import {
   ElementRef,
   AfterViewInit,
   NgZone,
-  DestroyRef
+  DestroyRef,
+  ViewChild
 } from '@angular/core';
 import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { filter } from 'rxjs';
@@ -31,6 +32,7 @@ import { TooltipModule } from 'primeng/tooltip';
   ],
 })
 export class MenuFeatureComponent implements AfterViewInit {
+  @ViewChild('scrollArea') scrollArea?: ElementRef;
   // Mouse hover for desktop
   @HostListener('mouseenter')
   onMouseEnter() {
@@ -50,6 +52,7 @@ export class MenuFeatureComponent implements AfterViewInit {
     this.containerCenter = this.host.nativeElement.clientWidth / 2;
     // trigger template update in a cheaty way
     this.expanded.update(v => v);
+    this.scrollToCenter();
   }
   expanded = signal(false);
 
@@ -82,9 +85,9 @@ export class MenuFeatureComponent implements AfterViewInit {
     if (window.innerWidth < SCREEN_SIZES.md) {
       this.ngZone.runOutsideAngular(() => {
         requestAnimationFrame(() => {
-          const container = this.host.nativeElement;
-          this.containerCenter = container.clientWidth / 2;
-          const activeLink = container.querySelector('.selected') as HTMLElement;
+          const container = this.scrollArea?.nativeElement;
+          this.containerCenter = container?.clientWidth / 2;
+          const activeLink = container?.querySelector('.selected') as HTMLElement;
           if (activeLink) {
             const offset = activeLink.offsetLeft + activeLink.offsetWidth / 2 - container.clientWidth / 2;
             container.scrollTo({ left: offset, behavior: 'smooth' });

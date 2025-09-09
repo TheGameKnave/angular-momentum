@@ -18,12 +18,62 @@ $dark-brand: #278 !default;
 $light-gray: #eee !default;
 $gray: #ccc !default;
 $dark-gray: #aaa !default;
-.app-dark { // Dark theme for PrimeNG, apply to body
+body {
   --p-icon-size: 2rem;
+  --p-floatlabel-active-font-size: 1.4rem;
+}
+.app-dark {
   background-color: #333;
   color: #f4f4f4;
   --p-card-background:#4a4a4a;
   --p-card-color:#f4f4f4;
+  --p-form-field-background: #333 !important;
+  --p-toggleswitch-handle-checked-background: #444 !important;
+  app-menu-feature, app-menu-language {
+    background-color: #333;
+    color: #f4f4f4;
+    a {
+      color: #f4f4f4;
+    }
+  }
+  footer {
+    background-color: #333;
+    color: #f4f4f4;
+  }
+  .scroll-shadows {
+    -webkit-overflow-scrolling: touch;
+
+    background:
+      /* Shadow Cover TOP */
+      linear-gradient(
+        #333 30%,
+        rgba(255, 255, 255, 0)
+      ) center top,
+      
+      /* Shadow Cover BOTTOM */
+      linear-gradient(
+        rgba(255, 255, 255, 0), 
+        #333 70%
+      ) center bottom,
+      
+      /* Shadow TOP */
+      radial-gradient(
+        farthest-side at 50% 0,
+        rgba(0, 0, 0, 0.7),
+        rgba(0, 0, 0, 0)
+      ) center top,
+      
+      /* Shadow BOTTOM */
+      radial-gradient(
+        farthest-side at 50% 100%,
+        rgba(0, 0, 0, 0.7),
+        rgba(0, 0, 0, 0)
+      ) center bottom;
+    
+    background-repeat: no-repeat;
+    background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+    background-attachment: local, local, scroll, scroll;
+  }
 }
 
 html {
@@ -94,6 +144,13 @@ hr {
     display: none;                /* Chrome, Safari, iOS */
   }
 }
+.p-tooltip .p-tooltip-text {
+  border:1px solid $dark-brand;
+}
+.scroll-area {
+  height: 100%;
+  overflow-y: auto;
+}
 
 a {
   color: $light-brand;
@@ -119,6 +176,10 @@ label[for]
 {
   cursor: pointer;
 }
+textarea {
+  font-size: 1.4rem !important;
+  width: 100%;
+}
 
 .main {
   display: flex;
@@ -131,6 +192,9 @@ header {
 .content {
   flex: 1 0 auto;
   padding: 1rem;
+}
+body.index .content {
+  padding-bottom: 5rem;
 }
 footer {
   flex: 0 0 auto;
@@ -146,6 +210,12 @@ footer {
     }
   }
 }
+body.index footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
 .main > * {
   padding-left: 6.6rem;
 }
@@ -153,13 +223,11 @@ footer {
 app-menu-feature, app-menu-language {
   position: fixed;
   z-index: 100;
-  background: #444;
   top: 0;
   bottom: 0;
   font-size: 1.6rem;
-  padding: .6rem;
+  overflow-y: auto;
   a {
-    color: #fff;
     &:hover, &.selected {
       color: $light-brand;
     }
@@ -169,6 +237,7 @@ app-menu-feature, app-menu-language {
   }
 }
 app-menu-feature {
+  padding: 5.2rem 0.6rem 4.3rem;
   left: 0;
   .link-home {
     white-space: nowrap;
@@ -180,16 +249,16 @@ app-menu-feature {
   }
   a {
     display: block;
-    &.link-home {
+  }
+  .link-home {
+    img {
+      -webkit-filter: grayscale(100%);
+      filter: grayscale(100%);
+    }
+    a:hover, a.selected {
       img {
-        -webkit-filter: grayscale(100%);
-        filter: grayscale(100%);
-      }
-      &:hover, &.selected {
-        img {
-          -webkit-filter: grayscale(0);
-          filter: grayscale(0);
-        }
+        -webkit-filter: grayscale(0);
+        filter: grayscale(0);
       }
     }
   }
@@ -199,21 +268,36 @@ app-menu-feature {
     border-radius: 1rem;
     padding: 0.6rem;
   }
-  width: calc-size(auto, size);
-  transition: width ease 0.3s;
-  &.expanded {
-    width: calc-size(max-content, size);
-  }
 }
 app-menu-language {
   right: 0;
-  padding: 1rem;
+  padding-top: 4rem;
+  min-width: 18rem;
+  h3 {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+    right: 0.6rem;
+  }
   a.close i {
-    padding-left: 0.6rem; 
     font-size: 1.8rem;
-    position: relative;
-    top: -0.4rem;
-    right: -0.4rem;
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  ul {
+    padding: 1rem;
+    display: grid;
+    grid-auto-flow: row;        /* fill horizontally first */
+    grid-auto-columns: max-content; /* each column only as wide as content */
+    gap: 0.5rem 1rem;              /* row/col spacing */
+    overflow-y: auto;              /* allow vertical scrolling if too tall */
+    max-width: 80vw;     
+    li {
+      break-inside: avoid; /* prevent items from splitting */
+      display: inline-block; /* required for proper column flow */
+      width: max-content;
+    }
   }
   ul li a {
     padding: 0.4rem 0;
@@ -225,24 +309,27 @@ ul {
   margin: 0;
   padding: 0;
 }
+.link-home {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+}
 .kofi-button {
   position: absolute;
   bottom: 0.6rem;
-  background-color: $dark-brand;
-  color: #fff;
-  border: 1px solid $dark-brand;
-  border-radius: .6rem;
-  padding: 0.4rem 0.6rem;
-  font-size: 1.6rem;
-  white-space: nowrap;
-  cursor: pointer;
-  width: calc(100% - 1.2rem);
-  overflow: hidden;
-  text-overflow: ellipsis;
+  a {
+    background-color: $dark-brand;
+    color: #fff;
+    border: 1px solid $dark-brand;
+    border-radius: .6rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 1.6rem;
+    white-space: nowrap;
+    cursor: pointer;
+  }
   img {
     display: inline-block;
     vertical-align: middle;
-    padding-right: 0.6rem;
     width: 2.6rem;
   }
   cursor: pointer;
@@ -252,13 +339,16 @@ ul {
 }
 
 .mobile {
+  &.index .content {
+    padding-bottom: 8rem;
+  }
   .main > * {
     padding-left: 1rem;
   }
   footer {
     padding-bottom: 4rem;
     > * {
-      font-size: 1.2rem;
+      font-size: 1.6rem;
     }
   }
   app-menu-feature {
@@ -270,9 +360,10 @@ ul {
     display: flex;
     flex-direction: row;
     align-items: center;
-    z-index: 1000;
+    z-index: 99;
     width: auto;
     height: 4rem;
+    padding: 0 0.6rem;
     overflow-x: auto;
     > * {
       margin: 0 0.4rem;
@@ -305,14 +396,25 @@ ul {
         background-image: linear-gradient(to bottom, rgba(200, 200, 200, 0), rgba(200, 200, 200, 0.75), rgba(200, 200, 200, 0));
       }
     }
-    .kofi-button {
-      display: inline-block;
+    .kofi-button, .link-home {
+      top: auto;
+      left: auto;
+      display: flex;
       width: auto;
       position: relative;
       bottom: auto;
-      img {
-        padding-right: 0;
-      }
+      display: flex;
+      height: 100%;
+      align-items: center;
+    }
+    .link-home hr {
+      margin-left: 1.2rem;
+    }
+    .kofi-button hr {
+      margin-right: 1.2rem;
+    }
+    .kofi-button img {
+      margin: 0;
     }
   }
   p-card ul li , p-card.indexeddb{

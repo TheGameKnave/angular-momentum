@@ -6,12 +6,12 @@
       @for (feature of Object.entries(featureFlagService.features()); track $index) {
         <li>
           <p-toggleswitch
-            [id]="feature[0]"
+            [inputId]="'thing'+feature[0]"
             [formControl]="featureControl(feature[0])"
-          ></p-toggleswitch> |
-          <label
-            [for]="feature[0]">{{ t(feature[0]) }}
-          </label>
+          ></p-toggleswitch>&nbsp;
+        <label
+          [for]="'thing'+feature[0]">{{ t(feature[0]) }}
+        </label>
         </li>
       }
     </ul>

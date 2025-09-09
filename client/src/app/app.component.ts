@@ -30,9 +30,10 @@ import { SCREEN_SIZES } from './helpers/constants';
 export class AppComponent implements OnInit {
   @HostListener('window:resize')
   onResize() {
-    this.addMobileClass();
+    this.bodyClasses();
   }
   isDevMode = isDevMode();
+  routePath = '';
   openMenu = '';
   breadcrumb = '';
   version: string = packageJson.version;
@@ -54,27 +55,28 @@ export class AppComponent implements OnInit {
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd){
         this.openMenu = '';
-        const routePath = event.urlAfterRedirects.replace('/', '');
+        this.routePath = event.urlAfterRedirects.replace('/', '').replace(/\//, '_') || 'index';
         this.componentListService.getComponentList().forEach((component) => {
-          if(this.slugPipe.transform(component.name) === routePath){
+          if(this.slugPipe.transform(component.name) === this.routePath){
             this.breadcrumb = component.name;
           }
         });
-        if(!routePath){
+        if(!this.routePath){
           this.breadcrumb = '';
         }
+        this.bodyClasses();
       }
     });
 
-    this.addMobileClass();
   }
 
-  addMobileClass(): void {
+  bodyClasses(): void {
+    // remove all classes from body
+    document.body.className = 'app-dark';
+    if (this.routePath) document.body.classList.add(this.routePath);
     //set class of body to 'mobile' for small screens
     if (window.innerWidth < SCREEN_SIZES.md) {
       document.body.classList.add('mobile');
-    }else{
-      document.body.classList.remove('mobile');
     }
   }
 

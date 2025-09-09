@@ -1,12 +1,12 @@
-<ng-container *transloco="let t">
+<div class="scroll-area scroll-shadows" *transloco="let t">
   <h3>
     <i class="pi pi-language"></i>
     {{ t('Language') }}
     <a href="javascript:void(0)" class="close">
       <i class="pi pi-times"></i>
     </a>
+    <hr />
   </h3>
-  <hr />
   <ul>
     @for (ln of supportedLanguages; track ln) {
       <li [class]="'i18n-' + ln">
@@ -19,4 +19,4 @@
       </li>
     }
   </ul>
-</ng-container>
+</div>

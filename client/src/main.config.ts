@@ -82,10 +82,8 @@ export const appProviders = [
       options: {
         darkModeSelector: '.app-dark',
         theme: 'emerald',
-        dark: true,
       }
     },
     ripple: true,
-    
   }),
 ];
