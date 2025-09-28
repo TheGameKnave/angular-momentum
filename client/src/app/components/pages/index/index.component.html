@@ -1,3 +1,6 @@
-<div id="container">
-  <markdown [data]="indexText()"></markdown>
+<div *transloco="let t" id="container">
+  <h1>Angular {{ t('Momentum') }}</h1>
+  <p-card>
+    <markdown [data]="indexText()"></markdown>
+  </p-card>
 </div>

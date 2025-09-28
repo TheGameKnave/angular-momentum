@@ -1,11 +1,11 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Angular Momentum",
-  "version": "0.20.1",
+  "version": "0.20.2",
   "identifier": "app.angularmomentum",
   "build": {
     "beforeDevCommand": "ng serve --hmr --proxy-config src/proxy.conf.json --configuration=tauri-local",
-    "devUrl": "http://localhost:4200",
+    "devUrl": "https://angularmomentum.app",
     "beforeBuildCommand": "npm run build --configuration=production",
     "frontendDist": "../dist/angular-momentum/browser"
   },

@@ -3,7 +3,7 @@
   "title": "Translation File Schema",
   "type": "object",
   "properties": {
-    "Angular Momentum": {
+    "Momentum": {
       "type": "string",
       "description": "Main page title"
     }
@@ -23,10 +23,6 @@
       "type": "string",
       "description": "Name of the language menu"
     }
-    ,"There are {{count}} components.": {
-      "type": "string",
-      "description": "Message about the number of components, using a pluralization format"
-    }
     ,"App Version": {
       "type": "string",
       "description": "Name of the application version component"
@@ -35,7 +31,7 @@
       "type": "string",
       "description": "Name of the environment component"
     }
-    ,"Using {{environmentName}} environment.": {
+    ,"{{environmentName}} environment": {
       "type": "string",
       "description": "Message about the environment"
     }
@@ -55,11 +51,15 @@
       "type": "string",
       "description": "IndexedDB button label"
     }
-    ,"Donate to Support": {
+    ,"Support": {
       "type": "string",
       "description": "Donate button label"
     }
-    ,"Enter some text to have it persist between page reloads": {
+    ,"Persistent Text": {
+      "type": "string",
+      "description": "Persistent Text input label"
+    }
+    ,"Enter some text to have it persist between page reloads (saved in browser storage)": {
       "type": "string",
       "description": "IndexedDB component description"
     }
@@ -73,21 +73,22 @@
     }
   },
   "required": [
-    "Angular Momentum"
+    "Momentum"
     ,"This project is designed to rapidly spin up Angular applications..."
     ,"If you find this project helpful and want to see it grow, consider..."
     ,"v."
     ,"Language"
-    ,"There are {{count}} components."
     ,"App Version"
     ,"Environment"
-    ,"Using {{environmentName}} environment."
+    ,"{{environmentName}} environment"
     ,"Development"
     ,"Production"
     ,"GraphQL API"
     ,"IndexedDB"
     ,"Features"
-    ,"Enter some text to have it persist between page reloads"
+    ,"Support"
+    ,"Persistent Text"
+    ,"Enter some text to have it persist between page reloads (saved in browser storage)"
     ,"Turn features on and off"
   ],
   "additionalProperties": false

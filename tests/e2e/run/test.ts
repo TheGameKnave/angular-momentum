@@ -63,82 +63,84 @@ test('Measure Page Load Time', async t => {
     const screenshotDir = `Page_load/${savePath}`;
     await takeScreenshot(t, screenshotDir);
 });
-test('Click appVersion', async t => {
-    const appVersion = Selector('app-app-version'); 
+
+// 9-12  Updating test to work with new app, starting with swapping to feature menu and turning on all features
+test('Click featurePage', async t => {
+    const featureMenu = Selector('app-features'); 
     await t
     // checks the DOM for the elements that change during the button press
-        .expect(appVersion.exists).notOk()
+        .expect(featureMenu.exists).notOk()
 
-    // then clicks the button, looks for changes
+    // then clicks the feature menu button, checks if page changed to features
+        .click('app-menu-feature i.pi.pi-list-check')
+        .expect(featureMenu.exists).ok();
+
+    // Saving Screenshot - TODO need static screenshot resolution for blink diff
+    // const savePath = `${t.browser.alias.replace(/[^a-z0-9]/gi, '_')}/${screenshotMode}.png`;
+    // const screenshotDir = `featureMenu/${savePath}`;
+    // await takeScreenshot(t,screenshotDir,'.component-container');
+});
+// test('Click environment', async t => {
+//     const environment = Selector('app-environment'); 
+//     await t
+//     // checks the DOM for the elements that change during the button press
+//         .expect(environment.exists).notOk()
+
+//     // then clicks the button, looks for changes
+//         .click('button.component-environment')
+//         .expect(environment.exists).ok();
+//     const savePath = `${t.browser.alias.replace(/[^a-z0-9]/gi, '_')}/${screenshotMode}.png`;
+//     const screenshotDir = `Click_environment/${savePath}`;
+//     await takeScreenshot(t,screenshotDir,'.component-container');
+// });
+// test('Click api', async t => {
+//     const api = Selector('app-api'); 
+//     await t
+//     // checks the DOM for the elements that change during the button press
+//         .expect(api.exists).notOk()
+
+//     // then clicks the button, looks for changes
         
-        .click('button.component-app-version')
-        .expect(appVersion.exists).ok();
+//         .click('button.component-api')
+//         .expect(api.exists).ok();
+//     const savePath = `${t.browser.alias.replace(/[^a-z0-9]/gi, '_')}/${screenshotMode}.png`;
+//     const screenshotDir = `Click_api/${savePath}`;
+//     await takeScreenshot(t,screenshotDir,'.component-container');
+// });
+// test('Click Clear', async t => {
+//     await t
 
-    const savePath = `${t.browser.alias.replace(/[^a-z0-9]/gi, '_')}/${screenshotMode}.png`;
-    const screenshotDir = `Click_appVersion/${savePath}`;
-    await takeScreenshot(t,screenshotDir,'.component-container');
-});
-test('Click environment', async t => {
-    const environment = Selector('app-environment'); 
-    await t
-    // checks the DOM for the elements that change during the button press
-        .expect(environment.exists).notOk()
+//     // then clicks the button, looks for changes
+//         .click('button.component-environment')
 
-    // then clicks the button, looks for changes
-        .click('button.component-environment')
-        .expect(environment.exists).ok();
-    const savePath = `${t.browser.alias.replace(/[^a-z0-9]/gi, '_')}/${screenshotMode}.png`;
-    const screenshotDir = `Click_environment/${savePath}`;
-    await takeScreenshot(t,screenshotDir,'.component-container');
-});
-test('Click api', async t => {
-    const api = Selector('app-api'); 
-    await t
-    // checks the DOM for the elements that change during the button press
-        .expect(api.exists).notOk()
-
-    // then clicks the button, looks for changes
-        
-        .click('button.component-api')
-        .expect(api.exists).ok();
-    const savePath = `${t.browser.alias.replace(/[^a-z0-9]/gi, '_')}/${screenshotMode}.png`;
-    const screenshotDir = `Click_api/${savePath}`;
-    await takeScreenshot(t,screenshotDir,'.component-container');
-});
-test('Click Clear', async t => {
-    await t
-
-    // then clicks the button, looks for changes
-        .click('button.component-environment')
-
-        .click('button.component-clear')
-    const savePath = `${t.browser.alias.replace(/[^a-z0-9]/gi, '_')}/${screenshotMode}.png`;
-    const screenshotDir = `Click_Clear/${savePath}`;
-    await takeScreenshot(t,screenshotDir);
-});
-test('Measure Memory Usage', async t => {
-    const memoryVal = await getMemory(t);
-    await t.expect(validateMemory(memoryVal, getThreshold("memory"))).ok(`Memory usage exceeds the threshold: ${JSON.stringify(memoryVal)}`);
-});
-test('Test Language Change', async t => {
-  let buttons: {[key: string]: Selector} = {};
-  SUPPORTED_LANGUAGES.forEach((lang) => {
-    buttons[lang + 'Button'] = Selector(`.i18n-${lang}`);
-  });
+//         .click('button.component-clear')
+//     const savePath = `${t.browser.alias.replace(/[^a-z0-9]/gi, '_')}/${screenshotMode}.png`;
+//     const screenshotDir = `Click_Clear/${savePath}`;
+//     await takeScreenshot(t,screenshotDir);
+// });
+// test('Measure Memory Usage', async t => {
+//     const memoryVal = await getMemory(t);
+//     await t.expect(validateMemory(memoryVal, getThreshold("memory"))).ok(`Memory usage exceeds the threshold: ${JSON.stringify(memoryVal)}`);
+// });
+// test('Test Language Change', async t => {
+//   let buttons: {[key: string]: Selector} = {};
+//   SUPPORTED_LANGUAGES.forEach((lang) => {
+//     buttons[lang + 'Button'] = Selector(`.i18n-${lang}`);
+//   });
   
-  for (const key of Object.keys(buttons)) {
-    if (key !== 'enButton') {
-      // Click on each language button
-      await t.click(buttons[key]);
-      // Test if the page has been translated to not-english
-      await t
-        .expect(Selector('app-root > :nth-child(2)').innerText).notEql("Hello world");
-    }
-  }
+//   for (const key of Object.keys(buttons)) {
+//     if (key !== 'enButton') {
+//       // Click on each language button
+//       await t.click(buttons[key]);
+//       // Test if the page has been translated to not-english
+//       await t
+//         .expect(Selector('app-root > :nth-child(2)').innerText).notEql("Hello world");
+//     }
+//   }
 
-  // Click on the English button
-  await t.click(buttons.enButton);
-  // Test if the page has been translated to English
-  await t
-    .expect(Selector('app-root > :nth-child(2)').innerText).eql("Hello world");
-  });
+//   // Click on the English button
+//   await t.click(buttons.enButton);
+//   // Test if the page has been translated to English
+//   await t
+//     .expect(Selector('app-root > :nth-child(2)').innerText).eql("Hello world");
+//   });

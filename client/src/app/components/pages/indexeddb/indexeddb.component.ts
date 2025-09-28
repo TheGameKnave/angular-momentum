@@ -1,10 +1,13 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { FeatureMonitorService } from '@app/services/feature-monitor.service';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { openDB } from 'idb';
 import { debounceTime } from 'rxjs';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { CardModule } from "primeng/card";
+import { TextareaModule } from 'primeng/textarea';
 
 @Component({
   selector: 'app-indexeddb',
@@ -13,7 +16,10 @@ import { debounceTime } from 'rxjs';
   imports: [
     ReactiveFormsModule,
     TranslocoDirective,
-  ],
+    CardModule,
+    FloatLabelModule,
+    TextareaModule,
+],
 })
 export class IndexedDBComponent implements OnInit {
   textAreaData = new FormControl('');
@@ -21,6 +27,7 @@ export class IndexedDBComponent implements OnInit {
   constructor(
     readonly destroyRef: DestroyRef,
     private readonly featureMonitorService: FeatureMonitorService,
+    private readonly cd: ChangeDetectorRef,
   ){}
 
   ngOnInit() {
@@ -37,7 +44,13 @@ export class IndexedDBComponent implements OnInit {
   getDbValue(): Promise<void> {
     return this.get('key').then(data => {
       if (typeof data === 'string') {
-        this.textAreaData.setValue(data);
+        this.textAreaData.setValue(data, { emitEvent: false });
+
+      // tell the DOM element it has new content
+      const el = document.getElementById('indexeddb') as HTMLTextAreaElement | null;
+      if (el) {
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }
       }
     });
   }

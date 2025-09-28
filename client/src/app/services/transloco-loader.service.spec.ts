@@ -51,6 +51,9 @@ describe('TranslocoHttpLoader', () => {
         fail('Expected fallback value, not error');
       }
     });
+
+    // spy on console error to prevent confusion
+    const consoleSpy = spyOn(console, 'error');
   
     const req = httpMock.expectOne(`/assets/dev/i18n/${lang}.json`);
     req.error(new ProgressEvent('error'), { status: 0 }); // simulate network failure (backend down)
@@ -68,6 +71,9 @@ describe('TranslocoHttpLoader', () => {
         fail('Expected fallback, not error');
       }
     });
+
+    // spy on console error to prevent confusion
+    const consoleSpy = spyOn(console, 'error');
 
     const req = httpMock.expectOne(`/assets/dev/i18n/${lang}.json`);
     req.flush(mockError, { status: 404, statusText: 'Not Found' });

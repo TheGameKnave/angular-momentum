@@ -1,14 +1,15 @@
 {
   "name": "angular-momentum",
-  "version": "0.20.1",
+  "version": "0.20.2",
   "siteUrl": "https://angularmomentum.app",
   "repository": "https://github.com/angular-momentum/angular-momentum",
   "scripts": {
     "ng": "ng",
     "start": "node scripts/copy-dev-assets.js && ng serve --hmr --proxy-config src/proxy.conf.json",
     "build": "ng build",
-    "test": "node scripts/copy-dev-assets.js && ng test --configuration test --browsers=ChromeHeadless --watch=false",
-    "watch": "node scripts/copy-dev-assets.js && ng test",
+    "dev": "NODE_ENV=development npm run start",
+    "test": "NODE_ENV=development node scripts/copy-dev-assets.js && ng test --configuration test --browsers=ChromeHeadless --watch=false",
+    "watch": "NODE_ENV=development node scripts/copy-dev-assets.js && ng test",
     "copy-dev-assets": "node scripts/copy-dev-assets.js",
     "build-heroku": "ng build --configuration=${NODE_ENV}",
     "heroku-postbuild": "npm run copy-dev-assets && npm run build-heroku",
@@ -37,6 +38,7 @@
     "@jsverse/transloco-locale": "^7.0.1",
     "@jsverse/transloco-messageformat": "^7.0.1",
     "@jsverse/transloco-persist-lang": "^7.0.1",
+    "@primeng/themes": "^19.0.10",
     "@tailwindcss/postcss": "^4.1.5",
     "@tauri-apps/api": "^2.7.0",
     "@tauri-apps/plugin-dialog": "^2.3.2",
@@ -50,9 +52,12 @@
     "ngx-markdown": "^20.0.0",
     "ngx-socket-io": "~4.9.3",
     "postcss": "^8.5.3",
+    "primeicons": "^7.0.0",
+    "primeng": "^20.0.0",
     "rxjs": "~7.8.0",
     "tailwindcss": "^4.1.5",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "zone.js": "~0.15.1"
   },
   "devDependencies": {
     "@angular-eslint/eslint-plugin-template": "^19.8.1",

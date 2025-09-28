@@ -1,26 +1,52 @@
-<ng-container *transloco="let t">
-  <a
-    [routerLink]="''"
-    routerLinkActive="selected"
-    [routerLinkActiveOptions]="{ exact: true }"
-  >{{ t('Angular Momentum') }}</a>
-  <hr />
-  <h3>{{ t('There are {{count}} components.',{count: componentCount()}) }}</h3>
-  <hr />
+<div class="scroll-area scroll-shadows" #scrollArea *transloco="let t">
   <ul>
+    <!-- Home link -->
+    <li class="link-home" #itemEl>
+      <a
+        [routerLink]="''"
+        routerLinkActive="selected"
+        [routerLinkActiveOptions]="{ exact: true }"
+        [pTooltip]="showTooltip() ? t('Momentum') : null"
+        tooltipPosition="bottom"
+        [tooltipDisabled]="!showTooltip()"
+      >
+        <img src="assets/icons/icon-72x72.png" alt="Angular Logo" />
+        @if (expanded()) { {{ t('Momentum') }} }
+      </a>
+      <hr />
+    </li>
+
+    <!-- Dynamic components -->
     @for (p of helpersService.enabledComponents(); track p; let i = $index) {
-      <li>
-        <a [routerLink]="[p.name | slug]" routerLinkActive="selected">{{ t(p.name) }}</a>
-      </li>
+      @if (featureFlagService.getFeature(p.name)) {
+        <li #itemEl>
+          <a
+            [routerLink]="[p.name | slug]"
+            routerLinkActive="selected"
+            [pTooltip]="showTooltip() ? t(p.name) : null"
+            tooltipPosition="top"
+            [tooltipDisabled]="!showTooltip()"
+          >
+            <i class="{{ p.icon }}"></i>
+            @if (expanded()) { {{ t(p.name) }} }
+          </a>
+        </li>
+      }
     }
+    
+    <!-- Donation button -->
+    <li class="kofi-button" #itemEl>
+      <hr />
+      <a
+        href="https://ko-fi.com/K3K81AQJZO"
+        target="_blank"
+        [pTooltip]="showTooltip() ? t('Support') : null"
+        tooltipPosition="top"
+        [tooltipDisabled]="!showTooltip()"
+      >
+        <img src="https://storage.ko-fi.com/cdn/logomarkLogo.png" alt="Ko-fi Logo" />
+        @if (expanded()) { {{ t('Support') }} }
+      </a>
+    </li>
   </ul>
-  <a
-    class="kofiButton"
-    href="https://ko-fi.com/K3K81AQJZO"
-    target="_blank"
-  >
-    <button>
-      {{ t('Donate to Support') }}
-    </button>
-  </a>
-</ng-container>
+</div>

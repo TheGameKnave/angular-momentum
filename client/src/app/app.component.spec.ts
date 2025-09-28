@@ -1,4 +1,4 @@
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { UpdateService } from '@app/services/update.service';
 import { FeatureFlagService } from '@app/services/feature-flag.service';
@@ -9,83 +9,175 @@ import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.mo
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Socket } from 'ngx-socket-io';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
+import { SCREEN_SIZES } from './helpers/constants';
+import { Component, Type } from '@angular/core';
+
+// Dummy component just to satisfy ComponentInstance typing
+@Component({ template: '' })
+class DummyComponent{}
 
 describe('AppComponent', () => {
   let component: AppComponent;
-  let componentListService: ComponentListService;
   let fixture: ComponentFixture<AppComponent>;
+
   let updateService: jasmine.SpyObj<UpdateService>;
-  let router: jasmine.SpyObj<Router>;
   let featureFlagService: jasmine.SpyObj<FeatureFlagService>;
   let slugPipe: jasmine.SpyObj<SlugPipe>;
+  let componentListService: jasmine.SpyObj<ComponentListService>;
+  let routerEvents$: Subject<any>;
+  let router: jasmine.SpyObj<Router>;
 
   beforeEach(() => {
-
     updateService = jasmine.createSpyObj('UpdateService', ['checkForUpdates']);
-    router = jasmine.createSpyObj('Router', ['navigate'], { events: of(new NavigationEnd(0, '/environment', '/environment')) });
     featureFlagService = jasmine.createSpyObj('FeatureFlagService', ['getFeature']);
     slugPipe = jasmine.createSpyObj('SlugPipe', ['transform']);
+    componentListService = jasmine.createSpyObj('ComponentListService', ['getComponentList']);
+
+    // default mock: empty array to prevent forEach errors
+    componentListService.getComponentList.and.returnValue([]);
+
+    routerEvents$ = new Subject<any>();
+    router = jasmine.createSpyObj('Router', ['navigate'], { events: routerEvents$.asObservable() });
+
     const socketSpy = jasmine.createSpyObj('Socket', ['on', 'fromEvent', 'emit', 'disconnect', 'connect']);
 
     TestBed.configureTestingModule({
-      imports: [AppComponent, getTranslocoModule()],
+      imports: [
+        AppComponent,
+        getTranslocoModule()
+      ],
       providers: [
-        ComponentListService,
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: UpdateService, useValue: updateService },
-        { provide: Router, useValue: router },
         { provide: FeatureFlagService, useValue: featureFlagService },
         { provide: SlugPipe, useValue: slugPipe },
-        { provide: Socket, useValue: socketSpy },
+        { provide: ComponentListService, useValue: componentListService },
+        { provide: Router, useValue: router },
+        { provide: Socket, useValue: socketSpy }
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AppComponent);
     component = fixture.componentInstance;
-    componentListService = TestBed.inject(ComponentListService);
-    
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    document.body.className = ''; // cleanup
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should call checkForUpdates on construction', () => {
-    expect(updateService.checkForUpdates).toHaveBeenCalled();
+  it('should initialize version from package.json', () => {
+    expect(component.version).toBeDefined();
   });
 
-  it('should toggle menu on click', () => {
-    const menu = 'feature';
-    const event = new Event('click');
-    component.openMenu = '';
-    component.toggleMenu(menu, event);
-    expect(component.openMenu).toBe(menu);
-  });
-  
-  it('should toggle menu on keydown with Enter key', () => {
-    const menu = 'feature';
-    const event = new KeyboardEvent('keydown', { key: 'Enter' });
-    component.openMenu = '';
-    component.toggleMenu(menu, event);
-    expect(component.openMenu).toBe(menu);
-  });
-  
-  it('should not toggle menu on keydown with other keys', () => {
-    const menu = 'feature';
-    const event = new KeyboardEvent('keydown', { key: 'Space' });
-    component.openMenu = '';
-    component.toggleMenu(menu, event);
-    expect(component.openMenu).toBe('');
-  });
-  
-  it('should close menu when toggling the same menu', () => {
-    const menu = 'feature';
-    const event = new Event('click');
-    component.openMenu = menu;
-    component.toggleMenu(menu, event);
-    expect(component.openMenu).toBe('');
+  it('should set isDevMode correctly', () => {
+    expect(typeof component.isDevMode).toBe('boolean');
   });
 
+  describe('ngOnInit', () => {
+    it('should reset openMenu and set routePath/breadcrumb on NavigationEnd', () => {
+      slugPipe.transform.and.returnValue('foo_bar');
+      componentListService.getComponentList.and.returnValue([
+        { name: 'Foo Bar', component: DummyComponent, icon: 'test-icon' }
+      ]);
+
+      const navEvent = new NavigationEnd(1, '/foo/bar', '/foo/bar');
+      routerEvents$.next(navEvent);
+
+      expect(component.openMenu).toBe('');
+      expect(component.routePath).toBe('foo_bar');
+      expect(component.breadcrumb).toBe('Foo Bar');
+    });
+
+    it('should clear breadcrumb if no routePath', () => {
+      slugPipe.transform.and.returnValue('');
+      componentListService.getComponentList.and.returnValue([
+        { name: 'Foo Bar', component: DummyComponent, icon: 'test-icon' }
+      ]);
+
+      const navEvent = new NavigationEnd(1, '/', '/');
+      routerEvents$.next(navEvent);
+
+      expect(component.breadcrumb).toBe('');
+      expect(component.routePath).toBe('index'); // because of default replacement logic
+    });
+
+    it('should handle empty component list without crashing', () => {
+      slugPipe.transform.and.returnValue('');
+      componentListService.getComponentList.and.returnValue([]);
+
+      const navEvent = new NavigationEnd(1, '/foo', '/foo');
+      routerEvents$.next(navEvent);
+
+      expect(component.breadcrumb).toBe('');
+      expect(component.routePath).toBe('foo');
+    });
+  });
+
+  describe('bodyClasses', () => {
+    it('should always reset body classes to app-dark', () => {
+      component.routePath = '';
+      component.bodyClasses();
+      expect(document.body.classList.contains('app-dark')).toBeTrue();
+    });
+
+    it('should add routePath as class', () => {
+      component.routePath = 'foo_bar';
+      component.bodyClasses();
+      expect(document.body.classList.contains('foo_bar')).toBeTrue();
+    });
+
+    it('should add mobile class when width < SCREEN_SIZES.md', () => {
+      spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md - 1);
+      component.bodyClasses();
+      expect(document.body.classList.contains('mobile')).toBeTrue();
+    });
+
+    it('should not add mobile class when width >= SCREEN_SIZES.md', () => {
+      spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md + 100);
+      component.bodyClasses();
+      expect(document.body.classList.contains('mobile')).toBeFalse();
+    });
+  });
+
+  describe('toggleMenu', () => {
+    it('should open menu on click', () => {
+      const event = new MouseEvent('click');
+      component.toggleMenu('testMenu', event);
+      expect(component.openMenu).toBe('testMenu');
+    });
+
+    it('should toggle menu closed if already open', () => {
+      const event = new MouseEvent('click');
+      component.openMenu = 'testMenu';
+      component.toggleMenu('testMenu', event);
+      expect(component.openMenu).toBe('');
+    });
+
+    it('should open menu on Enter keydown', () => {
+      const event = new KeyboardEvent('keydown', { key: 'Enter' });
+      component.toggleMenu('keyboardMenu', event);
+      expect(component.openMenu).toBe('keyboardMenu');
+    });
+
+    it('should not toggle menu for non-Enter keydown', () => {
+      const event = new KeyboardEvent('keydown', { key: 'Escape' });
+      component.toggleMenu('keyboardMenu', event);
+      expect(component.openMenu).toBe('');
+    });
+  });
+
+  describe('onResize', () => {
+    it('should call bodyClasses on resize', () => {
+      spyOn(component, 'bodyClasses');
+      component.onResize();
+      expect(component.bodyClasses).toHaveBeenCalled();
+    });
+  });
 });

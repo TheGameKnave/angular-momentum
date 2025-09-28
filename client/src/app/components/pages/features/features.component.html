@@ -1,17 +1,19 @@
 <ng-container *transloco="let t">
-  <p>{{ t('Turn features on and off') }}</p>
-  <ul>
-    @for (feature of Object.entries(featureFlagService.features()); track $index) {
-      <li>
-        <input
-          [id]="feature[0]"
-          type="checkbox"
-          [formControl]="featureControl(feature[0])"
-        />
+  <p-card>
+    <p>{{ t('Turn features on and off') }}</p>
+    <hr>
+    <ul>
+      @for (feature of Object.entries(featureFlagService.features()); track $index) {
+        <li>
+          <p-toggleswitch
+            [inputId]="'thing'+feature[0]"
+            [formControl]="featureControl(feature[0])"
+          ></p-toggleswitch>&nbsp;
         <label
-          [for]="feature[0]">{{ t(feature[0]) }}
+          [for]="'thing'+feature[0]">{{ t(feature[0]) }}
         </label>
-      </li>
-    }
-  </ul>
+        </li>
+      }
+    </ul>
+  </p-card>
 </ng-container>
