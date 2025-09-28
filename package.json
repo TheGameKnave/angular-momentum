@@ -15,7 +15,7 @@
     "heroku-postbuild": "cd client && npm install && npm run heroku-postbuild",
     "start": "cd server && ts-node index.ts",
     "dev": "run-p client server",
-    "prod": "run-p client-prod server-prod",
+    "prod": "run-p client:prod server:prod",
     "sonar": "sonar-scanner -Dsonar.token=$(grep SONAR_TOKEN server/.env | cut -d '=' -f 2)",
     "test": "./tests/test.sh",
     "test:translation": "cd tests/translation && ts-node translation-validation.ts",
