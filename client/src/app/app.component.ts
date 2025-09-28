@@ -61,13 +61,9 @@ export class AppComponent implements OnInit {
             this.breadcrumb = component.name;
           }
         });
-        if(!this.routePath){
-          this.breadcrumb = '';
-        }
         this.bodyClasses();
       }
     });
-
   }
 
   bodyClasses(): void {

@@ -5,7 +5,6 @@ import {
   signal,
   ElementRef,
   AfterViewInit,
-  NgZone,
   DestroyRef,
   ViewChild
 } from '@angular/core';
@@ -48,54 +47,58 @@ export class MenuFeatureComponent implements AfterViewInit {
   }
   @HostListener('window:resize')
   onResize() {
-    if (!this.host.nativeElement) return;
-    this.containerCenter = this.host.nativeElement.clientWidth / 2;
-    // trigger template update in a cheaty way
-    this.expanded.update(v => v);
     this.scrollToCenter();
   }
   expanded = signal(false);
-
-  private containerCenter = 0;
 
   constructor(
     readonly componentListService: ComponentListService,
     protected featureFlagService: FeatureFlagService,
     protected readonly helpersService: HelpersService,
     private readonly router: Router,
-    private readonly ngZone: NgZone,
     private readonly destroyRef: DestroyRef,
     private readonly host: ElementRef,
   ) {}
 
   ngAfterViewInit() {
-    this.scrollToCenter();
     // Scroll to active route on mobile only
+    // once on load
+    this.scrollToCenter();
     this.router.events
       .pipe(
         filter(e => e instanceof NavigationEnd),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {
+        // scroll on navigation
         this.scrollToCenter();
       });
   }
 
   scrollToCenter(): void {
-    if (window.innerWidth < SCREEN_SIZES.md) {
-      this.ngZone.runOutsideAngular(() => {
-        requestAnimationFrame(() => {
-          const container = this.scrollArea?.nativeElement;
-          this.containerCenter = container?.clientWidth / 2;
-          const activeLink = container?.querySelector('.selected') as HTMLElement;
-          if (activeLink) {
-            const offset = activeLink.offsetLeft + activeLink.offsetWidth / 2 - container.clientWidth / 2;
-            container.scrollTo({ left: offset, behavior: 'smooth' });
-          }
-        });
-      });
+    if (window.innerWidth >= SCREEN_SIZES.md) return;
+
+    const container = this.scrollArea?.nativeElement;
+    if (container){
+      let attempts = 0;
+      const maxAttempts = 10; // arbitrary limit
+  
+      const tryScroll = () => {
+        const activeLink = container.querySelector('.selected') as HTMLElement;
+        if (activeLink) {
+          const offset = activeLink.offsetLeft + activeLink.offsetWidth / 2 - container.clientWidth / 2;
+          container.scrollTo({ left: offset, behavior: 'smooth' });
+        } else if (attempts++ < maxAttempts) {
+          requestAnimationFrame(tryScroll);
+        } else {
+          console.warn('MenuFeatureComponent: no .selected element found after multiple attempts.');
+        }
+      };
+  
+      requestAnimationFrame(tryScroll);
     }
   }
+
   showTooltip(always = false): boolean {
     const isMobile = window.innerWidth < SCREEN_SIZES.md;
     return isMobile || (this.expanded() && always);

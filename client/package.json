@@ -1,14 +1,15 @@
 {
   "name": "angular-momentum",
-  "version": "0.20.1",
+  "version": "0.20.2",
   "siteUrl": "https://angularmomentum.app",
   "repository": "https://github.com/angular-momentum/angular-momentum",
   "scripts": {
     "ng": "ng",
     "start": "node scripts/copy-dev-assets.js && ng serve --hmr --proxy-config src/proxy.conf.json",
     "build": "ng build",
-    "test": "node scripts/copy-dev-assets.js && ng test --configuration test --browsers=ChromeHeadless --watch=false",
-    "watch": "node scripts/copy-dev-assets.js && ng test",
+    "dev": "NODE_ENV=development npm run start",
+    "test": "NODE_ENV=development node scripts/copy-dev-assets.js && ng test --configuration test --browsers=ChromeHeadless --watch=false",
+    "watch": "NODE_ENV=development node scripts/copy-dev-assets.js && ng test",
     "copy-dev-assets": "node scripts/copy-dev-assets.js",
     "build-heroku": "ng build --configuration=${NODE_ENV}",
     "heroku-postbuild": "npm run copy-dev-assets && npm run build-heroku",

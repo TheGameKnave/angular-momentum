@@ -363,10 +363,10 @@ ul {
     z-index: 99;
     width: auto;
     height: 4rem;
-    padding: 0 0.6rem;
+    padding: 0;
     overflow-x: auto;
     > * {
-      margin: 0 0.4rem;
+      margin: 0;
       transition: transform 0.2s ease;
     }
     ul {
@@ -378,7 +378,7 @@ ul {
       &:before, &:after {
         display: block;
         content: "";
-        width: calc(50vw - 3.4rem);
+        width: calc(50vw - 2.3rem);
       }
       > * {
         margin: 0 0.6rem;
@@ -397,12 +397,7 @@ ul {
       }
     }
     .kofi-button, .link-home {
-      top: auto;
-      left: auto;
-      display: flex;
-      width: auto;
-      position: relative;
-      bottom: auto;
+      position: static;
       display: flex;
       height: 100%;
       align-items: center;

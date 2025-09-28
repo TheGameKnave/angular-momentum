@@ -1,191 +1,211 @@
-import { TestBed, discardPeriodicTasks, fakeAsync, flush, tick } from '@angular/core/testing';
-import { UpdateService } from '@app/services/update.service';
-import { SwUpdate } from '@angular/service-worker';
-import { Observable, of, Subject } from 'rxjs';
-import { VersionEvent, UnrecoverableStateEvent } from '@angular/service-worker'; // Import the VersionEvent type
-import { DestroyRef, Injectable } from '@angular/core';
-import { ENVIRONMENT } from 'src/environments/environment';
-
-export class UnrecoverableStateEventMock implements UnrecoverableStateEvent {
-  reason: string = '';
-  type: "UNRECOVERABLE_STATE" = "UNRECOVERABLE_STATE";
-  // Add any other properties required by UnrecoverableStateEvent
-}
-
-@Injectable()
-export class SwUpdateMock extends SwUpdate {
-  public $$availableSubj = new Subject<VersionEvent>();
-  public $$activatedSubj = new Subject<VersionEvent>();
-  public $$unrecoverableSubj = new Subject<UnrecoverableStateEventMock>();
-
-  override versionUpdates: Observable<VersionEvent> = of({} as VersionEvent);
-  public available: Observable<VersionEvent> = this.$$availableSubj.asObservable();
-  public activated: Observable<VersionEvent> = this.$$activatedSubj.asObservable();
-  override unrecoverable: Observable<UnrecoverableStateEventMock> = this.$$unrecoverableSubj.asObservable();
-  constructor() {
-    super({} as any);
-  }
-
-  override checkForUpdate(): Promise<boolean> {
-    // Your mock implementation for checking for updates
-    return Promise.resolve(true); // Resolve the Promise with a boolean value
-  }
-
-  override activateUpdate(): Promise<boolean> {
-    // Your mock implementation for activating updates
-    return Promise.resolve(true);
-  }
-}
-export class DestroyRefMock {
-  private callbacks: (() => void)[] = [];
-  public destroyed = false;
-
-  onDestroy(callback: () => void) {
-    this.callbacks.push(callback);
-    return () => this.callbacks.splice(this.callbacks.indexOf(callback), 1);
-  }
-
-  destroy() {
-    this.destroyed = true;
-    this.callbacks.forEach((cb) => cb());
-    this.callbacks = [];
-  }
-}
+import { TestBed, fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
+import { of, Subject } from 'rxjs';
+import * as envModule from 'src/environments/environment';
+import { UpdateService } from './update.service';
+import { SwUpdate, VersionReadyEvent, VersionDetectedEvent } from '@angular/service-worker';
+import { DestroyRef } from '@angular/core';
+import { LogService } from './log.service';
+import { Update } from '@tauri-apps/plugin-updater';
 
 describe('UpdateService', () => {
   let service: UpdateService;
-  let swUpdate: SwUpdateMock;
-  let dstRef: DestroyRefMock;
+  let swUpdateMock: any;
+  let swUpdateSpy: jasmine.SpyObj<SwUpdate>;
+  let destroyRefMock: jasmine.SpyObj<DestroyRef>;
+  let logMock: jasmine.SpyObj<LogService>;
+  let versionUpdates$: Subject<VersionReadyEvent | VersionDetectedEvent>;
 
   beforeEach(() => {
+    versionUpdates$ = new Subject<VersionReadyEvent | VersionDetectedEvent>();
+    swUpdateSpy = jasmine.createSpyObj('SwUpdate', ['checkForUpdate', 'activateUpdate'], {
+      versionUpdates: of()
+    });
+    swUpdateMock = {
+      checkForUpdate: jasmine.createSpy('checkForUpdate').and.returnValue(Promise.resolve(true)),
+      activateUpdate: jasmine.createSpy('activateUpdate').and.returnValue(Promise.resolve()),
+      versionUpdates: versionUpdates$
+    };
+
+    destroyRefMock = jasmine.createSpyObj('DestroyRef', ['']);
+    logMock = jasmine.createSpyObj('LogService', ['log']);
+
     TestBed.configureTestingModule({
       providers: [
         UpdateService,
-        { provide: DestroyRef, useClass: DestroyRefMock },
-        { provide: SwUpdate, useClass: SwUpdateMock }
+        { provide: SwUpdate, useValue: swUpdateMock },
+        { provide: DestroyRef, useValue: destroyRefMock },
+        { provide: LogService, useValue: logMock }
       ]
     });
+
     service = TestBed.inject(UpdateService);
-    swUpdate = TestBed.inject(SwUpdate) as SwUpdateMock;
-    dstRef = TestBed.inject(DestroyRef) as unknown as DestroyRefMock;
+
+    // --- Override confirm/reload/relaunch for spying ---
+    spyOn(service as any, 'confirmUser').and.returnValue(Promise.resolve(true));
+    spyOn(service as any, 'reloadPage').and.stub();
+    spyOn(service as any, 'relaunchApp').and.stub();
+  });
+  afterEach(() => {
+    Object.defineProperty(envModule.ENVIRONMENT, 'env', {
+      value: 'development',
+      configurable: true,
+    });
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
-
-
-  it('should check for updates if SwUpdate is enabled', fakeAsync(() => {
-    // Override ENVIRONMENT.env to 'production'
-    (ENVIRONMENT as any).env = 'production';
-    
-    spyOn(console, 'log'); // Spy on console.log to check if it's called
-  
-    // Create a mock SwUpdate that is enabled
-    const enabledSwUpdateMock: SwUpdateMock = new SwUpdateMock();
-    Object.defineProperty(enabledSwUpdateMock, 'isEnabled', { value: true });
-  
-    // Create a spy for the checkForUpdate method
-    const checkForUpdateSpy = spyOn(enabledSwUpdateMock, 'checkForUpdate').and.returnValue(Promise.resolve(true));
-    // Create UpdateService with the enabled SwUpdateMock
-    const enabledUpdateService: UpdateService = new UpdateService(enabledSwUpdateMock, new DestroyRefMock());
-  
-    // Call checkForUpdates on the enabledUpdateService instance
-    enabledUpdateService.checkForUpdates();
-  
-    // Expectations
-    expect(enabledUpdateService).toBeTruthy(); // Ensure the service is created
-    tick(20 * 60 * 1000); // Manually advance time to simulate the interval
-    expect(checkForUpdateSpy).toHaveBeenCalled(); // Verify that checkForUpdate is called after the interval
-  
-    // Cleanup
-    discardPeriodicTasks();
-    flush();
-  }));
-
-  it('should not check for updates if SwUpdate is disabled', () => {
-    spyOn(console, 'log'); // Spy on console.log to check if it's called
-
-    // Create UpdateService with a mock SwUpdate that is disabled
-    // Create a disabled SwUpdateMock instance
-    const disabledSwUpdateMock: SwUpdateMock = new SwUpdateMock();
-    Object.defineProperty(disabledSwUpdateMock, 'isEnabled', { value: false });
-
-    // Create a spy for the checkForUpdate method
-    const checkForUpdateSpy = jasmine.createSpy('checkForUpdate');
-
-    // Override the checkForUpdate method with the spy
-    disabledSwUpdateMock.checkForUpdate = checkForUpdateSpy;
-
-    // Create a new UpdateService instance with the disabled SwUpdateMock
-    const disabledUpdateService: UpdateService = new UpdateService(disabledSwUpdateMock, new DestroyRefMock());
-
-    // Expectations
-    expect(disabledUpdateService).toBeTruthy(); // Ensure the service is created
-    expect(disabledSwUpdateMock.checkForUpdate).not.toHaveBeenCalled(); // Verify that checkForUpdate is not called
-    expect(console.log).not.toHaveBeenCalledWith('enabled'); // Verify that console.log('enabled') is not called
-  });
-
-  it('should check for updates and subscribe to versionUpdates', () => {
-    const updateService = new UpdateService(swUpdate, new DestroyRefMock());
-  
-    // Mock the promptUser function to prevent actual page reload
-    spyOn(updateService, 'promptUser').and.callFake((event) => {
-      updateService.confirming = false; // Set confirming to false without reloading
+  it('should initialize when environment is production', () => {
+    Object.defineProperty(envModule.ENVIRONMENT, 'env', {
+      value: 'production',
+      configurable: true,
     });
-  
-    // Call the method that triggers the promptUser function
-    updateService.checkForUpdates();
-  
-    // Expectations
-    expect(updateService.promptUser).toHaveBeenCalled();
-    expect(updateService.confirming).toBe(false);
-  });
-});
-describe('UpdateService updateIntervalMinutes', () => {
-  let service: UpdateService;
-  let swUpdate: SwUpdateMock;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [
-        UpdateService,
-        { provide: SwUpdate, useClass: SwUpdateMock }
-      ]
+    const swSpy = spyOn(service as any, 'checkServiceWorkerUpdate').and.stub();
+    const tauriSpy = spyOn(service as any, 'checkTauriUpdate').and.stub();
+
+    (service as any).init();
+
+    expect(swSpy).toHaveBeenCalled();
+    expect(tauriSpy).toHaveBeenCalled();
+  });
+  it('should skip initialization if not production', () => {
+    // Spy on the ENVIRONMENT.env property
+    Object.defineProperty(envModule.ENVIRONMENT, 'env', {
+      value: 'test',
+      configurable: true, // allow restoring later
     });
-    service = TestBed.inject(UpdateService);
-    swUpdate = TestBed.inject(SwUpdate) as SwUpdateMock;
+
+    // Spy on methods that would run if init executed
+    const swSpy = spyOn(service as any, 'checkServiceWorkerUpdate');
+    const tauriSpy = spyOn(service as any, 'checkTauriUpdate');
+
+    // Call private init
+    (service as any).init();
+
+    expect(swSpy).not.toHaveBeenCalled();
+    expect(tauriSpy).not.toHaveBeenCalled();
+    expect(logMock.log).not.toHaveBeenCalled();
+  });
+  it('should log an error if checkForUpdate throws', async () => {
+    const consoleSpy = spyOn(console, 'error');
+
+    // Force checkForUpdate to reject
+    swUpdateMock.checkForUpdate.and.returnValue(Promise.reject(new Error('boom')));
+
+    // Call the private method and wait for all inner promises
+    await (service as any).checkServiceWorkerUpdate();
+
+    // Wait a tick to ensure promise rejection propagates
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(swUpdateMock.checkForUpdate).toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'SW: Failed to check for update:',
+      jasmine.any(Error)
+    );
   });
 
-  it('should use 5 minutes interval in production', fakeAsync(() => {
-    // Override ENVIRONMENT.env to 'production'
-    (ENVIRONMENT as any).env = 'production';
 
-    const checkSpy = spyOn(swUpdate, 'checkForUpdate').and.returnValue(Promise.resolve(true));
-    
-    service.checkForUpdates();
 
-    // 4 minutes = 4 * 60 * 1000 ms
-    tick(6 * 60 * 1000);
+  describe('Service Worker updates', () => {
+    it('should check and activate SW update', fakeAsync(() => {
+      (service as any).checkServiceWorkerUpdate();
+      tick();
+      expect(swUpdateMock.checkForUpdate).toHaveBeenCalled();
+      expect(swUpdateMock.activateUpdate).toHaveBeenCalled();
+      expect(logMock.log).toHaveBeenCalledWith(jasmine.any(String), 'SW: Update available, activating...');
+    }));
 
-    expect(checkSpy).toHaveBeenCalled();
+    it('should log if no SW update', fakeAsync(() => {
+      swUpdateMock.checkForUpdate.and.returnValue(Promise.resolve(false));
+      (service as any).checkServiceWorkerUpdate();
+      tick();
+      expect(logMock.log).toHaveBeenCalledWith(jasmine.any(String), 'SW: No update available.');
+    }));
 
-    discardPeriodicTasks();
-  }));
+    it('should handle VERSION_READY and reload if confirmed', fakeAsync(async () => {
+      (service as any).confirmUser.and.returnValue(Promise.resolve(true));
 
-  it('should not update in non-production', fakeAsync(() => {
-    // Override ENVIRONMENT.env to 'development' or anything not 'production'
-    (ENVIRONMENT as any).env = 'development';
+      const versionReadyEvent: VersionReadyEvent = {
+        type: 'VERSION_READY',
+        currentVersion: { hash: 'old' },
+        latestVersion: { hash: 'new' }
+      };
 
-    const checkSpy = spyOn(swUpdate, 'checkForUpdate').and.returnValue(Promise.resolve(true));
-    
-    service.checkForUpdates();
+      await (service as any).handleSwEvent(versionReadyEvent);
+      tick();
+      expect((service as any).reloadPage).toHaveBeenCalled();
+    }));
 
-    tick(1000);
+    it('should log VERSION_DETECTED', () => {
+      const versionDetectedEvent: VersionDetectedEvent = {
+        type: 'VERSION_DETECTED',
+        version: { hash: 'v1.2.3' }
+      };
+      (service as any).handleSwEvent(versionDetectedEvent);
+      expect(logMock.log).toHaveBeenCalledWith(jasmine.any(String), 'SW: New version detected:', { hash: 'v1.2.3' });
+    });
+  });
 
-    expect(checkSpy).toHaveBeenCalledTimes(0);
+  describe('Tauri updates', () => {
+    it('should prompt Tauri update and relaunch', fakeAsync(async () => {
+      const fakeUpdate = {
+        downloadAndInstall: jasmine.createSpy('downloadAndInstall').and.callFake(async (cb: any) => {
+          cb({ event: 'Started', data: { contentLength: 100 } });
+          cb({ event: 'Progress', data: { chunkLength: 50 } });
+          cb({ event: 'Finished', data: {} });
+        })
+      } as unknown as Update;
 
-    discardPeriodicTasks();
-  }));
+      // spy on console error to prevent confusion
+      const consoleSpy = spyOn(console, 'log');
+
+      spyOn<any>(service, 'checkTauriUpdate').and.callFake(async () => {
+        await (service as any).promptTauriUpdate(fakeUpdate);
+      });
+
+      await (service as any).checkTauriUpdate();
+      tick();
+
+      expect(fakeUpdate.downloadAndInstall).toHaveBeenCalled();
+      expect((service as any).relaunchApp).toHaveBeenCalled();
+    }));
+
+    it('should not relaunch if update not confirmed', fakeAsync(async () => {
+      (service as any).confirmUser.and.returnValue(Promise.resolve(false));
+      const fakeUpdate = { downloadAndInstall: jasmine.createSpy('downloadAndInstall') } as unknown as Update;
+
+      spyOn<any>(service, 'checkTauriUpdate').and.callFake(async () => {
+        await (service as any).promptTauriUpdate(fakeUpdate);
+      });
+
+      await (service as any).checkTauriUpdate();
+      tick();
+
+      expect(fakeUpdate.downloadAndInstall).not.toHaveBeenCalled();
+      expect((service as any).relaunchApp).not.toHaveBeenCalled();
+    }));
+
+    it('should use 0 if contentLength is missing in Started event', fakeAsync(async () => {
+      const fakeUpdate = {
+        downloadAndInstall: jasmine.createSpy('downloadAndInstall').and.callFake(async (cb: any) => {
+          cb({ event: 'Started', data: {} }); // contentLength missing → triggers `|| 0`
+          cb({ event: 'Finished', data: {} });
+        })
+      } as unknown as Update;
+
+      spyOn<any>(service, 'checkTauriUpdate').and.callFake(async () => {
+        await (service as any).promptTauriUpdate(fakeUpdate);
+      });
+
+      await (service as any).checkTauriUpdate();
+      tick();
+
+      expect(fakeUpdate.downloadAndInstall).toHaveBeenCalled();
+      expect((service as any).relaunchApp).toHaveBeenCalled();
+    }));
+
+  });
 });

@@ -6,6 +6,7 @@ import { MarkdownModule } from 'ngx-markdown';
 import { SecurityContext } from '@angular/core';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { FeatureMonitorService } from '@app/services/feature-monitor.service';
+import { getTranslocoModule } from '../../../../../../tests/helpers/transloco-testing.module';
 
 describe('GraphqlApiComponent', () => {
   let component: GraphqlApiComponent;
@@ -17,7 +18,8 @@ describe('GraphqlApiComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         GraphqlApiComponent,
-        MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE })
+        MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),
+        getTranslocoModule(),
       ],
       providers: [
         { provide: HttpClient, useValue: httpClientSpy },
