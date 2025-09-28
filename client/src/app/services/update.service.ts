@@ -34,9 +34,9 @@ export class UpdateService {
 
     // Run immediate and interval-based update checks
     interval(15 * 60 * 1000)
-      .pipe(startWith(6000), takeUntilDestroyed(this.destroyRef))
+      .pipe(startWith(0), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        this.log.log(this.constructor.name,'Checking for updates...');
+        /*keep*/console.log('Checking for updates...');
         this.checkServiceWorkerUpdate();
         this.checkTauriUpdate();
       });

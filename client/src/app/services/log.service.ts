@@ -5,8 +5,7 @@ import packageJson from 'src/../package.json';
 @Injectable({providedIn: 'root'})
 export class LogService {
   constructor(){
-    /* do not remove */console.log(`[${this.constructor.name}]
-Angular Momentum!
+    /* do not remove */console.log(`Angular Momentum!
 Version: ${packageJson.version}
 Environment: ${ENVIRONMENT.env}
 Home: ${packageJson.siteUrl}
