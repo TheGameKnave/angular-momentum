@@ -78,12 +78,12 @@ describe('FeaturesComponent', () => {
 
   it('should update feature flag service when checkbox state changes', () => {
     const checkboxes = fixture.nativeElement.querySelectorAll('input[type="checkbox"]');
-    const feature1Checkbox = checkboxes[0];
-    const feature1Name = 'Environment'; // Hardcode the feature name
+    const feature0Checkbox = checkboxes[0];
+    const feature0Name = 'GraphQL API'; // Hardcode the feature name
   
-    feature1Checkbox.click();
+    feature0Checkbox.click();
     fixture.detectChanges();
-    expect(featureFlagServiceSpy.setFeature).toHaveBeenCalledWith(feature1Name, !features[feature1Name]);
+    expect(featureFlagServiceSpy.setFeature).toHaveBeenCalledWith(feature0Name, !features[feature0Name]);
   });
 
   it('should only update from a signal when the target formControl value differs', () => {

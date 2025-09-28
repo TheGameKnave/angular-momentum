@@ -1,32 +1,36 @@
 <ng-container *transloco="let t">
-  <header>
-    <button (click)="toggleMenu('feature', $event)" class="featureButton">
-      ☰
-    </button>
-    momentum {{ routePath }}
-  </header>
-
   <div class="main">
-    <router-outlet></router-outlet>
+    <header>
+      Momentum 
+      @if(breadcrumb){ | {{ breadcrumb }}}
+    </header>
+  
+    <div class="content">
+      <router-outlet></router-outlet>
+    </div>
+  
+    <footer>
+      @if (featureFlagService.getFeature('App Version')) {
+        <h2>{{ t('v.') }} {{ version }}</h2>
+      }
+      @if (featureFlagService.getFeature('Environment')) {
+        <h4>{{ t('{{environmentName}} environment',{ environmentName: isDevMode ? t('Development') : t('Production') }) }}</h4>
+      }
+      @if (featureFlagService.getFeature('Language')) {
+        <a
+          href="javascript:void(0)"
+          (click)="toggleMenu('language', $event)"
+          (keydown.enter)="toggleMenu('language', $event)"
+          class="language-button"
+        >
+          <i class="pi pi-language"></i>
+          {{ translocoLoader.getFlag(translate.getActiveLang()) }}
+        </a>
+      }
+    </footer>
   </div>
 
-  <footer>
-    @if (featureFlagService.getFeature('App Version')) {
-      <h2>{{ t('v.') }} {{ version }}</h2>
-    }
-    @if (featureFlagService.getFeature('Language')) {
-      <button (click)="toggleMenu('language', $event)" class="languageButton">
-        🌐 {{ translocoLoader.getFlag(translate.getActiveLang()) }}
-      </button>
-    }
-  </footer>
-
-  @if (openMenu === 'feature') {
-    <app-menu-feature
-      (click)="toggleMenu('feature', $event)"
-      (keydown.enter)="toggleMenu('feature', $event)"
-    />
-  }
+  <app-menu-feature></app-menu-feature>
   @if (openMenu === 'language') {
     <app-menu-language
       (click)="toggleMenu('language', $event)"

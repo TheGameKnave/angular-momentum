@@ -1,0 +1,19 @@
+{
+  "version": "0.20.2",
+  "notes": "Initial Tauri public release.",
+  "pub_date": "2025-08-05T00:00:00Z",
+  "platforms": {
+    "darwin-aarch64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSQ1RtM0FRVy9kYklkWlpzc1IxMWs3YzVLcE5uY3d0NTdrWm9oR2FIRlZZdUR4SU91eFBWcFB1SE0xQjBHcHRja20vUGNHU2RBWE84eU5aSXRFN0RkbHIvbjJxYk10RkFBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzU0NDI4MDg2CWZpbGU6QW5ndWxhciBNb21lbnR1bS5hcHAudGFyLmd6CmJ3VHcxTzcyQWl6VVpQVXZGZ0NDOUdmYWhHdldPQW5EcTBQZzVOZXI0WDRUUnU5V21IRDNndmFnZmdzY2pqeTB0NGZxTnovWmZUTmtyRmVhRWtkb0NBPT0K",
+      "url": "https://cdn.angularmomentum.app/dist/0.20.2/AngularMomentum.app.tar.gz"
+    },
+    "windows-x86_64": {
+      "signature": "REPLACE_WITH_CONTENTS_OF_setup.exe.sig",
+      "url": "https://cdn.angularmomentum.app/dist/0.20.2/"
+    },
+    "linux-x86_64": {
+      "signature": "REPLACE_WITH_CONTENTS_OF_AppImage.tar.gz.sig",
+      "url": "https://cdn.angularmomentum.app/dist/0.20.2/"
+    }
+  }
+}

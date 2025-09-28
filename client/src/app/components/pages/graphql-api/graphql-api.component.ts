@@ -5,6 +5,8 @@ import { MarkdownComponent } from 'ngx-markdown';
 import { catchError, of, Observable } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { FeatureMonitorService } from '@app/services/feature-monitor.service';
+import { CardModule } from 'primeng/card';
+import { TranslocoDirective } from '@jsverse/transloco';
 
 const query = `
 query GetApiData {
@@ -25,6 +27,8 @@ export interface InitializeApiRes {
   imports: [
     MarkdownComponent,
     AsyncPipe,
+    CardModule,
+    TranslocoDirective,
   ],
 })
 export class GraphqlApiComponent implements OnInit {

@@ -19,6 +19,11 @@ import { routes } from '@app/app.routing';
 import { SlugPipe } from '@app/pipes/slug.pipe';
 import { AssetPathPipe } from '@app/pipes/asset-path.pipe';
 
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { providePrimeNG } from 'primeng/config';
+import Lara from '@primeng/themes/lara';
+
+
 export function getLangFn({ cachedLang, browserLang, cultureLang, defaultLang }: GetLangParams) {
   return cachedLang ?? browserLang ?? (cultureLang || defaultLang);
 }
@@ -29,7 +34,7 @@ const socketIoConfig: SocketIoConfig = { url: ENVIRONMENT.baseUrl, options: {} }
 
 export class PrefixedMissingHandler implements TranslocoMissingHandler {
   handle(key: string): string {
-    return `⁈ ${key}`;
+    return `tx⁈ ${key}`;
   }
 }
 
@@ -70,4 +75,15 @@ export const appProviders = [
     },
   }),
   provideTranslocoLocale(),
+  provideAnimationsAsync(),
+  providePrimeNG({
+    theme: {
+      preset: Lara,
+      options: {
+        darkModeSelector: '.app-dark',
+        theme: 'emerald',
+      }
+    },
+    ripple: true,
+  }),
 ];

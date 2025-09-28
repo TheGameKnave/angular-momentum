@@ -1,12 +1,12 @@
 {
   "name": "angular-momentum",
-  "version": "0.20.1",
+  "version": "0.20.2",
   "siteUrl": "https://angularmomentum.app",
+  "repository": "https://github.com/angular-momentum/angular-momentum",
   "private": true,
   "engines": {
     "node": "22.14.0"
   },
-  "type": "commonjs",
   "scripts": {
     "client": "cd client && NODE_ENV=development npm run start -- --configuration development",
     "client:prod": "cd client && NODE_ENV=production npm run start -- --configuration production",
@@ -25,6 +25,7 @@
     "accept": "cd tests/e2e && node accept_tests",
     "deploy:dev": "./deploy.sh dev",
     "deploy:staging": "./deploy.sh staging",
+    "bump-version": "node bump_version.js",
     "deploy:production": "./deploy.sh production"
   },
   "workspaces": [
