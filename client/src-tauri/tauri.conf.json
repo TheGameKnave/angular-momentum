@@ -26,6 +26,7 @@
   "bundle": {
     "active": true,
     "targets": ["dmg", "app"],
+    "category": "Developer Tools",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -36,7 +37,7 @@
     "createUpdaterArtifacts": true,
     "macOS": {
       "signingIdentity": "Developer ID Application: Kevin Duda (7386GL7C2C)",
-      "entitlements": "entitlements.plist"
+      "entitlements": "entitlements.distribute.plist"
     }
   },
   "plugins": {
