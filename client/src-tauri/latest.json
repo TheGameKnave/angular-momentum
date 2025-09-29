@@ -1,19 +1,19 @@
 {
-  "version": "0.20.3",
+  "version": "0.20.4",
   "notes": "Initial Tauri public release.",
   "pub_date": "2025-09-29T00:00:00Z",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTbjBoMWVXSkRrbUZoOFR1anlyT2RpVjg3UFhnaGRnVVYxb2h3NW5jWkY5NWNLbjRnZE5GK3g3WGJFVTlSVmpHc1hkSVRoaTR5NWV1ang0V2FvUGNaeVNtWk1tcjdhTFFZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzU5MDUxODc5CWZpbGU6QW5ndWxhciBNb21lbnR1bS5hcHAudGFyLmd6CjhBbi91NVdwdWMrWWFYbWlEZzN2eUwySURSL1F0eHRqWFo4eUwxK2phSnFkSE8reFNzd0wrYWI1bUtYTjdrcUFBQVFqckhKQUVWUkNiajBYbE9LTkNRPT0K",
-      "url": "https://cdn.angularmomentum.app/dist/0.20.3/AngularMomentum.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTbjBoMWVXSkRrbUtzNjBINys0clpuSWE1REtpVnJscm5XcXAxU1NMdEJZbis5eFZOWmxIZUlaSG5haVF0d21VdTg5em5MeThaLysycS9nVkpwcVM4TWR0Njc2aG5oUXdrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzU5MTQyMzQ3CWZpbGU6QW5ndWxhciBNb21lbnR1bS5hcHAudGFyLmd6ClJUd3d4OWFKSUR2RVJ5L1RoTnFCVUpXR1BoRFZwRjhDcjNKMThDWUk0YjVvTjNVYWRiVmx6eVoxVWpOV1ZWODNJeU1uYk5vZG1tZ0RaWStrSzg2M0FBPT0K",
+      "url": "https://cdn.angularmomentum.app/dist/0.20.4/AngularMomentum.app.tar.gz"
     },
     "windows-x86_64": {
       "signature": "REPLACE_WITH_CONTENTS_OF_setup.exe.sig",
-      "url": "https://cdn.angularmomentum.app/dist/0.20.3/"
+      "url": "https://cdn.angularmomentum.app/dist/0.20.4/"
     },
     "linux-x86_64": {
       "signature": "REPLACE_WITH_CONTENTS_OF_AppImage.tar.gz.sig",
-      "url": "https://cdn.angularmomentum.app/dist/0.20.3/"
+      "url": "https://cdn.angularmomentum.app/dist/0.20.4/"
     }
   }
 }
