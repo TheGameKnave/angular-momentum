@@ -7,8 +7,8 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Parallel server/client execution
 * Bare-bones api proxy to the back-end *
 * SASS boilerplate included
-* Frontend environment detection/switching *
-* Auto-unsub from subscriptions and component variables
+* Frontend environment detection *
+* Auto-unsub from subscriptions
 * Heroku deployment
 * Google Analytics
 * Cookie API
@@ -20,6 +20,7 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Internationalization (i18n) with Transloco
 * IndexedDB for offline storage *
 * e2e testing with TestCafe + snapshots
+* 100% coverage in unit tests (jasmine for client and jest for server)
 * Feature flags *
 * CI/CD (github actions, sonar)
 * Hotjar script for user behavior analysis
@@ -152,11 +153,11 @@ Download SonarScanner and run from project root: `npm run sonar`
 ### Add Heroku to Git
 
 `heroku git:remote -a <APP_NAME>-dev`
-`git remote rename heroku dev`  
+`git remote rename heroku heroku-dev`  
 `heroku git:remote -a <APP_NAME>-staging`  
-`git remote rename heroku staging`  
+`git remote rename heroku heroku-staging`  
 `heroku git:remote -a <APP_NAME>`  
-`git remote rename heroku production`
+`git remote rename heroku heroku-production`
 
 ### Deploy
 
@@ -180,6 +181,12 @@ from `client`, while remote server is running:
 * `npm run tauri build` to build a standalone dev release for Windows, MacOS, and Linux.
 * `npm run tauri android dev` to build a standalone dev release for Android. (set `tauri.conf.json` devUrl to `https://angularmomentum.app`) to enable live server features.
 * `npm run tauri ios` to build a release for iOS.
+
+### Tauri configuration
+
+Tauri desktop builds can have update tar.gz files that can be downloaded and installed automatically. Manually edit `latest.json` with the signature of each built update zip, and host them on a CDN (see below).
+
+* e.g. `cat "/Users/kduda/websites/angular-momentum/client/src-tauri/target/release/bundle/macos/Angular Momentum.app.tar.gz.sig"` to retrieve the signature.
 
 ## CDN
 
