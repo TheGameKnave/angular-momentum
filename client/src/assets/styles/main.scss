@@ -2,8 +2,7 @@
 
 @use "tailwindcss";
 
-$brand-color: rgb(28, 130, 137) !default;
-
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 /// Regular font family
 /// @type List
 $text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC', 'Segoe UI', 'Arial Unicode MS', Arial, sans-serif !default;
@@ -12,8 +11,70 @@ $text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC
 /// @type List
 $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Monaco', monospace !default;
 
+@import "primeicons/primeicons.css";
+$light-brand: #0ca !default;
+$brand: #1b9 !default;
+$dark-brand: #278 !default;
+$light-gray: #eee !default;
+$gray: #ccc !default;
+$dark-gray: #aaa !default;
+body {
+  --p-icon-size: 2rem;
+  --p-floatlabel-active-font-size: 1.4rem;
+}
+.app-dark {
+  background-color: #333;
+  color: #f4f4f4;
+  --p-card-background:#4a4a4a;
+  --p-card-color:#f4f4f4;
+  --p-form-field-background: #333 !important;
+  --p-toggleswitch-handle-checked-background: #444 !important;
+  app-menu-feature, app-menu-language {
+    background-color: #333;
+    color: #f4f4f4;
+    a {
+      color: #f4f4f4;
+    }
+  }
+  footer {
+    background-color: #333;
+    color: #f4f4f4;
+  }
+  .scroll-shadows {
+    -webkit-overflow-scrolling: touch;
 
-@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+    background:
+      /* Shadow Cover TOP */
+      linear-gradient(
+        #333 30%,
+        rgba(255, 255, 255, 0)
+      ) center top,
+      
+      /* Shadow Cover BOTTOM */
+      linear-gradient(
+        rgba(255, 255, 255, 0), 
+        #333 70%
+      ) center bottom,
+      
+      /* Shadow TOP */
+      radial-gradient(
+        farthest-side at 50% 0,
+        rgba(0, 0, 0, 0.7),
+        rgba(0, 0, 0, 0)
+      ) center top,
+      
+      /* Shadow BOTTOM */
+      radial-gradient(
+        farthest-side at 50% 100%,
+        rgba(0, 0, 0, 0.7),
+        rgba(0, 0, 0, 0)
+      ) center bottom;
+    
+    background-repeat: no-repeat;
+    background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+    background-attachment: local, local, scroll, scroll;
+  }
+}
 
 html {
   font-size: 62.5%;
@@ -57,13 +118,42 @@ body {
 .monospace {
   font-family: $code-font-stack;
 }
-
-.main {
-  padding: 1rem;
+hr {
+  border: 0;
+  margin-block-end: 0;
+  margin-block-start: 0;
+  padding: 0.3em 0;
+  position: relative;
+  overflow: hidden;
+  min-height: 0.3rem;
+  &:before {
+    content: "";
+    width: 100%;
+    position: absolute;
+    left: 0;
+    border: 0;
+    height: 1.5px;
+    background-image: linear-gradient(to right, rgba(200,200,200, 0), rgba(200,200,200, 0.75), rgba(200,200,200, 0));
+  }
+}
+* {
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* IE 10+ */
+  -webkit-overflow-scrolling: touch; /* smooth touch scrolling iOS */
+  &::-webkit-scrollbar {
+    display: none;                /* Chrome, Safari, iOS */
+  }
+}
+.p-tooltip .p-tooltip-text {
+  border:1px solid $dark-brand;
+}
+.scroll-area {
+  height: 100%;
+  overflow-y: auto;
 }
 
 a {
-  color: $brand-color;
+  color: $light-brand;
   text-decoration: none;
   cursor: pointer;
   &.selected {
@@ -86,55 +176,255 @@ label[for]
 {
   cursor: pointer;
 }
+textarea {
+  font-size: 1.4rem !important;
+  width: 100%;
+}
 
-app-menu-feature, app-menu-language {
-  position: absolute;
-  z-index: 100;
-  background: #444;
-  top: 0;
-  bottom: 0;
-  width: 200px;
-  font-size: 2.4rem;
+.main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+header {
+  flex: 0 0 auto;
+}
+.content {
+  flex: 1 0 auto;
   padding: 1rem;
 }
+body.index .content {
+  padding-bottom: 5rem;
+}
+footer {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-around;
+  min-height: 4rem;
+  border-top: 1px solid #666;
+  .language-button {
+    color: #fff;
+    font-size: 2rem;
+    &:hover {
+      color: $light-brand;
+    }
+  }
+}
+body.index footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+.main > * {
+  padding-left: 6.6rem;
+}
+
+app-menu-feature, app-menu-language {
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  bottom: 0;
+  font-size: 1.6rem;
+  overflow-y: auto;
+  a {
+    &:hover, &.selected {
+      color: $light-brand;
+    }
+    &.selected {
+      cursor: default;
+    }
+  }
+}
 app-menu-feature {
+  padding: 5.2rem 0.6rem 4.3rem;
   left: 0;
+  .link-home {
+    white-space: nowrap;
+    img {
+      width: 4rem;
+      display: inline-block;
+      vertical-align: middle;
+    }
+  }
+  a {
+    display: block;
+  }
+  .link-home {
+    img {
+      -webkit-filter: grayscale(100%);
+      filter: grayscale(100%);
+    }
+    a:hover, a.selected {
+      img {
+        -webkit-filter: grayscale(0);
+        filter: grayscale(0);
+      }
+    }
+  }
+  i.pi, .link-home img {
+    font-size: 2.6rem;
+    vertical-align: middle;
+    border-radius: 1rem;
+    padding: 0.6rem;
+  }
 }
 app-menu-language {
   right: 0;
+  padding-top: 4rem;
+  min-width: 18rem;
+  h3 {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+    right: 0.6rem;
+  }
+  a.close i {
+    font-size: 1.8rem;
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  ul {
+    padding: 1rem;
+    display: grid;
+    grid-auto-flow: row;        /* fill horizontally first */
+    grid-auto-columns: max-content; /* each column only as wide as content */
+    gap: 0.5rem 1rem;              /* row/col spacing */
+    overflow-y: auto;              /* allow vertical scrolling if too tall */
+    max-width: 80vw;     
+    li {
+      break-inside: avoid; /* prevent items from splitting */
+      display: inline-block; /* required for proper column flow */
+      width: max-content;
+    }
+  }
+  ul li a {
+    padding: 0.4rem 0;
+    display: block;
+  }
 }
 ul {
   list-style-type: none;
   margin: 0;
   padding: 0;
 }
-.kofiButton {
+.link-home {
   position: absolute;
-  bottom: 1rem;
-  button {
-    background-color: $brand-color;
-    background-image: url("https://storage.ko-fi.com/cdn/logomarkLogo.png");
-    background-size: 24px;
-    background-position: 3% center;
-    background-repeat: no-repeat;
+  top: 0.6rem;
+  left: 0.6rem;
+}
+.kofi-button {
+  position: absolute;
+  bottom: 0.6rem;
+  a {
+    background-color: $dark-brand;
     color: #fff;
-    border: 1px solid $brand-color;
-    border-radius: 5px;
-    padding: 0.5rem 0.5rem 0.5rem 3.5rem;
+    border: 1px solid $dark-brand;
+    border-radius: .6rem;
+    padding: 0.4rem 0.6rem;
     font-size: 1.6rem;
+    white-space: nowrap;
     cursor: pointer;
-    &:hover {
-      border-color: #fff;
-    }
+  }
+  img {
+    display: inline-block;
+    vertical-align: middle;
+    width: 2.6rem;
+  }
+  cursor: pointer;
+  &:hover {
+    border-color: $light-brand;
   }
 }
 
-footer {
-  display: flex;
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 40px;
-  border-top: 1px solid #666;
-  justify-content: space-around;
+.mobile {
+  &.index .content {
+    padding-bottom: 8rem;
+  }
+  .main > * {
+    padding-left: 1rem;
+  }
+  footer {
+    padding-bottom: 4rem;
+    > * {
+      font-size: 1.6rem;
+    }
+  }
+  app-menu-feature {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    z-index: 99;
+    width: auto;
+    height: 4rem;
+    padding: 0;
+    overflow-x: auto;
+    > * {
+      margin: 0;
+      transition: transform 0.2s ease;
+    }
+    ul {
+      display: flex;
+      flex-direction: row;
+      height: 100%;
+      min-width: max-content;
+      align-items: center;
+      &:before, &:after {
+        display: block;
+        content: "";
+        width: calc(50vw - 2.3rem);
+      }
+      > * {
+        margin: 0 0.6rem;
+        flex: 0 0 auto;
+      }
+    }
+    hr {
+      height: 100%;
+      min-width: 0.3rem;
+      &:before {
+        top: 0;
+        bottom: 0;
+        height: 100%;
+        width: 1.5px;
+        background-image: linear-gradient(to bottom, rgba(200, 200, 200, 0), rgba(200, 200, 200, 0.75), rgba(200, 200, 200, 0));
+      }
+    }
+    .kofi-button, .link-home {
+      position: static;
+      display: flex;
+      height: 100%;
+      align-items: center;
+    }
+    .link-home hr {
+      margin-left: 1.2rem;
+    }
+    .kofi-button hr {
+      margin-right: 1.2rem;
+    }
+    .kofi-button img {
+      margin: 0;
+    }
+  }
+  p-card ul li , p-card.indexeddb{
+    margin: 0.4rem 0;
+    padding: 0rem 0;
+  }
+}
+p-card ul li , p-card.indexeddb{
+  margin: 0.6rem 0;
+  padding: 0rem 0;
+  font-size: 2rem;
+}
+p-card.indexeddb {
+  input {
+    margin: 0.5rem 0rem;
+    font-size: 1.5rem;
+  }
 }

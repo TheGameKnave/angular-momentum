@@ -3,6 +3,9 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective} from '@jsverse/transloco';
 import { FeatureFlagService } from '@app/services/feature-flag.service';
+import { CheckboxModule } from 'primeng/checkbox';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { CardModule } from 'primeng/card';
 import { FeatureMonitorService } from '@app/services/feature-monitor.service';
 
 @Component({
@@ -12,6 +15,9 @@ import { FeatureMonitorService } from '@app/services/feature-monitor.service';
   imports: [
     TranslocoDirective,
     ReactiveFormsModule,
+    CheckboxModule,
+    ToggleSwitchModule,
+    CardModule,
   ],
 })
 export class FeaturesComponent implements OnInit {

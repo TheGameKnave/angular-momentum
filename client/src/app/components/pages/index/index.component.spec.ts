@@ -34,6 +34,6 @@ describe('IndexComponent', () => {
     await fixture.whenStable(); // Wait for signals and markdown rendering
 
     const markdownElement = fixture.debugElement.query(By.css('markdown'));
-    expect(markdownElement.nativeElement.innerHTML).toContain('<h1>Angular Momentum</h1>');
+    expect(markdownElement.nativeElement.innerHTML).toContain('<p>This project is designed to rapidly spin up Angular applications');
   });
 });

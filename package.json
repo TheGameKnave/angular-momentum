@@ -1,12 +1,12 @@
 {
   "name": "angular-momentum",
-  "version": "0.20.1",
+  "version": "0.20.4",
   "siteUrl": "https://angularmomentum.app",
+  "repository": "https://github.com/angular-momentum/angular-momentum",
   "private": true,
   "engines": {
     "node": "22.14.0"
   },
-  "type": "commonjs",
   "scripts": {
     "client": "cd client && NODE_ENV=development npm run start -- --configuration development",
     "client:prod": "cd client && NODE_ENV=production npm run start -- --configuration production",
@@ -15,7 +15,7 @@
     "heroku-postbuild": "cd client && npm install && npm run heroku-postbuild",
     "start": "cd server && ts-node index.ts",
     "dev": "run-p client server",
-    "prod": "run-p client-prod server-prod",
+    "prod": "run-p client:prod server:prod",
     "sonar": "sonar-scanner -Dsonar.token=$(grep SONAR_TOKEN server/.env | cut -d '=' -f 2)",
     "test": "./tests/test.sh",
     "test:translation": "cd tests/translation && ts-node translation-validation.ts",
@@ -25,6 +25,7 @@
     "accept": "cd tests/e2e && node accept_tests",
     "deploy:dev": "./deploy.sh dev",
     "deploy:staging": "./deploy.sh staging",
+    "bump-version": "node bump_version.js",
     "deploy:production": "./deploy.sh production"
   },
   "workspaces": [

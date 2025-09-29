@@ -10,7 +10,7 @@ jest.mock('./lowDBService', () => ({
   writeFeatureFlags: jest.fn(),
 }));
 
-describe('GraphQL API', () => {
+fdescribe('GraphQL API', () => {
   let app: express.Application;
   let io: Server;
 

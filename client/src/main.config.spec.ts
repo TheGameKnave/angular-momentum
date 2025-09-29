@@ -19,10 +19,10 @@ describe('PrefixedMissingHandler', () => {
     handler = new PrefixedMissingHandler();
   });
 
-  it('should prefix the missing key with ⁈', () => {
+  it('should prefix the missing key with tx⁈', () => {
     const key = 'some.missing.key';
     const result = handler.handle(key);
-    expect(result).toBe(`⁈ ${key}`);
+    expect(result).toBe(`tx⁈ ${key}`);
   });
 });
 

@@ -13,18 +13,18 @@ echo "🚀 Deploying to $ENV..."
 
 case "$ENV" in
   dev)
-    GIT_REMOTE="dev"
+    GIT_REMOTE="heroku-dev"
     GIT_BRANCH="dev"
     USE_LINODE=false
     ;;
   staging)
-    GIT_REMOTE="staging"
+    GIT_REMOTE="heroku-staging"
     GIT_BRANCH="staging"
     LINODE_FOLDER="staging"
     USE_LINODE=true
     ;;
   production)
-    GIT_REMOTE="production"
+    GIT_REMOTE="heroku-production"
     GIT_BRANCH="origin/main"
     LINODE_FOLDER="production"
     USE_LINODE=true
