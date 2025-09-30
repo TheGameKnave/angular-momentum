@@ -2,5 +2,4 @@
 export const ENVIRONMENT = {
   env: 'production',
   baseUrl: 'https://staging.angularmomentum.app',
-  assetBasePath: 'https://cdn.angularmomentum.app/assets/staging',
 };

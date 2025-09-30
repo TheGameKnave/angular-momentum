@@ -11,7 +11,6 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Auto-unsub from subscriptions
 * Heroku deployment
 * Google Analytics
-* Cookie API
 * Service worker to persist app and manage versions *
 * Hot module replacement for faster dev iteration
 * Typescript with node for back-end

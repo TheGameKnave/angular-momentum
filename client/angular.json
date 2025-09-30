@@ -33,12 +33,8 @@
             "production": {
               "assets": [
                 "src/favicon.ico",
-                "src/manifest.webmanifest",
-                {
-                  "glob": "**/*",
-                  "input": "src/assets/icons",
-                  "output": "assets/icons"
-                }
+                "src/assets",
+                "src/manifest.webmanifest"
               ],
               "fileReplacements": [
                 {
@@ -64,12 +60,8 @@
             "staging": {
               "assets": [
                 "src/favicon.ico",
-                "src/manifest.webmanifest",
-                {
-                  "glob": "**/*",
-                  "input": "src/assets/icons",
-                  "output": "assets/icons"
-                }
+                "src/assets",
+                "src/manifest.webmanifest"
               ],
               "fileReplacements": [
                 {
@@ -139,6 +131,9 @@
             },
             "tauri-local": {
               "buildTarget": "angular-momentum:build:tauri-local"
+            },
+            "tauri-build": {
+              "buildTarget": "angular-momentum:build:tauri-build"
             }
           },
           "defaultConfiguration": "development"

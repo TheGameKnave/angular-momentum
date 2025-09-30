@@ -1,4 +1,3 @@
-import { Installer } from "@app/models/data.model";
 
 export const SUPPORTED_LANGUAGES: string[] = [
   'en',
@@ -14,7 +13,7 @@ export const SCREEN_SIZES: Record<'sm' | 'md' | 'lg' | 'xl', number> = {
   lg: 992,
   xl: 1200,
 };
-export const INSTALLERS: Installer[] = [
+export const INSTALLERS: Record<'name' | 'icon' | 'url', string>[] = [
   {
     name: 'MacOS',
     icon: 'pi-apple',

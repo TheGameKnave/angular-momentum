@@ -2,7 +2,20 @@
 
 @use "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+/* Raleway Regular */
+@font-face {
+  font-family: 'Raleway';
+  src: url('/assets/fonts/Raleway-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900; /* Variable font range */
+  font-style: normal;
+}
+/* Raleway Italic */
+@font-face {
+  font-family: 'Raleway';
+  src: url('/assets/fonts/Raleway-Italic-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+}
 /// Regular font family
 /// @type List
 $text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC', 'Segoe UI', 'Arial Unicode MS', Arial, sans-serif !default;
