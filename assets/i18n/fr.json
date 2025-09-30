@@ -11,6 +11,8 @@
   ,"Production": "Production"
   ,"GraphQL API": "GraphQL API"
   ,"IndexedDB": "IndexedDB"
+  ,"Installers": "Installateurs"
+  ,"If you’d like to use Angular Momentum as a standalone program...": "Si vous souhaitez utiliser Angular Momentum comme un programme independant/application, vous pouvez trouver des installateurs pour diverses plateformes ci-dessous."
   ,"Support": "Soutien"
   ,"Persistent Text": "Texte persistant"
   ,"Enter some text to have it persist between page reloads (saved in browser storage)": "Entrez du texte pour que ce soit persistant entre les pages (enregistré dans le stockage du navigateur)"
