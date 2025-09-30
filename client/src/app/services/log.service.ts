@@ -15,7 +15,7 @@ github: ${packageJson.repository}
 
   log(moduleName: string,message: string,object?: unknown): void {
     if(ENVIRONMENT.env !== 'production'){
-      /* do not remove */console.log('[' + moduleName + '] ' + message,object ? object : '');
+      /* do not remove */console.log('[' + moduleName + '] ' + message,object ?? '');
     }
   };
 

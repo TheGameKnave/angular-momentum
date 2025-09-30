@@ -105,7 +105,7 @@ export class UpdateService {
         await update.downloadAndInstall(event => {
           switch (event.event) {
             case 'Started':
-              contentLength = event.data.contentLength || 0;
+              contentLength = event.data.contentLength ?? 0;
               this.log.log(this.constructor.name,`started downloading ${event.data.contentLength} bytes`);
               break;
             case 'Progress':

@@ -18,10 +18,6 @@ $dark-brand: #278 !default;
 $light-gray: #eee !default;
 $gray: #ccc !default;
 $dark-gray: #aaa !default;
-body {
-  --p-icon-size: 2rem;
-  --p-floatlabel-active-font-size: 1.4rem;
-}
 .app-dark {
   background-color: #333;
   color: #f4f4f4;
@@ -80,6 +76,8 @@ html {
   font-size: 62.5%;
 }
 body {
+  --p-icon-size: 2rem;
+  --p-floatlabel-active-font-size: 1.4rem;
   font: normal 1.2rem / 1.4 $text-font-stack;
   font-family: $text-font-stack;
   font-weight: 500;
@@ -245,13 +243,6 @@ app-menu-feature {
       width: 4rem;
       display: inline-block;
       vertical-align: middle;
-    }
-  }
-  a {
-    display: block;
-  }
-  .link-home {
-    img {
       -webkit-filter: grayscale(100%);
       filter: grayscale(100%);
     }
@@ -261,6 +252,9 @@ app-menu-feature {
         filter: grayscale(0);
       }
     }
+  }
+  a {
+    display: block;
   }
   i.pi, .link-home img {
     font-size: 2.6rem;
