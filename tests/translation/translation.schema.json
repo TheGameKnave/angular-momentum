@@ -51,6 +51,14 @@
       "type": "string",
       "description": "IndexedDB button label"
     }
+    ,"Installers": {
+      "type": "string",
+      "description": "Installers button label"
+    }
+    ,"If you’d like to use Angular Momentum as a standalone program...": {
+      "type": "string",
+      "description": "Installers component description"
+    }
     ,"Support": {
       "type": "string",
       "description": "Donate button label"
@@ -85,6 +93,8 @@
     ,"Production"
     ,"GraphQL API"
     ,"IndexedDB"
+    ,"Installers"
+    ,"If you’d like to use Angular Momentum as a standalone program..."
     ,"Features"
     ,"Support"
     ,"Persistent Text"

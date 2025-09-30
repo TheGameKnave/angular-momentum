@@ -6,7 +6,7 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 import { provideTransloco, TRANSLOCO_MISSING_HANDLER, TranslocoMissingHandler } from '@jsverse/transloco';
 import { provideTranslocoMessageformat } from '@jsverse/transloco-messageformat';
-import { cookiesStorage, GetLangParams, provideTranslocoPersistLang } from '@jsverse/transloco-persist-lang';
+import { GetLangParams, provideTranslocoPersistLang } from '@jsverse/transloco-persist-lang';
 import { provideTranslocoLocale } from '@jsverse/transloco-locale';
 import { MarkdownModule } from 'ngx-markdown';
 
@@ -17,7 +17,6 @@ import { ENVIRONMENT } from 'src/environments/environment';
 import { provideRouter } from '@angular/router';
 import { routes } from '@app/app.routing';
 import { SlugPipe } from '@app/pipes/slug.pipe';
-import { AssetPathPipe } from '@app/pipes/asset-path.pipe';
 
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
@@ -40,7 +39,6 @@ export class PrefixedMissingHandler implements TranslocoMissingHandler {
 
 export const appProviders = [
   SlugPipe,
-  AssetPathPipe,
   importProvidersFrom(
     BrowserModule,
     MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),
@@ -71,7 +69,7 @@ export const appProviders = [
   provideTranslocoPersistLang({
     getLangFn,
     storage: {
-      useValue: cookiesStorage(),
+      useValue: localStorage,
     },
   }),
   provideTranslocoLocale(),

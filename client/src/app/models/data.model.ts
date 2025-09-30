@@ -22,3 +22,9 @@ export interface FeatureFlag {
   key: string;
   value: boolean;
 }
+
+export interface Installer {
+  name: string;
+  icon: string;
+  url: string;
+}

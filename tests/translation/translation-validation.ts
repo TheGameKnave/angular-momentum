@@ -3,7 +3,7 @@ import { SUPPORTED_LANGUAGES } from '../../client/src/app/helpers/constants';
 import * as path from 'path';
 
 const schemaPath = path.join(__dirname, 'translation.schema.json');
-const translationsDir = path.join(__dirname, '..', '..', 'assets', 'i18n');
+const translationsDir = path.join(__dirname, '..', '..', 'client', 'src', 'assets', 'i18n');
 const ajvPath = path.join(__dirname, '..', '..', 'node_modules', '.bin', 'ajv');
 
 

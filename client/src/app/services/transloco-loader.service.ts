@@ -3,7 +3,6 @@ import { Injectable } from '@angular/core';
 import { Translation, TranslocoLoader } from '@jsverse/transloco';
 import { catchError, Observable, of } from 'rxjs';
 import { LANGUAGES } from 'i18n-l10n-flags';
-import { AssetPathPipe } from '@app/pipes/asset-path.pipe';
 
 @Injectable({
   providedIn: 'root'
@@ -12,11 +11,10 @@ export class TranslocoHttpLoader implements TranslocoLoader {
   languages = LANGUAGES;
   constructor(
     readonly http: HttpClient,
-    private readonly assetPathPipe: AssetPathPipe,
   ) {}
 
   getTranslation(lang: string): Observable<Translation> {
-  const url = this.assetPathPipe.transform(`i18n/${lang}.json`);
+  const url = `/assets/i18n/${lang}.json`;
 
   return this.http.get<Translation>(url).pipe(
     catchError((error: unknown) => {

@@ -11,6 +11,8 @@
   ,"Production": "生产"
   ,"GraphQL API": "GraphQL API"
   ,"IndexedDB": "IndexedDB"
+  ,"Installers": "安装程序"
+  ,"If you’d like to use Angular Momentum as a standalone program...": "如果您想使用 Angular 模板 作为独立程序，您可以在下面找到不同平台的安装程序。"
   ,"Support": "支持"
   ,"Persistent Text": "持久文本"
   ,"Enter some text to have it persist between page reloads (saved in browser storage)": "输入文本以在页面重新加载时保持持久性 (在浏览器存储中保存)"

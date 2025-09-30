@@ -71,7 +71,7 @@ describe('Main Config Providers', () => {
       defaultLang: 'de',
     };
 
-    const storage = cookiesStorage();
+    const storage = localStorage;
     expect(storage).toBeTruthy();
 
     // Case 1: cachedLang is defined

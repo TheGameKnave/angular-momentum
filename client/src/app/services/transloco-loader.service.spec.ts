@@ -34,7 +34,7 @@ describe('TranslocoHttpLoader', () => {
       expect(translation).toEqual(mockTranslation);
     });
 
-    const req = httpMock.expectOne(`/assets/dev/i18n/${lang}.json`);
+    const req = httpMock.expectOne(`/assets/i18n/${lang}.json`);
     expect(req.request.method).toBe('GET');
 
     req.flush(mockTranslation); // Respond with the mock data
@@ -55,7 +55,7 @@ describe('TranslocoHttpLoader', () => {
     // spy on console error to prevent confusion
     const consoleSpy = spyOn(console, 'error');
   
-    const req = httpMock.expectOne(`/assets/dev/i18n/${lang}.json`);
+    const req = httpMock.expectOne(`/assets/i18n/${lang}.json`);
     req.error(new ProgressEvent('error'), { status: 0 }); // simulate network failure (backend down)
   });
   
@@ -75,7 +75,7 @@ describe('TranslocoHttpLoader', () => {
     // spy on console error to prevent confusion
     const consoleSpy = spyOn(console, 'error');
 
-    const req = httpMock.expectOne(`/assets/dev/i18n/${lang}.json`);
+    const req = httpMock.expectOne(`/assets/i18n/${lang}.json`);
     req.flush(mockError, { status: 404, statusText: 'Not Found' });
   });
 

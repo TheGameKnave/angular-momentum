@@ -2,7 +2,20 @@
 
 @use "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+/* Raleway Regular */
+@font-face {
+  font-family: 'Raleway';
+  src: url('/assets/fonts/Raleway-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900; /* Variable font range */
+  font-style: normal;
+}
+/* Raleway Italic */
+@font-face {
+  font-family: 'Raleway';
+  src: url('/assets/fonts/Raleway-Italic-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+}
 /// Regular font family
 /// @type List
 $text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC', 'Segoe UI', 'Arial Unicode MS', Arial, sans-serif !default;
@@ -18,10 +31,6 @@ $dark-brand: #278 !default;
 $light-gray: #eee !default;
 $gray: #ccc !default;
 $dark-gray: #aaa !default;
-body {
-  --p-icon-size: 2rem;
-  --p-floatlabel-active-font-size: 1.4rem;
-}
 .app-dark {
   background-color: #333;
   color: #f4f4f4;
@@ -80,6 +89,8 @@ html {
   font-size: 62.5%;
 }
 body {
+  --p-icon-size: 2rem;
+  --p-floatlabel-active-font-size: 1.4rem;
   font: normal 1.2rem / 1.4 $text-font-stack;
   font-family: $text-font-stack;
   font-weight: 500;
@@ -245,13 +256,6 @@ app-menu-feature {
       width: 4rem;
       display: inline-block;
       vertical-align: middle;
-    }
-  }
-  a {
-    display: block;
-  }
-  .link-home {
-    img {
       -webkit-filter: grayscale(100%);
       filter: grayscale(100%);
     }
@@ -261,6 +265,9 @@ app-menu-feature {
         filter: grayscale(0);
       }
     }
+  }
+  a {
+    display: block;
   }
   i.pi, .link-home img {
     font-size: 2.6rem;
