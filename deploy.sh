@@ -41,21 +41,21 @@ echo "📦 Pushing branch '$GIT_BRANCH' to remote '$GIT_REMOTE'..."
 git push $GIT_REMOTE $GIT_BRANCH:main
 
 # Sync to Linode only if needed
-if $USE_LINODE; then
-  # TODO maybe someday figure out how to host files on CDN for web AND in Tauri
-  # echo "🗂️ Syncing assets to Linode for '$LINODE_FOLDER'..."
-  # rclone sync ./assets/ linode:cdn.angularmomentum.app/assets/$LINODE_FOLDER/ \
-  #   --header "Cache-Control: no-cache, must-revalidate" \
-  #   --s3-acl public-read
+# if $USE_LINODE; then
+#   # TODO maybe someday figure out how to host files on CDN for web AND in Tauri
+#   # echo "🗂️ Syncing assets to Linode for '$LINODE_FOLDER'..."
+#   # rclone sync ./assets/ linode:cdn.angularmomentum.app/assets/$LINODE_FOLDER/ \
+#   #   --header "Cache-Control: no-cache, must-revalidate" \
+#   #   --s3-acl public-read
 
-  # if [[ "$ENV" == "production" ]]; then
-  #   echo "📦 Syncing Tauri dist to Linode..."
-  #   rclone sync ./dist/ linode:cdn.angularmomentum.app/dist/ \
-  #     --header "Cache-Control: no-cache, must-revalidate" \
-  #     --s3-acl public-read
-  # fi
-else
-  echo "⚠️ Skipping Linode sync for dev environment."
-fi
+#   # if [[ "$ENV" == "production" ]]; then
+#   #   echo "📦 Syncing Tauri dist to Linode..."
+#   #   rclone sync ./dist/ linode:cdn.angularmomentum.app/dist/ \
+#   #     --header "Cache-Control: no-cache, must-revalidate" \
+#   #     --s3-acl public-read
+#   # fi
+# else
+#   echo "⚠️ Skipping Linode sync for dev environment."
+# fi
 
 echo "✅ Deployment to '$ENV' complete."
