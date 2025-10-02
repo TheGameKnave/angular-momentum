@@ -11,11 +11,16 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Socket } from 'ngx-socket-io';
 import { of, Subject } from 'rxjs';
 import { SCREEN_SIZES } from './helpers/constants';
-import { Component, Type } from '@angular/core';
+import { Component, signal, Type } from '@angular/core';
+import { ConnectivityService } from './services/connectivity.service';
 
 // Dummy component just to satisfy ComponentInstance typing
 @Component({ template: '' })
 class DummyComponent{}
+class MockConnectivityService {
+  showOffline = signal(false);
+  isOnline = signal(true);
+}
 
 describe('AppComponent', () => {
   let component: AppComponent;
@@ -55,7 +60,8 @@ describe('AppComponent', () => {
         { provide: SlugPipe, useValue: slugPipe },
         { provide: ComponentListService, useValue: componentListService },
         { provide: Router, useValue: router },
-        { provide: Socket, useValue: socketSpy }
+        { provide: Socket, useValue: socketSpy },
+        { provide: ConnectivityService, useClass: MockConnectivityService },
       ],
     }).compileComponents();
 

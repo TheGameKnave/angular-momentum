@@ -1,8 +1,21 @@
 <ng-container *transloco="let t">
   <div class="main">
     <header>
-      Momentum 
-      @if(breadcrumb){ | {{ breadcrumb }}}
+      <div>
+        Momentum 
+        @if(breadcrumb){ | {{ breadcrumb }}}
+      </div>
+      <div>
+        @if(!connectivity.isOnline()){
+          @if(connectivity.showOffline()){
+            @if(window.innerWidth >= SCREEN_SIZES.md) { You are currently offline }
+            <i class="pi pi-exclamation-triangle"></i>
+          }
+          <i class="pi pi-wifi"></i>
+        } @else {
+          <i class="pi pi-wifi"></i>
+        }
+      </div>
     </header>
   
     <div class="content">

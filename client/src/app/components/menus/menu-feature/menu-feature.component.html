@@ -28,7 +28,7 @@
             [tooltipDisabled]="!showTooltip()"
           >
             <i class="{{ p.icon }}"></i>
-            @if (expanded()) { {{ t(p.name) }} }
+            @if (expanded()) { <span>{{ t(p.name) }}</span> }
           </a>
         </li>
       }
@@ -40,6 +40,7 @@
       <a
         href="https://ko-fi.com/K3K81AQJZO"
         target="_blank"
+        [class.disabled]="!connectivity.isOnline()"
         [pTooltip]="showTooltip() ? t('Support') : null"
         tooltipPosition="top"
         [tooltipDisabled]="!showTooltip()"

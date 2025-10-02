@@ -9,6 +9,12 @@ import { ComponentInstance } from '@app/models/data.model';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subject } from 'rxjs';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { ConnectivityService } from '@app/services/connectivity.service';
+
+class MockConnectivityService {
+  showOffline = signal(false);
+  isOnline = signal(true);
+}
 
 @Component({ selector: 'mock-comp-a', template: '' })
 class MockComponentA {}
@@ -46,6 +52,7 @@ describe('MenuFeatureComponent', () => {
         { provide: FeatureFlagService, useValue: featureFlagServiceSpy },
         { provide: HelpersService, useValue: helpersServiceSpy },
         { provide: Router, useValue: routerSpy },
+        { provide: ConnectivityService, useClass: MockConnectivityService },
       ]
     }).compileComponents();
 

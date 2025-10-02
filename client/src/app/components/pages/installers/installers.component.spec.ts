@@ -3,6 +3,13 @@ import { InstallersComponent } from './installers.component';
 import { InstallersService } from '@app/services/installers.service';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { By } from '@angular/platform-browser';
+import { signal } from '@angular/core';
+import { ConnectivityService } from '@app/services/connectivity.service';
+
+class MockConnectivityService {
+  showOffline = signal(false);
+  isOnline = signal(true);
+}
 
 describe('InstallersComponent initialization', () => {
   let component: InstallersComponent;
@@ -25,6 +32,7 @@ describe('InstallersComponent initialization', () => {
       ],
       providers: [
         { provide: InstallersService, useValue: installersServiceSpy },
+        { provide: ConnectivityService, useClass: MockConnectivityService },
       ]
     }).compileComponents();
 

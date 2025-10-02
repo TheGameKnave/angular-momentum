@@ -7,8 +7,12 @@ import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.mo
 import { signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { FeatureMonitorService } from '@app/services/feature-monitor.service';
+import { ConnectivityService } from '@app/services/connectivity.service';
 
-// Path to the mock database file
+class MockConnectivityService {
+  showOffline = signal(false);
+  isOnline = signal(true);
+}
 
 describe('FeaturesComponent', () => {
   const features = {...db.featureFlags};
@@ -42,6 +46,7 @@ describe('FeaturesComponent', () => {
       providers: [
         { provide: FeatureFlagService, useValue: featureFlagServiceSpy },
         { provide: FeatureMonitorService, useValue: jasmine.createSpyObj('FeatureMonitorService', ['watchRouteFeatureAndRedirect']) },
+        { provide: ConnectivityService, useClass: MockConnectivityService },
       ],
     }).compileComponents();
 

@@ -18,6 +18,7 @@ import { HelpersService } from '@app/services/helpers.service';
 import { SCREEN_SIZES } from '@app/helpers/constants';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TooltipModule } from 'primeng/tooltip';
+import { ConnectivityService } from '@app/services/connectivity.service';
 
 @Component({
   selector: 'app-menu-feature',
@@ -58,6 +59,7 @@ export class MenuFeatureComponent implements AfterViewInit {
     private readonly router: Router,
     private readonly destroyRef: DestroyRef,
     private readonly host: ElementRef,
+    protected readonly connectivity: ConnectivityService,
   ) {}
 
   ngAfterViewInit() {

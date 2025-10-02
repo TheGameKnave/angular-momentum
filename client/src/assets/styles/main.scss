@@ -171,6 +171,12 @@ a {
     color: #eee;
   }
 }
+.disabled {
+  opacity: 0.75;
+  pointer-events: none;
+  -webkit-filter: grayscale(100%);
+  filter: grayscale(100%);
+}
 button {
   font-size: 2rem;
   ul {
@@ -196,9 +202,20 @@ textarea {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  padding-left: 5rem;
 }
 header {
   flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  padding: .6rem;
+  border: 0 dashed $gray;
+  border-width: 0 0 1px 1px;
+}
+header > div {
+    display: flex;
+    align-items: center; /* centers text and icons inside each container */
+    gap: 0.25rem; /* optional: space between text and icons */
 }
 .content {
   flex: 1 0 auto;
@@ -212,7 +229,8 @@ footer {
   display: flex;
   justify-content: space-around;
   min-height: 4rem;
-  border-top: 1px solid #666;
+  border: 0 solid #666;
+  border-width: 1px 0 0 1px;
   .language-button {
     color: #fff;
     font-size: 2rem;
@@ -227,9 +245,6 @@ body.index footer {
     left: 0;
     right: 0;
 }
-.main > * {
-  padding-left: 6.6rem;
-}
 
 app-menu-feature, app-menu-language {
   position: fixed;
@@ -239,6 +254,9 @@ app-menu-feature, app-menu-language {
   font-size: 1.6rem;
   overflow-y: auto;
   a {
+    > span {
+      padding-right: .6rem;
+    }
     &:hover, &.selected {
       color: $light-brand;
     }
@@ -349,8 +367,11 @@ ul {
   &.index .content {
     padding-bottom: 8rem;
   }
-  .main > * {
-    padding-left: 1rem;
+  .main {
+    padding-left: 0;
+  }
+  header, footer {
+    border-left-width: 0;
   }
   footer {
     padding-bottom: 4rem;

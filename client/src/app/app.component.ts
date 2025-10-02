@@ -15,6 +15,7 @@ import { SlugPipe } from './pipes/slug.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ComponentListService } from './services/component-list.service';
 import { SCREEN_SIZES } from './helpers/constants';
+import { ConnectivityService } from './services/connectivity.service';
 
 @Component({
   selector: 'app-root',
@@ -32,6 +33,8 @@ export class AppComponent implements OnInit {
   onResize() {
     this.bodyClasses();
   }
+  window = window;
+  SCREEN_SIZES = SCREEN_SIZES;
   isDevMode = isDevMode();
   routePath = '';
   openMenu = '';
@@ -48,6 +51,7 @@ export class AppComponent implements OnInit {
     private readonly router: Router,
     private readonly destroyRef: DestroyRef,
     private readonly componentListService: ComponentListService,
+    protected readonly connectivity: ConnectivityService,
   ){}
 
   ngOnInit() {

@@ -7,6 +7,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { CardModule } from 'primeng/card';
 import { FeatureMonitorService } from '@app/services/feature-monitor.service';
+import { ConnectivityService } from '@app/services/connectivity.service';
 
 @Component({
   selector: 'app-features',
@@ -28,6 +29,7 @@ export class FeaturesComponent implements OnInit {
     protected featureFlagService: FeatureFlagService,
     readonly destroyRef: DestroyRef,
     private readonly featureMonitorService: FeatureMonitorService,
+    protected readonly connectivity: ConnectivityService,
   ){
     // Keep form in sync with signal changes
     effect(() => {
