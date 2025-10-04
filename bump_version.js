@@ -7,6 +7,14 @@ function bumpPatch(version) {
   return `${major}.${minor}.${patch + 1}`;
 }
 
+function isSemverGreater(v1, v2) {
+  const [m1, n1, p1] = v1.split(".").map(Number);
+  const [m2, n2, p2] = v2.split(".").map(Number);
+  if (m1 !== m2) return m1 > m2;
+  if (n1 !== n2) return n1 > n2;
+  return p1 > p2;
+}
+
 const rootPkgPath = path.resolve("package.json");
 if (!fs.existsSync(rootPkgPath)) {
   console.error("❌ Cannot find root package.json");
@@ -17,6 +25,25 @@ const oldVersion = rootPkg.version;
 const newVersion = process.argv[2] || bumpPatch(oldVersion);
 console.log(`🔁 Bumping version: ${oldVersion} → ${newVersion}`);
 
+// -----------------------------
+// Update iOS bundleVersion in tauri.conf.json
+// -----------------------------
+const tauriConfPath = path.resolve("client/src-tauri/tauri.conf.json");
+const tauriConf = JSON.parse(fs.readFileSync(tauriConfPath, "utf8"));
+
+if (!tauriConf.bundle.iOS) tauriConf.bundle.iOS = {};
+
+// Only increment bundleVersion if semver increased
+if (isSemverGreater(newVersion, oldVersion)) {
+  tauriConf.bundle.iOS.bundleVersion = (Number(tauriConf.bundle.iOS.bundleVersion || 0) + 1).toString();
+  console.log(`🔢 iOS bundleVersion incremented to ${tauriConf.bundle.iOS.bundleVersion}`);
+}
+
+fs.writeFileSync(tauriConfPath, JSON.stringify(tauriConf, null, 2));
+
+// -----------------------------
+// Other file updates
+// -----------------------------
 const targets = [
   {
     file: "package.json",

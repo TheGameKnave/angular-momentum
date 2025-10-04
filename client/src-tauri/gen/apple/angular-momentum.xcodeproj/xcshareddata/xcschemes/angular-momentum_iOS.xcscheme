@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "F15FC484A0B84A1714199A61"
-               BuildableName = "angular-momentum.app"
+               BuildableName = "Angular Momentum.app"
                BlueprintName = "angular-momentum_iOS"
                ReferencedContainer = "container:angular-momentum.xcodeproj">
             </BuildableReference>
@@ -31,7 +31,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F15FC484A0B84A1714199A61"
-            BuildableName = "angular-momentum.app"
+            BuildableName = "Angular Momentum.app"
             BlueprintName = "angular-momentum_iOS"
             ReferencedContainer = "container:angular-momentum.xcodeproj">
          </BuildableReference>
@@ -66,7 +66,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F15FC484A0B84A1714199A61"
-            BuildableName = "angular-momentum.app"
+            BuildableName = "Angular Momentum.app"
             BlueprintName = "angular-momentum_iOS"
             ReferencedContainer = "container:angular-momentum.xcodeproj">
          </BuildableReference>
@@ -95,7 +95,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F15FC484A0B84A1714199A61"
-            BuildableName = "angular-momentum.app"
+            BuildableName = "Angular Momentum.app"
             BlueprintName = "angular-momentum_iOS"
             ReferencedContainer = "container:angular-momentum.xcodeproj">
          </BuildableReference>

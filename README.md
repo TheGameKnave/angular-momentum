@@ -179,7 +179,7 @@ from `client`, while running a server locally:
 from `client`, while remote server is running:
 * `npm run tauri build` to build a standalone dev release for Windows, MacOS, and Linux.
 * `npm run tauri android dev` to build a standalone dev release for Android. (set `tauri.conf.json` devUrl to `https://angularmomentum.app`) to enable live server features.
-* `npm run tauri ios` to build a release for iOS.
+* `npm run tauri ios build -- --export-method app-store-connect` to build a release for iOS.
 
 ### Tauri configuration
 
