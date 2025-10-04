@@ -81,12 +81,12 @@ describe('MenuFeatureComponent', () => {
 
     // Mobile
     spyInnerWidth.and.returnValue(320);
-    component.isMobile.set(window.innerWidth < SCREEN_SIZES.md); // <- update signal
+    component.isMobile.set(window.innerWidth < SCREEN_SIZES.sm); // <- update signal
     expect(component.showTooltip()).toBeTrue();
 
     // Desktop, expanded true + always
     spyInnerWidth.and.returnValue(1024);
-    component.isMobile.set(window.innerWidth < SCREEN_SIZES.md); // <- update signal
+    component.isMobile.set(window.innerWidth < SCREEN_SIZES.sm); // <- update signal
     expect(component.showTooltip(true)).toBeTrue();
   });
 

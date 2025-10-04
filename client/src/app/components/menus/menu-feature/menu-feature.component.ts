@@ -36,9 +36,9 @@ export class MenuFeatureComponent implements AfterViewInit {
   @HostListener('window:resize')
   onResize() {
     this.scrollToCenter();
-    this.isMobile.set(window.innerWidth < SCREEN_SIZES.md);
+    this.isMobile.set(window.innerWidth < SCREEN_SIZES.sm);
   }
-  isMobile = signal(window.innerWidth < SCREEN_SIZES.md);
+  isMobile = signal(window.innerWidth < SCREEN_SIZES.sm);
 
   constructor(
     readonly componentListService: ComponentListService,

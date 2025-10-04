@@ -72,7 +72,7 @@ export class AppComponent implements OnInit {
 
   bodyClasses(): void {
     // remove all classes from body
-    document.body.className = 'app-dark';
+    document.body.className = 'app-dark screen-xs';
     if (this.routePath) document.body.classList.add(this.routePath);
     // set class of body to reflect screen sizes
     for (const size in SCREEN_SIZES) {
