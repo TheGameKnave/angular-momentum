@@ -74,9 +74,15 @@ export class AppComponent implements OnInit {
     // remove all classes from body
     document.body.className = 'app-dark';
     if (this.routePath) document.body.classList.add(this.routePath);
-    //set class of body to 'mobile' for small screens
-    if (window.innerWidth < SCREEN_SIZES.md) {
-      document.body.classList.add('mobile');
+    // set class of body to reflect screen sizes
+    for (const size in SCREEN_SIZES) {
+      if (window.innerWidth >= SCREEN_SIZES[size as keyof typeof SCREEN_SIZES]) {
+        document.body.classList.add('screen-' + size);
+        document.body.classList.remove('not-' + size);
+      } else {
+        document.body.classList.remove('screen-' + size);
+        document.body.classList.add('not-' + size);
+      }
     }
   }
 

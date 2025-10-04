@@ -24,6 +24,10 @@ $text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC
 /// @type List
 $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Monaco', monospace !default;
 
+///////////
+// Theme //
+///////////
+
 @import "primeicons/primeicons.css";
 $light-brand: #0ca !default;
 $brand: #1b9 !default;
@@ -31,6 +35,8 @@ $dark-brand: #278 !default;
 $light-gray: #eee !default;
 $gray: #ccc !default;
 $dark-gray: #aaa !default;
+$mid-gray: #888 !default;
+$shadow: rgba(0, 0, 0, 0.2) !default;
 .app-dark {
   background-color: #333;
   color: #f4f4f4;
@@ -61,7 +67,7 @@ $dark-gray: #aaa !default;
       
       /* Shadow Cover BOTTOM */
       linear-gradient(
-        rgba(255, 255, 255, 0), 
+        rgba(255, 255, 255, 0),
         #333 70%
       ) center bottom,
       
@@ -84,6 +90,10 @@ $dark-gray: #aaa !default;
     background-attachment: local, local, scroll, scroll;
   }
 }
+
+//////////
+// Base //
+//////////
 
 html {
   font-size: 62.5%;
@@ -148,6 +158,9 @@ hr {
   }
 }
 * {
+  &:not(.p-tooltip){
+    transition: all 0.2s ease-in-out;
+  }
   scrollbar-width: none;          /* Firefox */
   -ms-overflow-style: none;       /* IE 10+ */
   -webkit-overflow-scrolling: touch; /* smooth touch scrolling iOS */
@@ -184,11 +197,11 @@ button {
     text-align: left;
   }
 }
-button, 
-input[type="submit"], 
-input[type="reset"], 
-input[type="button"], 
-input[type="checkbox"], 
+button,
+input[type="submit"],
+input[type="reset"],
+input[type="button"],
+input[type="checkbox"],
 label[for]
 {
   cursor: pointer;
@@ -197,6 +210,15 @@ textarea {
   font-size: 1.4rem !important;
   width: 100%;
 }
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+////////////
+// Layout //
+////////////
 
 .main {
   display: flex;
@@ -204,18 +226,20 @@ textarea {
   min-height: 100vh;
   padding-left: 5rem;
 }
+app-menu-feature, app-menu-language, header, footer {
+  border: 0 solid $mid-gray;
+}
 header {
   flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
   padding: .6rem;
-  border: 0 dashed $gray;
-  border-width: 0 0 1px 1px;
-}
-header > div {
+  border-bottom-width: 1px;
+  > div {
     display: flex;
     align-items: center; /* centers text and icons inside each container */
     gap: 0.25rem; /* optional: space between text and icons */
+  }
 }
 .content {
   flex: 1 0 auto;
@@ -229,8 +253,7 @@ footer {
   display: flex;
   justify-content: space-around;
   min-height: 4rem;
-  border: 0 solid #666;
-  border-width: 1px 0 0 1px;
+  border-top-width: 1px;
   .language-button {
     color: #fff;
     font-size: 2rem;
@@ -254,8 +277,14 @@ app-menu-feature, app-menu-language {
   font-size: 1.6rem;
   overflow-y: auto;
   a {
-    > span {
-      padding-right: .6rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    .label {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      flex: 1; /* ← this is crucial */
     }
     &:hover, &.selected {
       color: $light-brand;
@@ -268,10 +297,17 @@ app-menu-feature, app-menu-language {
 app-menu-feature {
   padding: 5.2rem 0.6rem 4.3rem;
   left: 0;
+  width: 5rem;
+  transition: width 0.1s ease-in-out !important;
+  border-right-width: 1px;
+  &:hover {
+    width: 18rem;
+    box-shadow: 1rem 0 1rem $shadow;
+  }
   .link-home {
     white-space: nowrap;
     img {
-      width: 4rem;
+      width: 3rem;
       display: inline-block;
       vertical-align: middle;
       -webkit-filter: grayscale(100%);
@@ -285,19 +321,25 @@ app-menu-feature {
     }
   }
   a {
-    display: block;
+    display: inline-flex;
+    width: 100%;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1rem;
+    padding: 0.4rem;
   }
-  i.pi, .link-home img {
+  i.pi {
     font-size: 2.6rem;
     vertical-align: middle;
     border-radius: 1rem;
-    padding: 0.6rem;
   }
 }
 app-menu-language {
   right: 0;
   padding-top: 4rem;
   min-width: 18rem;
+  border-left-width: 1px;
+  box-shadow: -1rem 0 1rem $shadow;
   h3 {
     position: absolute;
     top: 0.6rem;
@@ -317,53 +359,69 @@ app-menu-language {
     grid-auto-columns: max-content; /* each column only as wide as content */
     gap: 0.5rem 1rem;              /* row/col spacing */
     overflow-y: auto;              /* allow vertical scrolling if too tall */
-    max-width: 80vw;     
+    max-width: 80vw;
     li {
       break-inside: avoid; /* prevent items from splitting */
       display: inline-block; /* required for proper column flow */
       width: max-content;
+      a {
+        padding: 0.4rem 0;
+        display: block;
+      }
     }
   }
-  ul li a {
-    padding: 0.4rem 0;
-    display: block;
-  }
 }
-ul {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
+.link-home, .kofi-button {
+  left: 0.6rem;
+  right: 0.6rem;
 }
 .link-home {
   position: absolute;
   top: 0.6rem;
-  left: 0.6rem;
 }
 .kofi-button {
   position: absolute;
   bottom: 0.6rem;
   a {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
     background-color: $dark-brand;
     color: #fff;
     border: 1px solid $dark-brand;
-    border-radius: .6rem;
+    border-radius: 0.6rem;
     padding: 0.4rem 0.6rem;
     font-size: 1.6rem;
     white-space: nowrap;
     cursor: pointer;
+    text-decoration: none;
+    &:hover {
+      border-color: $light-brand;
+    }
   }
   img {
-    display: inline-block;
-    vertical-align: middle;
     width: 2.6rem;
-  }
-  cursor: pointer;
-  &:hover {
-    border-color: $light-brand;
+    height: 2.6rem;
+    object-fit: contain;
+    flex-shrink: 0;
+    display: block;
   }
 }
 
-.mobile {
+//////////////////
+// screen sizes //
+//////////////////
+
+.screen-xl {
+  app-menu-feature {
+    width: 18rem;
+    box-shadow: none;
+  }
+  .main {
+    padding-left: 18rem;
+  }
+}
+.screen-sm.not-md {
   &.index .content {
     padding-bottom: 8rem;
   }
@@ -395,7 +453,6 @@ ul {
     overflow-x: auto;
     > * {
       margin: 0;
-      transition: transform 0.2s ease;
     }
     ul {
       display: flex;

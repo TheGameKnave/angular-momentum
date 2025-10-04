@@ -33,24 +33,12 @@ import { ConnectivityService } from '@app/services/connectivity.service';
 })
 export class MenuFeatureComponent implements AfterViewInit {
   @ViewChild('scrollArea') scrollArea?: ElementRef;
-  // Mouse hover for desktop
-  @HostListener('mouseenter')
-  onMouseEnter() {
-    if (window.innerWidth >= SCREEN_SIZES.md) this.expanded.set(true);
-  }
-  @HostListener('mouseleave')
-  onMouseLeave() {
-    this.expanded.set(false);
-  }
-  @HostListener('click')
-  onClick() {
-    this.expanded.set(false);
-  }
   @HostListener('window:resize')
   onResize() {
     this.scrollToCenter();
+    this.isMobile.set(window.innerWidth < SCREEN_SIZES.md);
   }
-  expanded = signal(false);
+  isMobile = signal(window.innerWidth < SCREEN_SIZES.md);
 
   constructor(
     readonly componentListService: ComponentListService,
@@ -78,7 +66,8 @@ export class MenuFeatureComponent implements AfterViewInit {
   }
 
   scrollToCenter(): void {
-    if (window.innerWidth >= SCREEN_SIZES.md) return;
+    let offset: number;
+    if (!this.isMobile()) offset = 0;
 
     const container = this.scrollArea?.nativeElement;
     if (container){
@@ -88,7 +77,7 @@ export class MenuFeatureComponent implements AfterViewInit {
       const tryScroll = () => {
         const activeLink = container.querySelector('.selected') as HTMLElement;
         if (activeLink) {
-          const offset = activeLink.offsetLeft + activeLink.offsetWidth / 2 - container.clientWidth / 2;
+          if(offset !== 0) offset = activeLink.offsetLeft + activeLink.offsetWidth / 2 - container.clientWidth / 2;
           container.scrollTo({ left: offset, behavior: 'smooth' });
         } else if (attempts++ < maxAttempts) {
           requestAnimationFrame(tryScroll);
@@ -102,8 +91,7 @@ export class MenuFeatureComponent implements AfterViewInit {
   }
 
   showTooltip(always = false): boolean {
-    const isMobile = window.innerWidth < SCREEN_SIZES.md;
-    return isMobile || (this.expanded() && always);
+    return this.isMobile() || always;
   }
 
   componentCount(): number {

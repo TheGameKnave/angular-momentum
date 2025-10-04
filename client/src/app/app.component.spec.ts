@@ -142,13 +142,17 @@ describe('AppComponent', () => {
     it('should add mobile class when width < SCREEN_SIZES.md', () => {
       spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md - 1);
       component.bodyClasses();
-      expect(document.body.classList.contains('mobile')).toBeTrue();
+      expect(document.body.classList.contains('screen-sm')).toBeTrue();
+      expect(document.body.classList.contains('not-md')).toBeTrue();
+      expect(document.body.classList.contains('screen-md')).toBeFalse();
     });
 
     it('should not add mobile class when width >= SCREEN_SIZES.md', () => {
       spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md + 100);
       component.bodyClasses();
-      expect(document.body.classList.contains('mobile')).toBeFalse();
+      expect(document.body.classList.contains('screen-sm')).toBeTrue();
+      expect(document.body.classList.contains('not-md')).toBeFalse();
+      expect(document.body.classList.contains('screen-md')).toBeTrue();
     });
   });
 
