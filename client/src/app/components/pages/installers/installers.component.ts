@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { ConnectivityService } from '@app/services/connectivity.service';
 import { InstallersService } from '@app/services/installers.service';
 import { TranslocoDirective } from '@jsverse/transloco';
@@ -15,11 +15,15 @@ import { CardModule } from 'primeng/card';
   templateUrl: './installers.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class InstallersComponent {
+export class InstallersComponent implements OnInit {
 
   constructor(
     protected readonly installersService: InstallersService,
     protected readonly connectivity: ConnectivityService,
   ) {}
+
+  ngOnInit(): void {
+    this.connectivity.start();
+  }
 
 }

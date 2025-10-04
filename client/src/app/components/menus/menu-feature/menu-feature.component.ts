@@ -6,7 +6,8 @@ import {
   ElementRef,
   AfterViewInit,
   DestroyRef,
-  ViewChild
+  ViewChild,
+  OnInit
 } from '@angular/core';
 import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { filter } from 'rxjs';
@@ -31,7 +32,7 @@ import { ConnectivityService } from '@app/services/connectivity.service';
     TooltipModule,
   ],
 })
-export class MenuFeatureComponent implements AfterViewInit {
+export class MenuFeatureComponent implements OnInit, AfterViewInit {
   @ViewChild('scrollArea') scrollArea?: ElementRef;
   @HostListener('window:resize')
   onResize() {
@@ -49,6 +50,10 @@ export class MenuFeatureComponent implements AfterViewInit {
     private readonly host: ElementRef,
     protected readonly connectivity: ConnectivityService,
   ) {}
+
+  ngOnInit() {
+    this.connectivity.start();
+  }
 
   ngAfterViewInit() {
     // Scroll to active route on mobile only

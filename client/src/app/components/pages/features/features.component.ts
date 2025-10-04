@@ -39,6 +39,7 @@ export class FeaturesComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.connectivity.start();
 
     // Build form controls based on current feature flags
     const features = this.featureFlagService.features();

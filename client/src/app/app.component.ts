@@ -55,6 +55,7 @@ export class AppComponent implements OnInit {
   ){}
 
   ngOnInit() {
+    this.connectivity.start();
     // there might be a better way to detect the current component for the breadcrumbs...
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd){

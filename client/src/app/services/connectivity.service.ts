@@ -15,16 +15,16 @@ import { LogService } from './log.service';
  */
 @Injectable({ providedIn: 'root' })
 export class ConnectivityService {
-  private _isOnline = signal<boolean>(false);
+  private readonly _isOnline = signal<boolean>(false);
   isOnline = this._isOnline.asReadonly();
 
-  private _osOnline = signal<boolean>(navigator.onLine);
+  private readonly _osOnline = signal<boolean>(navigator.onLine);
   osOnline = this._osOnline.asReadonly();
 
-  private _showOffline = signal<boolean>(false);
+  private readonly _showOffline = signal<boolean>(false);
   showOffline = this._showOffline.asReadonly();
 
-  private _lastVerifiedOnline = signal<Date | undefined>(undefined);
+  private readonly _lastVerifiedOnline = signal<Date | undefined>(undefined);
   lastVerifiedOnline = this._lastVerifiedOnline.asReadonly();
 
   private stopped = false;
@@ -54,8 +54,12 @@ export class ConnectivityService {
       this.scheduleOfflineBanner();      // banner delayed
     });
 
-    this.verify();           // verify on first load
     this.scheduleNextCheck();
+  }
+
+  /** Start initial verification */
+  async start(): Promise<void> {
+    await this.verify();
   }
 
   /** Stops all timers and polling */
