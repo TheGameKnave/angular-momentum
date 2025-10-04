@@ -25,16 +25,14 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Hotjar script for user behavior analysis
 * Websockets to reconcile disparities between server and local data *
 * public api with GraphQL *
+* DB-agnostic query layer
 * Tauri integration for app bundling
 * CDN for static assets and binary distros
 
 (* indicates a feature that’s visible in the sample app)
 
 ## Future features:
-* Tauri app signing and auto-updating for distribution.
-* DB-agnostic query layer
-* Elf state management *
-* Immutable.js or immer or Timm to minimize mutation
+* Tauri app signing and (desktop)auto-updating for distribution.
 * Lighthouse CI to mitigate performance slip
 * Auth-agnostic (or maybe just Firebase) user management (emails and password resetting and deliverability) *
 

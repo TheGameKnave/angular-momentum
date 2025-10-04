@@ -16,7 +16,6 @@
 		BB9E2E09382A98D6221CEA87 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D2C786A32967266941DDF658 /* UIKit.framework */; };
 		BF28BC19CD8620521F7AA008 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E41BEE6F146D5B828BAD7C5B /* Metal.framework */; };
 		C7799A3CF15825989D2B58F7 /* libapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8EB4B28203CD07C30917DC3D /* libapp.a */; };
-		D6C1ED32C91494D8FFF59261 /* libapp.a in Resources */ = {isa = PBXBuildFile; fileRef = CD8ECD39F958B7B8CE2B8532 /* libapp.a */; };
 		DE132B6757F6D7D736662B45 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F03BA08A7CADDE8023BC149C /* Assets.xcassets */; };
 		E3AF5DE219E0368FC223E78B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 37F14360F2EEAA9CCC8B7644 /* LaunchScreen.storyboard */; };
 		FD467D1BFBC4375242799E2E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ED8C9E82797173C584B9B178 /* CoreGraphics.framework */; };
@@ -237,7 +236,6 @@
 				DE132B6757F6D7D736662B45 /* Assets.xcassets in Resources */,
 				E3AF5DE219E0368FC223E78B /* LaunchScreen.storyboard in Resources */,
 				16E44CEFA4835F54049D3358 /* assets in Resources */,
-				D6C1ED32C91494D8FFF59261 /* libapp.a in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
