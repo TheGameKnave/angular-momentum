@@ -15,6 +15,9 @@ import { SCREEN_SIZES } from '@app/helpers/constants';
 class MockConnectivityService {
   showOffline = signal(false);
   isOnline = signal(true);
+  start(): Promise<void> {
+    return Promise.resolve(); // no-op for tests
+  }
 }
 
 @Component({ selector: 'mock-comp-a', template: '' })

@@ -92,52 +92,52 @@ export class ConnectivityService {
 
   /** Perform ping to check connectivity */
   private async verify() {
-    if (this.stopped) return;
-
-    this.verifyAbortController = new AbortController();
-    const { signal } = this.verifyAbortController;
-
-    try {
-      const res = await fetch(`${this.pingUrl}?ts=${Date.now()}`, {
-        cache: 'no-store',
-        signal,
-      });
-
-      const success = res.ok;
-      this._isOnline.set(success);             // immediate source-of-truth update
-
-      if (success) {
-        this._lastVerifiedOnline.set(new Date());
-        this.currentInterval = this.baseInterval;
-        this.clearOfflineBanner();
-
-        if (this.lastLoggedOnline !== true) {
-          console.log(`✅ Verified online at ${new Date().toLocaleTimeString()}`);
-          this.lastLoggedOnline = true;
+    if (!this.stopped) {
+      this.verifyAbortController = new AbortController();
+      const { signal } = this.verifyAbortController;
+  
+      try {
+        const res = await fetch(`${this.pingUrl}?ts=${Date.now()}`, {
+          cache: 'no-store',
+          signal,
+        });
+  
+        const success = res.ok;
+        this._isOnline.set(success);             // immediate source-of-truth update
+  
+        if (success) {
+          this._lastVerifiedOnline.set(new Date());
+          this.currentInterval = this.baseInterval;
+          this.clearOfflineBanner();
+  
+          if (this.lastLoggedOnline !== true) {
+            console.log(`✅ Verified online at ${new Date().toLocaleTimeString()}`);
+            this.lastLoggedOnline = true;
+          }
+        } else {
+          this._isOnline.set(false);             // logical offline
+          this.currentInterval = Math.min(this.currentInterval * 2, this.maxInterval);
+          this.scheduleOfflineBanner();
+  
+          if (this.lastLoggedOnline !== false) {
+            console.log('⚠️ Ping failed — treating as offline');
+            this.lastLoggedOnline = false;
+          }
         }
-      } else {
-        this._isOnline.set(false);             // logical offline
-        this.currentInterval = Math.min(this.currentInterval * 2, this.maxInterval);
-        this.scheduleOfflineBanner();
-
-        if (this.lastLoggedOnline !== false) {
-          console.log('⚠️ Ping failed — treating as offline');
-          this.lastLoggedOnline = false;
+      } catch {
+        if (!this.stopped) {
+          this._isOnline.set(false);
+          this.currentInterval = Math.min(this.currentInterval * 2, this.maxInterval);
+          this.scheduleOfflineBanner();
+  
+          if (this.lastLoggedOnline !== false) {
+            console.log('⚠️ Ping error — treating as offline');
+            this.lastLoggedOnline = false;
+          }
         }
+      } finally {
+        this.verifyAbortController = undefined;
       }
-    } catch {
-      if (!this.stopped) {
-        this._isOnline.set(false);
-        this.currentInterval = Math.min(this.currentInterval * 2, this.maxInterval);
-        this.scheduleOfflineBanner();
-
-        if (this.lastLoggedOnline !== false) {
-          console.log('⚠️ Ping error — treating as offline');
-          this.lastLoggedOnline = false;
-        }
-      }
-    } finally {
-      this.verifyAbortController = undefined;
     }
   }
 

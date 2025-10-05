@@ -9,6 +9,9 @@ import { ConnectivityService } from '@app/services/connectivity.service';
 class MockConnectivityService {
   showOffline = signal(false);
   isOnline = signal(true);
+  start(): Promise<void> {
+    return Promise.resolve(); // no-op for tests
+  }
 }
 
 describe('InstallersComponent initialization', () => {

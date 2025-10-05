@@ -28,6 +28,20 @@ describe('ConnectivityService', () => {
     service.stop(); // stop timers / in-flight fetches
   });
 
+  it('start() should perform initial verification', async () => {
+    const service = TestBed.inject(ConnectivityService);
+
+    // Spy on the private verify method
+    const verifySpy = spyOn<any>(service, 'verify').and.returnValue(Promise.resolve());
+
+    // Call start
+    await service.start();
+
+    // Assert that verify was called
+    expect(verifySpy).toHaveBeenCalled();
+  });
+
+
   it('should initialize signals correctly', () => {
     expect(service.isOnline()).toBeFalse(); // now starts false
     expect(service.osOnline()).toBe(navigator.onLine);
