@@ -265,7 +265,7 @@ footer {
 body.index footer {
     position: fixed;
     bottom: 0;
-    left: 0;
+    left: 5rem;
     right: 0;
 }
 
@@ -413,6 +413,9 @@ app-menu-language {
 //////////////////
 
 .screen-xl {
+  body.index footer {
+      left: 18rem;
+  }
   app-menu-feature {
     width: 18rem;
     box-shadow: none;
@@ -433,6 +436,7 @@ app-menu-language {
   }
   footer {
     padding-bottom: 4rem;
+    left: 0;
     > * {
       font-size: 1.6rem;
     }

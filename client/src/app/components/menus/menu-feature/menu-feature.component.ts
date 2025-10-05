@@ -33,12 +33,14 @@ import { ConnectivityService } from '@app/services/connectivity.service';
   ],
 })
 export class MenuFeatureComponent implements OnInit, AfterViewInit {
-  @ViewChild('scrollArea') scrollArea?: ElementRef;
+  @ViewChild('scrollArea') scrollArea?: ElementRef<HTMLElement>;
+
   @HostListener('window:resize')
   onResize() {
     this.scrollToCenter();
     this.isMobile.set(window.innerWidth < SCREEN_SIZES.sm);
   }
+
   isMobile = signal(window.innerWidth < SCREEN_SIZES.sm);
 
   constructor(
@@ -56,43 +58,59 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    // Scroll to active route on mobile only
-    // once on load
+    // Initial scroll to active route
     this.scrollToCenter();
+
+    // Scroll again after each navigation (e.g., route change)
     this.router.events
       .pipe(
         filter(e => e instanceof NavigationEnd),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe(() => {
-        // scroll on navigation
-        this.scrollToCenter();
-      });
+      .subscribe(() => this.scrollToCenter());
   }
 
+  /**
+   * Smoothly scrolls the selected menu item into horizontal center view.
+   * Fully zoneless + Chrome-safe (no setTimeout).
+   */
   scrollToCenter(): void {
-    let offset: number;
-    if (!this.isMobile()) offset = 0;
-
     const container = this.scrollArea?.nativeElement;
-    if (container){
-      let attempts = 0;
-      const maxAttempts = 10; // arbitrary limit
-  
-      const tryScroll = () => {
-        const activeLink = container.querySelector('.selected') as HTMLElement;
-        if (activeLink) {
-          if(offset !== 0) offset = activeLink.offsetLeft + activeLink.offsetWidth / 2 - container.clientWidth / 2;
-          container.scrollTo({ left: offset, behavior: 'smooth' });
-        } else if (attempts++ < maxAttempts) {
-          requestAnimationFrame(tryScroll);
-        } else {
-          console.warn('MenuFeatureComponent: no .selected element found after multiple attempts.');
-        }
-      };
-  
-      requestAnimationFrame(tryScroll);
-    }
+    if (!container) return;
+
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    const tryScroll = () => {
+      const activeLink = container.querySelector('.selected') as HTMLElement | null;
+      if (!activeLink) {
+        if (attempts++ < maxAttempts) requestAnimationFrame(tryScroll);
+        else console.warn('MenuFeatureComponent: no .selected element found after multiple attempts.');
+        return;
+      }
+
+      const isMobile = this.isMobile();
+      const targetScrollLeft = isMobile
+        ? activeLink.offsetLeft + activeLink.offsetWidth / 2 - container.clientWidth / 2
+        : 0;
+
+      // --- Chrome-safe layout stabilization ---
+      // Two nested rAFs ensure layout and paint are complete
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          // Force layout reflow before scroll
+          void container.getBoundingClientRect();
+
+          // Establish baseline scroll (prevents Chrome from jumping to 0)
+          container.scrollLeft = targetScrollLeft;
+
+          // Perform smooth scroll
+          container.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
+        });
+      });
+    };
+
+    requestAnimationFrame(tryScroll);
   }
 
   showTooltip(always = false): boolean {
@@ -102,5 +120,4 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
   componentCount(): number {
     return this.helpersService.enabledComponents().length;
   }
-
 }
