@@ -82,7 +82,7 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
     const maxAttempts = 10;
 
     const tryScroll = () => {
-      const activeLink = container.querySelector('.selected') as HTMLElement | null;
+      const activeLink = container.querySelector('.selected') as HTMLElement;
       if (!activeLink) {
         if (attempts++ < maxAttempts) requestAnimationFrame(tryScroll);
         else console.warn('MenuFeatureComponent: no .selected element found after multiple attempts.');
@@ -99,7 +99,7 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           // Force layout reflow before scroll
-          void container.getBoundingClientRect();
+          container.getBoundingClientRect();
 
           // Establish baseline scroll (prevents Chrome from jumping to 0)
           container.scrollLeft = targetScrollLeft;
