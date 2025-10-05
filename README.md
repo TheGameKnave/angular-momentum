@@ -183,7 +183,7 @@ from `client`, while remote server is running:
 
 Tauri desktop builds can have update tar.gz files that can be downloaded and installed automatically. Manually edit `latest.json` with the signature of each built update zip, and host them on a CDN (see below).
 
-* e.g. `cat "/Users/kduda/websites/angular-momentum/client/src-tauri/target/release/bundle/macos/Angular Momentum.app.tar.gz.sig"` to retrieve the signature.
+* e.g. `cat "src-tauri/target/release/bundle/macos/Angular Momentum.app.tar.gz.sig"` to retrieve the signature.
 
 ## CDN
 
