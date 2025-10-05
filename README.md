@@ -28,11 +28,12 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * DB-agnostic query layer
 * Tauri integration for app bundling
 * CDN for static assets and binary distros
+* Tauri app signing and (desktop)auto-updating for distribution to ~~Android~~, iOS, macOS, ~~Windows~~, and ~~Linux~~.
 
 (* indicates a feature that’s visible in the sample app)
 
 ## Future features:
-* Tauri app signing and (desktop)auto-updating for distribution.
+* Tauri app signing and (desktop)auto-updating for distribution to Android, Windows, and Linux.
 * Lighthouse CI to mitigate performance slip
 * Auth-agnostic (or maybe just Firebase) user management (emails and password resetting and deliverability) *
 
