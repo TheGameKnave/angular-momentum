@@ -105,6 +105,15 @@ body {
   font-family: $text-font-stack;
   font-weight: 500;
   font-feature-settings: "lnum";
+  .main, app-menu-feature {
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
+  .main {
+    padding-top: env(safe-area-inset-top) !important; // iOS safe area for Tauri builds
+  }
+  app-menu-feature {
+    top: env(safe-area-inset-top);
+  }
   h1 {
     font-weight: 600;
     font-size: 2.8rem;
@@ -245,9 +254,6 @@ header {
   flex: 1 0 auto;
   padding: 1rem;
 }
-body.index .content {
-  padding-bottom: 5rem;
-}
 footer {
   flex: 0 0 auto;
   display: flex;
@@ -261,12 +267,6 @@ footer {
       color: $light-brand;
     }
   }
-}
-body.index footer {
-    position: fixed;
-    bottom: 0;
-    left: 5rem;
-    right: 0;
 }
 
 app-menu-feature, app-menu-language {
@@ -425,9 +425,6 @@ app-menu-language {
   }
 }
 .screen-xs.not-sm {
-  &.index .content {
-    padding-bottom: 8rem;
-  }
   .main {
     padding-left: 0;
   }
@@ -452,18 +449,16 @@ app-menu-language {
     align-items: center;
     z-index: 99;
     width: auto;
-    height: 4rem;
     padding: 0;
     overflow-x: auto;
+    border-width: 1px 0 0 0;
     > * {
       margin: 0;
     }
     ul {
       display: flex;
-      flex-direction: row;
-      height: 100%;
       min-width: max-content;
-      align-items: center;
+      align-items: stretch;
       &:before, &:after {
         display: block;
         content: "";
@@ -475,7 +470,7 @@ app-menu-language {
       }
     }
     hr {
-      height: 100%;
+      height: auto;
       min-width: 0.3rem;
       &:before {
         top: 0;
@@ -489,7 +484,7 @@ app-menu-language {
       position: static;
       display: flex;
       height: 100%;
-      align-items: center;
+      align-items: stretch;
     }
     .link-home hr {
       margin-left: 1.2rem;
