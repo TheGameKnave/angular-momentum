@@ -25,16 +25,15 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Hotjar script for user behavior analysis
 * Websockets to reconcile disparities between server and local data *
 * public api with GraphQL *
+* DB-agnostic query layer
 * Tauri integration for app bundling
 * CDN for static assets and binary distros
+* Tauri app signing and (desktop)auto-updating for distribution to ~~Android~~, iOS, macOS, ~~Windows~~, and ~~Linux~~.
 
 (* indicates a feature that’s visible in the sample app)
 
 ## Future features:
-* Tauri app signing and auto-updating for distribution.
-* DB-agnostic query layer
-* Elf state management *
-* Immutable.js or immer or Timm to minimize mutation
+* Tauri app signing and (desktop)auto-updating for distribution to Android, Windows, and Linux.
 * Lighthouse CI to mitigate performance slip
 * Auth-agnostic (or maybe just Firebase) user management (emails and password resetting and deliverability) *
 
@@ -179,13 +178,13 @@ from `client`, while running a server locally:
 from `client`, while remote server is running:
 * `npm run tauri build` to build a standalone dev release for Windows, MacOS, and Linux.
 * `npm run tauri android dev` to build a standalone dev release for Android. (set `tauri.conf.json` devUrl to `https://angularmomentum.app`) to enable live server features.
-* `npm run tauri ios` to build a release for iOS.
+* `npm run tauri ios build -- --export-method app-store-connect` to build a release for iOS.
 
 ### Tauri configuration
 
 Tauri desktop builds can have update tar.gz files that can be downloaded and installed automatically. Manually edit `latest.json` with the signature of each built update zip, and host them on a CDN (see below).
 
-* e.g. `cat "/Users/kduda/websites/angular-momentum/client/src-tauri/target/release/bundle/macos/Angular Momentum.app.tar.gz.sig"` to retrieve the signature.
+* e.g. `cat "src-tauri/target/release/bundle/macos/Angular Momentum.app.tar.gz.sig"` to retrieve the signature.
 
 ## CDN
 

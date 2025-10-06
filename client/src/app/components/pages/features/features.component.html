@@ -4,7 +4,7 @@
     <hr>
     <ul>
       @for (feature of Object.entries(featureFlagService.features()); track $index) {
-        <li>
+        <li [class.disabled]="!connectivity.isOnline()">
           <p-toggleswitch
             [inputId]="'thing'+feature[0]"
             [formControl]="featureControl(feature[0])"

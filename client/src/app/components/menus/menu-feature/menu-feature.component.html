@@ -11,7 +11,7 @@
         [tooltipDisabled]="!showTooltip()"
       >
         <img src="assets/icons/icon-72x72.png" alt="Angular Logo" />
-        @if (expanded()) { {{ t('Momentum') }} }
+        @if (!isMobile()) { {{ t('Momentum') }} }
       </a>
       <hr />
     </li>
@@ -28,7 +28,7 @@
             [tooltipDisabled]="!showTooltip()"
           >
             <i class="{{ p.icon }}"></i>
-            @if (expanded()) { {{ t(p.name) }} }
+            @if (!isMobile()) { <span class="label">{{ t(p.name) }}</span> }
           </a>
         </li>
       }
@@ -40,12 +40,13 @@
       <a
         href="https://ko-fi.com/K3K81AQJZO"
         target="_blank"
+        [class.disabled]="!connectivity.isOnline()"
         [pTooltip]="showTooltip() ? t('Support') : null"
         tooltipPosition="top"
         [tooltipDisabled]="!showTooltip()"
       >
         <img src="assets/icons/kofi-logo.png" alt="Ko-fi Logo" />
-        @if (expanded()) { {{ t('Support') }} }
+        @if (!isMobile()) { {{ t('Support') }} }
       </a>
     </li>
   </ul>

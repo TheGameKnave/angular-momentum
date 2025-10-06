@@ -9,6 +9,16 @@ import { ComponentInstance } from '@app/models/data.model';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subject } from 'rxjs';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { ConnectivityService } from '@app/services/connectivity.service';
+import { SCREEN_SIZES } from '@app/helpers/constants';
+
+class MockConnectivityService {
+  showOffline = signal(false);
+  isOnline = signal(true);
+  start(): Promise<void> {
+    return Promise.resolve(); // no-op for tests
+  }
+}
 
 @Component({ selector: 'mock-comp-a', template: '' })
 class MockComponentA {}
@@ -46,6 +56,7 @@ describe('MenuFeatureComponent', () => {
         { provide: FeatureFlagService, useValue: featureFlagServiceSpy },
         { provide: HelpersService, useValue: helpersServiceSpy },
         { provide: Router, useValue: routerSpy },
+        { provide: ConnectivityService, useClass: MockConnectivityService },
       ]
     }).compileComponents();
 
@@ -68,34 +79,17 @@ describe('MenuFeatureComponent', () => {
     expect(component.componentCount()).toBe(0);
   });
 
-  it('should toggle expanded on mouseenter and mouseleave for desktop', () => {
-    spyOnProperty(window, 'innerWidth').and.returnValue(1024); // desktop
-    component.onMouseEnter();
-    expect(component.expanded()).toBeTrue();
-    component.onMouseLeave();
-    expect(component.expanded()).toBeFalse();
-  });
-
-  it('should collapse expanded on click', () => {
-    component.expanded.set(true);
-    component.onClick();
-    expect(component.expanded()).toBeFalse();
-  });
-
   it('should show tooltip correctly', () => {
     const spyInnerWidth = spyOnProperty(window, 'innerWidth', 'get');
-    
+
     // Mobile
     spyInnerWidth.and.returnValue(320);
+    component.isMobile.set(window.innerWidth < SCREEN_SIZES.sm); // <- update signal
     expect(component.showTooltip()).toBeTrue();
 
-    // Desktop, expanded false
-    spyInnerWidth.and.returnValue(1024);
-    component.expanded.set(false);
-    expect(component.showTooltip()).toBeFalse();
-
     // Desktop, expanded true + always
-    component.expanded.set(true);
+    spyInnerWidth.and.returnValue(1024);
+    component.isMobile.set(window.innerWidth < SCREEN_SIZES.sm); // <- update signal
     expect(component.showTooltip(true)).toBeTrue();
   });
 
@@ -162,33 +156,47 @@ describe('MenuFeatureComponent', () => {
     );
   });
 
+  it('should scroll on mobile', () => {
+    spyOnProperty(window, 'innerWidth', 'get').and.returnValue(320);
+    component.isMobile.set(true);
 
-  it('should attempt to scroll only on mobile', () => {
     const scrollAreaMock = document.createElement('div');
-    scrollAreaMock.style.width = '200px';
     component.scrollArea = { nativeElement: scrollAreaMock } as any;
-
-    spyOnProperty(window, 'innerWidth', 'get').and.returnValue(320); // mobile
-
-    const scrollSpy = spyOn(scrollAreaMock, 'scrollTo');
 
     const li = document.createElement('a');
     li.classList.add('selected');
     li.style.width = '50px';
     scrollAreaMock.appendChild(li);
 
-    // Only one properly typed rAF spy
-    spyOn(window, 'requestAnimationFrame').and.callFake(
-      (callback: FrameRequestCallback): number => {
-        callback(performance.now()); // pass timestamp
-        return 0;                    // dummy rAF ID
-      }
-    );
+    const scrollSpy = spyOn(scrollAreaMock, 'scrollTo');
+
+    spyOn(window, 'requestAnimationFrame').and.callFake(cb => { cb(0); return 0; });
 
     component.scrollToCenter();
 
     expect(scrollSpy).toHaveBeenCalled();
   });
+  it('should scroll on desktop with offset 0', () => {
+    spyOnProperty(window, 'innerWidth', 'get').and.returnValue(1024);
+    component.isMobile.set(false);
+
+    const scrollAreaMock = document.createElement('div');
+    component.scrollArea = { nativeElement: scrollAreaMock } as any;
+
+    const li = document.createElement('a');
+    li.classList.add('selected');
+    li.style.width = '50px';
+    scrollAreaMock.appendChild(li);
+
+    const scrollSpy = spyOn(scrollAreaMock, 'scrollTo');
+
+    spyOn(window, 'requestAnimationFrame').and.callFake(cb => { cb(0); return 0; });
+
+    component.scrollToCenter();
+
+    expect(scrollSpy).toHaveBeenCalled();
+  });
+
 
 
 });

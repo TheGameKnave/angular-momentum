@@ -5,7 +5,12 @@
     <ul>
       @for (installer of installersService.getInstallers(); track installer) {
         <li>
-          <a [href]="installer.url" target="_blank" rel="noopener noreferrer">
+          <a
+            [class.disabled]="!connectivity.isOnline()"
+            [href]="installer.url"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <i class="pi {{ installer.icon }}"></i> {{ installer.name }}
           </a>
         </li>

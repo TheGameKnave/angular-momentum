@@ -15,6 +15,7 @@ import { SlugPipe } from './pipes/slug.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ComponentListService } from './services/component-list.service';
 import { SCREEN_SIZES } from './helpers/constants';
+import { ConnectivityService } from './services/connectivity.service';
 
 @Component({
   selector: 'app-root',
@@ -32,6 +33,8 @@ export class AppComponent implements OnInit {
   onResize() {
     this.bodyClasses();
   }
+  window = window;
+  SCREEN_SIZES = SCREEN_SIZES;
   isDevMode = isDevMode();
   routePath = '';
   openMenu = '';
@@ -48,9 +51,11 @@ export class AppComponent implements OnInit {
     private readonly router: Router,
     private readonly destroyRef: DestroyRef,
     private readonly componentListService: ComponentListService,
+    protected readonly connectivity: ConnectivityService,
   ){}
 
   ngOnInit() {
+    this.connectivity.start();
     // there might be a better way to detect the current component for the breadcrumbs...
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd){
@@ -68,11 +73,17 @@ export class AppComponent implements OnInit {
 
   bodyClasses(): void {
     // remove all classes from body
-    document.body.className = 'app-dark';
+    document.body.className = 'app-dark screen-xs';
     if (this.routePath) document.body.classList.add(this.routePath);
-    //set class of body to 'mobile' for small screens
-    if (window.innerWidth < SCREEN_SIZES.md) {
-      document.body.classList.add('mobile');
+    // set class of body to reflect screen sizes
+    for (const size in SCREEN_SIZES) {
+      if (window.innerWidth >= SCREEN_SIZES[size as keyof typeof SCREEN_SIZES]) {
+        document.body.classList.add('screen-' + size);
+        document.body.classList.remove('not-' + size);
+      } else {
+        document.body.classList.remove('screen-' + size);
+        document.body.classList.add('not-' + size);
+      }
     }
   }
 

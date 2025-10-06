@@ -11,11 +11,19 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Socket } from 'ngx-socket-io';
 import { of, Subject } from 'rxjs';
 import { SCREEN_SIZES } from './helpers/constants';
-import { Component, Type } from '@angular/core';
+import { Component, signal, Type } from '@angular/core';
+import { ConnectivityService } from './services/connectivity.service';
 
 // Dummy component just to satisfy ComponentInstance typing
 @Component({ template: '' })
 class DummyComponent{}
+class MockConnectivityService {
+  showOffline = signal(false);
+  isOnline = signal(true);
+  start(): Promise<void> {
+    return Promise.resolve(); // no-op for tests
+  }
+}
 
 describe('AppComponent', () => {
   let component: AppComponent;
@@ -55,7 +63,8 @@ describe('AppComponent', () => {
         { provide: SlugPipe, useValue: slugPipe },
         { provide: ComponentListService, useValue: componentListService },
         { provide: Router, useValue: router },
-        { provide: Socket, useValue: socketSpy }
+        { provide: Socket, useValue: socketSpy },
+        { provide: ConnectivityService, useClass: MockConnectivityService },
       ],
     }).compileComponents();
 
@@ -136,13 +145,17 @@ describe('AppComponent', () => {
     it('should add mobile class when width < SCREEN_SIZES.md', () => {
       spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md - 1);
       component.bodyClasses();
-      expect(document.body.classList.contains('mobile')).toBeTrue();
+      expect(document.body.classList.contains('screen-sm')).toBeTrue();
+      expect(document.body.classList.contains('not-md')).toBeTrue();
+      expect(document.body.classList.contains('screen-md')).toBeFalse();
     });
 
     it('should not add mobile class when width >= SCREEN_SIZES.md', () => {
       spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md + 100);
       component.bodyClasses();
-      expect(document.body.classList.contains('mobile')).toBeFalse();
+      expect(document.body.classList.contains('screen-sm')).toBeTrue();
+      expect(document.body.classList.contains('not-md')).toBeFalse();
+      expect(document.body.classList.contains('screen-md')).toBeTrue();
     });
   });
 

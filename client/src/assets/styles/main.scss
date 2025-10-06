@@ -24,6 +24,10 @@ $text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC
 /// @type List
 $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Monaco', monospace !default;
 
+///////////
+// Theme //
+///////////
+
 @import "primeicons/primeicons.css";
 $light-brand: #0ca !default;
 $brand: #1b9 !default;
@@ -31,6 +35,8 @@ $dark-brand: #278 !default;
 $light-gray: #eee !default;
 $gray: #ccc !default;
 $dark-gray: #aaa !default;
+$mid-gray: #888 !default;
+$shadow: rgba(0, 0, 0, 0.2) !default;
 .app-dark {
   background-color: #333;
   color: #f4f4f4;
@@ -61,7 +67,7 @@ $dark-gray: #aaa !default;
       
       /* Shadow Cover BOTTOM */
       linear-gradient(
-        rgba(255, 255, 255, 0), 
+        rgba(255, 255, 255, 0),
         #333 70%
       ) center bottom,
       
@@ -85,6 +91,10 @@ $dark-gray: #aaa !default;
   }
 }
 
+//////////
+// Base //
+//////////
+
 html {
   font-size: 62.5%;
 }
@@ -95,6 +105,15 @@ body {
   font-family: $text-font-stack;
   font-weight: 500;
   font-feature-settings: "lnum";
+  .main, app-menu-feature {
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
+  .main {
+    padding-top: env(safe-area-inset-top) !important; // iOS safe area for Tauri builds
+  }
+  app-menu-feature {
+    top: env(safe-area-inset-top);
+  }
   h1 {
     font-weight: 600;
     font-size: 2.8rem;
@@ -148,6 +167,9 @@ hr {
   }
 }
 * {
+  &:not(.p-tooltip){
+    transition: all 0.2s ease-in-out;
+  }
   scrollbar-width: none;          /* Firefox */
   -ms-overflow-style: none;       /* IE 10+ */
   -webkit-overflow-scrolling: touch; /* smooth touch scrolling iOS */
@@ -171,6 +193,12 @@ a {
     color: #eee;
   }
 }
+.disabled {
+  opacity: 0.75;
+  pointer-events: none;
+  -webkit-filter: grayscale(100%);
+  filter: grayscale(100%);
+}
 button {
   font-size: 2rem;
   ul {
@@ -178,11 +206,11 @@ button {
     text-align: left;
   }
 }
-button, 
-input[type="submit"], 
-input[type="reset"], 
-input[type="button"], 
-input[type="checkbox"], 
+button,
+input[type="submit"],
+input[type="reset"],
+input[type="button"],
+input[type="checkbox"],
 label[for]
 {
   cursor: pointer;
@@ -191,28 +219,47 @@ textarea {
   font-size: 1.4rem !important;
   width: 100%;
 }
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+////////////
+// Layout //
+////////////
 
 .main {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  padding-left: 5rem;
+}
+app-menu-feature, app-menu-language, header, footer {
+  border: 0 solid $mid-gray;
 }
 header {
   flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  padding: .6rem;
+  border-bottom-width: 1px;
+  > div {
+    display: flex;
+    align-items: center; /* centers text and icons inside each container */
+    gap: 0.25rem; /* optional: space between text and icons */
+  }
 }
 .content {
   flex: 1 0 auto;
   padding: 1rem;
-}
-body.index .content {
-  padding-bottom: 5rem;
 }
 footer {
   flex: 0 0 auto;
   display: flex;
   justify-content: space-around;
   min-height: 4rem;
-  border-top: 1px solid #666;
+  border-top-width: 1px;
   .language-button {
     color: #fff;
     font-size: 2rem;
@@ -220,15 +267,6 @@ footer {
       color: $light-brand;
     }
   }
-}
-body.index footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-}
-.main > * {
-  padding-left: 6.6rem;
 }
 
 app-menu-feature, app-menu-language {
@@ -239,6 +277,15 @@ app-menu-feature, app-menu-language {
   font-size: 1.6rem;
   overflow-y: auto;
   a {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    .label {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      flex: 1; /* ← this is crucial */
+    }
     &:hover, &.selected {
       color: $light-brand;
     }
@@ -250,10 +297,17 @@ app-menu-feature, app-menu-language {
 app-menu-feature {
   padding: 5.2rem 0.6rem 4.3rem;
   left: 0;
+  width: 5rem;
+  transition: width 0.1s ease-in-out !important;
+  border-right-width: 1px;
+  &:hover {
+    width: 18rem;
+    box-shadow: 1rem 0 1rem $shadow;
+  }
   .link-home {
     white-space: nowrap;
     img {
-      width: 4rem;
+      width: 3rem;
       display: inline-block;
       vertical-align: middle;
       -webkit-filter: grayscale(100%);
@@ -267,19 +321,25 @@ app-menu-feature {
     }
   }
   a {
-    display: block;
+    display: inline-flex;
+    width: 100%;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1rem;
+    padding: 0.4rem;
   }
-  i.pi, .link-home img {
+  i.pi {
     font-size: 2.6rem;
     vertical-align: middle;
     border-radius: 1rem;
-    padding: 0.6rem;
   }
 }
 app-menu-language {
   right: 0;
   padding-top: 4rem;
   min-width: 18rem;
+  border-left-width: 1px;
+  box-shadow: -1rem 0 1rem $shadow;
   h3 {
     position: absolute;
     top: 0.6rem;
@@ -299,61 +359,81 @@ app-menu-language {
     grid-auto-columns: max-content; /* each column only as wide as content */
     gap: 0.5rem 1rem;              /* row/col spacing */
     overflow-y: auto;              /* allow vertical scrolling if too tall */
-    max-width: 80vw;     
+    max-width: 80vw;
     li {
       break-inside: avoid; /* prevent items from splitting */
       display: inline-block; /* required for proper column flow */
       width: max-content;
+      a {
+        padding: 0.4rem 0;
+        display: block;
+      }
     }
   }
-  ul li a {
-    padding: 0.4rem 0;
-    display: block;
-  }
 }
-ul {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
+.link-home, .kofi-button {
+  left: 0.6rem;
+  right: 0.6rem;
 }
 .link-home {
   position: absolute;
   top: 0.6rem;
-  left: 0.6rem;
 }
 .kofi-button {
   position: absolute;
   bottom: 0.6rem;
   a {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
     background-color: $dark-brand;
     color: #fff;
     border: 1px solid $dark-brand;
-    border-radius: .6rem;
+    border-radius: 0.6rem;
     padding: 0.4rem 0.6rem;
     font-size: 1.6rem;
     white-space: nowrap;
     cursor: pointer;
+    text-decoration: none;
+    &:hover {
+      border-color: $light-brand;
+    }
   }
   img {
-    display: inline-block;
-    vertical-align: middle;
     width: 2.6rem;
-  }
-  cursor: pointer;
-  &:hover {
-    border-color: $light-brand;
+    height: 2.6rem;
+    object-fit: contain;
+    flex-shrink: 0;
+    display: block;
   }
 }
 
-.mobile {
-  &.index .content {
-    padding-bottom: 8rem;
+//////////////////
+// screen sizes //
+//////////////////
+
+.screen-xl {
+  body.index footer {
+      left: 18rem;
   }
-  .main > * {
-    padding-left: 1rem;
+  app-menu-feature {
+    width: 18rem;
+    box-shadow: none;
+  }
+  .main {
+    padding-left: 18rem;
+  }
+}
+.screen-xs.not-sm {
+  .main {
+    padding-left: 0;
+  }
+  header, footer {
+    border-left-width: 0;
   }
   footer {
     padding-bottom: 4rem;
+    left: 0;
     > * {
       font-size: 1.6rem;
     }
@@ -369,19 +449,16 @@ ul {
     align-items: center;
     z-index: 99;
     width: auto;
-    height: 4rem;
     padding: 0;
     overflow-x: auto;
+    border-width: 1px 0 0 0;
     > * {
       margin: 0;
-      transition: transform 0.2s ease;
     }
     ul {
       display: flex;
-      flex-direction: row;
-      height: 100%;
       min-width: max-content;
-      align-items: center;
+      align-items: stretch;
       &:before, &:after {
         display: block;
         content: "";
@@ -393,7 +470,7 @@ ul {
       }
     }
     hr {
-      height: 100%;
+      height: auto;
       min-width: 0.3rem;
       &:before {
         top: 0;
@@ -407,7 +484,7 @@ ul {
       position: static;
       display: flex;
       height: 100%;
-      align-items: center;
+      align-items: stretch;
     }
     .link-home hr {
       margin-left: 1.2rem;
