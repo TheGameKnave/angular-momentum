@@ -15,7 +15,7 @@
           [ngClass]="{'selected': ln === translate.getActiveLang()}"
           (click)="onI18n($event)"
           (keydown.enter)="onI18n($event)"
-        >{{ translocoLoader.getFlag(ln) }} {{ translocoLoader.getNativeName(ln) }}</a>
+        ><span class="flag">{{ translocoLoader.getFlag(ln) }}</span> {{ translocoLoader.getNativeName(ln) }}</a>
       </li>
     }
   </ul>

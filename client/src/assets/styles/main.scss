@@ -16,6 +16,13 @@
   font-weight: 100 900;
   font-style: italic;
 }
+/* Noto Color Emoji */
+@font-face {
+  font-family: 'Noto Color Emoji';
+  src: url('/assets/fonts/NotoColorEmoji-Regular.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
 /// Regular font family
 /// @type List
 $text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC', 'Segoe UI', 'Arial Unicode MS', Arial, sans-serif !default;
@@ -23,6 +30,10 @@ $text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC
 /// Code (monospace) font family
 /// @type List
 $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Monaco', monospace !default;
+
+/// Emoji font family
+/// @type List
+$emoji-font-stack: 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol' !default;
 
 ///////////
 // Theme //
@@ -223,6 +234,9 @@ ul {
   list-style-type: none;
   margin: 0;
   padding: 0;
+}
+.flag {
+  font-family: $emoji-font-stack;
 }
 
 ////////////
