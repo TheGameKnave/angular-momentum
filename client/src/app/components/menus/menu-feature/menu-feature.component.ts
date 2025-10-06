@@ -37,7 +37,7 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
 
   @HostListener('window:resize')
   onResize() {
-    this.scrollToCenter();
+    this.scrollToCenter(false);
     this.isMobile.set(window.innerWidth < SCREEN_SIZES.sm);
   }
 
@@ -59,7 +59,7 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     // Initial scroll to active route
-    this.scrollToCenter();
+    this.scrollToCenter(false);
 
     // Scroll again after each navigation (e.g., route change)
     this.router.events
@@ -74,7 +74,7 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
    * Smoothly scrolls the selected menu item into horizontal center view.
    * Fully zoneless + Chrome-safe (no setTimeout).
    */
-  scrollToCenter(): void {
+  scrollToCenter(smooth = true): void {
     const container = this.scrollArea?.nativeElement;
     if (!container) return;
 
@@ -82,10 +82,9 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
     const maxAttempts = 10;
 
     const tryScroll = () => {
-      const activeLink = container.querySelector('.selected') as HTMLElement;
+      const activeLink = container.querySelector('.selected') as HTMLElement | null;
       if (!activeLink) {
         if (attempts++ < maxAttempts) requestAnimationFrame(tryScroll);
-        else console.warn('MenuFeatureComponent: no .selected element found after multiple attempts.');
         return;
       }
 
@@ -94,24 +93,21 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
         ? activeLink.offsetLeft + activeLink.offsetWidth / 2 - container.clientWidth / 2
         : 0;
 
-      // --- Chrome-safe layout stabilization ---
-      // Two nested rAFs ensure layout and paint are complete
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          // Force layout reflow before scroll
-          container.getBoundingClientRect();
-
-          // Establish baseline scroll (prevents Chrome from jumping to 0)
-          container.scrollLeft = targetScrollLeft;
-
-          // Perform smooth scroll
-          container.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
+          void container.getBoundingClientRect();
+          container.scrollTo({
+            left: targetScrollLeft,
+            behavior: smooth ? 'smooth' : 'auto'
+          });
         });
       });
     };
 
     requestAnimationFrame(tryScroll);
   }
+
+
 
   showTooltip(always = false): boolean {
     return this.isMobile() || always;

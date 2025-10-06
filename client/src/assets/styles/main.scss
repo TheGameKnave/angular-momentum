@@ -178,8 +178,12 @@ hr {
   }
 }
 * {
-  &:not(.p-tooltip){
-    transition: all 0.2s ease-in-out;
+    &:not(.p-tooltip) {
+    transition: color 0.2s ease-in-out,
+                background-color 0.2s ease-in-out,
+                opacity 0.2s ease-in-out,
+                box-shadow 0.2s ease-in-out,
+                transform 0.2s ease-in-out;
   }
   scrollbar-width: none;          /* Firefox */
   -ms-overflow-style: none;       /* IE 10+ */
@@ -187,6 +191,9 @@ hr {
   &::-webkit-scrollbar {
     display: none;                /* Chrome, Safari, iOS */
   }
+}
+.movable, .resizable, .menu, .panel, .sidebar, app-menu-feature, app-menu-language {
+  transition: all 0.2s ease-in-out;
 }
 .p-tooltip .p-tooltip-text {
   border:1px solid $dark-brand;
