@@ -26,7 +26,7 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Websockets to reconcile disparities between server and local data *
 * public api with GraphQL *
 * DB-agnostic query layer
-* Tauri integration for app bundling
+* Network connectivity detection *
 * CDN for static assets and binary distros
 * Tauri app signing and (desktop)auto-updating for distribution to ~~Android~~, iOS, macOS, ~~Windows~~, and ~~Linux~~.
 

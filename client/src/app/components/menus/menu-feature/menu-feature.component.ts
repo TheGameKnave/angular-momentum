@@ -37,7 +37,7 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
 
   @HostListener('window:resize')
   onResize() {
-    this.scrollToCenter(false);
+    this.scrollToCenter();
     this.isMobile.set(window.innerWidth < SCREEN_SIZES.sm);
   }
 
@@ -59,7 +59,7 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     // Initial scroll to active route
-    this.scrollToCenter(false);
+    this.scrollToCenter();
 
     // Scroll again after each navigation (e.g., route change)
     this.router.events
@@ -70,11 +70,14 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
       .subscribe(() => this.scrollToCenter());
   }
 
+  isChromeMobile(): boolean {
+    return /Chrome/.test(navigator.userAgent) && /Mobile/.test(navigator.userAgent);
+  }
   /**
    * Smoothly scrolls the selected menu item into horizontal center view.
    * Fully zoneless + Chrome-safe (no setTimeout).
    */
-  scrollToCenter(smooth = true): void {
+  scrollToCenter(): void {
     const container = this.scrollArea?.nativeElement;
     if (!container) return;
 
@@ -85,29 +88,30 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
       const activeLink = container.querySelector('.selected') as HTMLElement | null;
       if (!activeLink) {
         if (attempts++ < maxAttempts) requestAnimationFrame(tryScroll);
+        else console.warn('MenuFeatureComponent: no .selected element found after multiple attempts.');
         return;
       }
 
-      const isMobile = this.isMobile();
-      const targetScrollLeft = isMobile
+      const targetScrollLeft = this.isMobile()
         ? activeLink.offsetLeft + activeLink.offsetWidth / 2 - container.clientWidth / 2
         : 0;
 
-      requestAnimationFrame(() => {
+      if (this.isChromeMobile()) {
+        // Chrome Mobile behavior: prevent jump, no animation
         requestAnimationFrame(() => {
-          void container.getBoundingClientRect();
-          container.scrollTo({
-            left: targetScrollLeft,
-            behavior: smooth ? 'smooth' : 'auto'
+          requestAnimationFrame(() => {
+            void container.getBoundingClientRect(); // force layout
+            container.scrollLeft = targetScrollLeft;  // set immediately
           });
         });
-      });
+      } else {
+        // Normal smooth scroll for other platforms
+        container.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
+      }
     };
 
     requestAnimationFrame(tryScroll);
   }
-
-
 
   showTooltip(always = false): boolean {
     return this.isMobile() || always;

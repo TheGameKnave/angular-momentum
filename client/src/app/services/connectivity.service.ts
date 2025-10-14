@@ -30,7 +30,8 @@ export class ConnectivityService {
   private stopped = false;
   private lastLoggedOnline?: boolean;
 
-  private readonly pingUrl = 'https://angularmomentum.app/favicon.ico';
+  // private readonly pingUrl = 'https://angularmomentum.app/favicon.ico';
+  private readonly pingUrl = window.location.origin + '/favicon.ico';
   private readonly baseInterval = 10000;
   private currentInterval = this.baseInterval;
   private readonly maxInterval = 60000;

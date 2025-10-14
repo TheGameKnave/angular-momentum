@@ -37,6 +37,8 @@ if (!tauriConf.bundle.iOS) tauriConf.bundle.iOS = {};
 if (isSemverGreater(newVersion, oldVersion)) {
   tauriConf.bundle.iOS.bundleVersion = (Number(tauriConf.bundle.iOS.bundleVersion || 0) + 1).toString();
   console.log(`🔢 iOS bundleVersion incremented to ${tauriConf.bundle.iOS.bundleVersion}`);
+  tauriConf.bundle.android.versionCode = Number(tauriConf.bundle.android.versionCode || 0) + 1;
+  console.log(`🔢 android bundleVersion incremented to ${tauriConf.bundle.android.versionCode}`);
 }
 
 fs.writeFileSync(tauriConfPath, JSON.stringify(tauriConf, null, 2));
