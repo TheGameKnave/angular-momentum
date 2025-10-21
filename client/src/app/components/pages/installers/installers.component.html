@@ -1,20 +1,30 @@
 <ng-container *transloco="let t">
   <h2>{{ t('Installers') }}</h2>
   <p-card>
-    <p> {{ t('If you’d like to use Angular Momentum as a standalone program...') }}</p>
-    <ul>
-      @for (installer of installersService.getInstallers(); track installer) {
-        <li>
-          <a
-            [class.disabled]="!connectivity.isOnline()"
-            [href]="installer.url"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <i class="pi {{ installer.icon }}"></i> {{ installer.name }}
-          </a>
-        </li>
-      }
-    </ul>
+    <p> {{ t('Install Angular Momentum on your device instead of uising it via a web browser:') }}</p>
+    <p>
+      <a
+        pButton
+        [class.disabled]="!connectivity.isOnline()"
+        [href]="currentPlatform.url || ''"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <i class="pi {{ currentPlatform.icon || '' }}"></i> {{ currentPlatform.name || '' }}
+      </a>
+    </p>
   </p-card>
+  <p-panel header="{{ t('Other Installers') }}" [toggleable]="true" [collapsed]="true">
+    @for (installer of installersService.getOtherInstallers(); track installer) {
+      <a
+        pButton
+        [class.disabled]="!connectivity.isOnline()"
+        [href]="installer.url"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <i class="pi {{ installer.icon }}"></i> {{ installer.name }}
+      </a>
+    }
+  </p-panel>
 </ng-container>

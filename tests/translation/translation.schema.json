@@ -55,9 +55,13 @@
       "type": "string",
       "description": "Installers button label"
     }
-    ,"If you’d like to use Angular Momentum as a standalone program...": {
+    ,"Install Angular Momentum on your device instead of uising it via a web browser:": {
       "type": "string",
       "description": "Installers component description"
+    }
+    ,"Other Installers": {
+      "type": "string",
+      "description": "Other Installers header label"
     }
     ,"Support": {
       "type": "string",
@@ -94,7 +98,8 @@
     ,"GraphQL API"
     ,"IndexedDB"
     ,"Installers"
-    ,"If you’d like to use Angular Momentum as a standalone program..."
+    ,"Install Angular Momentum on your device instead of uising it via a web browser:"
+    ,"Other Installers"
     ,"Features"
     ,"Support"
     ,"Persistent Text"

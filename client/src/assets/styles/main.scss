@@ -195,6 +195,13 @@ hr {
 .movable, .resizable, .menu, .panel, .sidebar, app-menu-feature, app-menu-language {
   transition: all 0.2s ease-in-out;
 }
+p-panel {
+  margin: 1rem 0;
+  .p-panel-content {
+    display: flex;
+    gap: 1rem;
+  }
+}
 .p-tooltip .p-tooltip-text {
   border:1px solid $dark-brand;
 }

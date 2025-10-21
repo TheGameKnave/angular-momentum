@@ -15,21 +15,6 @@ export const SCREEN_SIZES: Record<'sm' | 'md' | 'lg' | 'xl', number> = {
 };
 export const INSTALLERS: Record<'name' | 'icon' | 'url', string>[] = [
   {
-    name: 'MacOS',
-    icon: 'pi-apple',
-    url: 'https://cdn.angularmomentum.app/dist/{version}/AngularMomentum_{version}.dmg',
-  },
-  {
-    name: 'Windows',
-    icon: 'pi-microsoft',
-    url: 'https://cdn.angularmomentum.app/dist/{version}/AngularMomentum_{version}.msi',
-  },
-  {
-    name: 'Linux',
-    icon: 'pi-desktop',
-    url: 'https://cdn.angularmomentum.app/dist/{version}/AngularMomentum_{version}.AppImage',
-  },
-  {
     name: 'iOS',
     icon: 'pi-mobile',
     url: 'https://apps.apple.com/us/app/angular-momentum/id6753187258',
@@ -38,5 +23,20 @@ export const INSTALLERS: Record<'name' | 'icon' | 'url', string>[] = [
     name: 'Android',
     icon: 'pi-android',
     url: 'https://play.google.com/store/apps/details?id=app.angularmomentum',
+  },
+  {
+    name: 'Windows',
+    icon: 'pi-microsoft',
+    url: 'https://cdn.angularmomentum.app/dist/{version}/AngularMomentum_{version}.msi',
+  },
+  {
+    name: 'Mac',
+    icon: 'pi-apple',
+    url: 'https://cdn.angularmomentum.app/dist/{version}/AngularMomentum_{version}.dmg',
+  },
+  {
+    name: 'Linux',
+    icon: 'pi-desktop',
+    url: 'https://cdn.angularmomentum.app/dist/{version}/AngularMomentum_{version}.AppImage',
   },
 ];
