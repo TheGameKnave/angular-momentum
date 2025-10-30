@@ -4,6 +4,7 @@
     "outDir": "./build",
     "sourceMap": true,
     "esModuleInterop": true,
-    "module": "NodeNext"
+    "module": "NodeNext",
+    "isolatedModules": true
   }
 }

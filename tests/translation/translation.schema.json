@@ -23,15 +23,43 @@
       "type": "string",
       "description": "Name of the language menu"
     }
-    ,"App Version": {
+    ,"Change Log": {
       "type": "string",
-      "description": "Name of the application version component"
+      "description": "Title of the change log menu"
+    }
+    ,"This app is {semver} out of date.": {
+      "type": "string",
+      "description": "Message about the app version"
+    }
+    ,"{patches} patch(es)": {
+      "type": "string",
+      "description": "Message about the number of patches"
+    }
+    ,"{minors} minor version(s)": {
+      "type": "string",
+      "description": "Message about the number of minor versions"
+    }
+    ,"{majors} major release(s)": {
+      "type": "string",
+      "description": "Message about the number of major releases"
+    }
+    ,"If it doesn’t update momentarily, please try to clear your cache and refresh your browser.": {
+      "type": "string",
+      "description": "Direction to clear cache and reload for web users"
+    }
+    ,"If you encounter problems, you can use the webapp at {url} until an app update is ready.": {
+      "type": "string",
+      "description": "Direction for app users to use the webapp until an app update is ready"
     }
     ,"Environment": {
       "type": "string",
       "description": "Name of the environment component"
     }
-    ,"{{environmentName}} environment": {
+    ,"App Version": {
+      "type": "string",
+      "description": "Name of the app version component"
+    }
+    ,"{environmentName} environment": {
       "type": "string",
       "description": "Message about the environment"
     }
@@ -55,7 +83,7 @@
       "type": "string",
       "description": "Installers button label"
     }
-    ,"Install Angular Momentum on your device instead of uising it via a web browser:": {
+    ,"Install Angular Momentum on your device instead of using it via a web browser:": {
       "type": "string",
       "description": "Installers component description"
     }
@@ -79,7 +107,7 @@
       "type": "string",
       "description": "Features button label"
     }
-    ,"Turn features on and off": {
+    ,"Turn features on and off for feature flag testing": {
       "type": "string",
       "description": "Features component description"
     }
@@ -90,21 +118,28 @@
     ,"If you find this project helpful and want to see it grow, consider..."
     ,"v."
     ,"Language"
+    ,"Change Log"
+    ,"This app is {semver} out of date."
+    ,"{patches} patch(es)"
+    ,"{minors} minor version(s)"
+    ,"{majors} major release(s)"
+    ,"If it doesn’t update momentarily, please try to clear your cache and refresh your browser."
+    ,"If you encounter problems, you can use the webapp at {url} until an app update is ready."
     ,"App Version"
     ,"Environment"
-    ,"{{environmentName}} environment"
+    ,"{environmentName} environment"
     ,"Development"
     ,"Production"
     ,"GraphQL API"
     ,"IndexedDB"
     ,"Installers"
-    ,"Install Angular Momentum on your device instead of uising it via a web browser:"
+    ,"Install Angular Momentum on your device instead of using it via a web browser:"
     ,"Other Installers"
     ,"Features"
     ,"Support"
     ,"Persistent Text"
     ,"Enter some text to have it persist between page reloads (saved in browser storage)"
-    ,"Turn features on and off"
+    ,"Turn features on and off for feature flag testing"
   ],
   "additionalProperties": false
 }

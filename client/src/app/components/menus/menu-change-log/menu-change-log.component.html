@@ -1,0 +1,33 @@
+<div class="scroll-area scroll-shadows" *transloco="let t">
+  <h3>
+    <a [href]="packageJson.repository" target="_blank" rel="noopener noreferrer">
+      <i class="pi pi-github"></i>
+      {{ t('Change Log') }}
+    </a>
+    <a href="javascript:void(0)" class="close">
+      <i class="pi pi-times"></i>
+    </a>
+    <hr />
+  </h3>
+  @if ( changeLog.appDiff().delta ) {
+    <h4
+      [class.warning]="changeLog.appDiff().impact === 'minor'"
+      [class.error]="changeLog.appDiff().impact === 'major'"
+    >
+      {{ semverMessage() }}
+    </h4>
+    @if( !isTauri() ) { <p>{{ t('If it doesn’t update momentarily, please try to clear your cache and refresh your browser.')}}</p> }
+    @else { <p [innerHTML]="linkMessage()"></p> }
+  }
+  @for (change of changeLog.changes(); track change) {
+    <p-card>
+      <h5>{{ change.version }}</h5>
+      <p>{{ change.description }}, {{ change.date }}</p>
+      <ul>
+        @for (item of change.changes; track item) {
+          <li>{{ item }}</li>
+        }
+      </ul>
+    </p-card>
+  }
+</div>

@@ -100,7 +100,7 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
         // Chrome Mobile behavior: prevent jump, no animation
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            void container.getBoundingClientRect(); // force layout
+            container.getBoundingClientRect(); // force layout
             container.scrollLeft = targetScrollLeft;  // set immediately
           });
         });

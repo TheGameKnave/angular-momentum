@@ -12,6 +12,8 @@ export interface ApiResponse {
   data: unknown; // You can replace 'any' with a more specific type if you know what it is
 }
 
+export type ChangeImpact = 'patch' | 'minor' | 'major'; 
+
 export interface ComponentInstance {
   name: string,
   component: Type<unknown>,

@@ -40,6 +40,7 @@ $emoji-font-stack: 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', 'S
 ///////////
 
 @import "primeicons/primeicons.css";
+$faint-brand: #9fe !default;
 $light-brand: #0ca !default;
 $brand: #1b9 !default;
 $dark-brand: #278 !default;
@@ -48,6 +49,8 @@ $gray: #ccc !default;
 $dark-gray: #aaa !default;
 $mid-gray: #888 !default;
 $shadow: rgba(0, 0, 0, 0.2) !default;
+$text-warning-light: #ffa !default;
+$text-error-light: #f88 !default;
 .app-dark {
   background-color: #333;
   color: #f4f4f4;
@@ -55,16 +58,31 @@ $shadow: rgba(0, 0, 0, 0.2) !default;
   --p-card-color:#f4f4f4;
   --p-form-field-background: #333 !important;
   --p-toggleswitch-handle-checked-background: #444 !important;
-  app-menu-feature, app-menu-language {
+  app-menu-feature, app-menu-language, app-menu-change-log {
     background-color: #333;
     color: #f4f4f4;
     a {
       color: #f4f4f4;
     }
   }
+  p > a {
+    color: $faint-brand;
+    &:hover {
+      color: $light-brand;
+    }
+  }
+  p > a:visited {
+    color: $light-brand;
+  }
   footer {
     background-color: #333;
     color: #f4f4f4;
+  }
+  .warning {
+    color: $text-warning-light;
+  }
+  .error {
+    color: $text-error-light;
   }
   .scroll-shadows {
     -webkit-overflow-scrolling: touch;
@@ -192,7 +210,7 @@ hr {
     display: none;                /* Chrome, Safari, iOS */
   }
 }
-.movable, .resizable, .menu, .panel, .sidebar, app-menu-feature, app-menu-language {
+.movable, .resizable, .menu, .panel, .sidebar, app-menu-feature, app-menu-language, app-menu-change-log {
   transition: all 0.2s ease-in-out;
 }
 p-panel {
@@ -211,13 +229,13 @@ p-panel {
 }
 
 a {
-  color: $light-brand;
   text-decoration: none;
-  cursor: pointer;
-  &.selected {
-    color: #eee;
-  }
 }
+p a:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .disabled {
   opacity: 0.75;
   pointer-events: none;
@@ -263,7 +281,7 @@ ul {
   min-height: 100vh;
   padding-left: 5rem;
 }
-app-menu-feature, app-menu-language, header, footer {
+app-menu-feature, app-menu-language, app-menu-change-log, header, footer {
   border: 0 solid $mid-gray;
 }
 header {
@@ -289,15 +307,11 @@ footer {
   min-height: 4rem;
   border-top-width: 1px;
   .language-button {
-    color: #fff;
     font-size: 2rem;
-    &:hover {
-      color: $light-brand;
-    }
   }
 }
 
-app-menu-feature, app-menu-language {
+app-menu-feature, app-menu-language, app-menu-change-log {
   position: fixed;
   z-index: 100;
   top: 0;
@@ -364,10 +378,40 @@ app-menu-feature {
 }
 app-menu-language {
   right: 0;
-  padding-top: 4rem;
-  min-width: 18rem;
   border-left-width: 1px;
   box-shadow: -1rem 0 1rem $shadow;
+  max-width: 65vw;
+  ul {
+    display: grid;
+    grid-auto-flow: row;        /* fill horizontally first */
+    grid-auto-columns: max-content; /* each column only as wide as content */
+    gap: 0.5rem 1rem;              /* row/col spacing */
+    overflow-y: auto;              /* allow vertical scrolling if too tall */
+    max-width: 65vw;
+    li {
+      break-inside: avoid; /* prevent items from splitting */
+      display: inline-block; /* required for proper column flow */
+      width: max-content;
+      a {
+        padding: 0.4rem 0;
+        display: block;
+      }
+    }
+  }
+}
+app-menu-change-log {
+  left: 0;
+  border-right-width: 1px;
+  box-shadow: 1rem 0 1rem $shadow;
+  max-width: 40rem;
+  ul {
+    list-style-type: disc;
+    li {font-size: 1.6rem !important;}
+  }
+}
+app-menu-language, app-menu-change-log {
+  padding-top: 4rem;
+  min-width: 18rem;
   h3 {
     position: absolute;
     top: 0.6rem;
@@ -380,23 +424,8 @@ app-menu-language {
     top: 0;
     right: 0;
   }
-  ul {
-    padding: 1rem;
-    display: grid;
-    grid-auto-flow: row;        /* fill horizontally first */
-    grid-auto-columns: max-content; /* each column only as wide as content */
-    gap: 0.5rem 1rem;              /* row/col spacing */
-    overflow-y: auto;              /* allow vertical scrolling if too tall */
-    max-width: 80vw;
-    li {
-      break-inside: avoid; /* prevent items from splitting */
-      display: inline-block; /* required for proper column flow */
-      width: max-content;
-      a {
-        padding: 0.4rem 0;
-        display: block;
-      }
-    }
+  h4, p, ul, p-card {
+    margin: 1rem;
   }
 }
 .link-home, .kofi-button {

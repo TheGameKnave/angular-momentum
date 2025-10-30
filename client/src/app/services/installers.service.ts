@@ -9,15 +9,19 @@ import packageJson from 'src/../package.json';
 })
 export class InstallersService {
 
-  private determinePlatform(): string {
-    const userAgent = window.navigator.userAgent;
-    if (userAgent.match(/Windows/i)) return 'Windows';
-    if (userAgent.match(/Mac/i)) return 'Mac';
-    if (userAgent.match(/Linux/i)) return 'Linux';
-    if (userAgent.match(/Android/i)) return 'Android';
-    if (userAgent.match(/iOS/i)) return 'iOS';
-    return 'Unknown';
-  }
+private determinePlatform(): string {
+  const userAgent = window.navigator.userAgent;
+
+  const platforms: { platform: string; regex: RegExp }[] = [
+    { platform: 'Windows', regex: /Windows/i },
+    { platform: 'Mac',     regex: /Mac/i },
+    { platform: 'Linux',   regex: /Linux/i },
+    { platform: 'Android', regex: /Android/i },
+    { platform: 'iOS',     regex: /iOS/i },
+  ];
+
+  return platforms.find(p => p.regex.test(userAgent))?.platform ?? 'Unknown';
+}
 
   private getInstallers(): Installer[] {
     return INSTALLERS.map(installer => {

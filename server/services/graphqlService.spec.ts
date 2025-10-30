@@ -3,6 +3,7 @@ import express from 'express';
 import { Server } from 'socket.io'; // Import the socket.io server type
 import { graphqlMiddleware } from './graphqlService';
 import { readFeatureFlags, writeFeatureFlags } from './lowDBService';
+import { changeLog } from '../data/changeLog';
 
 // Mock the lowDBService functions
 jest.mock('./lowDBService', () => ({
@@ -10,7 +11,7 @@ jest.mock('./lowDBService', () => ({
   writeFeatureFlags: jest.fn(),
 }));
 
-fdescribe('GraphQL API', () => {
+describe('GraphQL API', () => {
   let app: express.Application;
   let io: Server;
 
@@ -27,6 +28,41 @@ fdescribe('GraphQL API', () => {
   });
 
   describe('Query resolvers', () => {
+    it('should return the correct version', async () => {
+      const query = `
+        query {
+          version
+        }
+      `;
+
+      const response = await request(app)
+        .post('/api')
+        .send({ query });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.version).toBe(1.0);
+    });
+
+    it('should return the correct change log', async () => {
+      const query = `
+        query {
+          changeLog {
+            version
+            date
+            description
+            changes
+          }
+        }
+      `;
+
+      const response = await request(app)
+        .post('/api')
+        .send({ query });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.changeLog).toEqual(changeLog);
+    });
+    
     it('should fetch all feature flags', async () => {
       // Mock the `readFeatureFlags` function to return sample data
       const mockFeatureFlags = { feature1: true, feature2: false };
@@ -125,4 +161,3 @@ fdescribe('GraphQL API', () => {
     expect(response.body).toEqual({ error: 'Method Not Allowed' });
   });
 });
-  

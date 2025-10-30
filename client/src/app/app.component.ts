@@ -16,6 +16,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ComponentListService } from './services/component-list.service';
 import { SCREEN_SIZES } from './helpers/constants';
 import { ConnectivityService } from './services/connectivity.service';
+import { MenuChangeLogComponent } from './components/menus/menu-change-log/menu-change-log.component';
+import { ChangeLogService } from './services/change-log.service';
 
 @Component({
   selector: 'app-root',
@@ -24,6 +26,7 @@ import { ConnectivityService } from './services/connectivity.service';
   imports: [
     RouterModule,
     MenuLanguageComponent,
+    MenuChangeLogComponent,
     MenuFeatureComponent,
     TranslocoDirective,
   ],
@@ -36,6 +39,7 @@ export class AppComponent implements OnInit {
   window = window;
   SCREEN_SIZES = SCREEN_SIZES;
   isDevMode = isDevMode();
+  appDiff = this.changeLogService.appDiff;
   routePath = '';
   openMenu = '';
   breadcrumb = '';
@@ -44,6 +48,7 @@ export class AppComponent implements OnInit {
 
   constructor(
     readonly updateService: UpdateService,
+    readonly changeLogService: ChangeLogService,
     protected translocoLoader: TranslocoHttpLoader,
     protected translate: TranslocoService,
     protected featureFlagService: FeatureFlagService,

@@ -2,6 +2,7 @@ import { createHandler } from 'graphql-http/lib/use/express';
 import { buildSchema } from 'graphql';
 import express from 'express';
 import { readFeatureFlags, writeFeatureFlags } from './lowDBService'; // Import LowDB function
+import { changeLog } from '../data/changeLog';
 
 // Define GraphQL schema
 const schema = buildSchema(`
@@ -9,10 +10,19 @@ const schema = buildSchema(`
     featureFlags: [FeatureFlag]
     featureFlag(key: String!): Boolean
     docs: String
+    version: Float
+    changeLog: [ChangeEntry]
   }
 
   type Mutation {
     updateFeatureFlag(key: String!, value: Boolean!): FeatureFlag
+  }
+
+  type ChangeEntry {
+    version: String
+    date: String
+    description: String
+    changes: [String]
   }
 
   type FeatureFlag {
@@ -39,6 +49,14 @@ const root = (io: any) => ({
     io.emit('update-feature-flags', updatedFeatures);
     return { key, value };
   },
+
+  version: () => {
+    return 1.0;
+  },
+
+  changeLog: () => {
+    return changeLog;
+  },
   
   docs: () => {
     return `
@@ -51,6 +69,8 @@ const root = (io: any) => ({
       * \`featureFlags\`: Returns a list of all feature flags.
       * \`featureFlag(key: String!)\`: Returns the status of a specific feature flag.
       * \`docs\`: Returns the API instructions (this document).
+      * \`version\`: Returns the APP version in semver format.
+      * \`changeLog\`: Returns the APP change log.
 
       ## Mutations
 

@@ -2,7 +2,7 @@
   "name": "angular-momentum",
   "version": "0.20.11",
   "siteUrl": "https://angularmomentum.app",
-  "repository": "https://github.com/angular-momentum/angular-momentum",
+  "repository": "https://github.com/TheGameKnave/angular-momentum",
   "private": true,
   "engines": {
     "node": "22.14.0"
@@ -33,6 +33,7 @@
     "./server"
   ],
   "devDependencies": {
+    "@formatjs/icu-messageformat-parser": "^2.11.4",
     "@jirutka/ajv-cli": "^6.0.0-beta.5",
     "ajv": "^8.17.1",
     "testcafe": "^3.6.2",

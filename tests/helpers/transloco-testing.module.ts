@@ -1,5 +1,5 @@
-
 import { TranslocoTestingModule, TranslocoTestingOptions } from '@jsverse/transloco';
+import { provideTranslocoMessageformat } from '@jsverse/transloco-messageformat';
 import { SUPPORTED_LANGUAGES } from '../../client/src/app/helpers/constants';
 
 // TODO find a way to programmatically import languages from SUPPORTED_LANGUAGES
@@ -23,7 +23,7 @@ const generateLanguagePaths = (languages: readonly string[]) => {
 const LANGUAGE_PATHS = generateLanguagePaths(SUPPORTED_LANGUAGES);
 
 export function getTranslocoModule(options: TranslocoTestingOptions = {}) {
-  return TranslocoTestingModule.forRoot({
+  const module = TranslocoTestingModule.forRoot({
     langs: {
       en,
       es,
@@ -39,4 +39,11 @@ export function getTranslocoModule(options: TranslocoTestingOptions = {}) {
     preloadLangs: true,
     ...options
   });
+
+  (module as any).providers = [
+    ...(module as any).providers ?? [],
+    provideTranslocoMessageformat(),
+  ];
+
+  return module;
 }

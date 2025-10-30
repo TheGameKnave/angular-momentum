@@ -28,14 +28,16 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * DB-agnostic query layer
 * Network connectivity detection *
 * CDN for static assets and binary distros
-* Tauri app signing and (desktop)auto-updating for distribution to ~~Android~~, iOS, macOS, ~~Windows~~, and ~~Linux~~.
+* Tauri app signing and (desktop) auto-updating for distribution to Android, iOS, macOS, Windows, and Linux.
 
 (* indicates a feature that’s visible in the sample app)
 
 ## Future features:
-* Tauri app signing and (desktop)auto-updating for distribution to Android, Windows, and Linux.
+* Automatic platform deploys via Github Actions
+* Supabase(?) user management (emails and password resetting and deliverability) *
+* Push notifications
+* Server-side rendering
 * Lighthouse CI to mitigate performance slip
-* Auth-agnostic (or maybe just Firebase) user management (emails and password resetting and deliverability) *
 
 ## License
 This project is licensed under the MIT License (see [LICENSE](https://github.com/TheGameKnave/angular-momentum/blob/main/LICENSE) file for details).
@@ -185,6 +187,17 @@ from `client`, while remote server is running:
 Tauri desktop builds can have update tar.gz files that can be downloaded and installed automatically. Manually edit `latest.json` with the signature of each built update zip, and host them on a CDN (see below).
 
 * e.g. `cat "src-tauri/target/release/bundle/macos/Angular Momentum.app.tar.gz.sig"` to retrieve the signature.
+
+### Tauri platform builds
+
+#### Windows
+Run on a windows install; run `npm run tauri build` to build a standalone release for Windows.
+
+#### MacOS
+See build instructions above.
+
+#### Linux
+On a linux install; run `npm run tauri build` to build a standalone release for Linux.
 
 ## CDN
 

@@ -1,6 +1,6 @@
 <ng-container *transloco="let t">
   <p-card>
-    <p>{{ t('Turn features on and off') }}</p>
+    <p>{{ t('Turn features on and off for feature flag testing') }}</p>
     <hr>
     <ul>
       @for (feature of Object.entries(featureFlagService.features()); track $index) {

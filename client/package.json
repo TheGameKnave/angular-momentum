@@ -2,7 +2,7 @@
   "name": "angular-momentum",
   "version": "0.20.11",
   "siteUrl": "https://angularmomentum.app",
-  "repository": "https://github.com/angular-momentum/angular-momentum",
+  "repository": "https://github.com/TheGameKnave/angular-momentum",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --hmr --proxy-config src/proxy.conf.json",

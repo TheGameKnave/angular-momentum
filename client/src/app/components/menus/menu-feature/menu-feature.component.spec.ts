@@ -48,7 +48,7 @@ describe('MenuFeatureComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         MenuFeatureComponent,
-        getTranslocoModule()
+        getTranslocoModule(),
       ],
       providers: [
         provideHttpClientTesting(),
@@ -176,6 +176,52 @@ describe('MenuFeatureComponent', () => {
 
     expect(scrollSpy).toHaveBeenCalled();
   });
+
+  it('should scroll immediately on Chrome Mobile', fakeAsync(() => {
+    const scrollAreaMock = document.createElement('div');
+    Object.defineProperty(scrollAreaMock, 'clientWidth', { value: 200, configurable: true });
+    component.scrollArea = { nativeElement: scrollAreaMock } as any;
+
+    const li = document.createElement('a');
+    li.classList.add('selected');
+    Object.defineProperty(li, 'offsetLeft', { value: 50, configurable: true });
+    Object.defineProperty(li, 'offsetWidth', { value: 50, configurable: true });
+    scrollAreaMock.appendChild(li);
+
+    component.isMobile.set(true);
+
+    const originalUA = navigator.userAgent;
+    Object.defineProperty(window.navigator, 'userAgent', {
+      value: 'Mozilla/5.0 (Linux; Android 10; Chrome/128.0.0.0 Mobile Safari/537.36)',
+      configurable: true,
+    });
+
+    let scrollLeftValue = 0;
+    Object.defineProperty(scrollAreaMock, 'scrollLeft', {
+      get: () => scrollLeftValue,
+      set: (val) => { scrollLeftValue = val; },
+      configurable: true
+    });
+
+    const rafQueue: FrameRequestCallback[] = [];
+    spyOn(window, 'requestAnimationFrame').and.callFake(cb => {
+      rafQueue.push(cb);
+      return 0;
+    });
+
+    component.scrollToCenter();
+
+    while (rafQueue.length) {
+      const cb = rafQueue.shift()!;
+      cb(0);
+    }
+
+    expect(scrollLeftValue).not.toBe(0);
+
+    Object.defineProperty(window.navigator, 'userAgent', { value: originalUA, configurable: true });
+  }));
+
+
   it('should scroll on desktop with offset 0', () => {
     spyOnProperty(window, 'innerWidth', 'get').and.returnValue(1024);
     component.isMobile.set(false);
@@ -196,7 +242,5 @@ describe('MenuFeatureComponent', () => {
 
     expect(scrollSpy).toHaveBeenCalled();
   });
-
-
 
 });

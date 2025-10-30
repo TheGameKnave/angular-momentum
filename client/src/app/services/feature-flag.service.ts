@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Socket } from 'ngx-socket-io';
 import { ENVIRONMENT } from 'src/environments/environment';
@@ -13,12 +13,12 @@ export type FeatureFlagKeys = {
 
 @Injectable({ providedIn: 'root' })
 export class FeatureFlagService {
-  http = inject(HttpClient);
-  socket = inject(Socket);
-
   features = signal<Record<string, boolean>>({});
 
-  constructor() {
+  constructor(
+    protected readonly http: HttpClient,
+    protected readonly socket: Socket
+  ) {
     // Listen for WebSocket updates
     this.socket.on('update-feature-flags', (update: FeatureFlagResponse) => {
       const newFeatures: ArbitraryFeatures = { ...this.features(), ...update };
