@@ -111,3 +111,55 @@ for (const { file, pattern, replacement } of targets) {
     console.log(`ℹ️  No changes needed: ${file}`);
   }
 }
+
+// -----------------------------
+// Determine version change type
+// -----------------------------
+function getBumpType(oldV, newV) {
+  const [oldMajor, oldMinor, oldPatch] = oldV.split(".").map(Number);
+  const [newMajor, newMinor, newPatch] = newV.split(".").map(Number);
+
+  if (newMajor > oldMajor) return "major release";
+  if (newMinor > oldMinor) return "minor version";
+  if (newPatch > oldPatch) return "patch";
+  return "version change";
+}
+
+const bumpType = getBumpType(oldVersion, newVersion);
+
+// -----------------------------
+// Update changelog
+// -----------------------------
+if (isSemverGreater(newVersion, oldVersion)) {
+  const changeLogPath = path.resolve("server/data/changeLog.ts");
+  if (!fs.existsSync(changeLogPath)) {
+    console.warn(`⚠️  File not found: ${changeLogPath}`);
+  } else {
+    const changeLogContent = fs.readFileSync(changeLogPath, "utf8");
+
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    const dateStr = `${yyyy}-${mm}-${dd}`;
+
+    const newEntry = `\n  {
+    version: "${newVersion}",
+    date: "${dateStr}",
+    description: "New [${bumpType}]",
+    changes: [
+      "",
+    ]
+  },\n  `;
+
+    const updatedContent = changeLogContent.replace(
+      /export const changeLog = \[\s*/,
+      (match) => `${match}${newEntry}`
+    );
+
+    fs.writeFileSync(changeLogPath, updatedContent, "utf8");
+    console.log(`📝 Added new changelog entry for version ${newVersion} (${bumpType})`);
+  }
+} else {
+  console.log(`ℹ️  Version did not increase; no new changelog entry added.`);
+}
