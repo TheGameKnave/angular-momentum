@@ -103,10 +103,6 @@ jobs:
           echo "✅ Certificate imported and keychain unlocked"
           security find-identity -v -p codesigning
           rm mac_cert.p12
-          
-      - name: List available code signing identities
-        run: |
-          security find-identity -v -p codesigning
 
       - name: Build desktop app
         shell: bash
