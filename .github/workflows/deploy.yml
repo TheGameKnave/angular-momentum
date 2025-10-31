@@ -26,7 +26,7 @@ jobs:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
           echo "🚀 Deploying v$VERSION to Heroku..."
-          git remote add heroku https://git.heroku.com/angular-momentum.git
+          git remote add heroku https://heroku:$HEROKU_API_KEY@git.heroku.com/angular-momentum.git
           git push heroku main:main
           echo "✅ Deployment complete"
 
