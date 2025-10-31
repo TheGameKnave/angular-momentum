@@ -1,0 +1,167 @@
+name: Deploy
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Global mode for deployment"
+        required: true
+        default: "dummy"
+        type: choice
+        options:
+          - dummy
+          - real
+      force_web:
+        description: "Force the web deploy live"
+        required: false
+        default: false
+        type: boolean
+      force_desktop:
+        description: "Force desktop build live"
+        required: false
+        default: false
+        type: boolean
+      force_mobile:
+        description: "Force mobile build live"
+        required: false
+        default: false
+        type: boolean
+
+  workflow_run:
+    workflows: ["Build and SonarQube Analysis"]
+    types:
+      - completed
+
+jobs:
+  deploy-web:
+    runs-on: ubuntu-latest
+    outputs:
+      web_version: ${{ steps.web_version.outputs.version }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Extract version
+        id: web_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Deploy to Heroku
+        run: |
+          if [[ "${{ github.event.inputs.mode }}" == "dummy" && "${{ github.event.inputs.force_web }}" != "true" ]]; then
+            echo "🚀 [DUMMY] Deploying v${{ steps.web_version.outputs.version }} to Heroku..."
+          else
+            echo "🚀 [REAL] Deploying v${{ steps.web_version.outputs.version }} to Heroku..."
+            # actual deploy commands go here
+          fi
+
+  build-desktop:
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      matrix:
+        platform: [macos-latest, ubuntu-latest, windows-latest]
+    outputs:
+      desktop_version: ${{ steps.desktop_version.outputs.version }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Extract version
+        id: desktop_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "🖥️  Building for ${{ matrix.platform }}"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22.14.0
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies (Ubuntu only)
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev librsvg2-dev
+
+      - name: Build Desktop App
+        run: |
+          if [[ "${{ github.event.inputs.mode }}" == "dummy" && "${{ github.event.inputs.force_desktop }}" != "true" ]]; then
+            echo "🖥️  [DUMMY] Building for ${{ matrix.platform }}..."
+          else
+            echo "🖥️  [REAL] Building for ${{ matrix.platform }}..."
+            # actual build commands go here
+          fi
+
+      - name: Upload artifacts
+        run: |
+          echo "📤 [DUMMY/REAL] Uploading artifacts..."
+          # merge latest.json logic could go here
+
+  build-mobile:
+    runs-on: macos-latest
+    outputs:
+      mobile_version: ${{ steps.mobile_version.outputs.version }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Extract version
+        id: mobile_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📱 Building mobile apps"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22.14.0
+
+      - name: Build iOS App
+        run: |
+          if [[ "${{ github.event.inputs.mode }}" == "dummy" && "${{ github.event.inputs.force_mobile }}" != "true" ]]; then
+            echo "📱 [DUMMY] Building iOS..."
+          else
+            echo "📱 [REAL] Building iOS..."
+            # real build commands
+          fi
+
+      - name: Build Android App
+        run: |
+          if [[ "${{ github.event.inputs.mode }}" == "dummy" && "${{ github.event.inputs.force_mobile }}" != "true" ]]; then
+            echo "🤖 [DUMMY] Building Android..."
+          else
+            echo "🤖 [REAL] Building Android..."
+            # real build commands
+          fi
+
+      - name: Submit Mobile Apps
+        run: |
+          if [[ "${{ github.event.inputs.mode }}" == "dummy" && "${{ github.event.inputs.force_mobile }}" != "true" ]]; then
+            echo "📲 [DUMMY] Submitting mobile apps..."
+          else
+            echo "📲 [REAL] Submitting mobile apps..."
+            # real submission commands
+          fi
+
+  deployment-summary:
+    needs: [deploy-web, build-desktop, build-mobile]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deployment Summary
+        run: |
+          echo ""
+          echo "════════════════════════════════════════════════════════"
+          echo "✅ DEPLOYMENT COMPLETE"
+          echo "════════════════════════════════════════════════════════"
+          echo ""
+          echo "🌐 Web Application: v${{ needs.deploy-web.outputs.web_version }}"
+          echo "🖥️  Desktop Applications: v${{ needs.build-desktop.outputs.desktop_version }}"
+          echo "📱 Mobile Applications: v${{ needs.build-mobile.outputs.mobile_version }}"
+          echo ""
+          echo "════════════════════════════════════════════════════════"
