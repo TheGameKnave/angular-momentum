@@ -69,16 +69,19 @@ test('Click featurePage', async t => {
     const featureMenu = Selector('app-features'); 
     await t
     // checks the DOM for the elements that change during the button press
-        .expect(featureMenu.exists).notOk()
-
+        .click ('.link-home')
+        .expect(featureMenu.exists).ok();
+    
+        console.log("Does Feature-Menu Exist?: " + featureMenu.exists);
+    await t
     // then clicks the feature menu button, checks if page changed to features
         .click('app-menu-feature i.pi.pi-list-check')
         .expect(featureMenu.exists).ok();
-
-    // Saving Screenshot - TODO need static screenshot resolution for blink diff
-    // const savePath = `${t.browser.alias.replace(/[^a-z0-9]/gi, '_')}/${screenshotMode}.png`;
-    // const screenshotDir = `featureMenu/${savePath}`;
-    // await takeScreenshot(t,screenshotDir,'.component-container');
+        console.log("Does Feature-Menu Exist?: " + featureMenu.exists);
+    // Saving Screenshot 
+    const savePath = `${t.browser.alias.replace(/[^a-z0-9]/gi, '_')}/${screenshotMode}.png`;
+    const screenshotDir = `featureMenu/${savePath}`;
+    await takeScreenshot(t,screenshotDir,'app-features');
 });
 // test('Click environment', async t => {
 //     const environment = Selector('app-environment'); 
