@@ -83,11 +83,30 @@ jobs:
         shell: bash
         run: |
           echo "$MAC_CERT" | base64 --decode > mac_cert.p12
-          security create-keychain -p "" build.keychain
-          security import mac_cert.p12 -k build.keychain -P "$MAC_CERT_PASSWORD" -T /usr/bin/codesign
-          security list-keychains -s build.keychain
-          security unlock-keychain -p "" build.keychain
-          echo "✅ macOS certificate imported"
+
+          # Create and unlock a temporary keychain
+          KEYCHAIN_PASSWORD=$(uuidgen)
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -lut 21600 ~/Library/Keychains/build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" ~/Library/Keychains/build.keychain
+          
+          # Import certificate
+          security import mac_cert.p12 -k ~/Library/Keychains/build.keychain -P "$MAC_CERT_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          
+          # Prevent prompts
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" ~/Library/Keychains/build.keychain
+          
+          # Set as default
+          security list-keychains -d user -s ~/Library/Keychains/build.keychain
+          security default-keychain -d user -s ~/Library/Keychains/build.keychain
+
+          echo "✅ Certificate imported and keychain unlocked"
+          security find-identity -v -p codesigning
+          rm mac_cert.p12
+          
+      - name: List available code signing identities
+        run: |
+          security find-identity -v -p codesigning
 
       - name: Build desktop app
         shell: bash
@@ -108,7 +127,7 @@ jobs:
           fi
 
           # Run Tauri build (signs update manifests automatically)
-          npx tauri build
+          npx tauri build --verbose
 
           echo "✅ Build complete for ${{ matrix.platform }}"
 
