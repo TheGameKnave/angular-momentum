@@ -154,7 +154,7 @@ jobs:
 
   create-release-tag:
     needs: build-and-test
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/feature/deploy-actions'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
