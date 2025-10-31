@@ -129,29 +129,24 @@ jobs:
 
       - name: Build Desktop App (Dummy)
         if: needs.check-trigger.outputs.mode == 'dummy'
+        shell: bash
         run: |
           echo ""
           echo "🖥️  [DUMMY] Building for ${{ matrix.platform }}..."
-          
           if [ "${{ matrix.platform }}" == "macos-latest" ]; then
             echo "   📦 Building macOS universal binary..."
             sleep 2
-            echo "   - Code signing (dummy)..."
-            echo "   - Notarizing (dummy)..."
             echo "   ✓ macOS build complete"
           elif [ "${{ matrix.platform }}" == "windows-latest" ]; then
             echo "   📦 Building Windows installer..."
             sleep 2
-            echo "   - Code signing (dummy)..."
             echo "   ✓ Windows build complete"
-          elif [ "${{ matrix.platform }}" == "ubuntu-latest" ]; then
+          else
             echo "   📦 Building Linux packages..."
             sleep 2
-            echo "   - AppImage created"
             echo "   ✓ Linux build complete"
           fi
-          echo ""
-          echo "✅ [DUMMY] Build complete for ${{ matrix.platform }}"
+
 
       - name: Build Desktop App (Real)
         if: needs.check-trigger.outputs.mode == 'real'
