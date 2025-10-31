@@ -172,7 +172,7 @@ jobs:
 
       - name: Upload build artifacts (Real)
         if: needs.check-trigger.outputs.mode == 'real'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: desktop-${{ matrix.platform }}
           path: |
