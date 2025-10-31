@@ -186,10 +186,8 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git tag v${{ steps.version.outputs.version }}
-          git push origin v${{ steps.version.outputs.version }}
+          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/TheGameKnave/angular-momentum.git v${{ steps.version.outputs.version }}
           echo "🏷️  Created and pushed tag v${{ steps.version.outputs.version }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Tag already exists
         if: steps.check_tag.outputs.exists == 'true'
