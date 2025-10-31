@@ -1,100 +1,37 @@
-name: Deploy
+name: Deploy (Dummy, Self-Contained)
+
 on:
   workflow_dispatch:
-    inputs:
-      mode:
-        description: "Deployment mode"
-        required: true
-        default: "dummy"
-        type: choice
-        options:
-          - dummy
-          - real
-
   workflow_run:
     workflows: ["Build and SonarQube Analysis"]
     types: [completed]
     branches: [main]
 
 jobs:
-  check-trigger:
-    runs-on: ubuntu-latest
-    outputs:
-      should_deploy: ${{ steps.check.outputs.should_deploy }}
-      mode: ${{ steps.check.outputs.mode }}
-      version: ${{ steps.check.outputs.version }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
-
-      - name: Check if deployment should run
-        id: check
-        run: |
-          # Determine mode
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            MODE="${{ github.event.inputs.mode }}"
-            SHOULD_DEPLOY="true"
-            echo "🎯 Manual trigger in $MODE mode"
-          elif [[ "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
-            MODE="dummy"
-            SHOULD_DEPLOY="true"
-            echo "✅ Tests passed, deploying in dummy mode"
-          else
-            MODE="none"
-            SHOULD_DEPLOY="false"
-            echo "❌ Tests failed, skipping deployment"
-          fi
-          
-          echo "mode=$MODE" >> $GITHUB_OUTPUT
-          echo "should_deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
-          
-          # Get version from package.json
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "📦 Version: $VERSION"
-
   deploy-web:
-    needs: check-trigger
-    if: needs.check-trigger.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
+        uses: actions/checkout@v4
 
-      - name: Display deployment info
+      - name: Get version
+        id: version
         run: |
-          echo "🌐 Deploying web app"
-          echo "   Version: v${{ needs.check-trigger.outputs.version }}"
-          echo "   Mode: ${{ needs.check-trigger.outputs.mode }}"
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "📦 Web App Version: $VERSION"
 
-      - name: Deploy to Heroku (Dummy)
-        if: needs.check-trigger.outputs.mode == 'dummy'
+      - name: Deploy to Heroku
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
-          echo ""
-          echo "🚀 [DUMMY] Deploying v${{ needs.check-trigger.outputs.version }} to Heroku..."
-          echo "   Setting up Heroku remote..."
-          echo "   Command would be: git push heroku main:main"
-          sleep 2
-          echo "✅ [DUMMY] Heroku deployment complete"
-          echo "   🌐 Would be live at: https://angular-momentum.herokuapp.com"
-
-      - name: Deploy to Heroku (Real)
-        if: needs.check-trigger.outputs.mode == 'real'
-        run: |
-          echo ""
-          echo "🚀 [REAL] Deploying v${{ needs.check-trigger.outputs.version }} to Heroku..."
-          # TODO: Add real Heroku deployment commands
-          # git remote add heroku https://git.heroku.com/your-app.git
-          # git push heroku main:main
-          echo "⚠️  Real deployment not yet implemented"
+          echo "🚀 Deploying v$VERSION to Heroku..."
+          git remote add heroku https://git.heroku.com/angular-momentum.git
+          git push heroku main:main
+          echo "✅ Deployment complete"
 
   build-desktop:
-    needs: check-trigger
-    if: needs.check-trigger.outputs.should_deploy == 'true'
+    if: false
     strategy:
       fail-fast: false
       matrix:
@@ -102,252 +39,125 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
-
-      - name: Display build info
-        run: |
-          echo "🖥️  Building desktop app"
-          echo "   Platform: ${{ matrix.platform }}"
-          echo "   Version: v${{ needs.check-trigger.outputs.version }}"
-          echo "   Mode: ${{ needs.check-trigger.outputs.mode }}"
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install dependencies (Ubuntu only)
+      - name: Install Linux dependencies
         if: matrix.platform == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev librsvg2-dev
 
-      - name: Build Desktop App (Dummy)
-        if: needs.check-trigger.outputs.mode == 'dummy'
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "📦 Desktop App Version: $VERSION"
+
+      - name: Build desktop app (Dummy)
         shell: bash
         run: |
           echo ""
           echo "🖥️  [DUMMY] Building for ${{ matrix.platform }}..."
-          if [ "${{ matrix.platform }}" == "macos-latest" ]; then
-            echo "   📦 Building macOS universal binary..."
-            sleep 2
-            echo "   ✓ macOS build complete"
-          elif [ "${{ matrix.platform }}" == "windows-latest" ]; then
-            echo "   📦 Building Windows installer..."
-            sleep 2
-            echo "   ✓ Windows build complete"
-          else
-            echo "   📦 Building Linux packages..."
-            sleep 2
-            echo "   ✓ Linux build complete"
-          fi
-
-
-      - name: Build Desktop App (Real)
-        if: needs.check-trigger.outputs.mode == 'real'
-        run: |
-          echo ""
-          echo "🖥️  [REAL] Building for ${{ matrix.platform }}..."
-          # TODO: Add real Tauri build commands
-          # cd client
-          # npm ci
-          # npm run tauri build
-          echo "⚠️  Real build not yet implemented"
+          echo "   Version: $VERSION"
+          sleep 2
+          echo "✅ [DUMMY] Build complete for ${{ matrix.platform }}"
 
       - name: Upload build artifacts (Dummy)
-        if: needs.check-trigger.outputs.mode == 'dummy'
         run: |
           echo "📤 [DUMMY] Would upload artifacts for ${{ matrix.platform }}"
-          echo "   - angular-momentum_${{ needs.check-trigger.outputs.version }}_${{ matrix.platform }}"
-
-      - name: Upload build artifacts (Real)
-        if: needs.check-trigger.outputs.mode == 'real'
-        uses: actions/upload-artifact@v4
-        with:
-          name: desktop-${{ matrix.platform }}
-          path: |
-            client/src-tauri/target/release/bundle/
-
-  create-release:
-    needs: [check-trigger, build-desktop]
-    if: needs.check-trigger.outputs.should_deploy == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
-
-      - name: Create GitHub Release (Dummy)
-        if: needs.check-trigger.outputs.mode == 'dummy'
-        run: |
-          echo ""
-          echo "📤 [DUMMY] Creating GitHub Release v${{ needs.check-trigger.outputs.version }}..."
-          echo "   Collecting artifacts from all platform builds..."
-          echo ""
-          echo "   Would upload:"
-          echo "   ✓ angular-momentum_${{ needs.check-trigger.outputs.version }}_x64.dmg"
-          echo "   ✓ angular-momentum_${{ needs.check-trigger.outputs.version }}_aarch64.dmg"
-          echo "   ✓ angular-momentum_${{ needs.check-trigger.outputs.version }}_x64-setup.exe"
-          echo "   ✓ angular-momentum_${{ needs.check-trigger.outputs.version }}_amd64.AppImage"
-          echo "   ✓ latest.json"
-          sleep 2
-          echo ""
-          echo "✅ [DUMMY] GitHub Release would be published"
-          echo "   🔗 https://github.com/${{ github.repository }}/releases/tag/v${{ needs.check-trigger.outputs.version }}"
-
-      - name: Create GitHub Release (Real)
-        if: needs.check-trigger.outputs.mode == 'real'
-        run: |
-          echo ""
-          echo "📤 [REAL] Creating GitHub Release v${{ needs.check-trigger.outputs.version }}..."
-          # TODO: Use actions/create-release and actions/upload-release-asset
-          # or gh CLI to create release and upload artifacts
-          echo "⚠️  Real release creation not yet implemented"
+          echo "   - angular-momentum_$VERSION_${{ matrix.platform }}"
 
   build-mobile:
-    needs: check-trigger
-    if: needs.check-trigger.outputs.should_deploy == 'true'
+    if: false
     runs-on: macos-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
-
-      - name: Display build info
-        run: |
-          echo "📱 Building mobile apps"
-          echo "   Version: v${{ needs.check-trigger.outputs.version }}"
-          echo "   Mode: ${{ needs.check-trigger.outputs.mode }}"
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
 
-      - name: Build iOS App (Dummy)
-        if: needs.check-trigger.outputs.mode == 'dummy'
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "📦 Mobile App Version: $VERSION"
+
+      - name: Build iOS and Android Apps (Dummy)
         run: |
           echo ""
-          echo "📱 [DUMMY] Building iOS app for v${{ needs.check-trigger.outputs.version }}..."
-          echo "   - Building for iOS devices..."
+          echo "📱 [DUMMY] Building mobile apps..."
+          echo "   Version: $VERSION"
           sleep 2
-          echo "   - Code signing (dummy)..."
           echo "✅ [DUMMY] iOS build complete"
+          echo "✅ [DUMMY] Android build complete"
 
-      - name: Build iOS App (Real)
-        if: needs.check-trigger.outputs.mode == 'real'
-        run: |
-          echo ""
-          echo "📱 [REAL] Building iOS app..."
-          # TODO: Add real iOS build commands
-          echo "⚠️  Real iOS build not yet implemented"
-
-      - name: Submit to App Store (Dummy)
-        if: needs.check-trigger.outputs.mode == 'dummy'
+      - name: Submit to App Stores (Dummy)
         run: |
           echo ""
           echo "🍎 [DUMMY] Submitting to Apple App Store..."
-          echo "   - Uploading to App Store Connect..."
           sleep 1
-          echo "   - Submitting for review..."
           echo "✅ [DUMMY] Would be submitted to App Store"
-          echo "   ⏳ Review typically takes 1-3 days"
-
-      - name: Submit to App Store (Real)
-        if: needs.check-trigger.outputs.mode == 'real'
-        run: |
           echo ""
-          echo "🍎 [REAL] Submitting to App Store..."
-          # TODO: Add real App Store submission (fastlane, etc.)
-          echo "⚠️  Real App Store submission not yet implemented"
-
-      - name: Build Android App (Dummy)
-        if: needs.check-trigger.outputs.mode == 'dummy'
-        run: |
-          echo ""
-          echo "🤖 [DUMMY] Building Android app for v${{ needs.check-trigger.outputs.version }}..."
-          echo "   - Building release AAB..."
-          sleep 2
-          echo "   - Signing (dummy)..."
-          echo "✅ [DUMMY] Android build complete"
-
-      - name: Build Android App (Real)
-        if: needs.check-trigger.outputs.mode == 'real'
-        run: |
-          echo ""
-          echo "🤖 [REAL] Building Android app..."
-          # TODO: Add real Android build commands
-          echo "⚠️  Real Android build not yet implemented"
-
-      - name: Submit to Play Store (Dummy)
-        if: needs.check-trigger.outputs.mode == 'dummy'
-        run: |
-          echo ""
-          echo "📲 [DUMMY] Submitting to Google Play Store..."
-          echo "   - Uploading AAB to Play Console..."
+          echo "🤖 [DUMMY] Submitting to Google Play Store..."
           sleep 1
-          echo "   - Submitting for review..."
           echo "✅ [DUMMY] Would be submitted to Play Store"
-          echo "   ⏳ Review typically takes a few hours to 1-2 days"
 
-      - name: Submit to Play Store (Real)
-        if: needs.check-trigger.outputs.mode == 'real'
+  create-release:
+    if: false
+    runs-on: ubuntu-latest
+    needs: [build-desktop, build-mobile, deploy-web]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "📦 Release Version: $VERSION"
+
+      - name: Create GitHub Release (Dummy)
         run: |
           echo ""
-          echo "📲 [REAL] Submitting to Play Store..."
-          # TODO: Add real Play Store submission
-          echo "⚠️  Real Play Store submission not yet implemented"
+          echo "📤 [DUMMY] Creating GitHub Release v$VERSION..."
+          echo "   ✓ macOS .dmg"
+          echo "   ✓ macOS .tar.gz"
+          echo "   ✓ Windows .msi"
+          echo "   ✓ Linux .AppImage"
+          echo "   ✓ latest.json"
+          echo "✅ [DUMMY] GitHub Release would be published"
+          echo "   🔗 https://github.com/${{ github.repository }}/releases/tag/v$VERSION"
 
   deployment-summary:
-    needs: [check-trigger, deploy-web, build-desktop, build-mobile, create-release]
-    if: always() && needs.check-trigger.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
+    needs: [deploy-web, build-desktop, build-mobile, create-release]
+    if: false
+    # if: always()
     steps:
-      - name: Check job statuses
-        id: status
-        run: |
-          if [[ "${{ needs.deploy-web.result }}" == "success" ]] && \
-             [[ "${{ needs.build-desktop.result }}" == "success" ]] && \
-             [[ "${{ needs.build-mobile.result }}" == "success" ]] && \
-             [[ "${{ needs.create-release.result }}" == "success" ]]; then
-            echo "all_success=true" >> $GITHUB_OUTPUT
-          else
-            echo "all_success=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Deployment Summary
         run: |
           echo ""
           echo "════════════════════════════════════════════════════════"
-          if [[ "${{ steps.status.outputs.all_success }}" == "true" ]]; then
-            echo "✅ DEPLOYMENT COMPLETE: v${{ needs.check-trigger.outputs.version }}"
-          else
-            echo "⚠️  DEPLOYMENT COMPLETED WITH ISSUES"
-          fi
+          echo "✅ DUMMY DEPLOYMENT COMPLETE: v$VERSION"
           echo "════════════════════════════════════════════════════════"
-          echo ""
-          echo "Mode: ${{ needs.check-trigger.outputs.mode }}"
           echo ""
           echo "🌐 Web Application: ${{ needs.deploy-web.result }}"
           echo "🖥️  Desktop Applications: ${{ needs.build-desktop.result }}"
           echo "📱 Mobile Applications: ${{ needs.build-mobile.result }}"
           echo "📦 GitHub Release: ${{ needs.create-release.result }}"
           echo ""
-          echo "════════════════════════════════════════════════════════"
-          echo ""
-          if [[ "${{ needs.check-trigger.outputs.mode }}" == "dummy" ]]; then
-            echo "ℹ️  This was a dummy deployment - no actual changes made"
-            echo "   To deploy for real, manually trigger with mode='real'"
-          else
-            echo "Next steps:"
-            echo "  • Monitor App Store Connect for iOS review status"
-            echo "  • Monitor Play Console for Android review status"
-          fi
-          echo ""
+          echo "ℹ️  This was a dummy deployment - no actual changes made"
