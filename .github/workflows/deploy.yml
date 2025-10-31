@@ -3,76 +3,115 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "Global mode for deployment"
+        description: "Deployment mode"
         required: true
         default: "dummy"
         type: choice
         options:
           - dummy
           - real
-      force_web:
-        description: "Force the web deploy live"
-        required: false
-        default: false
-        type: boolean
-      force_desktop:
-        description: "Force desktop build live"
-        required: false
-        default: false
-        type: boolean
-      force_mobile:
-        description: "Force mobile build live"
-        required: false
-        default: false
-        type: boolean
 
   workflow_run:
     workflows: ["Build and SonarQube Analysis"]
-    types:
-      - completed
+    types: [completed]
+    branches: [main]
 
 jobs:
-  deploy-web:
+  check-trigger:
     runs-on: ubuntu-latest
     outputs:
-      web_version: ${{ steps.web_version.outputs.version }}
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+      mode: ${{ steps.check.outputs.mode }}
+      version: ${{ steps.check.outputs.version }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
 
-      - name: Extract version
-        id: web_version
+      - name: Check if deployment should run
+        id: check
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Deploy to Heroku
-        run: |
-          if [[ "${{ github.event.inputs.mode }}" == "dummy" && "${{ github.event.inputs.force_web }}" != "true" ]]; then
-            echo "🚀 [DUMMY] Deploying v${{ steps.web_version.outputs.version }} to Heroku..."
+          # Determine mode
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            MODE="${{ github.event.inputs.mode }}"
+            SHOULD_DEPLOY="true"
+            echo "🎯 Manual trigger in $MODE mode"
+          elif [[ "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
+            MODE="dummy"
+            SHOULD_DEPLOY="true"
+            echo "✅ Tests passed, deploying in dummy mode"
           else
-            echo "🚀 [REAL] Deploying v${{ steps.web_version.outputs.version }} to Heroku..."
-            # actual deploy commands go here
+            MODE="none"
+            SHOULD_DEPLOY="false"
+            echo "❌ Tests failed, skipping deployment"
           fi
+          
+          echo "mode=$MODE" >> $GITHUB_OUTPUT
+          echo "should_deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
+          
+          # Get version from package.json
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Version: $VERSION"
+
+  deploy-web:
+    needs: check-trigger
+    if: needs.check-trigger.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
+
+      - name: Display deployment info
+        run: |
+          echo "🌐 Deploying web app"
+          echo "   Version: v${{ needs.check-trigger.outputs.version }}"
+          echo "   Mode: ${{ needs.check-trigger.outputs.mode }}"
+
+      - name: Deploy to Heroku (Dummy)
+        if: needs.check-trigger.outputs.mode == 'dummy'
+        run: |
+          echo ""
+          echo "🚀 [DUMMY] Deploying v${{ needs.check-trigger.outputs.version }} to Heroku..."
+          echo "   Setting up Heroku remote..."
+          echo "   Command would be: git push heroku main:main"
+          sleep 2
+          echo "✅ [DUMMY] Heroku deployment complete"
+          echo "   🌐 Would be live at: https://angular-momentum.herokuapp.com"
+
+      - name: Deploy to Heroku (Real)
+        if: needs.check-trigger.outputs.mode == 'real'
+        run: |
+          echo ""
+          echo "🚀 [REAL] Deploying v${{ needs.check-trigger.outputs.version }} to Heroku..."
+          # TODO: Add real Heroku deployment commands
+          # git remote add heroku https://git.heroku.com/your-app.git
+          # git push heroku main:main
+          echo "⚠️  Real deployment not yet implemented"
 
   build-desktop:
-    runs-on: ${{ matrix.platform }}
+    needs: check-trigger
+    if: needs.check-trigger.outputs.should_deploy == 'true'
     strategy:
+      fail-fast: false
       matrix:
         platform: [macos-latest, ubuntu-latest, windows-latest]
-    outputs:
-      desktop_version: ${{ steps.desktop_version.outputs.version }}
+    runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
 
-      - name: Extract version
-        id: desktop_version
+      - name: Display build info
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "🖥️  Building for ${{ matrix.platform }}"
+          echo "🖥️  Building desktop app"
+          echo "   Platform: ${{ matrix.platform }}"
+          echo "   Version: v${{ needs.check-trigger.outputs.version }}"
+          echo "   Mode: ${{ needs.check-trigger.outputs.mode }}"
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -88,80 +127,232 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev librsvg2-dev
 
-      - name: Build Desktop App
+      - name: Build Desktop App (Dummy)
+        if: needs.check-trigger.outputs.mode == 'dummy'
         run: |
-          if [[ "${{ github.event.inputs.mode }}" == "dummy" && "${{ github.event.inputs.force_desktop }}" != "true" ]]; then
-            echo "🖥️  [DUMMY] Building for ${{ matrix.platform }}..."
-          else
-            echo "🖥️  [REAL] Building for ${{ matrix.platform }}..."
-            # actual build commands go here
+          echo ""
+          echo "🖥️  [DUMMY] Building for ${{ matrix.platform }}..."
+          
+          if [ "${{ matrix.platform }}" == "macos-latest" ]; then
+            echo "   📦 Building macOS universal binary..."
+            sleep 2
+            echo "   - Code signing (dummy)..."
+            echo "   - Notarizing (dummy)..."
+            echo "   ✓ macOS build complete"
+          elif [ "${{ matrix.platform }}" == "windows-latest" ]; then
+            echo "   📦 Building Windows installer..."
+            sleep 2
+            echo "   - Code signing (dummy)..."
+            echo "   ✓ Windows build complete"
+          elif [ "${{ matrix.platform }}" == "ubuntu-latest" ]; then
+            echo "   📦 Building Linux packages..."
+            sleep 2
+            echo "   - AppImage created"
+            echo "   ✓ Linux build complete"
           fi
+          echo ""
+          echo "✅ [DUMMY] Build complete for ${{ matrix.platform }}"
 
-      - name: Upload artifacts
+      - name: Build Desktop App (Real)
+        if: needs.check-trigger.outputs.mode == 'real'
         run: |
-          echo "📤 [DUMMY/REAL] Uploading artifacts..."
-          # merge latest.json logic could go here
+          echo ""
+          echo "🖥️  [REAL] Building for ${{ matrix.platform }}..."
+          # TODO: Add real Tauri build commands
+          # cd client
+          # npm ci
+          # npm run tauri build
+          echo "⚠️  Real build not yet implemented"
 
-  build-mobile:
-    runs-on: macos-latest
-    outputs:
-      mobile_version: ${{ steps.mobile_version.outputs.version }}
+      - name: Upload build artifacts (Dummy)
+        if: needs.check-trigger.outputs.mode == 'dummy'
+        run: |
+          echo "📤 [DUMMY] Would upload artifacts for ${{ matrix.platform }}"
+          echo "   - angular-momentum_${{ needs.check-trigger.outputs.version }}_${{ matrix.platform }}"
+
+      - name: Upload build artifacts (Real)
+        if: needs.check-trigger.outputs.mode == 'real'
+        uses: actions/upload-artifact@v3
+        with:
+          name: desktop-${{ matrix.platform }}
+          path: |
+            client/src-tauri/target/release/bundle/
+
+  create-release:
+    needs: [check-trigger, build-desktop]
+    if: needs.check-trigger.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
 
-      - name: Extract version
-        id: mobile_version
+      - name: Create GitHub Release (Dummy)
+        if: needs.check-trigger.outputs.mode == 'dummy'
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo ""
+          echo "📤 [DUMMY] Creating GitHub Release v${{ needs.check-trigger.outputs.version }}..."
+          echo "   Collecting artifacts from all platform builds..."
+          echo ""
+          echo "   Would upload:"
+          echo "   ✓ angular-momentum_${{ needs.check-trigger.outputs.version }}_x64.dmg"
+          echo "   ✓ angular-momentum_${{ needs.check-trigger.outputs.version }}_aarch64.dmg"
+          echo "   ✓ angular-momentum_${{ needs.check-trigger.outputs.version }}_x64-setup.exe"
+          echo "   ✓ angular-momentum_${{ needs.check-trigger.outputs.version }}_amd64.AppImage"
+          echo "   ✓ latest.json"
+          sleep 2
+          echo ""
+          echo "✅ [DUMMY] GitHub Release would be published"
+          echo "   🔗 https://github.com/${{ github.repository }}/releases/tag/v${{ needs.check-trigger.outputs.version }}"
+
+      - name: Create GitHub Release (Real)
+        if: needs.check-trigger.outputs.mode == 'real'
+        run: |
+          echo ""
+          echo "📤 [REAL] Creating GitHub Release v${{ needs.check-trigger.outputs.version }}..."
+          # TODO: Use actions/create-release and actions/upload-release-asset
+          # or gh CLI to create release and upload artifacts
+          echo "⚠️  Real release creation not yet implemented"
+
+  build-mobile:
+    needs: check-trigger
+    if: needs.check-trigger.outputs.should_deploy == 'true'
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
+
+      - name: Display build info
+        run: |
           echo "📱 Building mobile apps"
+          echo "   Version: v${{ needs.check-trigger.outputs.version }}"
+          echo "   Mode: ${{ needs.check-trigger.outputs.mode }}"
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 22.14.0
 
-      - name: Build iOS App
+      - name: Build iOS App (Dummy)
+        if: needs.check-trigger.outputs.mode == 'dummy'
         run: |
-          if [[ "${{ github.event.inputs.mode }}" == "dummy" && "${{ github.event.inputs.force_mobile }}" != "true" ]]; then
-            echo "📱 [DUMMY] Building iOS..."
-          else
-            echo "📱 [REAL] Building iOS..."
-            # real build commands
-          fi
+          echo ""
+          echo "📱 [DUMMY] Building iOS app for v${{ needs.check-trigger.outputs.version }}..."
+          echo "   - Building for iOS devices..."
+          sleep 2
+          echo "   - Code signing (dummy)..."
+          echo "✅ [DUMMY] iOS build complete"
 
-      - name: Build Android App
+      - name: Build iOS App (Real)
+        if: needs.check-trigger.outputs.mode == 'real'
         run: |
-          if [[ "${{ github.event.inputs.mode }}" == "dummy" && "${{ github.event.inputs.force_mobile }}" != "true" ]]; then
-            echo "🤖 [DUMMY] Building Android..."
-          else
-            echo "🤖 [REAL] Building Android..."
-            # real build commands
-          fi
+          echo ""
+          echo "📱 [REAL] Building iOS app..."
+          # TODO: Add real iOS build commands
+          echo "⚠️  Real iOS build not yet implemented"
 
-      - name: Submit Mobile Apps
+      - name: Submit to App Store (Dummy)
+        if: needs.check-trigger.outputs.mode == 'dummy'
         run: |
-          if [[ "${{ github.event.inputs.mode }}" == "dummy" && "${{ github.event.inputs.force_mobile }}" != "true" ]]; then
-            echo "📲 [DUMMY] Submitting mobile apps..."
-          else
-            echo "📲 [REAL] Submitting mobile apps..."
-            # real submission commands
-          fi
+          echo ""
+          echo "🍎 [DUMMY] Submitting to Apple App Store..."
+          echo "   - Uploading to App Store Connect..."
+          sleep 1
+          echo "   - Submitting for review..."
+          echo "✅ [DUMMY] Would be submitted to App Store"
+          echo "   ⏳ Review typically takes 1-3 days"
+
+      - name: Submit to App Store (Real)
+        if: needs.check-trigger.outputs.mode == 'real'
+        run: |
+          echo ""
+          echo "🍎 [REAL] Submitting to App Store..."
+          # TODO: Add real App Store submission (fastlane, etc.)
+          echo "⚠️  Real App Store submission not yet implemented"
+
+      - name: Build Android App (Dummy)
+        if: needs.check-trigger.outputs.mode == 'dummy'
+        run: |
+          echo ""
+          echo "🤖 [DUMMY] Building Android app for v${{ needs.check-trigger.outputs.version }}..."
+          echo "   - Building release AAB..."
+          sleep 2
+          echo "   - Signing (dummy)..."
+          echo "✅ [DUMMY] Android build complete"
+
+      - name: Build Android App (Real)
+        if: needs.check-trigger.outputs.mode == 'real'
+        run: |
+          echo ""
+          echo "🤖 [REAL] Building Android app..."
+          # TODO: Add real Android build commands
+          echo "⚠️  Real Android build not yet implemented"
+
+      - name: Submit to Play Store (Dummy)
+        if: needs.check-trigger.outputs.mode == 'dummy'
+        run: |
+          echo ""
+          echo "📲 [DUMMY] Submitting to Google Play Store..."
+          echo "   - Uploading AAB to Play Console..."
+          sleep 1
+          echo "   - Submitting for review..."
+          echo "✅ [DUMMY] Would be submitted to Play Store"
+          echo "   ⏳ Review typically takes a few hours to 1-2 days"
+
+      - name: Submit to Play Store (Real)
+        if: needs.check-trigger.outputs.mode == 'real'
+        run: |
+          echo ""
+          echo "📲 [REAL] Submitting to Play Store..."
+          # TODO: Add real Play Store submission
+          echo "⚠️  Real Play Store submission not yet implemented"
 
   deployment-summary:
-    needs: [deploy-web, build-desktop, build-mobile]
+    needs: [check-trigger, deploy-web, build-desktop, build-mobile, create-release]
+    if: always() && needs.check-trigger.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
     steps:
+      - name: Check job statuses
+        id: status
+        run: |
+          if [[ "${{ needs.deploy-web.result }}" == "success" ]] && \
+             [[ "${{ needs.build-desktop.result }}" == "success" ]] && \
+             [[ "${{ needs.build-mobile.result }}" == "success" ]] && \
+             [[ "${{ needs.create-release.result }}" == "success" ]]; then
+            echo "all_success=true" >> $GITHUB_OUTPUT
+          else
+            echo "all_success=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Deployment Summary
         run: |
           echo ""
           echo "════════════════════════════════════════════════════════"
-          echo "✅ DEPLOYMENT COMPLETE"
+          if [[ "${{ steps.status.outputs.all_success }}" == "true" ]]; then
+            echo "✅ DEPLOYMENT COMPLETE: v${{ needs.check-trigger.outputs.version }}"
+          else
+            echo "⚠️  DEPLOYMENT COMPLETED WITH ISSUES"
+          fi
           echo "════════════════════════════════════════════════════════"
           echo ""
-          echo "🌐 Web Application: v${{ needs.deploy-web.outputs.web_version }}"
-          echo "🖥️  Desktop Applications: v${{ needs.build-desktop.outputs.desktop_version }}"
-          echo "📱 Mobile Applications: v${{ needs.build-mobile.outputs.mobile_version }}"
+          echo "Mode: ${{ needs.check-trigger.outputs.mode }}"
+          echo ""
+          echo "🌐 Web Application: ${{ needs.deploy-web.result }}"
+          echo "🖥️  Desktop Applications: ${{ needs.build-desktop.result }}"
+          echo "📱 Mobile Applications: ${{ needs.build-mobile.result }}"
+          echo "📦 GitHub Release: ${{ needs.create-release.result }}"
           echo ""
           echo "════════════════════════════════════════════════════════"
+          echo ""
+          if [[ "${{ needs.check-trigger.outputs.mode }}" == "dummy" ]]; then
+            echo "ℹ️  This was a dummy deployment - no actual changes made"
+            echo "   To deploy for real, manually trigger with mode='real'"
+          else
+            echo "Next steps:"
+            echo "  • Monitor App Store Connect for iOS review status"
+            echo "  • Monitor Play Console for Android review status"
+          fi
+          echo ""
