@@ -9,6 +9,7 @@ on:
 
 jobs:
   deploy-web:
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -66,19 +67,28 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "📦 Desktop App Version: $VERSION"
 
-      - name: Build desktop app (Dummy)
+      - name: Build desktop app
         shell: bash
         run: |
           echo ""
-          echo "🖥️  [DUMMY] Building for ${{ matrix.platform }}..."
+          echo "🖥️  Building for ${{ matrix.platform }}..."
           echo "   Version: $VERSION"
-          sleep 2
-          echo "✅ [DUMMY] Build complete for ${{ matrix.platform }}"
+          
+          # Install dependencies (if not already done)
+          cd client
+          npm ci
 
-      - name: Upload build artifacts (Dummy)
-        run: |
-          echo "📤 [DUMMY] Would upload artifacts for ${{ matrix.platform }}"
-          echo "   - angular-momentum_$VERSION_${{ matrix.platform }}"
+          # Run Tauri build for the current platform
+          npx tauri build
+
+          echo "✅ Build complete for ${{ matrix.platform }}"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.platform }}
+          path: client/src-tauri/target/release/bundle/
+
 
   build-mobile:
     if: false
