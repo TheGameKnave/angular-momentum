@@ -1,5 +1,16 @@
 export const changeLog = [
   {
+    version: "0.20.12",
+    date: "2025-10-30",
+    description: "Deploy scripts WIP",
+    changes: [
+      "external installers styling update",
+      "changelog service, menu, and warnings",
+      "bump version script to add changelog entry",
+      "semver github tagging"
+    ]
+  },
+  {
     version: "0.20.11",
     date: "2025-10-13",
     description: "Versioning UX",
