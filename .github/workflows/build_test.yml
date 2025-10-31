@@ -1,14 +1,8 @@
 name: Build and SonarQube Analysis
 on:
-  workflow_dispatch:
-  pull_request:
-    branches:
-      # - dev # when working with a development seat of sonarServer
-      - feature/deploy-actions
   push:
     branches:
-      # - dev # when working with a development seat of sonarServer
-      - feature/deploy-actions
+      - '**'
 
 jobs:
   build-and-test:
