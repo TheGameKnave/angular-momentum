@@ -146,7 +146,7 @@ if (isSemverGreater(newVersion, oldVersion)) {
     const newEntry = `\n  {
     version: "${newVersion}",
     date: "${dateStr}",
-    description: "New [${bumpType}]",
+    description: "New ${bumpType}",
     changes: [
       "",
     ]
