@@ -51,11 +51,10 @@ jobs:
       - name: Create GitHub Release
         id: create_release
         run: |
-          RELEASE_ID=$(gh release create v${{ steps.version.outputs.version }} \
+          gh release create v${{ steps.version.outputs.version }} \
             --title "Release v${{ steps.version.outputs.version }}" \
-            --generate-notes \
-            --json id --jq .id)
-          echo "release_id=$RELEASE_ID" >> $GITHUB_OUTPUT
+            --generate-notes
+          echo "release_id=v${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
