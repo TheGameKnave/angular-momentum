@@ -60,7 +60,7 @@
       "active": true,
       "dialog": true,
       "endpoints": [
-        "https://cdn.angularmomentum.app/dist/latest.json"
+        "https://github.com/TheGameKnave/angular-momentum/releases/latest/download/latest.json"
       ],
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDk4RTQ5MDU4NUUxREQyQTcKUldTbjBoMWVXSkRrbUs0RS93d2dza2VLQ01pMkhTWHQvdFozV0hjbjJ0Vk9SYVRmYkxrc2FzK1oK"
     }
