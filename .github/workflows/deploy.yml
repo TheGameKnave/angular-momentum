@@ -34,105 +34,67 @@ jobs:
           echo "✅ Deployment complete"
 
   build-desktop:
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: [macos-latest, ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.platform }}
-    env:
-      # Tauri signing for update manifests (latest.json)
-      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-      # macOS signing (only used on macOS)
-      MAC_CERT: ${{ secrets.MAC_CERT }}
-      MAC_CERT_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
-      APPLE_ID: ${{ secrets.APPLE_ID }}
-      APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      strategy:
+        fail-fast: false
+        matrix:
+          platform: [macos-latest, ubuntu-latest, windows-latest]
+      runs-on: ${{ matrix.platform }}
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      steps:
+        - name: Checkout Code
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.14.0
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: 22.14.0
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        - name: Install Rust
+          uses: dtolnay/rust-toolchain@stable
 
-      - name: Install Linux dependencies
-        if: matrix.platform == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev librsvg2-dev
+        - name: Install Linux dependencies
+          if: matrix.platform == 'ubuntu-latest'
+          run: |
+            sudo apt-get update
+            sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev librsvg2-dev
 
-      - name: Get version
-        id: version
-        shell: bash
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "📦 Desktop App Version: $VERSION"
+        - name: Get version
+          id: version
+          shell: bash
+          run: |
+            VERSION=$(node -p "require('./package.json').version")
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+            echo "📦 Desktop App Version: $VERSION"
 
-      - name: Import macOS signing certificate
-        if: matrix.platform == 'macos-latest'
-        shell: bash
-        run: |
-          echo "$MAC_CERT" | base64 --decode > mac_cert.p12
+        - name: Install dependencies
+          run: |
+            cd client
+            npm ci
 
-          # Create and unlock a temporary keychain
-          KEYCHAIN_PASSWORD=$(uuidgen)
-          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security set-keychain-settings -lut 21600 ~/Library/Keychains/build.keychain
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" ~/Library/Keychains/build.keychain
-          
-          # Import certificate
-          security import mac_cert.p12 -k ~/Library/Keychains/build.keychain -P "$MAC_CERT_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
-          
-          # Prevent prompts
-          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" ~/Library/Keychains/build.keychain
-          
-          # Set as default
-          security list-keychains -d user -s ~/Library/Keychains/build.keychain
-          security default-keychain -d user -s ~/Library/Keychains/build.keychain
+        - name: Build desktop app with Tauri Action
+          uses: tauri-apps/tauri-action@v0
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+            TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+            # macOS signing
+            APPLE_CERTIFICATE: ${{ secrets.MAC_CERT }}
+            APPLE_CERTIFICATE_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
+            APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+            APPLE_ID: ${{ secrets.APPLE_ID }}
+            APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+            APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          with:
+            projectPath: client
+            tauriScript: npx tauri
 
-          echo "✅ Certificate imported and keychain unlocked"
-          security find-identity -v -p codesigning
-          rm mac_cert.p12
-
-      - name: Build desktop app
-        shell: bash
-        run: |
-          echo ""
-          echo "🖥️  Building for ${{ matrix.platform }}..."
-          echo "   Version: $VERSION"
-          
-          # Install dependencies (if not already done)
-          cd client
-          npm ci
-
-          # Export macOS signing env vars (only on macOS)
-          if [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
-            export APPLE_ID=$APPLE_ID
-            export APPLE_PASSWORD=$APPLE_PASSWORD
-            export APPLE_TEAM_ID=$APPLE_TEAM_ID
-          fi
-
-          # Run Tauri build (signs update manifests automatically)
-          npx tauri build --verbose
-
-          echo "✅ Build complete for ${{ matrix.platform }}"
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: desktop-${{ matrix.platform }}
-          path: client/src-tauri/target/release/bundle/
-
+        - name: Upload build artifacts
+          uses: actions/upload-artifact@v4
+          with:
+            name: desktop-${{ matrix.platform }}
+            path: client/src-tauri/target/release/bundle/
 
   build-mobile:
     if: false
