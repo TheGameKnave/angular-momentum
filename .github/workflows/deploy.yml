@@ -55,10 +55,18 @@ jobs:
       - name: Create GitHub Release
         id: create_release
         run: |
-          gh release create v${{ steps.version.outputs.version }} \
-            --title "Release v${{ steps.version.outputs.version }}" \
-            --generate-notes
-          echo "release_id=v${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
+          # Check if release already exists
+          if gh release view v${{ steps.version.outputs.version }} &>/dev/null; then
+            echo "Release v${{ steps.version.outputs.version }} already exists, using existing release"
+            RELEASE_ID="v${{ steps.version.outputs.version }}"
+          else
+            echo "Creating new release v${{ steps.version.outputs.version }}"
+            gh release create v${{ steps.version.outputs.version }} \
+              --title "Release v${{ steps.version.outputs.version }}" \
+              --generate-notes
+            RELEASE_ID="v${{ steps.version.outputs.version }}"
+          fi
+          echo "release_id=$RELEASE_ID" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

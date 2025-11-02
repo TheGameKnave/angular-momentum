@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "AngularMomentum",
+  "productName": "Angular Momentum",
   "version": "0.20.12",
   "identifier": "app.angularmomentum",
   "build": {

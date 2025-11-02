@@ -1,43 +1,46 @@
-import { Injectable } from '@angular/core';
-import { INSTALLERS } from '@app/helpers/constants';
+import { computed, Injectable, Signal } from '@angular/core';
+import { INSTALLERS, PLATFORMS } from '@app/helpers/constants';
 import { Installer } from '@app/models/data.model';
-
-import packageJson from 'src/../package.json';
+import { ChangeLogService } from './change-log.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class InstallersService {
 
-private determinePlatform(): string {
-  const userAgent = window.navigator.userAgent;
+  constructor(
+    private readonly changeLogService: ChangeLogService,
+  ) { }
 
-  const platforms: { platform: string; regex: RegExp }[] = [
-    { platform: 'Windows', regex: /Windows/i },
-    { platform: 'Mac',     regex: /Mac/i },
-    { platform: 'Linux',   regex: /Linux/i },
-    { platform: 'Android', regex: /Android/i },
-    { platform: 'iOS',     regex: /iOS/i },
-  ];
+  private determinePlatform(): string {
+    const userAgent = window.navigator.userAgent;
 
-  return platforms.find(p => p.regex.test(userAgent))?.platform ?? 'Unknown';
-}
-
-  private getInstallers(): Installer[] {
-    return INSTALLERS.map(installer => {
-      return {
-        ...installer,
-        url: installer.url.replace(/{version}/g, packageJson.version)
-      }
-    });
+    return PLATFORMS.find(p => p.regex.test(userAgent))?.platform ?? 'Unknown';
   }
+
+  private readonly installers = computed(() => {
+    const version = this.changeLogService.appVersion();
+    return INSTALLERS.map(installer => ({
+      ...installer,
+      url: installer.url.replace(/{version}/g, version),
+    }));
+  });
   
-  public getCurrentPlatformInstaller(): Installer {
+  public readonly currentPlatformInstaller: Signal<Installer> = computed(() => {
     const platform = this.determinePlatform();
-    return this.getInstallers().find(installer => installer.name === platform)!;
+    return this.installers().find(i => i.name === platform)!;
+  });
+
+  public readonly otherInstallers: Signal<Installer[]> = computed(() => {
+    const platform = this.determinePlatform();
+    return this.installers().filter(i => i.name !== platform);
+  });
+
+  public getCurrentPlatformInstaller(): Installer {
+    return this.currentPlatformInstaller();
   }
 
   public getOtherInstallers(): Installer[] {
-    return this.getInstallers().filter(installer => installer.name !== this.determinePlatform());
+    return this.otherInstallers();
   }
 }

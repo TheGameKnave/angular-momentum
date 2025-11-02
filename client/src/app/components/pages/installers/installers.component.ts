@@ -7,6 +7,7 @@ import { MarkdownModule } from 'ngx-markdown';
 import { CardModule } from 'primeng/card';
 import { PanelModule } from 'primeng/panel';
 import { ButtonModule } from 'primeng/button';
+import { ChangeLogService } from '@app/services/change-log.service';
 
 @Component({
   selector: 'app-installers',
@@ -25,13 +26,14 @@ export class InstallersComponent implements OnInit {
   currentPlatform!: Installer;
 
   constructor(
+    protected readonly changeLogService: ChangeLogService,
     protected readonly installersService: InstallersService,
     protected readonly connectivity: ConnectivityService,
   ) {}
 
   ngOnInit(): void {
     this.connectivity.start();
-    this.currentPlatform = this.installersService.getCurrentPlatformInstaller();
+    this.changeLogService.refresh();
   }
 
 }
