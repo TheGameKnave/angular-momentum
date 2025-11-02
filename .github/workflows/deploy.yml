@@ -200,11 +200,11 @@ jobs:
       - name: Build iOS
         run: |
           cd client
-          npx tauri ios build \
-            CODE_SIGN_IDENTITY="${{ secrets.APPLE_SIGNING_IDENTITY }}" \
-            DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}"
+          npx tauri ios build
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CODE_SIGN_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
 
       - name: Build Android (uses debug keystore - Google re-signs for Play Store)
         run: |
