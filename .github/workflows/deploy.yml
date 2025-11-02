@@ -200,7 +200,9 @@ jobs:
       - name: Build iOS
         run: |
           cd client
-          npx tauri ios build
+          npx tauri ios build \
+            CODE_SIGN_IDENTITY="${{ secrets.APPLE_SIGNING_IDENTITY }}" \
+            DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}"
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
