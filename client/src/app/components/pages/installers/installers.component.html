@@ -13,7 +13,7 @@
     </a>
   </p-card>
   <p-panel header="{{ t('Other Installers') }}" [toggleable]="true" [collapsed]="true">
-    @for (installer of installersService.getOtherInstallers(); track $index) {
+    @for (installer of installersService.otherInstallers(); track $index) {
       <a
         pButton
         [class.disabled]="!connectivity.isOnline()"

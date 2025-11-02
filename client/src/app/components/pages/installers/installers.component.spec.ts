@@ -1,17 +1,26 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { InstallersComponent } from './installers.component';
 import { InstallersService } from '@app/services/installers.service';
+import { ChangeLogService } from '@app/services/change-log.service';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { By } from '@angular/platform-browser';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { signal } from '@angular/core';
 import { ConnectivityService } from '@app/services/connectivity.service';
 import { Button, ButtonModule } from 'primeng/button';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 class MockConnectivityService {
   showOffline = signal(false);
   isOnline = signal(true);
   start(): Promise<void> {
+    return Promise.resolve(); // no-op for tests
+  }
+}
+
+class MockChangeLogService {
+  refresh(): Promise<void> {
     return Promise.resolve(); // no-op for tests
   }
 }
@@ -34,18 +43,21 @@ describe('InstallersComponent initialization', () => {
 
   beforeEach(async () => {
     installersServiceSpy = jasmine.createSpyObj('InstallersService', [
-      'getCurrentPlatformInstaller',
-      'getOtherInstallers'
+      'currentPlatformInstaller',
+      'otherInstallers',
     ]);
 
-    installersServiceSpy.getCurrentPlatformInstaller.and.returnValue(mockCurrentInstaller);
-    installersServiceSpy.getOtherInstallers.and.returnValue(mockOtherInstallers);
+    installersServiceSpy.currentPlatformInstaller.and.returnValue(mockCurrentInstaller);
+    installersServiceSpy.otherInstallers.and.returnValue(mockOtherInstallers);
 
     await TestBed.configureTestingModule({
       imports: [InstallersComponent, getTranslocoModule(), ButtonModule],
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         { provide: InstallersService, useValue: installersServiceSpy },
         { provide: ConnectivityService, useClass: MockConnectivityService },
+        { provide: ChangeLogService, useClass: MockChangeLogService },
         provideNoopAnimations(),
       ]
     }).compileComponents();
@@ -65,9 +77,9 @@ describe('InstallersComponent initialization', () => {
     expect(heading.textContent).toContain('Installers');
   });
 
-  it('should call getCurrentInstaller and getOtherInstallers on initialization', () => {
-    expect(installersServiceSpy.getCurrentPlatformInstaller).toHaveBeenCalled();
-    expect(installersServiceSpy.getOtherInstallers).toHaveBeenCalled();
+  it('should call getCurrentInstaller and otherInstallers on initialization', () => {
+    expect(installersServiceSpy.currentPlatformInstaller).toHaveBeenCalled();
+    expect(installersServiceSpy.otherInstallers).toHaveBeenCalled();
   });
 
   it('should render a button for the current platform installer', () => {

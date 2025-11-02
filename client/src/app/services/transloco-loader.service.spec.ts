@@ -81,13 +81,13 @@ describe('TranslocoHttpLoader', () => {
 
   it('should return the correct flag for a language without a locale', () => {
     const ln = 'en';
-    const expectedFlag = Object.values(LANGUAGES[ln].locales)[0].flag;
+    const expectedFlag = Object.keys(LANGUAGES[ln].locales)[0].split('-')[1].toLowerCase();
     expect(loader.getCountry(ln)).toEqual(expectedFlag);
   });
 
   it('should return the correct flag for a language with a locale', () => {
     const ln = 'en-US';
-    const expectedFlag = LANGUAGES[ln.split('-')[0]].locales[ln].flag;
+    const expectedFlag = ln.split('-')[1].toLowerCase();
     expect(loader.getCountry(ln)).toEqual(expectedFlag);
   });
 

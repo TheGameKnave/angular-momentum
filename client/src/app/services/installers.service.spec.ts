@@ -2,13 +2,24 @@ import { TestBed } from '@angular/core/testing';
 import { InstallersService } from './installers.service';
 import { INSTALLERS } from '@app/helpers/constants';
 import packageJson from 'src/../package.json';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { ChangeLogService } from './change-log.service';
 
 describe('InstallersService', () => {
   let service: InstallersService;
 
   beforeEach(() => {
+    const mockChangeLogService = {
+      appVersion: jasmine.createSpy('appVersion').and.returnValue(packageJson.version)
+    };
     TestBed.configureTestingModule({
-      providers: [InstallersService]
+      providers: [
+        InstallersService,
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: ChangeLogService, useValue: mockChangeLogService },
+      ]
     });
     service = TestBed.inject(InstallersService);
   });
