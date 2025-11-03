@@ -195,7 +195,7 @@ jobs:
       - name: Build iOS
         run: |
           cd client
-          npx tauri ios build
+          npx tauri ios build -- --export-options-plist src-tauri/gen/apple/ExportOptions.plist
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           CODE_SIGN_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
