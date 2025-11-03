@@ -229,6 +229,23 @@ jobs:
           echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
           echo "PATH=$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_NDK_HOME:$PATH" >> $GITHUB_ENV
 
+      - name: Prepare Android gen folder
+        run: |
+          GEN=client/src-tauri/gen/android
+          mkdir -p "$GEN"
+          FILE="$GEN/gradle.properties"
+          cat <<EOL > "$FILE"
+          app.id=app.angularmomentum
+          app.name=Angular Momentum
+          app.versionName=$(node -p "require('./client/package.json').version")
+          app.versionCode=$(node -p "require('./client/package.json').version.replace(/\./g,'')")
+          android.useAndroidX=true
+          android.nonTransitiveRClass=true
+          android.nonFinalResIds=false
+          kotlin.code.style=official
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          EOL
+
       - name: Patch Android gradle.properties
         run: |
           GEN=client/src-tauri/gen/android
