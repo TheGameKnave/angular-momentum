@@ -222,6 +222,16 @@ jobs:
           echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
           echo "PATH=$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_NDK_HOME:$PATH" >> $GITHUB_ENV
 
+      - name: Create Android gradle.properties
+        run: |
+          mkdir -p client/src-tauri/gen/android
+          FILE=client/src-tauri/gen/android/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8" > "$FILE"
+          echo "android.useAndroidX=true" >> "$FILE"
+          echo "kotlin.code.style=official" >> "$FILE"
+          echo "android.nonTransitiveRClass=true" >> "$FILE"
+          echo "android.nonFinalResIds=false" >> "$FILE"
+
       - name: Build Android
         run: |
           cd client
