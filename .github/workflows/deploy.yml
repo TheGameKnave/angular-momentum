@@ -168,6 +168,7 @@ jobs:
           npm ci
 
       - name: Import iOS certificates
+        if: false
         env:
           IOS_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE }}
           IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
@@ -213,16 +214,8 @@ jobs:
         with:
           ndk-version: r26b
           local-cache: true
-
-      - name: Set Android environment variables
+      - name: Set Android env variables
         run: |
-          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-          echo "NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
-          echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
-          echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
-          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          echo "$ANDROID_NDK_HOME" >> $GITHUB_PATH
           echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
           echo "NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
@@ -231,36 +224,21 @@ jobs:
 
       - name: Prepare Android gen folder
         run: |
-          GEN=client/src-tauri/gen/android
-          mkdir -p "$GEN"
-          FILE="$GEN/gradle.properties"
-          cat <<EOL > "$FILE"
-          app.id=app.angularmomentum
-          app.name=Angular Momentum
-          app.versionName=$(node -p "require('./client/package.json').version")
-          app.versionCode=$(node -p "require('./client/package.json').version.replace(/\./g,'')")
-          android.useAndroidX=true
-          android.nonTransitiveRClass=true
-          android.nonFinalResIds=false
-          kotlin.code.style=official
-          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
-          EOL
+            GEN=client/src-tauri/gen/android
+            mkdir -p "$GEN"
+            FILE="$GEN/gradle.properties"
+            echo "app.id=app.angularmomentum" > "$FILE"
+            echo "app.name=Angular Momentum" >> "$FILE"
+            echo "app.versionName=$(node -p "require('./client/package.json').version")" >> "$FILE"
+            echo "app.versionCode=$(node -p "require('./client/package.json').version.replace(/\./g,'')")" >> "$FILE"
+            echo "android.useAndroidX=true" >> "$FILE"
+            echo "android.nonTransitiveRClass=true" >> "$FILE"
+            echo "android.nonFinalResIds=false" >> "$FILE"
+            echo "kotlin.code.style=official" >> "$FILE"
+            echo "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8" >> "$FILE"
 
-      - name: Patch Android gradle.properties
-        run: |
-          GEN=client/src-tauri/gen/android
-          mkdir -p "$GEN"
-          FILE="$GEN/gradle.properties"
-          touch "$FILE"
 
-          # Ensure newlines before each property to avoid concatenation
-          grep -q '^app.id=' "$FILE" || echo -e "\napp.id=app.angularmomentum" >> "$FILE"
-          grep -q '^app.name=' "$FILE" || echo -e "\napp.name=Angular Momentum" >> "$FILE"
-          VERSION=$(node -p "require('./client/package.json').version")
-          grep -q '^app.versionName=' "$FILE" || echo -e "\napp.versionName=$VERSION" >> "$FILE"
-          grep -q '^app.versionCode=' "$FILE" || echo -e "\napp.versionCode=${VERSION//./}" >> "$FILE"
-          
-      - name: Build Android (uses debug keystore - Google re-signs for Play Store)
+      - name: Build Android
         run: |
           cd client
           npm run tauri android build
