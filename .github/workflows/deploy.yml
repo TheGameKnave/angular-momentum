@@ -224,18 +224,23 @@ jobs:
 
       - name: Prepare Android gen folder
         run: |
-            GEN=client/src-tauri/gen/android
-            mkdir -p "$GEN"
-            FILE="$GEN/gradle.properties"
-            echo "app.id=app.angularmomentum" > "$FILE"
-            echo "app.name=Angular Momentum" >> "$FILE"
-            echo "app.versionName=$(node -p "require('./client/package.json').version")" >> "$FILE"
-            echo "app.versionCode=$(node -p "require('./client/package.json').version.replace(/\./g,'')")" >> "$FILE"
-            echo "android.useAndroidX=true" >> "$FILE"
-            echo "android.nonTransitiveRClass=true" >> "$FILE"
-            echo "android.nonFinalResIds=false" >> "$FILE"
-            echo "kotlin.code.style=official" >> "$FILE"
-            echo "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8" >> "$FILE"
+          GEN=client/src-tauri/gen/android
+          mkdir -p "$GEN"
+          FILE="$GEN/gradle.properties"
+          VERSION=$(node -p "require('./package.json').version")
+          VERSION_CODE=$(node -p "require('./client/src-tauri/tauri.conf.json').bundle.android.versionCode")
+          
+          echo "app.id=app.angularmomentum" > "$FILE"
+          echo "app.name=Angular Momentum" >> "$FILE"
+          echo "app.versionName=$VERSION" >> "$FILE"
+          echo "app.versionCode=$VERSION_CODE" >> "$FILE"
+          echo "android.useAndroidX=true" >> "$FILE"
+          echo "android.nonTransitiveRClass=true" >> "$FILE"
+          echo "android.nonFinalResIds=false" >> "$FILE"
+          echo "kotlin.code.style=official" >> "$FILE"
+          echo "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8" >> "$FILE"
+          
+          cat "$FILE"
 
 
       - name: Build Android
