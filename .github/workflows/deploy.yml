@@ -232,10 +232,17 @@ jobs:
           echo "android.nonTransitiveRClass=true" >> "$FILE"
           echo "android.nonFinalResIds=false" >> "$FILE"
 
+      - name: Debug build.gradle.kts
+        run: |
+          if [ -f client/src-tauri/gen/android/app/build.gradle.kts ]; then
+            echo "=== Line 36 of build.gradle.kts ==="
+            sed -n '30,40p' client/src-tauri/gen/android/app/build.gradle.kts
+          fi
+
       - name: Build Android
         run: |
           cd client
-          npm run tauri android build
+          npm run tauri android build -- --verbose
 
       - name: Upload iOS IPA
         uses: actions/upload-artifact@v4
