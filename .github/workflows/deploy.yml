@@ -249,20 +249,15 @@ jobs:
           cp ~/.android/debug.keystore client/build-tools/debug.keystore
           cp ~/.android/debug.keystore client/src-tauri/build-tools/debug.keystore
 
-      - name: Create and use debug keystore
+      - name: Create keystore.properties for CI
         run: |
-          # Generate debug keystore if it doesn't exist
-          if [ ! -f ~/.android/debug.keystore ]; then
-            mkdir -p ~/.android
-            keytool -genkey -v -keystore ~/.android/debug.keystore \
-              -storepass android -alias androiddebugkey -keypass android \
-              -keyalg RSA -keysize 2048 -validity 10000 \
-              -dname "CN=Android Debug,O=Android,C=US"
-          fi
-          
-          # Copy to project
-          mkdir -p client/build-tools
-          cp ~/.android/debug.keystore client/build-tools/debug.keystore
+          KEYSTORE_PATH="${GITHUB_WORKSPACE}/client/build-tools/debug.keystore"
+          cat > client/src-tauri/gen/android/keystore.properties << EOF
+          storePassword=android
+          keyPassword=android
+          keyAlias=androiddebugkey
+          storeFile=${KEYSTORE_PATH}
+          EOF
 
       - name: Build Android
         run: |
