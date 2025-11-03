@@ -235,11 +235,13 @@ jobs:
           mkdir -p "$GEN"
           FILE="$GEN/gradle.properties"
           touch "$FILE"
-          grep -q '^app.id=' "$FILE" || echo 'app.id=app.angularmomentum' >> "$FILE"
-          grep -q '^app.name=' "$FILE" || echo 'app.name=Angular Momentum' >> "$FILE"
+
+          # Ensure newlines before each property to avoid concatenation
+          grep -q '^app.id=' "$FILE" || echo -e "\napp.id=app.angularmomentum" >> "$FILE"
+          grep -q '^app.name=' "$FILE" || echo -e "\napp.name=Angular Momentum" >> "$FILE"
           VERSION=$(node -p "require('./client/package.json').version")
-          grep -q '^app.versionName=' "$FILE" || echo "app.versionName=$VERSION" >> "$FILE"
-          grep -q '^app.versionCode=' "$FILE" || echo "app.versionCode=${VERSION//./}" >> "$FILE"
+          grep -q '^app.versionName=' "$FILE" || echo -e "\napp.versionName=$VERSION" >> "$FILE"
+          grep -q '^app.versionCode=' "$FILE" || echo -e "\napp.versionCode=${VERSION//./}" >> "$FILE"
           
       - name: Build Android (uses debug keystore - Google re-signs for Play Store)
         run: |
