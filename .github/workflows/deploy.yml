@@ -240,9 +240,18 @@ jobs:
           storeFile=../../../build-tools/debug.keystore
           EOF
 
-      - name: Use debug keystore
+      - name: Create and use debug keystore
         run: |
-          # Copy the default Android debug keystore
+          # Generate debug keystore if it doesn't exist
+          if [ ! -f ~/.android/debug.keystore ]; then
+            mkdir -p ~/.android
+            keytool -genkey -v -keystore ~/.android/debug.keystore \
+              -storepass android -alias androiddebugkey -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          
+          # Copy to project
           mkdir -p client/build-tools
           cp ~/.android/debug.keystore client/build-tools/debug.keystore
 
