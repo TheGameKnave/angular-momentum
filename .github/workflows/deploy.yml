@@ -204,11 +204,14 @@ jobs:
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r25c
+        id: setup-ndk
 
       - name: Build Android (uses debug keystore - Google re-signs for Play Store)
         run: |
           cd client
           npx tauri android build --aab
+        env:
+          NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Upload iOS IPA
         uses: actions/upload-artifact@v4
