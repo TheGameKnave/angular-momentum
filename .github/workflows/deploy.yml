@@ -232,17 +232,24 @@ jobs:
           echo "android.nonTransitiveRClass=true" >> "$FILE"
           echo "android.nonFinalResIds=false" >> "$FILE"
 
-      - name: Debug build.gradle.kts
+      - name: Create dummy keystore.properties for CI
         run: |
-          if [ -f client/src-tauri/gen/android/app/build.gradle.kts ]; then
-            echo "=== Line 36 of build.gradle.kts ==="
-            sed -n '30,40p' client/src-tauri/gen/android/app/build.gradle.kts
-          fi
+          cat > client/src-tauri/gen/android/keystore.properties << 'EOF'
+          password=dummy
+          keyAlias=androiddebugkey
+          storeFile=../../../build-tools/debug.keystore
+          EOF
+
+      - name: Use debug keystore
+        run: |
+          # Copy the default Android debug keystore
+          mkdir -p client/build-tools
+          cp ~/.android/debug.keystore client/build-tools/debug.keystore
 
       - name: Build Android
         run: |
           cd client
-          npm run tauri android build -- --verbose
+          npm run tauri android build
 
       - name: Upload iOS IPA
         uses: actions/upload-artifact@v4
