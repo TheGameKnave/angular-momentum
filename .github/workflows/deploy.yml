@@ -200,18 +200,19 @@ jobs:
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
-      - name: Setup Android NDK
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: r25c
-        id: setup-ndk
+      - name: Setup Android SDK and NDK
+        run: |
+          # Install NDK via sdkmanager
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;25.2.9519653"
+          
+          # Set NDK_HOME
+          echo "NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
 
       - name: Build Android (uses debug keystore - Google re-signs for Play Store)
         run: |
           cd client
           npx tauri android build --aab
-        env:
-          NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Upload iOS IPA
         uses: actions/upload-artifact@v4
