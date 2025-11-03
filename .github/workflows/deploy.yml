@@ -193,11 +193,17 @@ jobs:
           rm certificate.p12
 
       - name: Build iOS
+        if: false
         run: |
           cd client
           npm run tauri ios build -- --export-method app-store-connect
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r25c
 
       - name: Build Android (uses debug keystore - Google re-signs for Play Store)
         run: |
