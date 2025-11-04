@@ -200,16 +200,23 @@ jobs:
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
-      - name: Upload iOS IPA (Artifact) - For GitHub storage
+      - name: Find iOS IPA path
+        id: find-ipa
+        run: |
+          IPA_PATH=$(find client/src-tauri/gen/apple/build -name "*.ipa" -type f | head -n 1)
+          echo "ipa_path=$IPA_PATH" >> $GITHUB_OUTPUT
+          echo "Found IPA at: $IPA_PATH"
+
+      - name: Upload iOS IPA (Artifact)
         uses: actions/upload-artifact@v4
         with:
           name: ios-build
-          path: client/src-tauri/gen/apple/build/**/*.ipa
+          path: ${{ steps.find-ipa.outputs.ipa_path }}
 
-      - name: Upload to TestFlight - For actual distribution
+      - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v1
         with:
-          app-path: client/src-tauri/gen/apple/build/**/*.ipa
+          app-path: ${{ steps.find-ipa.outputs.ipa_path }}
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
