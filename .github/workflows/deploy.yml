@@ -235,7 +235,8 @@ jobs:
       - name: Create dummy keystore.properties for CI
         run: |
           cat > client/src-tauri/gen/android/keystore.properties << 'EOF'
-          password=dummy
+          storePassword=android
+          keyPassword=android
           keyAlias=androiddebugkey
           storeFile=../../../build-tools/debug.keystore
           EOF
