@@ -254,6 +254,7 @@ jobs:
           # Copy to project
           mkdir -p client/build-tools
           cp ~/.android/debug.keystore client/build-tools/debug.keystore
+          cp ~/.android/debug.keystore client/src-tauri/build-tools/debug.keystore
 
       - name: Build Android
         run: |
