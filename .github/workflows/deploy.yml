@@ -141,6 +141,7 @@ jobs:
 
 
   build-mobile:
+    if: true
     runs-on: macos-latest
     steps:
       - name: Checkout Code
@@ -168,7 +169,6 @@ jobs:
           npm ci
 
       - name: Import iOS certificates
-        if: false
         env:
           IOS_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE }}
           IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
@@ -194,22 +194,40 @@ jobs:
           rm certificate.p12
 
       - name: Build iOS
-        if: false
         run: |
           cd client
           npm run tauri ios build -- --export-method app-store-connect
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
+      - name: Upload iOS IPA (Artifact) - For GitHub storage
+        if: false
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: client/src-tauri/gen/apple/build/**/*.ipa
+
+      - name: Upload to TestFlight - For actual distribution
+        if: false
+        uses: apple-actions/upload-testflight-build@v1
+        with:
+          app-path: client/src-tauri/gen/apple/build/**/*.ipa
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+
       - name: Setup Android SDK
+        if: false
         uses: android-actions/setup-android@v3
 
       - name: Install Android SDK components
+        if: false
         run: |
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Setup Android NDK
+        if: false
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r26b
@@ -223,6 +241,7 @@ jobs:
           echo "PATH=$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_NDK_HOME:$PATH" >> $GITHUB_ENV
 
       - name: Create Android gradle.properties
+        if: false
         run: |
           mkdir -p client/src-tauri/gen/android
           FILE=client/src-tauri/gen/android/gradle.properties
@@ -233,6 +252,7 @@ jobs:
           echo "android.nonFinalResIds=false" >> "$FILE"
 
       - name: Create dummy keystore.properties for CI
+        if: false
         run: |
           cat > client/src-tauri/gen/android/keystore.properties << 'EOF'
           password=android
@@ -241,6 +261,7 @@ jobs:
           EOF
 
       - name: Create and use debug keystore
+        if: false
         run: |
           # Generate debug keystore if it doesn't exist
           if [ ! -f ~/.android/debug.keystore ]; then
@@ -258,17 +279,13 @@ jobs:
           cp ~/.android/debug.keystore client/src-tauri/build-tools/debug.keystore
 
       - name: Build Android
+        if: false
         run: |
           cd client
           npm run tauri android build
 
-      - name: Upload iOS IPA
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-build
-          path: client/src-tauri/gen/apple/build/arm64/*.ipa
-
       - name: Upload Android AAB
+        if: false
         uses: actions/upload-artifact@v4
         with:
           name: android-build
