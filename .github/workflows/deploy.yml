@@ -201,14 +201,12 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
       - name: Upload iOS IPA (Artifact) - For GitHub storage
-        if: false
         uses: actions/upload-artifact@v4
         with:
           name: ios-build
           path: client/src-tauri/gen/apple/build/**/*.ipa
 
       - name: Upload to TestFlight - For actual distribution
-        if: false
         uses: apple-actions/upload-testflight-build@v1
         with:
           app-path: client/src-tauri/gen/apple/build/**/*.ipa
