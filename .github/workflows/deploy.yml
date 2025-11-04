@@ -232,6 +232,14 @@ jobs:
           echo "android.nonTransitiveRClass=true" >> "$FILE"
           echo "android.nonFinalResIds=false" >> "$FILE"
 
+      - name: Create dummy keystore.properties for CI
+        run: |
+          cat > client/src-tauri/gen/android/keystore.properties << 'EOF'
+          password=dummy
+          keyAlias=androiddebugkey
+          storeFile=../../../build-tools/debug.keystore
+          EOF
+
       - name: Create and use debug keystore
         run: |
           # Generate debug keystore if it doesn't exist
@@ -243,21 +251,9 @@ jobs:
               -dname "CN=Android Debug,O=Android,C=US"
           fi
           
-          # Copy to BOTH locations to be safe
+          # Copy to project
           mkdir -p client/build-tools
-          mkdir -p client/src-tauri/build-tools
           cp ~/.android/debug.keystore client/build-tools/debug.keystore
-          cp ~/.android/debug.keystore client/src-tauri/build-tools/debug.keystore
-
-      - name: Create keystore.properties for CI
-        run: |
-          KEYSTORE_PATH="${GITHUB_WORKSPACE}/client/build-tools/debug.keystore"
-          cat > client/src-tauri/gen/android/keystore.properties << EOF
-          storePassword=android
-          keyPassword=android
-          keyAlias=androiddebugkey
-          storeFile=${KEYSTORE_PATH}
-          EOF
 
       - name: Build Android
         run: |
