@@ -231,8 +231,9 @@ jobs:
             --automatic_release \
             --force
         env:
-          FASTLANE_USER: ${{ secrets.APPLE_ID }}
-          FASTLANE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
