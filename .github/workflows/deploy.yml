@@ -12,7 +12,6 @@ permissions:
 
 jobs:
   deploy-web:
-    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -38,7 +37,6 @@ jobs:
 
   create-release:
     runs-on: ubuntu-latest
-    if: false
     # if: github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     outputs:
       release_id: ${{ steps.create_release.outputs.release_id }}
@@ -72,7 +70,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-and-release:
-    if: false
     needs: create-release
     runs-on: ${{ matrix.platform }}
     strategy:
@@ -235,7 +232,7 @@ jobs:
             --force
         env:
           FASTLANE_USER: ${{ secrets.APPLE_ID }}
-          FASTLANE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          FASTLANE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
