@@ -169,6 +169,7 @@ jobs:
           npm ci
 
       - name: Import iOS certificates
+        if: false
         env:
           IOS_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE }}
           IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
@@ -194,6 +195,7 @@ jobs:
           rm certificate.p12
 
       - name: Build iOS
+        if: false
         run: |
           cd client
           npm run tauri ios build -- --export-method app-store-connect
@@ -201,6 +203,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
       - name: Find iOS IPA path
+        if: false
         id: find-ipa
         run: |
           IPA_PATH=$(find client/src-tauri/gen/apple/build -name "*.ipa" -type f | head -n 1)
@@ -208,12 +211,14 @@ jobs:
           echo "Found IPA at: $IPA_PATH"
 
       - name: Upload iOS IPA (Artifact)
+        if: false
         uses: actions/upload-artifact@v4
         with:
           name: ios-build
           path: ${{ steps.find-ipa.outputs.ipa_path }}
 
       - name: Upload to TestFlight
+        if: false
         uses: apple-actions/upload-testflight-build@v1
         with:
           app-path: ${{ steps.find-ipa.outputs.ipa_path }}
@@ -222,17 +227,14 @@ jobs:
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
 
       - name: Setup Android SDK
-        if: false
         uses: android-actions/setup-android@v3
 
       - name: Install Android SDK components
-        if: false
         run: |
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Setup Android NDK
-        if: false
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r26b
@@ -246,7 +248,6 @@ jobs:
           echo "PATH=$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_NDK_HOME:$PATH" >> $GITHUB_ENV
 
       - name: Create Android gradle.properties
-        if: false
         run: |
           mkdir -p client/src-tauri/gen/android
           FILE=client/src-tauri/gen/android/gradle.properties
@@ -257,7 +258,6 @@ jobs:
           echo "android.nonFinalResIds=false" >> "$FILE"
 
       - name: Create dummy keystore.properties for CI
-        if: false
         run: |
           cat > client/src-tauri/gen/android/keystore.properties << 'EOF'
           password=android
@@ -266,7 +266,6 @@ jobs:
           EOF
 
       - name: Create and use debug keystore
-        if: false
         run: |
           # Generate debug keystore if it doesn't exist
           if [ ! -f ~/.android/debug.keystore ]; then
@@ -284,17 +283,31 @@ jobs:
           cp ~/.android/debug.keystore client/src-tauri/build-tools/debug.keystore
 
       - name: Build Android
-        if: false
         run: |
           cd client
           npm run tauri android build
 
       - name: Upload Android AAB
-        if: false
         uses: actions/upload-artifact@v4
         with:
           name: android-build
           path: client/src-tauri/gen/android/app/build/outputs/bundle/*/release/*.aab
+
+      - name: Upload Android APK (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: client/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
+
+      - name: Deploy to Google Play Store
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: app.angularmomentum
+          releaseFiles: client/src-tauri/gen/android/app/build/outputs/bundle/universalRelease/app-universal-release.aab
+          track: production  # Options: internal, alpha, beta, production
+          status: completed
+          inAppUpdatePriority: 2   # No effect without in-app update library
 
   deployment-summary:
     runs-on: ubuntu-latest
