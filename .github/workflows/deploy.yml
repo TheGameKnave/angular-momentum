@@ -36,7 +36,6 @@ jobs:
           echo "✅ Deployment complete"
 
   create-release:
-    if: false
     runs-on: ubuntu-latest
     # if: github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     outputs:
@@ -71,7 +70,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-and-release:
-    if: false
     needs: create-release
     runs-on: ${{ matrix.platform }}
     strategy:
@@ -211,35 +209,13 @@ jobs:
           name: ios-build
           path: ${{ steps.find-ipa.outputs.ipa_path }}
 
-      - name: Create App Store Connect API Key
-        run: |
-          mkdir -p $HOME/.appstoreconnect/private_keys
-          echo "${{ secrets.APPSTORE_API_PRIVATE_KEY }}" > $HOME/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8
-
-      - name: Upload & Submit to App Store via Fastlane
-        run: |
-          export APP_STORE_CONNECT_API_KEY_KEY_ID="${{ secrets.APPSTORE_API_KEY_ID }}"
-          export APP_STORE_CONNECT_API_KEY_ISSUER_ID="${{ secrets.APPSTORE_ISSUER_ID }}"
-          export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$HOME/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8"
-          
-          fastlane deliver \
-            --ipa "${{ steps.find-ipa.outputs.ipa_path }}" \
-            --skip_screenshots \
-            --skip_metadata \
-            --submit_for_review \
-            --automatic_release \
-            --force
-
-      - name: Upload & Submit to App Store via Fastlane
-        run: |
-          fastlane deliver \
-            --ipa "${{ steps.find-ipa.outputs.ipa_path }}" \
-            --skip_screenshots \
-            --skip_metadata \
-            --submit_for_review \
-            --automatic_release \
-            --force \
-            --api_key_path /tmp/api_key.json
+      - name: Upload to TestFlight
+        uses: apple-actions/upload-testflight-build@v1
+        with:
+          app-path: ${{ steps.find-ipa.outputs.ipa_path }}
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -317,7 +293,7 @@ jobs:
   deployment-summary:
     runs-on: ubuntu-latest
     needs: [deploy-web, create-release, build-and-release, build-mobile]
-    if: always()  # Run even if some jobs fail or are skipped
+    if: always()
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -351,9 +327,10 @@ jobs:
           if [[ "${{ needs.build-mobile.result }}" == "success" ]]; then
             echo "   🍎 iOS (App Store):"
             echo "      ✅ Uploaded to TestFlight"
-            echo "      ✅ Submitted for App Store Review"
-            echo "      ⏳ Awaiting Apple approval (1-7 days typical)"
-            echo "      📱 Manage: https://appstoreconnect.apple.com"
+            echo "      ⏭️  MANUAL STEP REQUIRED:"
+            echo "         👉 Submit for Review: https://appstoreconnect.apple.com/apps"
+            echo "         (Select Angular Momentum → App Store tab → Add build → Submit)"
+            echo "      ⏳ After submission: Awaiting Apple approval (1-7 days typical)"
             echo ""
             echo "   🤖 Android (Google Play):"
             echo "      ✅ Uploaded to Google Play Console"
@@ -370,17 +347,17 @@ jobs:
           fi
           echo ""
           echo "════════════════════════════════════════════════════════"
-          echo "🔗 Useful Links:"
+          echo "🔗 Quick Actions:"
           echo "════════════════════════════════════════════════════════"
-          echo "   • This workflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          echo "   • App Store Connect: https://appstoreconnect.apple.com"
-          echo "   • Google Play Console: https://play.google.com/console"
-          echo "   • Latest Release: https://github.com/${{ github.repository }}/releases/latest"
+          echo "   • 📱 !! Submit iOS for Review: https://appstoreconnect.apple.com/apps/6753187258/distribution/ios/version/deliverable"
+          echo "   • 🤖 Manage Android: https://play.google.com/console/u/1/developers/8424917546000917413/app/4975011008267928067/app-dashboard"
+          echo "   • 🖥️  Latest Desktop Release: https://github.com/${{ github.repository }}/releases/latest"
+          echo "   • 📊 This Workflow Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           echo ""
           
-          # Overall status emoji
           if [[ "${{ needs.build-mobile.result }}" == "success" ]]; then
             echo "✅ Deployment pipeline completed successfully!"
+            echo "   👉 Don't forget to submit iOS for review!"
           elif [[ "${{ needs.build-mobile.result }}" == "failure" ]]; then
             echo "⚠️  Some deployments failed - check details above"
             exit 1
