@@ -169,7 +169,6 @@ jobs:
           npm ci
 
       - name: Import iOS certificates
-        if: false
         env:
           IOS_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE }}
           IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
@@ -195,7 +194,6 @@ jobs:
           rm certificate.p12
 
       - name: Build iOS
-        if: false
         run: |
           cd client
           npm run tauri ios build -- --export-method app-store-connect
@@ -203,7 +201,6 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
       - name: Find iOS IPA path
-        if: false
         id: find-ipa
         run: |
           IPA_PATH=$(find client/src-tauri/gen/apple/build -name "*.ipa" -type f | head -n 1)
@@ -211,20 +208,34 @@ jobs:
           echo "Found IPA at: $IPA_PATH"
 
       - name: Upload iOS IPA (Artifact)
-        if: false
         uses: actions/upload-artifact@v4
         with:
           name: ios-build
           path: ${{ steps.find-ipa.outputs.ipa_path }}
 
+      - name: Install Fastlane
+        run: gem install fastlane
+
       - name: Upload to TestFlight
-        if: false
         uses: apple-actions/upload-testflight-build@v1
         with:
           app-path: ${{ steps.find-ipa.outputs.ipa_path }}
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+
+      - name: Upload & Submit to App Store via Fastlane
+        run: |
+          fastlane deliver \
+            --ipa "${{ steps.find-ipa.outputs.ipa_path }}" \
+            --skip_screenshots \
+            --skip_metadata \
+            --submit_for_review \
+            --automatic_release \
+            --force
+        env:
+          FASTLANE_USER: ${{ secrets.APPLE_ID }}
+          FASTLANE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
