@@ -48,11 +48,11 @@
       }
     },
     "iOS": {
-      "bundleVersion": "107"
+      "bundleVersion": "108"
     },
     "android": {
       "minSdkVersion": 35,
-      "versionCode": 107
+      "versionCode": 108
     }
   },
   "plugins": {
