@@ -211,19 +211,24 @@ jobs:
           name: ios-build
           path: ${{ steps.find-ipa.outputs.ipa_path }}
 
-      - name: Install Fastlane
-        run: gem install fastlane
-
-      - name: Create App Store Connect API Key JSON
+      - name: Create App Store Connect API Key
         run: |
-          cat > /tmp/api_key.json << EOF
-          {
-            "key_id": "${{ secrets.APPSTORE_API_KEY_ID }}",
-            "issuer_id": "${{ secrets.APPSTORE_ISSUER_ID }}",
-            "key": "${{ secrets.APPSTORE_API_PRIVATE_KEY }}",
-            "in_house": false
-          }
-          EOF
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "${{ secrets.APPSTORE_API_PRIVATE_KEY }}" > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8
+
+      - name: Upload & Submit to App Store via Fastlane
+        run: |
+          fastlane deliver \
+            --ipa "${{ steps.find-ipa.outputs.ipa_path }}" \
+            --skip_screenshots \
+            --skip_metadata \
+            --submit_for_review \
+            --automatic_release \
+            --force
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8
 
       - name: Upload & Submit to App Store via Fastlane
         run: |
