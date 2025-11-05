@@ -36,6 +36,7 @@ jobs:
           echo "✅ Deployment complete"
 
   create-release:
+    if: false
     runs-on: ubuntu-latest
     # if: github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     outputs:
@@ -70,6 +71,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-and-release:
+    if: false
     needs: create-release
     runs-on: ${{ matrix.platform }}
     strategy:
@@ -138,7 +140,6 @@ jobs:
 
 
   build-mobile:
-    if: true
     runs-on: macos-latest
     steps:
       - name: Checkout Code
@@ -213,11 +214,15 @@ jobs:
       - name: Install Fastlane
         run: gem install fastlane
 
-      - name: Create App Store Connect API Key
+      - name: Create App Store Connect API Key JSON
         run: |
-          mkdir -p ~/.appstoreconnect/private_keys
-          cat > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8 << EOF
-          ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+          cat > /tmp/api_key.json << EOF
+          {
+            "key_id": "${{ secrets.APPSTORE_API_KEY_ID }}",
+            "issuer_id": "${{ secrets.APPSTORE_ISSUER_ID }}",
+            "key": "${{ secrets.APPSTORE_API_PRIVATE_KEY }}",
+            "in_house": false
+          }
           EOF
 
       - name: Upload & Submit to App Store via Fastlane
@@ -229,9 +234,7 @@ jobs:
             --submit_for_review \
             --automatic_release \
             --force \
-            --api_key_path ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8 \
-            --api_key_issuer_id ${{ secrets.APPSTORE_ISSUER_ID }} \
-            --api_key_key_id ${{ secrets.APPSTORE_API_KEY_ID }}
+            --api_key_path /tmp/api_key.json
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
