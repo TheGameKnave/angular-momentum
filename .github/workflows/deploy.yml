@@ -213,13 +213,12 @@ jobs:
       - name: Install Fastlane
         run: gem install fastlane
 
-      - name: Upload to TestFlight
-        uses: apple-actions/upload-testflight-build@v1
-        with:
-          app-path: ${{ steps.find-ipa.outputs.ipa_path }}
-          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
-          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+      - name: Create App Store Connect API Key
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          cat > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8 << EOF
+          ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+          EOF
 
       - name: Upload & Submit to App Store via Fastlane
         run: |
@@ -229,11 +228,10 @@ jobs:
             --skip_metadata \
             --submit_for_review \
             --automatic_release \
-            --force
-        env:
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+            --force \
+            --api_key_path ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8 \
+            --api_key_issuer_id ${{ secrets.APPSTORE_ISSUER_ID }} \
+            --api_key_key_id ${{ secrets.APPSTORE_API_KEY_ID }}
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
