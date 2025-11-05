@@ -313,19 +313,73 @@ jobs:
   deployment-summary:
     runs-on: ubuntu-latest
     needs: [deploy-web, create-release, build-and-release, build-mobile]
-    if: false
-    # if: always()
+    if: always()  # Run even if some jobs fail or are skipped
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./client/package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Deployment Summary
         run: |
           echo ""
           echo "════════════════════════════════════════════════════════"
-          echo "✅ DUMMY DEPLOYMENT COMPLETE: v$VERSION"
+          echo "📦 DEPLOYMENT SUMMARY - v${{ steps.version.outputs.version }}"
           echo "════════════════════════════════════════════════════════"
           echo ""
-          echo "🌐 Web Application: ${{ needs.deploy-web.result }}"
-          echo "🖥️  Desktop Applications: ${{ needs.build-desktop.result }}"
-          echo "📱 Mobile Applications: ${{ needs.build-mobile.result }}"
-          echo "📦 GitHub Release: ${{ needs.create-release.result }}"
+          echo "🌐 Web Application (Heroku):"
+          echo "   Status: ${{ needs.deploy-web.result }}"
           echo ""
-          echo "ℹ️  This was a dummy deployment - no actual changes made"
+          echo "🖥️  Desktop Applications (GitHub Release):"
+          echo "   Status: ${{ needs.build-and-release.result }}"
+          if [[ "${{ needs.build-and-release.result }}" == "success" ]]; then
+            echo "   ✅ Windows, macOS, and Linux builds available"
+            echo "   📥 Download: https://github.com/${{ github.repository }}/releases/latest"
+          fi
+          echo ""
+          echo "📱 Mobile Applications:"
+          echo "   Overall Status: ${{ needs.build-mobile.result }}"
+          echo ""
+          if [[ "${{ needs.build-mobile.result }}" == "success" ]]; then
+            echo "   🍎 iOS (App Store):"
+            echo "      ✅ Uploaded to TestFlight"
+            echo "      ✅ Submitted for App Store Review"
+            echo "      ⏳ Awaiting Apple approval (1-7 days typical)"
+            echo "      📱 Manage: https://appstoreconnect.apple.com"
+            echo ""
+            echo "   🤖 Android (Google Play):"
+            echo "      ✅ Uploaded to Google Play Console"
+            echo "      ✅ Published to Production track"
+            echo "      ⏳ Awaiting Google review (1-3 days typical)"
+            echo "      📱 Manage: https://play.google.com/console"
+            echo ""
+            echo "   📦 Build Artifacts:"
+            echo "      https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          elif [[ "${{ needs.build-mobile.result }}" == "failure" ]]; then
+            echo "   ❌ Mobile build failed - check logs above"
+          elif [[ "${{ needs.build-mobile.result }}" == "skipped" ]]; then
+            echo "   ⏭️  Mobile builds skipped (job disabled)"
+          fi
+          echo ""
+          echo "════════════════════════════════════════════════════════"
+          echo "🔗 Useful Links:"
+          echo "════════════════════════════════════════════════════════"
+          echo "   • This workflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "   • App Store Connect: https://appstoreconnect.apple.com"
+          echo "   • Google Play Console: https://play.google.com/console"
+          echo "   • Latest Release: https://github.com/${{ github.repository }}/releases/latest"
+          echo ""
+          
+          # Overall status emoji
+          if [[ "${{ needs.build-mobile.result }}" == "success" ]]; then
+            echo "✅ Deployment pipeline completed successfully!"
+          elif [[ "${{ needs.build-mobile.result }}" == "failure" ]]; then
+            echo "⚠️  Some deployments failed - check details above"
+            exit 1
+          else
+            echo "ℹ️  Deployment pipeline completed with some jobs skipped"
+          fi
