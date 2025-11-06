@@ -1,4 +1,12 @@
-export const changeLog = [
+export const changeLog = [  
+  {
+    version: "0.20.13",
+    date: "2025-11-05",
+    description: "Automated deploy scripts",
+    changes: [
+      "Deploy scripts for android and iOS"
+    ]
+  },
   {
     version: "0.20.12",
     date: "2025-10-30",

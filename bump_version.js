@@ -78,11 +78,6 @@ const targets = [
     replacement: `$1${newVersion}$3`,
   },
   {
-    file: "client/src-tauri/latest.json",
-    pattern: new RegExp(oldVersion.replace(/\./g, "\\."), "g"),
-    replacement: newVersion,
-  },
-  {
     file: "client/src-tauri/gen/apple/angular-momentum_iOS/Info.plist",
     pattern: new RegExp(`<string>${oldVersion}</string>`, "g"),
     replacement: `<string>${newVersion}</string>`,
