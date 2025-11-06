@@ -27,16 +27,23 @@ export const INSTALLERS: Record<'name' | 'icon' | 'url', string>[] = [
   {
     name: 'Windows',
     icon: 'pi-microsoft',
-    url: 'https://cdn.angularmomentum.app/dist/{version}/AngularMomentum_{version}.msi',
+    url: 'https://github.com/TheGameKnave/angular-momentum/releases/latest/download/Angular.Momentum_{version}_x64_en-US_windows.msi',
   },
   {
     name: 'Mac',
     icon: 'pi-apple',
-    url: 'https://cdn.angularmomentum.app/dist/{version}/AngularMomentum_{version}.dmg',
+    url: 'https://github.com/TheGameKnave/angular-momentum/releases/latest/download/Angular.Momentum_{version}_x64_darwin.dmg',
   },
   {
     name: 'Linux',
     icon: 'pi-desktop',
-    url: 'https://cdn.angularmomentum.app/dist/{version}/AngularMomentum_{version}.AppImage',
+    url: 'https://github.com/TheGameKnave/angular-momentum/releases/latest/download/Angular.Momentum_{version}_amd64_linux.AppImage',
   },
 ];
+export const PLATFORMS: { platform: string; regex: RegExp }[] = [
+    { platform: 'Windows', regex: /Windows/i },
+    { platform: 'Mac',     regex: /Mac/i },
+    { platform: 'Linux',   regex: /Linux/i },
+    { platform: 'Android', regex: /Android/i },
+    { platform: 'iOS',     regex: /iOS/i },
+  ];

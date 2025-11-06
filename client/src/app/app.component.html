@@ -53,7 +53,7 @@
           (keydown.enter)="toggleMenu('language', $event)"
           class="language-button"
         >
-          <i class="pi pi-language"></i>&nbsp;<span class="flag">{{ translocoLoader.getFlag(translate.getActiveLang()) }}</span>
+          <i class="pi pi-language"></i>&nbsp;<i [class]="'fi fi-' + translocoLoader.getCountry(translate.getActiveLang())"></i>
         </a>
       }
     </footer>

@@ -9,7 +9,7 @@ import { PrefixedMissingHandler } from './main.config';
 import { TranslocoHttpLoader } from './app/services/transloco-loader.service';
 import { TranslocoService } from '@jsverse/transloco';
 import { SUPPORTED_LANGUAGES } from './app/helpers/constants';
-import { cookiesStorage, GetLangParams } from '@jsverse/transloco-persist-lang';
+import { GetLangParams } from '@jsverse/transloco-persist-lang';
 import { isDevMode } from '@angular/core';
 
 describe('PrefixedMissingHandler', () => {

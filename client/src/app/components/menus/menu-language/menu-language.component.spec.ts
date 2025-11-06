@@ -14,7 +14,7 @@ describe('MenuLanguageComponent', () => {
 
   beforeEach(async () => {
     mockTranslocoService = jasmine.createSpyObj('TranslocoService', ['setActiveLang', 'getActiveLang']);
-    mockTranslocoLoader = jasmine.createSpyObj('TranslocoLoader', ['getFlag']);
+    mockTranslocoLoader = jasmine.createSpyObj('TranslocoLoader', ['getCountry']);
     
     await TestBed.configureTestingModule({
       imports: [TranslocoDirective, NgClass],

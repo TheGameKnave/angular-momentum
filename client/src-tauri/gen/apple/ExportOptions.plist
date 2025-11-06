@@ -3,6 +3,19 @@
 <plist version="1.0">
 <dict>
     <key>method</key>
-    <string>debugging</string>
+    <string>app-store</string>
+    <key>teamID</key>
+    <string>7386GL7C2C</string>
+    <key>signingStyle</key>
+    <string>manual</string>
+    <key>provisioningProfiles</key>
+    <dict>
+        <key>app.angularmomentum</key>
+        <string>angularMomentum</string>
+    </dict>
+    <key>uploadBitcode</key>
+    <false/>
+    <key>uploadSymbols</key>
+    <true/>
 </dict>
 </plist>

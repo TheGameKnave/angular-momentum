@@ -27,11 +27,11 @@ export class TranslocoHttpLoader implements TranslocoLoader {
   );
 }
 
-  getFlag(ln: string): string {
+  getCountry(ln: string): string {
     if (!ln.includes('-')) {
-      return Object.values(this.languages[ln].locales)[0].flag;
+      return Object.keys(this.languages[ln].locales)[0].split('-')[1].toLowerCase();
     } else {
-      return this.languages[ln.split('-')[0]].locales[ln].flag;
+      return ln.split('-')[1].toLowerCase();
     }
   }
 

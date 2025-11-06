@@ -5,15 +5,15 @@
     <a
       pButton
       [class.disabled]="!connectivity.isOnline()"
-      [href]="currentPlatform.url || ''"
+      [href]="installersService.currentPlatformInstaller().url || ''"
       target="_blank"
       rel="noopener noreferrer"
     >
-      <i class="pi {{ currentPlatform.icon || '' }}"></i> {{ currentPlatform.name || '' }}
+      <i class="pi {{ installersService.currentPlatformInstaller().icon || '' }}"></i> {{ installersService.currentPlatformInstaller().name || '' }}
     </a>
   </p-card>
   <p-panel header="{{ t('Other Installers') }}" [toggleable]="true" [collapsed]="true">
-    @for (installer of installersService.getOtherInstallers(); track $index) {
+    @for (installer of installersService.otherInstallers(); track $index) {
       <a
         pButton
         [class.disabled]="!connectivity.isOnline()"
