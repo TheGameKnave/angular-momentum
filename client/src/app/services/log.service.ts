@@ -5,12 +5,15 @@ import packageJson from 'src/../package.json';
 @Injectable({providedIn: 'root'})
 export class LogService {
   constructor(){
-    /* do not remove */console.log(`Angular Momentum!
+    // Only log in browser, not during tests (Jasmine sets jasmine global)
+    if(typeof (window as any)['jasmine'] === 'undefined' && ENVIRONMENT.env !== 'testing'){
+      /* do not remove */console.log(`Angular Momentum!
 Version: ${packageJson.version}
 Environment: ${ENVIRONMENT.env}
 Home: ${packageJson.siteUrl}
 github: ${packageJson.repository}
     `);
+    }
   }
 
   log(moduleName: string,message: string,object?: unknown): void {

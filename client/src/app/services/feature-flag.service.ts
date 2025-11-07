@@ -67,7 +67,7 @@ export class FeatureFlagService {
    * Get the value of a specific feature flag.
    */
   getFeature(feature: FeatureFlagKeys): boolean {
-    return this.features()[feature] ?? feature === 'Features';
+    return this.features()[feature] === true;
   }
 
 }

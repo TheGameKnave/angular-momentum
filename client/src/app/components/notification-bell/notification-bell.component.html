@@ -1,0 +1,76 @@
+<div class="notification-bell-container">
+  <button
+    #bellButton
+    class="notification-bell-button"
+    (click)="toggleNotificationCenter()"
+    [attr.aria-label]="'Notifications' + (notificationService.unreadCount() > 0 ? ' (' + notificationService.unreadCount() + ' unread)' : '')"
+    title="Notifications">
+    <i class="pi pi-bell"></i>
+    @if (notificationService.unreadCount() > 0) {
+      <span class="notification-badge">{{ notificationService.unreadCount() }}</span>
+    }
+  </button>
+</div>
+
+<ng-template #notificationCenter>
+  <div class="notification-center">
+      <div class="notification-center-header">
+        <h3>Notifications</h3>
+        <div class="notification-center-actions">
+          @if (notificationService.unreadCount() > 0) {
+            <button (click)="markAllAsRead()" class="btn-link" [attr.aria-label]="'Mark all read'" title="Mark all as read">
+              Mark all read
+            </button>
+          }
+          @if (notificationService.notifications().length > 0) {
+            <button (click)="clearAll()" class="btn-link" [attr.aria-label]="'Clear all'" title="Clear all">
+              Clear all
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="notification-center-body">
+        @if (notificationService.notifications().length === 0) {
+          <div class="notification-empty">
+            <i class="pi pi-bell" style="font-size: 3rem;"></i>
+            <p>No notifications</p>
+          </div>
+        } @else {
+          <div class="notification-list">
+            @for (notification of notificationService.notifications(); track notification.id) {
+              <div
+                class="notification-item"
+                [class.unread]="!notification.read"
+                [attr.aria-label]="notification.title + '. ' + notification.body + '. ' + formatTime(notification.timestamp) + '. ' + (notification.read ? 'Read' : 'Unread')"
+                role="article">
+                @if (notification.icon) {
+                  <img [src]="notification.icon" alt="" class="notification-icon" />
+                }
+                <div class="notification-content">
+                  <div class="notification-title">{{ notification.title }}</div>
+                  <div class="notification-body">{{ notification.body }}</div>
+                  <div class="notification-time">{{ formatTime(notification.timestamp) }}</div>
+                </div>
+                <button
+                  class="notification-delete"
+                  (click)="deleteNotification($event, notification.id)"
+                  [attr.aria-label]="'Delete notification'"
+                  title="Delete notification">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+    @if (!notificationService.permissionGranted()) {
+      <div class="notification-center-footer">
+        <button (click)="requestPermission()" class="btn-primary" [attr.aria-label]="'Enable Notifications'">
+          Enable Notifications
+        </button>
+      </div>
+    }
+  </div>
+</ng-template>

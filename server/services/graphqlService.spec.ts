@@ -4,11 +4,18 @@ import { Server } from 'socket.io'; // Import the socket.io server type
 import { graphqlMiddleware } from './graphqlService';
 import { readFeatureFlags, writeFeatureFlags } from './lowDBService';
 import { changeLog } from '../data/changeLog';
+import { broadcastNotification, sendNotificationToUser } from './notificationService';
 
 // Mock the lowDBService functions
 jest.mock('./lowDBService', () => ({
   readFeatureFlags: jest.fn(),
   writeFeatureFlags: jest.fn(),
+}));
+
+// Mock the notificationService functions
+jest.mock('./notificationService', () => ({
+  broadcastNotification: jest.fn(),
+  sendNotificationToUser: jest.fn(),
 }));
 
 describe('GraphQL API', () => {
@@ -149,6 +156,198 @@ describe('GraphQL API', () => {
         value: false,
       });
       expect(emitSpy).toHaveBeenCalledWith('update-feature-flags', mockUpdatedFeatures);
+    });
+
+    it('should send a broadcast notification successfully', async () => {
+      const mutation = `
+        mutation {
+          sendNotification(
+            title: "Test Title",
+            body: "Test Body",
+            icon: "/icon.png"
+          ) {
+            success
+            message
+          }
+        }
+      `;
+
+      const response = await request(app)
+        .post('/api')
+        .send({ query: mutation });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.sendNotification).toEqual({
+        success: true,
+        message: 'Notification sent to all clients'
+      });
+      expect(broadcastNotification).toHaveBeenCalledWith(io, {
+        title: 'Test Title',
+        body: 'Test Body',
+        icon: '/icon.png',
+        data: undefined
+      });
+    });
+
+    it('should send a broadcast notification with data parameters', async () => {
+      const mutation = `
+        mutation {
+          sendNotification(
+            title: "System Maintenance",
+            body: "Scheduled maintenance will occur tonight at {time}.",
+            icon: "/icon.png",
+            data: "{\\"params\\":{\\"time\\":\\"2025-01-06T22:00:00.000Z\\"}}"
+          ) {
+            success
+            message
+          }
+        }
+      `;
+
+      const response = await request(app)
+        .post('/api')
+        .send({ query: mutation });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.sendNotification).toEqual({
+        success: true,
+        message: 'Notification sent to all clients'
+      });
+      expect(broadcastNotification).toHaveBeenCalledWith(io, {
+        title: 'System Maintenance',
+        body: 'Scheduled maintenance will occur tonight at {time}.',
+        icon: '/icon.png',
+        data: { params: { time: '2025-01-06T22:00:00.000Z' } }
+      });
+    });
+
+    it('should handle broadcast notification errors', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      (broadcastNotification as jest.Mock).mockImplementation(() => {
+        throw new Error('Broadcast failed');
+      });
+
+      const mutation = `
+        mutation {
+          sendNotification(
+            title: "Test",
+            body: "Test"
+          ) {
+            success
+            message
+          }
+        }
+      `;
+
+      const response = await request(app)
+        .post('/api')
+        .send({ query: mutation });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.sendNotification).toEqual({
+        success: false,
+        message: 'Error: Error: Broadcast failed'
+      });
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error sending notification:', expect.any(Error));
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should send a notification to specific socket successfully', async () => {
+      const mutation = `
+        mutation {
+          sendNotificationToSocket(
+            socketId: "socket-123",
+            title: "User Notification",
+            body: "This is for you",
+            icon: "/icon.png"
+          ) {
+            success
+            message
+          }
+        }
+      `;
+
+      const response = await request(app)
+        .post('/api')
+        .send({ query: mutation });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.sendNotificationToSocket).toEqual({
+        success: true,
+        message: 'Notification sent to socket socket-123'
+      });
+      expect(sendNotificationToUser).toHaveBeenCalledWith(io, 'socket-123', {
+        title: 'User Notification',
+        body: 'This is for you',
+        icon: '/icon.png',
+        data: undefined
+      });
+    });
+
+    it('should send a notification to specific socket with data parameters', async () => {
+      const mutation = `
+        mutation {
+          sendNotificationToSocket(
+            socketId: "socket-456",
+            title: "Maintenance Alert",
+            body: "Scheduled maintenance will occur tonight at {time}.",
+            data: "{\\"params\\":{\\"time\\":\\"2025-01-07T00:00:00.000Z\\"}}"
+          ) {
+            success
+            message
+          }
+        }
+      `;
+
+      const response = await request(app)
+        .post('/api')
+        .send({ query: mutation });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.sendNotificationToSocket).toEqual({
+        success: true,
+        message: 'Notification sent to socket socket-456'
+      });
+      expect(sendNotificationToUser).toHaveBeenCalledWith(io, 'socket-456', {
+        title: 'Maintenance Alert',
+        body: 'Scheduled maintenance will occur tonight at {time}.',
+        icon: undefined,
+        data: { params: { time: '2025-01-07T00:00:00.000Z' } }
+      });
+    });
+
+    it('should handle socket notification errors', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      (sendNotificationToUser as jest.Mock).mockImplementation(() => {
+        throw new Error('Socket send failed');
+      });
+
+      const mutation = `
+        mutation {
+          sendNotificationToSocket(
+            socketId: "socket-789",
+            title: "Test",
+            body: "Test"
+          ) {
+            success
+            message
+          }
+        }
+      `;
+
+      const response = await request(app)
+        .post('/api')
+        .send({ query: mutation });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.sendNotificationToSocket).toEqual({
+        success: false,
+        message: 'Error: Error: Socket send failed'
+      });
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error sending notification:', expect.any(Error));
+
+      consoleErrorSpy.mockRestore();
     });
   });
 

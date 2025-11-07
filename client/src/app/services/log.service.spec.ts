@@ -17,15 +17,35 @@ describe('LogService', () => {
     consoleSpy.calls.reset();
   });
 
-  it('should be created and log constructor message', () => {
+  it('should be created', () => {
     service = TestBed.inject(LogService);
 
     expect(service).toBeTruthy();
+    // Constructor logs are suppressed during tests (Jasmine check)
+    expect(consoleSpy).not.toHaveBeenCalled();
+  });
+
+  it('should log constructor message when not in testing environment', () => {
+    // Temporarily remove Jasmine from window to simulate non-test environment
+    const jasmine = (window as any)['jasmine'];
+    delete (window as any)['jasmine'];
+
+    // Reset environment to non-testing
+    Object.defineProperty(ENVIRONMENT, 'env', { value: 'development', configurable: true });
+
+    service = TestBed.inject(LogService);
+
     expect(consoleSpy).toHaveBeenCalled();
     const callArg = consoleSpy.calls.mostRecent().args[0];
     expect(callArg).toContain('Angular Momentum!');
     expect(callArg).toContain(`Version: ${packageJson.version}`);
-    expect(callArg).toContain(`Environment: ${ENVIRONMENT.env}`);
+    expect(callArg).toContain(`Environment: development`);
+
+    // Restore Jasmine
+    (window as any)['jasmine'] = jasmine;
+
+    // Reset environment back to testing
+    Object.defineProperty(ENVIRONMENT, 'env', { value: 'testing', configurable: true });
   });
 
   describe('log()', () => {

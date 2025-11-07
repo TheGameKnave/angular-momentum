@@ -6,6 +6,7 @@
         @if(breadcrumb){ | {{ breadcrumb }}}
       </div>
       <div>
+        <app-notification-bell />
         @if(!connectivity.isOnline()){
           @if(connectivity.showOffline()){
             @if(window.innerWidth >= SCREEN_SIZES.md) { You are currently offline }
