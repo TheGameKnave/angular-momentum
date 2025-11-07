@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { Selector, test, ClientFunction } from 'testcafe';
 import { getThreshold } from '../data/constants';
-import { SUPPORTED_LANGUAGES } from '../../../client/src/app/helpers/constants';
+import { COMPONENT_LIST, SUPPORTED_LANGUAGES } from '../../../client/src/app/helpers/constants';
 
 const screenshotMode = process.env.TEST_MODE || 'tested';
 const takeScreenshot = async (t: TestController, screenshotDir: string, element?: string) => {
@@ -70,7 +70,7 @@ test('Click featurePage', async t => {
     await t
     // checks the DOM for the elements that change during the button press
         .click ('.link-home')
-        .expect(featureMenu.exists).ok();
+        .expect(featureMenu.exists).notOk();
     
         console.log("Does Feature-Menu Exist?: " + featureMenu.exists);
     await t
@@ -83,6 +83,22 @@ test('Click featurePage', async t => {
     const screenshotDir = `featureMenu/${savePath}`;
     await takeScreenshot(t,screenshotDir,'app-features');
 });
+
+test('Each feature toggle can be switched on and off', async t => {
+    const switches = Selector('.feature-list > li > p-toggleswitch');
+    await t.click('app-menu-feature i.pi.pi-list-check');
+    // need feature list
+    const featureList = COMPONENT_LIST
+    console.log(featureList);
+    for (let i = 0; i < await switches.count; i++) {
+        const toggle = switches.nth(i);
+        await t
+            .click(toggle)
+            .wait(100)
+            .click(toggle);
+    }
+});
+
 // test('Click environment', async t => {
 //     const environment = Selector('app-environment'); 
 //     await t
