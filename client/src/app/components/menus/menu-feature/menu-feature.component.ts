@@ -13,7 +13,6 @@ import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { filter } from 'rxjs';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { SlugPipe } from '@app/pipes/slug.pipe';
-import { ComponentListService } from '@app/services/component-list.service';
 import { FeatureFlagService } from '@app/services/feature-flag.service';
 import { HelpersService } from '@app/services/helpers.service';
 import { SCREEN_SIZES } from '@app/helpers/constants';
@@ -44,7 +43,6 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
   isMobile = signal(window.innerWidth < SCREEN_SIZES.sm);
 
   constructor(
-    readonly componentListService: ComponentListService,
     protected featureFlagService: FeatureFlagService,
     protected readonly helpersService: HelpersService,
     private readonly router: Router,
