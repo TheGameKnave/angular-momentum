@@ -13,8 +13,7 @@ import { MenuFeatureComponent } from '@app/components/menus/menu-feature/menu-fe
 import { FeatureFlagService } from './services/feature-flag.service';
 import { SlugPipe } from './pipes/slug.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ComponentListService } from './services/component-list.service';
-import { SCREEN_SIZES } from './helpers/constants';
+import { COMPONENT_LIST, SCREEN_SIZES } from './helpers/constants';
 import { ConnectivityService } from './services/connectivity.service';
 import { MenuChangeLogComponent } from './components/menus/menu-change-log/menu-change-log.component';
 import { ChangeLogService } from './services/change-log.service';
@@ -55,7 +54,6 @@ export class AppComponent implements OnInit {
     private readonly slugPipe: SlugPipe,
     private readonly router: Router,
     private readonly destroyRef: DestroyRef,
-    private readonly componentListService: ComponentListService,
     protected readonly connectivity: ConnectivityService,
   ){}
 
@@ -66,7 +64,7 @@ export class AppComponent implements OnInit {
       if (event instanceof NavigationEnd){
         this.openMenu = '';
         this.routePath = event.urlAfterRedirects.replace('/', '').replace(/\//, '_') || 'index';
-        this.componentListService.getComponentList().forEach((component) => {
+        COMPONENT_LIST.forEach((component) => {
           if(this.slugPipe.transform(component.name) === this.routePath){
             this.breadcrumb = component.name;
           }

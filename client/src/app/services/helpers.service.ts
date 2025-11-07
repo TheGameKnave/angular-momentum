@@ -1,7 +1,7 @@
 import { computed, Injectable } from '@angular/core';
 import { ENVIRONMENT } from 'src/environments/environment';
 import { FeatureFlagService } from './feature-flag.service';
-import { ComponentListService } from './component-list.service';
+import { COMPONENT_LIST } from '@app/helpers/constants';
 
 @Injectable({
   providedIn: 'root',
@@ -9,7 +9,6 @@ import { ComponentListService } from './component-list.service';
 export class HelpersService {
   constructor(
     private readonly featureFlagService: FeatureFlagService,
-    private readonly componentListService: ComponentListService,
   ) {
     // istanbul ignore next
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,7 +16,7 @@ export class HelpersService {
   }
 
   enabledComponents = computed(() =>
-    this.componentListService.getComponentList().filter(
+    COMPONENT_LIST.filter(
       (component) => this.featureFlagService.getFeature(component.name) !== false
     )
   );
