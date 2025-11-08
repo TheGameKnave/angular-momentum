@@ -1,7 +1,7 @@
 import { Route } from '@angular/router';
 import { FeatureFlagGuard } from './guards/feature-flag.guard';
 import { SlugPipe } from './pipes/slug.pipe';
-import { COMPONENT_LIST } from './helpers/constants';
+import { COMPONENT_LIST } from './helpers/component-list';
 
 // Instantiate the service (without DI, since it's outside Angular context)
 const slugPipe = new SlugPipe();
