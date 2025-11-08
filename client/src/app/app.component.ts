@@ -13,7 +13,8 @@ import { MenuFeatureComponent } from '@app/components/menus/menu-feature/menu-fe
 import { FeatureFlagService } from './services/feature-flag.service';
 import { SlugPipe } from './pipes/slug.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { COMPONENT_LIST, SCREEN_SIZES } from './helpers/constants';
+import { COMPONENT_LIST } from './helpers/component-list';
+import { SCREEN_SIZES } from './helpers/constants';
 import { ConnectivityService } from './services/connectivity.service';
 import { MenuChangeLogComponent } from './components/menus/menu-change-log/menu-change-log.component';
 import { ChangeLogService } from './services/change-log.service';

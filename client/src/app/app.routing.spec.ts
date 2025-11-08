@@ -1,14 +1,8 @@
 import { routes } from './app.routing';
-import { ComponentListService } from '@app/services/component-list.service';
+import { COMPONENT_LIST } from '@app/helpers/component-list';
 
 describe('App Routing Configuration', () => {
-  let componentService: ComponentListService;
-  let componentList: { name: string; component: any }[];
-
-  beforeEach(() => {
-    componentService = new ComponentListService();
-    componentList = componentService.getComponentList();
-  });
+  const componentList = COMPONENT_LIST;
 
   it('should define the base route', async () => {
     const indexRoute = routes.find(route => route.path === '');

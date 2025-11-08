@@ -1,7 +1,7 @@
 import { computed, Injectable } from '@angular/core';
 import { ENVIRONMENT } from 'src/environments/environment';
 import { FeatureFlagService } from './feature-flag.service';
-import { COMPONENT_LIST } from '@app/helpers/constants';
+import { COMPONENT_LIST } from '@app/helpers/component-list';
 
 @Injectable({
   providedIn: 'root',

@@ -2,21 +2,18 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { UpdateService } from '@app/services/update.service';
 import { FeatureFlagService } from '@app/services/feature-flag.service';
-import { ComponentListService } from '@app/services/component-list.service';
+import { COMPONENT_LIST } from '@app/helpers/component-list';
 import { SlugPipe } from '@app/pipes/slug.pipe';
 import { Router, NavigationEnd } from '@angular/router';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Socket } from 'ngx-socket-io';
-import { of, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { SCREEN_SIZES } from './helpers/constants';
-import { Component, signal, Type } from '@angular/core';
+import { signal } from '@angular/core';
 import { ConnectivityService } from './services/connectivity.service';
 
-// Dummy component just to satisfy ComponentInstance typing
-@Component({ template: '' })
-class DummyComponent{}
 class MockConnectivityService {
   showOffline = signal(false);
   isOnline = signal(true);
@@ -32,7 +29,6 @@ describe('AppComponent', () => {
   let updateService: jasmine.SpyObj<UpdateService>;
   let featureFlagService: jasmine.SpyObj<FeatureFlagService>;
   let slugPipe: jasmine.SpyObj<SlugPipe>;
-  let componentListService: jasmine.SpyObj<ComponentListService>;
   let routerEvents$: Subject<any>;
   let router: jasmine.SpyObj<Router>;
 
@@ -40,10 +36,6 @@ describe('AppComponent', () => {
     updateService = jasmine.createSpyObj('UpdateService', ['checkForUpdates']);
     featureFlagService = jasmine.createSpyObj('FeatureFlagService', ['getFeature']);
     slugPipe = jasmine.createSpyObj('SlugPipe', ['transform']);
-    componentListService = jasmine.createSpyObj('ComponentListService', ['getComponentList']);
-
-    // default mock: empty array to prevent forEach errors
-    componentListService.getComponentList.and.returnValue([]);
 
     routerEvents$ = new Subject<any>();
     router = jasmine.createSpyObj('Router', ['navigate'], { events: routerEvents$.asObservable() });
@@ -61,7 +53,6 @@ describe('AppComponent', () => {
         { provide: UpdateService, useValue: updateService },
         { provide: FeatureFlagService, useValue: featureFlagService },
         { provide: SlugPipe, useValue: slugPipe },
-        { provide: ComponentListService, useValue: componentListService },
         { provide: Router, useValue: router },
         { provide: Socket, useValue: socketSpy },
         { provide: ConnectivityService, useClass: MockConnectivityService },
@@ -91,41 +82,50 @@ describe('AppComponent', () => {
 
   describe('ngOnInit', () => {
     it('should reset openMenu and set routePath/breadcrumb on NavigationEnd', () => {
-      slugPipe.transform.and.returnValue('foo_bar');
-      componentListService.getComponentList.and.returnValue([
-        { name: 'Foo Bar', component: DummyComponent, icon: 'test-icon' }
-      ]);
+      component.breadcrumb = '';
+      component.routePath = '';
+      slugPipe.transform.calls.reset();
+      // Mock slugPipe to return transformed version matching the logic
+      slugPipe.transform.and.callFake((name: string) => {
+        return name.toLowerCase().replace(/\s+/g, '-');
+      });
 
-      const navEvent = new NavigationEnd(1, '/foo/bar', '/foo/bar');
+      const navEvent = new NavigationEnd(1, '/features', '/features');
       routerEvents$.next(navEvent);
 
       expect(component.openMenu).toBe('');
-      expect(component.routePath).toBe('foo_bar');
-      expect(component.breadcrumb).toBe('Foo Bar');
+      expect(component.routePath).toBe('features');
+      expect(component.breadcrumb).toBe('Features');
     });
 
     it('should clear breadcrumb if no routePath', () => {
-      slugPipe.transform.and.returnValue('');
-      componentListService.getComponentList.and.returnValue([
-        { name: 'Foo Bar', component: DummyComponent, icon: 'test-icon' }
-      ]);
+      component.breadcrumb = '';
+      component.routePath = '';
+      slugPipe.transform.calls.reset();
+      slugPipe.transform.and.callFake((name: string) => {
+        return name.toLowerCase().replace(/\s+/g, '-');
+      });
 
       const navEvent = new NavigationEnd(1, '/', '/');
       routerEvents$.next(navEvent);
 
       expect(component.breadcrumb).toBe('');
-      expect(component.routePath).toBe('index'); // because of default replacement logic
+      expect(component.routePath).toBe('index');
     });
 
-    it('should handle empty component list without crashing', () => {
-      slugPipe.transform.and.returnValue('');
-      componentListService.getComponentList.and.returnValue([]);
+    it('should handle navigation to non-component routes', () => {
+      component.breadcrumb = '';
+      component.routePath = '';
+      slugPipe.transform.calls.reset();
+      slugPipe.transform.and.callFake((name: string) => {
+        return name.toLowerCase().replace(/\s+/g, '-');
+      });
 
-      const navEvent = new NavigationEnd(1, '/foo', '/foo');
+      const navEvent = new NavigationEnd(1, '/some-random-route', '/some-random-route');
       routerEvents$.next(navEvent);
 
       expect(component.breadcrumb).toBe('');
-      expect(component.routePath).toBe('foo');
+      expect(component.routePath).toBe('some-random-route');
     });
   });
 
