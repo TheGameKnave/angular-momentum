@@ -139,10 +139,74 @@ $text-error-light: #f88 !default;
   p-toggleswitch + label:hover {
     color: $light-brand;
   }
+
+  // Notification system
+  .notification-bell-button:hover {
+    color: $light-brand;
+  }
+  .notification-badge {
     color: #f4f4f4;
   }
+  .notification-center {
+    background: #4a4a4a;
+    color: #f4f4f4;
   }
+  .notification-center-header,
+  .notification-center-footer {
+    border-color: #555;
   }
+  .notification-center-actions {
+    p-button button {
+      color: #f4f4f4;
+      &:hover {
+        color: $light-brand;
+      }
+    }
+  }
+  .notification-item {
+    &:hover {
+      background-color: #555;
+    }
+    &.unread {
+      background-color: #2a3a4a;
+      border-left-color: $light-brand;
+    }
+  }
+
+  // Notifications page
+  .notifications-page {
+    .notification-test-card {
+      background-color: #2a2a2a;
+      border-color: #444;
+
+      .notification-preview {
+        p {
+          color: #aaa;
+        }
+      }
+    }
+
+    .status-message {
+      &.local {
+        background-color: #1a2a3a;
+        color: #f4f4f4;
+      }
+      &.server {
+        background-color: #1a2a1a;
+        color: #f4f4f4;
+      }
+    }
+
+    .status-item {
+      span {
+        &.granted {
+          color: #22c55e;
+        }
+        &.denied {
+          color: #ef4444;
+        }
+      }
+    }
   }
 }
 
@@ -528,6 +592,284 @@ app-menu-feature {
     object-fit: contain;
     flex-shrink: 0;
     display: block;
+  }
+}
+
+////////////////
+// Components //
+////////////////
+
+// Notification Bell
+.notification-bell-container {
+  position: relative;
+}
+
+.notification-bell-button {
+  position: relative;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  border-radius: .4rem;
+  transition: background-color 0.2s;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  background-color: $text-error-light;
+  border-radius: 1rem;
+  padding: 0.2rem 0.6rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  min-width: 1.8rem;
+  text-align: center;
+}
+
+.notification-center-content {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 38rem;
+  max-width: 90vw;
+  border: 0px solid $mid-gray;
+  border-radius: 0 0 0 0.6rem;
+  border-width: 0 0 1px 1px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-center-header {
+  padding: 1.6rem;
+  border-bottom: 1px solid transparent;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+
+  h3 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+  }
+
+  a.close {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+
+    i {
+      font-size: 1.8rem;
+    }
+  }
+}
+
+.notification-center-actions {
+  display: flex;
+  gap: 0.8rem;
+
+  p-button button {
+    font-size: 1.6rem !important;
+    padding: 0.8rem 1.6rem !important;
+  }
+}
+
+.notification-center-body {
+  overflow-y: auto;
+  max-height: 45rem;
+}
+
+.notification-empty {
+  padding: 4.8rem 1.6rem;
+  text-align: center;
+  color: $mid-gray;
+
+  .pi {
+    font-size: 3rem;
+    opacity: 0.3;
+    margin-bottom: 1.6rem;
+  }
+
+  p {
+    margin: 0;
+    font-size: 1.4rem;
+  }
+}
+
+.notification-list {
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+}
+
+.notification-content {
+  display: flex;
+  gap: 1.2rem;
+  flex: 1;
+  align-items: center;
+}
+
+.notification-text {
+  flex: 1;
+}
+
+.notification-item {
+  margin: 0 !important;
+  border-left: 3px solid transparent;
+
+  p-button button {
+    font-size: 1.4rem !important;
+    padding: 0.6rem !important;
+    min-width: 3.2rem !important;
+    min-height: 3.2rem !important;
+
+    &:hover {
+      color: $light-brand !important;
+    }
+
+    .pi {
+      font-size: 1.4rem !important;
+    }
+  }
+}
+
+.notification-icon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 0.4rem;
+  object-fit: cover;
+  flex-shrink: 0;
+  margin-left: 0.8rem;
+}
+
+.notification-title {
+  font-weight: 600;
+  font-size: 1.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.notification-body {
+  font-size: 1.3rem;
+}
+
+.notification-time {
+  font-size: 1.2rem;
+  opacity: 0.7;
+}
+
+.notification-center-footer {
+  padding: 1.6rem;
+  border-top: 1px solid transparent;
+}
+
+// Notifications page
+.notifications-page {
+  h2 {
+    margin-bottom: 2rem;
+  }
+
+  h3 {
+    margin-bottom: 1.5rem;
+  }
+
+  .status-section,
+  .test-section,
+  .info-section {
+    margin-bottom: 2rem;
+  }
+
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    gap: 1rem;
+  }
+
+  .status-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    strong {
+      font-size: 1.2rem;
+      color: $mid-gray;
+      text-transform: uppercase;
+    }
+
+    span {
+      font-size: 1.6rem;
+      font-weight: 600;
+    }
+  }
+
+  .notification-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .notification-test-card {
+    padding: 1.5rem;
+    border: 1px solid transparent;
+    border-radius: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+
+    .notification-preview {
+      flex: 1;
+
+      strong {
+        display: block;
+        font-size: 1.6rem;
+        margin-bottom: 0.5rem;
+      }
+
+      p {
+        font-size: 1.4rem;
+        margin: 0;
+      }
+    }
+
+    .notification-actions {
+      display: flex;
+      gap: 0.8rem;
+      flex-shrink: 0;
+    }
+  }
+
+  .status-message {
+    padding: 1rem;
+    border-radius: 0.4rem;
+    margin-top: 1rem;
+    font-size: 1.4rem;
+    border-left: 4px solid;
+  }
+
+  ul {
+    list-style-type: disc;
+    padding-left: 2rem;
+
+    li {
+      margin-bottom: 1rem;
+      font-size: 1.4rem;
+      line-height: 1.6;
+    }
   }
 }
 

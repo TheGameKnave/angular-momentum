@@ -1,0 +1,97 @@
+<div class="notification-bell-container">
+  <button
+    #bellButton
+    class="notification-bell-button"
+    (click)="toggleNotificationCenter()"
+    [attr.aria-label]="'Notifications' + (notificationService.unreadCount() > 0 ? ' (' + notificationService.unreadCount() + ' unread)' : '')"
+    title="Notifications">
+    <i class="pi pi-bell"></i>
+    @if (notificationService.unreadCount() > 0) {
+      <span class="notification-badge">{{ notificationService.unreadCount() }}</span>
+    }
+  </button>
+</div>
+
+<ng-template #notificationCenter>
+  <div class="notification-center notification-center-content">
+      <div class="notification-center-header">
+        <h3>Notifications</h3>
+        <div class="notification-center-actions">
+          @if (notificationService.unreadCount() > 0) {
+            <p-button
+              (onClick)="markAllAsRead()"
+              label="Mark all read"
+              [text]="true"
+              size="small"
+              [attr.aria-label]="'Mark all read'"
+            />
+          }
+          @if (notificationService.notifications().length > 0) {
+            <p-button
+              (onClick)="clearAll()"
+              label="Clear all"
+              [text]="true"
+              size="small"
+              [attr.aria-label]="'Clear all'"
+            />
+          }
+        </div>
+        <a href="javascript:void(0)" class="close" (click)="closeNotificationCenter()" (keydown.enter)="closeNotificationCenter()">
+          <i class="pi pi-times"></i>
+        </a>
+      </div>
+
+      <div class="notification-center-body">
+        @if (notificationService.notifications().length === 0) {
+          <div class="notification-empty">
+            <i class="pi pi-bell"></i>
+            <p>No notifications</p>
+          </div>
+        } @else {
+          <div class="notification-list">
+            @for (notification of notificationService.notifications(); track notification.id) {
+              <p-card
+                [styleClass]="'notification-item' + (!notification.read ? ' unread' : '')"
+                [attr.aria-label]="notification.title + '. ' + notification.body + '. ' + formatTime(notification.timestamp) + '. ' + (notification.read ? 'Read' : 'Unread')"
+              >
+                <ng-template pTemplate="header">
+                  <div class="notification-header">
+                    <div class="notification-content">
+                      @if (notification.icon) {
+                        <img [src]="notification.icon" alt="" class="notification-icon" />
+                      }
+                      <div class="notification-text">
+                        <div class="notification-title">{{ notification.title }}</div>
+                        <div class="notification-time">{{ formatTime(notification.timestamp) }}</div>
+                      </div>
+                    </div>
+                    <p-button
+                      icon="pi pi-times"
+                      (onClick)="deleteNotification($event, notification.id)"
+                      [text]="true"
+                      [rounded]="true"
+                      severity="secondary"
+                      size="small"
+                      [attr.aria-label]="'Delete notification'"
+                    />
+                  </div>
+                </ng-template>
+                <div class="notification-body">{{ notification.body }}</div>
+              </p-card>
+            }
+          </div>
+        }
+      </div>
+
+    @if (!notificationService.permissionGranted()) {
+      <div class="notification-center-footer">
+        <p-button
+          (onClick)="requestPermission()"
+          label="Enable Notifications"
+          [attr.aria-label]="'Enable Notifications'"
+          styleClass="w-full"
+        />
+      </div>
+    }
+  </div>
+</ng-template>

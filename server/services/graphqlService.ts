@@ -3,6 +3,8 @@ import { buildSchema } from 'graphql';
 import express from 'express';
 import { readFeatureFlags, writeFeatureFlags } from './lowDBService'; // Import LowDB function
 import { changeLog } from '../data/changeLog';
+import { broadcastNotification, sendNotificationToUser } from './notificationService';
+import { NotificationPayload } from '../models/data.model';
 
 // Define GraphQL schema
 const schema = buildSchema(`
@@ -16,6 +18,8 @@ const schema = buildSchema(`
 
   type Mutation {
     updateFeatureFlag(key: String!, value: Boolean!): FeatureFlag
+    sendNotification(title: String!, body: String!, icon: String, data: String): NotificationResult
+    sendNotificationToSocket(socketId: String!, title: String!, body: String!, icon: String, data: String): NotificationResult
   }
 
   type ChangeEntry {
@@ -28,6 +32,11 @@ const schema = buildSchema(`
   type FeatureFlag {
     key: String
     value: Boolean
+  }
+
+  type NotificationResult {
+    success: Boolean
+    message: String
   }
 `);
 
@@ -50,6 +59,38 @@ const root = (io: any) => ({
     return { key, value };
   },
 
+  sendNotification: ({ title, body, icon, data }: { title: string; body: string; icon?: string; data?: string }) => {
+    try {
+      const notificationPayload: NotificationPayload = {
+        title,
+        body,
+        icon,
+        data: data ? JSON.parse(data) : undefined
+      };
+      broadcastNotification(io, notificationPayload);
+      return { success: true, message: 'Notification sent to all clients' };
+    } catch (error) {
+      console.error('Error sending notification:', error);
+      return { success: false, message: `Error: ${error}` };
+    }
+  },
+
+  sendNotificationToSocket: ({ socketId, title, body, icon, data }: { socketId: string; title: string; body: string; icon?: string; data?: string }) => {
+    try {
+      const notificationPayload: NotificationPayload = {
+        title,
+        body,
+        icon,
+        data: data ? JSON.parse(data) : undefined
+      };
+      sendNotificationToUser(io, socketId, notificationPayload);
+      return { success: true, message: `Notification sent to socket ${socketId}` };
+    } catch (error) {
+      console.error('Error sending notification:', error);
+      return { success: false, message: `Error: ${error}` };
+    }
+  },
+
   version: () => {
     return 1.0;
   },
@@ -62,7 +103,7 @@ const root = (io: any) => ({
     return `
       # API Documentation
 
-      This GraphQL-powered API provides access to feature flags and allows you to update their status.
+      This GraphQL-powered API provides access to feature flags, push notifications, and app metadata.
 
       ## Queries
 
@@ -75,6 +116,8 @@ const root = (io: any) => ({
       ## Mutations
 
       * \`updateFeatureFlag(key: String!, value: Boolean!)\`: Updates the status of a feature flag.
+      * \`sendNotification(title: String!, body: String!, icon: String, data: String)\`: Broadcasts a push notification to all connected clients via WebSocket.
+      * \`sendNotificationToSocket(socketId: String!, title: String!, body: String!, icon: String, data: String)\`: Sends a push notification to a specific socket/user via WebSocket.
 
       ## Authentication
 

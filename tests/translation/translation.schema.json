@@ -91,6 +91,14 @@
       "type": "string",
       "description": "Other Installers header label"
     }
+    ,"Notifications": {
+      "type": "string",
+      "description": "Notifications menu label"
+    }
+    ,"Push Notifications": {
+      "type": "string",
+      "description": "Notifications title"
+    }
     ,"Support": {
       "type": "string",
       "description": "Donate button label"
@@ -111,6 +119,146 @@
       "type": "string",
       "description": "Features component description"
     }
+    ,"Status": {
+      "type": "string",
+      "description": "Notifications: Status section header"
+    }
+    ,"Platform": {
+      "type": "string",
+      "description": "Notifications: Platform type label (Tauri/Web)"
+    }
+    ,"Permission": {
+      "type": "string",
+      "description": "Notifications: Permission status label"
+    }
+    ,"Supported": {
+      "type": "string",
+      "description": "Notifications: Browser support label"
+    }
+    ,"Yes": {
+      "type": "string",
+      "description": "Common: Affirmative response"
+    }
+    ,"No": {
+      "type": "string",
+      "description": "Common: Negative response"
+    }
+    ,"Unread Count": {
+      "type": "string",
+      "description": "Notifications: Number of unread notifications"
+    }
+    ,"Test Notifications": {
+      "type": "string",
+      "description": "Notifications: Test section header"
+    }
+    ,"Send predefined notifications to test the system": {
+      "type": "string",
+      "description": "Notifications: Test section description"
+    }
+    ,"Send Local": {
+      "type": "string",
+      "description": "Notifications: Button to send client-side notification"
+    }
+    ,"Broadcast": {
+      "type": "string",
+      "description": "Notifications: Button to send server-broadcast notification"
+    }
+    ,"How It Works": {
+      "type": "string",
+      "description": "Notifications: Information section header"
+    }
+    ,"Local Notification": {
+      "type": "string",
+      "description": "Notifications: Client-side notification type name"
+    }
+    ,"Sends a notification only to your current browser/device. Uses the NotificationService directly.": {
+      "type": "string",
+      "description": "Notifications: Local notification explanation"
+    }
+    ,"Server Broadcast": {
+      "type": "string",
+      "description": "Notifications: Server-broadcast notification type name"
+    }
+    ,"Sends a notification via GraphQL to the server, which broadcasts it to ALL connected clients via WebSocket.": {
+      "type": "string",
+      "description": "Notifications: Server broadcast explanation"
+    }
+    ,"Platform Detection": {
+      "type": "string",
+      "description": "Notifications: Platform detection feature name"
+    }
+    ,"Tauri apps use native OS notifications. Web/PWA uses browser notifications via Service Worker.": {
+      "type": "string",
+      "description": "Notifications: Platform detection explanation"
+    }
+    ,"Mark all read": {
+      "type": "string",
+      "description": "Notification Bell: Button to mark all notifications as read"
+    }
+    ,"Clear all": {
+      "type": "string",
+      "description": "Notification Bell: Button to delete all notifications"
+    }
+    ,"No notifications": {
+      "type": "string",
+      "description": "Notification Bell: Empty state message"
+    }
+    ,"Enable Notifications": {
+      "type": "string",
+      "description": "Notification Bell: Button to request notification permission"
+    }
+    ,"Delete notification": {
+      "type": "string",
+      "description": "Notification Bell: Button tooltip for deleting individual notification"
+    }
+    ,"Welcome!": {
+      "type": "string",
+      "description": "Notifications: Welcome notification title"
+    }
+    ,"Thanks for trying Angular Momentum - your modern Angular starter kit!": {
+      "type": "string",
+      "description": "Notifications: Welcome notification body"
+    }
+    ,"Welcome Message": {
+      "type": "string",
+      "description": "Notifications: Welcome notification label"
+    }
+    ,"New Feature Available": {
+      "type": "string",
+      "description": "Notifications: Feature update notification title"
+    }
+    ,"Check out the latest updates in the Features section!": {
+      "type": "string",
+      "description": "Notifications: Feature update notification body"
+    }
+    ,"Feature Update": {
+      "type": "string",
+      "description": "Notifications: Feature update notification label"
+    }
+    ,"System Maintenance": {
+      "type": "string",
+      "description": "Notifications: Maintenance notification title"
+    }
+    ,"Scheduled maintenance will occur tonight at {time}.": {
+      "type": "string",
+      "description": "Notifications: Maintenance notification body"
+    }
+    ,"Maintenance Alert": {
+      "type": "string",
+      "description": "Notifications: Maintenance notification label"
+    }
+    ,"Achievement Unlocked": {
+      "type": "string",
+      "description": "Notifications: Achievement notification title"
+    }
+    ,"You successfully tested the notification system!": {
+      "type": "string",
+      "description": "Notifications: Achievement notification body"
+    }
+    ,"Achievement": {
+      "type": "string",
+      "description": "Notifications: Achievement notification label"
+    }
   },
   "required": [
     "Momentum"
@@ -126,6 +274,8 @@
     ,"If it doesn’t update momentarily, please try to clear your cache and refresh your browser."
     ,"If you encounter problems, you can use the webapp at {url} until an app update is ready."
     ,"App Version"
+    ,"Notifications"
+    ,"Push Notifications"
     ,"Environment"
     ,"{environmentName} environment"
     ,"Development"
@@ -140,6 +290,41 @@
     ,"Persistent Text"
     ,"Enter some text to have it persist between page reloads (saved in browser storage)"
     ,"Turn features on and off for feature flag testing"
+    ,"Status"
+    ,"Platform"
+    ,"Permission"
+    ,"Supported"
+    ,"Yes"
+    ,"No"
+    ,"Unread Count"
+    ,"Test Notifications"
+    ,"Send predefined notifications to test the system"
+    ,"Send Local"
+    ,"Broadcast"
+    ,"How It Works"
+    ,"Local Notification"
+    ,"Sends a notification only to your current browser/device. Uses the NotificationService directly."
+    ,"Server Broadcast"
+    ,"Sends a notification via GraphQL to the server, which broadcasts it to ALL connected clients via WebSocket."
+    ,"Platform Detection"
+    ,"Tauri apps use native OS notifications. Web/PWA uses browser notifications via Service Worker."
+    ,"Mark all read"
+    ,"Clear all"
+    ,"No notifications"
+    ,"Enable Notifications"
+    ,"Delete notification"
+    ,"Welcome!"
+    ,"Thanks for trying Angular Momentum - your modern Angular starter kit!"
+    ,"Welcome Message"
+    ,"New Feature Available"
+    ,"Check out the latest updates in the Features section!"
+    ,"Feature Update"
+    ,"System Maintenance"
+    ,"Scheduled maintenance will occur tonight at {time}."
+    ,"Maintenance Alert"
+    ,"Achievement Unlocked"
+    ,"You successfully tested the notification system!"
+    ,"Achievement"
   ],
   "additionalProperties": false
 }

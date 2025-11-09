@@ -18,6 +18,7 @@ import { SCREEN_SIZES } from './helpers/constants';
 import { ConnectivityService } from './services/connectivity.service';
 import { MenuChangeLogComponent } from './components/menus/menu-change-log/menu-change-log.component';
 import { ChangeLogService } from './services/change-log.service';
+import { NotificationBellComponent } from './components/notification-bell/notification-bell.component';
 
 @Component({
   selector: 'app-root',
@@ -29,6 +30,7 @@ import { ChangeLogService } from './services/change-log.service';
     MenuChangeLogComponent,
     MenuFeatureComponent,
     TranslocoDirective,
+    NotificationBellComponent,
   ],
 })
 export class AppComponent implements OnInit {
