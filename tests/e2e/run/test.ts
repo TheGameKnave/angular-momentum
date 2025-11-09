@@ -5,7 +5,7 @@ import { Selector, test, ClientFunction } from 'testcafe';
 import { getThreshold } from '../data/constants';
 import { SUPPORTED_LANGUAGES } from '../../../client/src/app/helpers/constants';
 
-const screenshotMode = process.env.TEST_MODE || 'tested';
+const screenshotMode = process.env['TEST_MODE'] || 'tested';
 const takeScreenshot = async (t: TestController, screenshotDir: string, element?: string) => {
     const absolutePath = path.join(process.cwd(), 'screenshots/' + screenshotDir);
     if ((screenshotMode === 'accepted' && !fs.existsSync(absolutePath)) || screenshotMode === 'tested') {
@@ -31,7 +31,7 @@ declare global {
 const isPageLoaded = ClientFunction(() => {return document.readyState === 'complete';});
 
 // helper functions for Measure Memory
-const getMemory = async t => JSON.parse(
+const getMemory = async (t: any) => JSON.parse(
     await t.eval(() => {
     const { jsHeapSizeLimit, totalJSHeapSize, usedJSHeapSize } = window.performance.memory;
     /**/console.log({ jsHeapSizeLimit, totalJSHeapSize, usedJSHeapSize });

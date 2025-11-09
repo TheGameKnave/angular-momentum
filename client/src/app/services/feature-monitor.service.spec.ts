@@ -3,10 +3,7 @@ import { FeatureMonitorService } from './feature-monitor.service';
 import { HelpersService } from '@app/services/helpers.service';
 import { SlugPipe } from '@app/pipes/slug.pipe';
 import { Router } from '@angular/router';
-import { Component } from '@angular/core';
-
-@Component({ selector: 'mock-comp-a', template: '' })
-class MockComponentA {}
+import { COMPONENT_LIST } from '@app/helpers/component-list';
 
 describe('FeatureMonitorService', () => {
   let service: FeatureMonitorService;
@@ -58,12 +55,10 @@ describe('FeatureMonitorService', () => {
   }));
 
   it('should NOT redirect if current route is enabled', fakeAsync(() => {
-    mockUrl = '/enabled-feature';
+    mockUrl = '/features';
 
-    helpersService.enabledComponents.and.returnValue([
-      { name: 'Enabled Feature', component: MockComponentA, icon: 'iconA' }
-    ]);
-    slugPipe.transform.and.returnValue('enabled-feature');
+    helpersService.enabledComponents.and.returnValue([COMPONENT_LIST[0]]); // Features component
+    slugPipe.transform.and.returnValue('features');
 
     service = TestBed.inject(FeatureMonitorService);
     flushMicrotasks();

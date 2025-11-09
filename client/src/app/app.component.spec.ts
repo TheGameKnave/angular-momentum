@@ -81,7 +81,7 @@ describe('AppComponent', () => {
   });
 
   describe('ngOnInit', () => {
-    it('should reset openMenu and set routePath/breadcrumb on NavigationEnd', () => {
+    it('should set routePath/breadcrumb on NavigationEnd', () => {
       component.breadcrumb = '';
       component.routePath = '';
       slugPipe.transform.calls.reset();
@@ -93,7 +93,6 @@ describe('AppComponent', () => {
       const navEvent = new NavigationEnd(1, '/features', '/features');
       routerEvents$.next(navEvent);
 
-      expect(component.openMenu).toBe('');
       expect(component.routePath).toBe('features');
       expect(component.breadcrumb).toBe('Features');
     });
@@ -156,33 +155,6 @@ describe('AppComponent', () => {
       expect(document.body.classList.contains('screen-sm')).toBeTrue();
       expect(document.body.classList.contains('not-md')).toBeFalse();
       expect(document.body.classList.contains('screen-md')).toBeTrue();
-    });
-  });
-
-  describe('toggleMenu', () => {
-    it('should open menu on click', () => {
-      const event = new MouseEvent('click');
-      component.toggleMenu('testMenu', event);
-      expect(component.openMenu).toBe('testMenu');
-    });
-
-    it('should toggle menu closed if already open', () => {
-      const event = new MouseEvent('click');
-      component.openMenu = 'testMenu';
-      component.toggleMenu('testMenu', event);
-      expect(component.openMenu).toBe('');
-    });
-
-    it('should open menu on Enter keydown', () => {
-      const event = new KeyboardEvent('keydown', { key: 'Enter' });
-      component.toggleMenu('keyboardMenu', event);
-      expect(component.openMenu).toBe('keyboardMenu');
-    });
-
-    it('should not toggle menu for non-Enter keydown', () => {
-      const event = new KeyboardEvent('keydown', { key: 'Escape' });
-      component.toggleMenu('keyboardMenu', event);
-      expect(component.openMenu).toBe('');
     });
   });
 

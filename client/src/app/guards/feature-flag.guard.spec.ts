@@ -3,11 +3,7 @@ import { FeatureFlagGuard } from './feature-flag.guard';
 import { Router, ActivatedRouteSnapshot, UrlSegment } from '@angular/router';
 import { SlugPipe } from '@app/pipes/slug.pipe';
 import { HelpersService } from '@app/services/helpers.service';
-import { ComponentInstance } from '@app/models/data.model';
-import { Component } from '@angular/core';
-
-@Component({selector: 'mock-comp-a', template: '' })
-class MockComponentA {}
+import { COMPONENT_LIST } from '@app/helpers/component-list';
 
 describe('FeatureFlagGuard', () => {
   let guard: FeatureFlagGuard;
@@ -39,16 +35,13 @@ describe('FeatureFlagGuard', () => {
   }
 
   it('should allow navigation when route is enabled', () => {
-    const components: ComponentInstance[] = [
-      { name: 'Feature A', component: MockComponentA, icon: '' },
-      { name: 'Feature B', component: MockComponentA, icon: '' },
-    ];
+    const components = [COMPONENT_LIST[0], COMPONENT_LIST[1]];
 
     helpersServiceSpy.enabledComponents.and.returnValue(components);
     // SlugPipe transforms spaces to dashes and lowercases by default
     spyOn(slugPipe, 'transform').and.callFake(name => name.toLowerCase().replace(/\s+/g, '-'));
 
-    const route = createRoute(['feature-a']);
+    const route = createRoute(['features']);
 
     // Override guard slugPipe with our spy
     (guard as any).slugPipe = slugPipe;
@@ -60,14 +53,12 @@ describe('FeatureFlagGuard', () => {
   });
 
   it('should redirect to root and disallow navigation when route is disabled', () => {
-    const components: ComponentInstance[] = [
-      { name: 'Feature A', component: MockComponentA, icon: '' },
-    ];
+    const components = [COMPONENT_LIST[0]]; // Only Features is enabled
 
     helpersServiceSpy.enabledComponents.and.returnValue(components);
     spyOn(slugPipe, 'transform').and.callFake(name => name.toLowerCase().replace(/\s+/g, '-'));
 
-    const route = createRoute(['feature-b']);
+    const route = createRoute(['graphql-api']); // Try to access disabled GraphQL API
 
     (guard as any).slugPipe = slugPipe;
 

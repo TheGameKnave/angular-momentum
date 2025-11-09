@@ -41,10 +41,15 @@ export class AppComponent implements OnInit {
   isDevMode = isDevMode();
   appDiff = this.changeLogService.appDiff;
   routePath = '';
-  openMenu = '';
   breadcrumb = '';
   version: string = packageJson.version;
-  menuTransitionOptions = '0.3s cubic-bezier(0, 0, 0.2, 1) transform';
+
+  // Type-safe feature flag getters for template use
+  // These will show compile errors if the feature name is invalid
+  readonly showNotifications = () => this.featureFlagService.getFeature('Notifications');
+  readonly showAppVersion = () => this.featureFlagService.getFeature('App Version');
+  readonly showEnvironment = () => this.featureFlagService.getFeature('Environment');
+  readonly showLanguage = () => this.featureFlagService.getFeature('Language');
 
   constructor(
     readonly updateService: UpdateService,
@@ -63,7 +68,6 @@ export class AppComponent implements OnInit {
     // there might be a better way to detect the current component for the breadcrumbs...
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd){
-        this.openMenu = '';
         this.routePath = event.urlAfterRedirects.replace('/', '').replace(/\//, '_') || 'index';
         COMPONENT_LIST.forEach((component) => {
           if(this.slugPipe.transform(component.name) === this.routePath){
@@ -88,12 +92,6 @@ export class AppComponent implements OnInit {
         document.body.classList.remove('screen-' + size);
         document.body.classList.add('not-' + size);
       }
-    }
-  }
-
-  toggleMenu(menu: string, event: Event): void {
-    if (event.type === 'click' || (event.type === 'keydown' && event instanceof KeyboardEvent && event.key === 'Enter')) {
-      this.openMenu = this.openMenu === menu ? '' : menu;
     }
   }
 }

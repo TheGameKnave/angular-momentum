@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, effect, OnInit } from '
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective} from '@jsverse/transloco';
-import { FeatureFlagService } from '@app/services/feature-flag.service';
+import { FeatureFlagService, FeatureFlagKeys } from '@app/services/feature-flag.service';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { CardModule } from 'primeng/card';
@@ -43,16 +43,16 @@ export class FeaturesComponent implements OnInit {
 
     // Build form controls based on current feature flags
     const features = this.featureFlagService.features();
-    for (const key in features) {
-      this.featureForm.addControl(key, new FormControl(features[key]));
-    }
+    Object.keys(features).forEach(key => {
+      this.featureForm.addControl(key, new FormControl(features[key as FeatureFlagKeys]));
+    });
 
     // Watch form changes
     this.featureForm.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((formValues) => {
-        for (const key in formValues) {
-          this.featureFlagService.setFeature(key, formValues[key]);
-        }
+        Object.keys(formValues).forEach(key => {
+          this.featureFlagService.setFeature(key as FeatureFlagKeys, formValues[key]);
+        });
       });
   }
 

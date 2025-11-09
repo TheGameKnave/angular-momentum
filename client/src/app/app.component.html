@@ -23,53 +23,17 @@
     </div>
   
     <footer>
-      @if (featureFlagService.getFeature('App Version')) {
-        <a
-          href="javascript:void(0)"
-          (click)="toggleMenu('changeLog', $event)"
-          (keydown.enter)="toggleMenu('changeLog', $event)"
-          class="change-log-button"
-        >
-          <h2
-            [class.warning]="appDiff().impact === 'minor' && appDiff().delta"
-            [class.error]="appDiff().impact === 'major' && appDiff().delta"
-          >
-            {{ t('v.') }} {{ version }}
-            @if (appDiff().delta) {
-              @if (appDiff().impact === 'patch') { <i class="pi pi-info-circle"></i> }
-              @if (appDiff().impact === 'minor') { <i class="pi pi-exclamation-circle"></i> }
-              @if (appDiff().impact === 'major') { <i class="pi pi-exclamation-triangle"></i> }
-            }
-          </h2>
-        </a>
+      @if (showAppVersion()) {
+        <app-menu-change-log />
       }
-      @if (featureFlagService.getFeature('Environment')) {
+      @if (showEnvironment()) {
         <h4>{{ t('{environmentName} environment',{ environmentName: isDevMode ? t('Development') : t('Production') }) }}</h4>
       }
-      @if (featureFlagService.getFeature('Language')) {
-        <a
-          href="javascript:void(0)"
-          (click)="toggleMenu('language', $event)"
-          (keydown.enter)="toggleMenu('language', $event)"
-          class="language-button"
-        >
-          <i class="pi pi-language"></i>&nbsp;<i [class]="'fi fi-' + translocoLoader.getCountry(translate.getActiveLang())"></i>
-        </a>
+      @if (showLanguage()) {
+        <app-menu-language />
       }
     </footer>
   </div>
 
   <app-menu-feature></app-menu-feature>
-  @if (openMenu === 'language') {
-    <app-menu-language
-      (click)="toggleMenu('language', $event)"
-      (keydown.enter)="toggleMenu('language', $event)"
-    />
-  }
-  @if (openMenu === 'changeLog') {
-    <app-menu-change-log
-      (click)="toggleMenu('changeLog', $event)"
-      (keydown.enter)="toggleMenu('changeLog', $event)"
-    />
-  }
 </ng-container>

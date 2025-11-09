@@ -6,14 +6,11 @@ import { catchError, map, Observable, of, take, tap } from 'rxjs';
 import equal from 'fast-deep-equal';
 import { ArbitraryFeatures, FeatureFlagResponse } from '@app/models/data.model';
 
-type _FeatureFlagKeys = keyof FeatureFlagResponse;
-export type FeatureFlagKeys = {
-  [K in _FeatureFlagKeys]: K;
-}[_FeatureFlagKeys];
+export type FeatureFlagKeys = keyof FeatureFlagResponse;
 
 @Injectable({ providedIn: 'root' })
 export class FeatureFlagService {
-  features = signal<Record<string, boolean>>({});
+  features = signal<Partial<Record<FeatureFlagKeys, boolean>>>({});
 
   constructor(
     protected readonly http: HttpClient,
@@ -49,7 +46,7 @@ export class FeatureFlagService {
    * Update a feature flag both locally and on the backend.
    * Sends updates via GraphQL.
    */
-  setFeature(feature: FeatureFlagKeys, value: boolean) {
+  setFeature<T extends FeatureFlagKeys>(feature: T, value: boolean) {
     const newFeatures = { ...this.features(), [feature]: value };
     if(!equal(newFeatures,this.features())){
       this.features.set(newFeatures);
@@ -66,8 +63,8 @@ export class FeatureFlagService {
   /**
    * Get the value of a specific feature flag.
    */
-  getFeature(feature: FeatureFlagKeys): boolean {
-    return this.features()[feature] ?? feature === 'Features';
+  getFeature<T extends FeatureFlagKeys>(feature: T): boolean {
+    return this.features()[feature] !== false;
   }
 
 }

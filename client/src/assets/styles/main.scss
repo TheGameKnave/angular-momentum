@@ -2,6 +2,7 @@
 
 @use "tailwindcss";
 @import "./vendor/flag-icons.css";
+@import "primeicons/primeicons.css";
 
 /* Raleway Regular */
 @font-face {
@@ -29,7 +30,6 @@ $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono',
 // Theme //
 ///////////
 
-@import "primeicons/primeicons.css";
 $faint-brand: #9fe !default;
 $light-brand: #0ca !default;
 $brand: #1b9 !default;
@@ -41,13 +41,59 @@ $mid-gray: #888 !default;
 $shadow: rgba(0, 0, 0, 0.2) !default;
 $text-warning-light: #ffa !default;
 $text-error-light: #f88 !default;
+
 .app-dark {
-  background-color: #333;
-  color: #f4f4f4;
-  --p-card-background:#4a4a4a;
-  --p-card-color:#f4f4f4;
+  // CSS Custom Properties for PrimeNG
+  --p-card-background: #4a4a4a;
+  --p-card-color: #f4f4f4;
   --p-form-field-background: #333 !important;
   --p-toggleswitch-handle-checked-background: #444 !important;
+
+  // Base colors
+  background-color: #333;
+  color: #f4f4f4;
+
+  // State colors
+  .warning {
+    color: $text-warning-light;
+  }
+  .error {
+    color: $text-error-light;
+  }
+
+  // Links
+  p > a {
+    color: $faint-brand;
+    &:hover {
+      color: $light-brand;
+    }
+    &:visited {
+      color: $light-brand;
+    }
+  }
+
+  // Borders
+  app-menu-feature, .menu-language-content, .menu-change-log-content, .notification-center-content, header, footer {
+    border-color: $mid-gray;
+  }
+  .p-tooltip .p-tooltip-text {
+    border-color: $dark-brand;
+  }
+
+  // Horizontal rules
+  hr:before {
+    background-image: linear-gradient(to right, rgba(200,200,200, 0), rgba(200,200,200, 0.75), rgba(200,200,200, 0));
+  }
+  .screen-xs.not-sm app-menu-feature hr:before {
+    background-image: linear-gradient(to bottom, rgba(200, 200, 200, 0), rgba(200, 200, 200, 0.75), rgba(200, 200, 200, 0));
+  }
+
+  // Overlays
+  .app-overlay-backdrop {
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+
+  // Menus
   app-menu-feature, app-menu-language, app-menu-change-log {
     background-color: #333;
     color: #f4f4f4;
@@ -55,58 +101,48 @@ $text-error-light: #f88 !default;
       color: #f4f4f4;
     }
   }
-  p > a {
-    color: $faint-brand;
-    &:hover {
-      color: $light-brand;
+  .menu-language-content, .menu-change-log-content, .notification-center-content {
+    background-color: #333;
+    color: #f4f4f4;
+    a {
+      color: #f4f4f4;
+      &.close:hover {
+        color: $light-brand;
+      }
     }
   }
-  p > a:visited {
-    color: $light-brand;
-  }
+
+  // Footer
   footer {
     background-color: #333;
     color: #f4f4f4;
+    a:hover, button:hover {
+      color: $light-brand;
+    }
   }
-  .warning {
-    color: $text-warning-light;
-  }
-  .error {
-    color: $text-error-light;
-  }
-  .scroll-shadows {
-    -webkit-overflow-scrolling: touch;
 
-    background:
-      /* Shadow Cover TOP */
-      linear-gradient(
-        #333 30%,
-        rgba(255, 255, 255, 0)
-      ) center top,
-      
-      /* Shadow Cover BOTTOM */
-      linear-gradient(
-        rgba(255, 255, 255, 0),
-        #333 70%
-      ) center bottom,
-      
-      /* Shadow TOP */
-      radial-gradient(
-        farthest-side at 50% 0,
-        rgba(0, 0, 0, 0.7),
-        rgba(0, 0, 0, 0)
-      ) center top,
-      
-      /* Shadow BOTTOM */
-      radial-gradient(
-        farthest-side at 50% 100%,
-        rgba(0, 0, 0, 0.7),
-        rgba(0, 0, 0, 0)
-      ) center bottom;
-    
-    background-repeat: no-repeat;
-    background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
-    background-attachment: local, local, scroll, scroll;
+  // Ko-fi button
+  .kofi-button a {
+    color: #f4f4f4;
+    border-color: $dark-brand;
+    &:hover {
+      border-color: $light-brand;
+    }
+  }
+
+  // Buttons
+  .btn-primary {
+    color: #f4f4f4;
+  }
+
+  // Feature toggles
+  p-toggleswitch + label:hover {
+    color: $light-brand;
+  }
+    color: #f4f4f4;
+  }
+  }
+  }
   }
 }
 
@@ -182,13 +218,13 @@ hr {
     left: 0;
     border: 0;
     height: 1.5px;
-    background-image: linear-gradient(to right, rgba(200,200,200, 0), rgba(200,200,200, 0.75), rgba(200,200,200, 0));
   }
 }
 * {
     &:not(.p-tooltip) {
     transition: color 0.2s ease-in-out,
                 background-color 0.2s ease-in-out,
+                border-color 0.2s ease-in-out,
                 opacity 0.2s ease-in-out,
                 box-shadow 0.2s ease-in-out,
                 transform 0.2s ease-in-out;
@@ -211,7 +247,7 @@ p-panel {
   }
 }
 .p-tooltip .p-tooltip-text {
-  border:1px solid $dark-brand;
+  border: 1px solid transparent;
 }
 .scroll-area {
   height: 100%;
@@ -268,7 +304,7 @@ ul {
   min-height: 100vh;
   padding-left: 5rem;
 }
-app-menu-feature, app-menu-language, app-menu-change-log, header, footer {
+app-menu-feature, .menu-language-content, .menu-change-log-content, .notification-center-content, header, footer {
   border: 0 solid $mid-gray;
 }
 header {
@@ -293,12 +329,22 @@ footer {
   justify-content: space-around;
   min-height: 4rem;
   border-top-width: 1px;
-  .language-button {
-    font-size: 2rem;
+
+  app-menu-language,
+  app-menu-change-log {
+    display: contents;
+
+    a {
+      font-size: 2rem;
+    }
+  }
+
+  .change-log-button h2 {
+    margin: 0;
   }
 }
 
-app-menu-feature, app-menu-language, app-menu-change-log {
+app-menu-feature {
   position: fixed;
   z-index: 100;
   top: 0;
@@ -323,6 +369,34 @@ app-menu-feature, app-menu-language, app-menu-change-log {
     }
   }
 }
+
+// Overlay menu containers
+.menu-overlay-panel {
+  max-height: calc(100vh - 8rem);
+}
+
+.menu-language-content, .menu-change-log-content {
+  font-size: 1.6rem;
+  height: 100%;
+  a {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    .label {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+    &:hover, &.selected {
+      color: $light-brand;
+    }
+    &.selected {
+      cursor: default;
+    }
+  }
+}
+
 app-menu-feature {
   padding: 5.2rem 0.6rem 4.3rem;
   left: 0;
@@ -363,8 +437,12 @@ app-menu-feature {
     border-radius: 1rem;
   }
 }
-app-menu-language {
+
+.menu-language-content {
+  position: fixed;
   right: 0;
+  bottom: 0;
+  top: 0;
   border-left-width: 1px;
   box-shadow: -1rem 0 1rem $shadow;
   max-width: 65vw;
@@ -386,8 +464,12 @@ app-menu-language {
     }
   }
 }
-app-menu-change-log {
+
+.menu-change-log-content {
+  position: fixed;
   left: 0;
+  bottom: 0;
+  top: 0;
   border-right-width: 1px;
   box-shadow: 1rem 0 1rem $shadow;
   max-width: 40rem;
@@ -396,7 +478,8 @@ app-menu-change-log {
     li {font-size: 1.6rem !important;}
   }
 }
-app-menu-language, app-menu-change-log {
+
+.menu-language-content, .menu-change-log-content {
   padding-top: 4rem;
   min-width: 18rem;
   h3 {
@@ -431,17 +514,13 @@ app-menu-language, app-menu-change-log {
     align-items: center;
     gap: 1rem;
     background-color: $dark-brand;
-    color: #fff;
-    border: 1px solid $dark-brand;
+    border: 1px solid transparent;
     border-radius: 0.6rem;
     padding: 0.4rem 0.6rem;
     font-size: 1.6rem;
     white-space: nowrap;
     cursor: pointer;
     text-decoration: none;
-    &:hover {
-      border-color: $light-brand;
-    }
   }
   img {
     width: 2.6rem;
@@ -521,7 +600,6 @@ app-menu-language, app-menu-change-log {
         bottom: 0;
         height: 100%;
         width: 1.5px;
-        background-image: linear-gradient(to bottom, rgba(200, 200, 200, 0), rgba(200, 200, 200, 0.75), rgba(200, 200, 200, 0));
       }
     }
     .kofi-button, .link-home {

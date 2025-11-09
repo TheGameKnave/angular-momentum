@@ -27,8 +27,9 @@ describe('FeaturesComponent', () => {
   beforeEach(waitForAsync(() => {
     featureFlagServiceSpy = jasmine.createSpyObj('FeatureFlagService', ['features', 'getFeature', 'setFeature']);
     featureFlagServiceSpy.features.and.returnValue({...features});
-    featureFlagServiceSpy.getFeature.and.callFake((feature: string) => {
-      return featureFlagServiceSpy.features()[feature];
+    featureFlagServiceSpy.getFeature.and.callFake((feature: any) => {
+      const feats = featureFlagServiceSpy.features();
+      return feats[feature as keyof typeof feats] ?? true;
     });
     featureFlagServiceSpy.features = jasmine.createSpyObj('features', ['set', 'get']);
     Object.defineProperty(featureFlagServiceSpy, 'features', {
@@ -76,7 +77,7 @@ describe('FeaturesComponent', () => {
 
   it('should create FormControls for existing features', () => {
     const currentFeatures = featureFlagServiceSpy.features();
-    const existingKeys = Object.keys(currentFeatures);
+    const existingKeys = Object.keys(currentFeatures) as (keyof typeof currentFeatures)[];
     existingKeys.forEach((key) => {
       expect(fixture.componentInstance.featureForm.get(key)).toBeDefined();
       expect(fixture.componentInstance.featureForm.get(key)?.value).toBe(currentFeatures[key]);
@@ -86,8 +87,8 @@ describe('FeaturesComponent', () => {
   it('should update feature flag service when checkbox state changes', () => {
     const checkboxes = fixture.nativeElement.querySelectorAll('input[type="checkbox"]');
     const feature0Checkbox = checkboxes[0];
-    const feature0Name = 'GraphQL API'; // Hardcode the feature name
-  
+    const feature0Name = 'GraphQL API' as keyof typeof features; // Hardcode the feature name
+
     feature0Checkbox.click();
     fixture.detectChanges();
     expect(featureFlagServiceSpy.setFeature).toHaveBeenCalledWith(feature0Name, !features[feature0Name]);
@@ -97,22 +98,23 @@ describe('FeaturesComponent', () => {
     // Set the initial value of the signal
     mockFeaturesSignal.set({...features});
     fixture.detectChanges();
-  
+
     // Get the form control for the 'Environment' feature
-    const appVersionFormControl = fixture.componentInstance.featureForm.get('Environment') as FormControl;
-    
+    const featureName = 'Environment' as keyof typeof features;
+    const appVersionFormControl = fixture.componentInstance.featureForm.get(featureName) as FormControl;
+
     // Set the initial value of the form control to true
-    appVersionFormControl.setValue(features['Environment']);
-  
+    appVersionFormControl.setValue(features[featureName]);
+
     // Update the signal's value to false
     mockFeaturesSignal.set({
       ...features,
-      'Environment': !features['Environment'],
+      [featureName]: !features[featureName],
     });
     fixture.detectChanges();
-  
+
     // Verify that the form control's value is updated to false
-    expect(appVersionFormControl.value).toBe(!features['Environment']);
+    expect(appVersionFormControl.value).toBe(!features[featureName]);
   });
 
 });

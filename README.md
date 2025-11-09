@@ -29,14 +29,15 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Network connectivity detection *
 * CDN for static assets and binary distros
 * Tauri app signing and (desktop) auto-updating for distribution to Android, iOS, macOS, Windows, and Linux.
+* Automatic platform deploys via Github Actions
 
 (* indicates a feature that’s visible in the sample app)
 
 ## Future features:
-* Automatic platform deploys via Github Actions
 * Supabase(?) user management (emails and password resetting and deliverability) *
 * Push notifications
 * Server-side rendering
+* Angular 21, Vitest, Zoneless
 * Lighthouse CI to mitigate performance slip
 
 ## License

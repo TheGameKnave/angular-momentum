@@ -4,7 +4,7 @@ import { HelpersService } from '@app/services/helpers.service';
 import { SlugPipe } from '@app/pipes/slug.pipe';
 
 @Injectable({ providedIn: 'root' })
-export class FeatureMonitorService {
+export class  FeatureMonitorService {
   constructor(
     private readonly router: Router,
     private readonly helpersService: HelpersService,

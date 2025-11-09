@@ -8,11 +8,13 @@ import { signal } from '@angular/core';
 import packageJson from 'src/../package.json';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { firstValueFrom } from 'rxjs';
+import { OverlayRef } from '@angular/cdk/overlay';
 
 describe('MenuChangeLogComponent', () => {
   let component: MenuChangeLogComponent;
   let fixture: ComponentFixture<MenuChangeLogComponent>;
   let changeLogServiceMock: Partial<ChangeLogService>;
+  let overlayRefSpy: jasmine.SpyObj<OverlayRef>;
 
   const makeMock = (impact: 'patch' | 'minor' | 'major', delta: number) =>
     ({
@@ -30,6 +32,9 @@ describe('MenuChangeLogComponent', () => {
 
   beforeEach(async () => {
     (packageJson as any).siteUrl = 'https://example.com';
+
+    overlayRefSpy = jasmine.createSpyObj('OverlayRef', ['detach', 'hasAttached']);
+    overlayRefSpy.hasAttached.and.returnValue(true);
   });
 
   async function setup(impact: 'patch' | 'minor' | 'major', delta: number) {
@@ -85,10 +90,57 @@ describe('MenuChangeLogComponent', () => {
     expect(message).toContain('https://example.com');
   });
 
-  it('should stop event propagation', async () => {
+  it('should update showMenu signal when closeMenu is called', async () => {
     await setup('patch', 1);
-    const event = jasmine.createSpyObj('event', ['stopPropagation']);
-    component.stopEventPropagation(event as any);
-    expect(event.stopPropagation).toHaveBeenCalled();
+    // Directly set the showMenu signal to simulate menu being open
+    component.showMenu.set(true);
+    expect(component.showMenu()).toBe(true);
+
+    component.closeMenu();
+    expect(component.showMenu()).toBe(false);
+  });
+
+  it('should close menu on ngOnDestroy', async () => {
+    await setup('patch', 1);
+    component.showMenu.set(true);
+    expect(component.showMenu()).toBe(true);
+
+    component.ngOnDestroy();
+    expect(component.showMenu()).toBe(false);
+  });
+
+  describe('toggleMenu', () => {
+    it('should open menu when closed', async () => {
+      await setup('patch', 1);
+      expect(component.showMenu()).toBe(false);
+
+      component.toggleMenu();
+
+      expect(component.showMenu()).toBe(true);
+    });
+
+    it('should close menu when open', async () => {
+      await setup('patch', 1);
+      // First open it
+      component.toggleMenu();
+      expect(component.showMenu()).toBe(true);
+
+      // Manually set overlayRef to simulate opened state
+      (component as any).overlayRef = overlayRefSpy;
+
+      // Then close it
+      component.toggleMenu();
+      expect(component.showMenu()).toBe(false);
+      expect(overlayRefSpy.detach).toHaveBeenCalled();
+    });
+
+    it('should create overlay on first open', async () => {
+      await setup('patch', 1);
+      expect((component as any).overlayRef).toBeNull();
+
+      component.toggleMenu();
+
+      expect((component as any).overlayRef).not.toBeNull();
+    });
   });
 });

@@ -1,10 +1,15 @@
 import { Type } from "@angular/core";
+import { ComponentName } from "@app/helpers/component-list";
 
-// 'New Feature': boolean;
-// Add more arbitrary features here;
-export type ArbitraryFeatures = Record<string, boolean>;
+// Non-component feature flags - add more arbitrary features here
+export type ArbitraryFeatureName = 
+  'App Version' | 
+  'Environment' | 
+  'Language';
 
-export type ComponentFlags = Record<ComponentInstance['name'], boolean>;
+export type ArbitraryFeatures = Record<ArbitraryFeatureName, boolean>;
+
+export type ComponentFlags = Record<ComponentName, boolean>;
 
 export type FeatureFlagResponse = ArbitraryFeatures & ComponentFlags;
 

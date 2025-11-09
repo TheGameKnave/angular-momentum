@@ -1,33 +1,55 @@
-<div class="scroll-area scroll-shadows" *transloco="let t">
-  <h3>
-    <a [href]="packageJson.repository" target="_blank" rel="noopener noreferrer">
-      <i class="pi pi-github"></i>
-      {{ t('Change Log') }}
-    </a>
-    <a href="javascript:void(0)" class="close">
-      <i class="pi pi-times"></i>
-    </a>
-    <hr />
-  </h3>
-  @if ( changeLog.appDiff().delta ) {
-    <h4
-      [class.warning]="changeLog.appDiff().impact === 'minor'"
-      [class.error]="changeLog.appDiff().impact === 'major'"
-    >
-      {{ semverMessage() }}
-    </h4>
-    @if( !isTauri() ) { <p>{{ t('If it doesn’t update momentarily, please try to clear your cache and refresh your browser.')}}</p> }
-    @else { <p [innerHTML]="linkMessage()"></p> }
-  }
-  @for (change of changeLog.changes(); track change) {
-    <p-card>
-      <h5>{{ change.version }}</h5>
-      <p>{{ change.description }}, {{ change.date }}</p>
-      <ul>
-        @for (item of change.changes; track item) {
-          <li>{{ item }}</li>
-        }
-      </ul>
-    </p-card>
-  }
-</div>
+<a
+  #changeLogButton
+  href="javascript:void(0)"
+  (click)="toggleMenu()"
+  (keydown.enter)="toggleMenu()"
+  class="change-log-button"
+>
+  <h2
+    [class.warning]="changeLog.appDiff().impact === 'minor' && changeLog.appDiff().delta"
+    [class.error]="changeLog.appDiff().impact === 'major' && changeLog.appDiff().delta"
+  >
+    v{{ packageJson.version }}
+    @if (changeLog.appDiff().delta) {
+      @if (changeLog.appDiff().impact === 'patch') { <i class="pi pi-info-circle"></i> }
+      @if (changeLog.appDiff().impact === 'minor') { <i class="pi pi-exclamation-circle"></i> }
+      @if (changeLog.appDiff().impact === 'major') { <i class="pi pi-exclamation-triangle"></i> }
+    }
+  </h2>
+</a>
+
+<ng-template #menuTemplate>
+  <div class="scroll-area menu-change-log-content" *transloco="let t">
+    <h3>
+      <a [href]="packageJson.repository" target="_blank" rel="noopener noreferrer">
+        <i class="pi pi-github"></i>
+        {{ t('Change Log') }}
+      </a>
+      <a href="javascript:void(0)" class="close" (click)="closeMenu()" (keydown.enter)="closeMenu()">
+        <i class="pi pi-times"></i>
+      </a>
+      <hr />
+    </h3>
+    @if ( changeLog.appDiff().delta ) {
+      <h4
+        [class.warning]="changeLog.appDiff().impact === 'minor'"
+        [class.error]="changeLog.appDiff().impact === 'major'"
+      >
+        {{ semverMessage() }}
+      </h4>
+      @if( !isTauri() ) { <p>{{ t('If it doesn't update momentarily, please try to clear your cache and refresh your browser.')}}</p> }
+      @else { <p [innerHTML]="linkMessage()"></p> }
+    }
+    @for (change of changeLog.changes(); track change) {
+      <p-card>
+        <h5>{{ change.version }}</h5>
+        <p>{{ change.description }}, {{ change.date }}</p>
+        <ul>
+          @for (item of change.changes; track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+      </p-card>
+    }
+  </div>
+</ng-template>

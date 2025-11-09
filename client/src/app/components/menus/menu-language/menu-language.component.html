@@ -1,22 +1,33 @@
-<div class="scroll-area scroll-shadows" *transloco="let t">
-  <h3>
-    <i class="pi pi-language"></i>
-    {{ t('Language') }}
-    <a href="javascript:void(0)" class="close">
-      <i class="pi pi-times"></i>
-    </a>
-    <hr />
-  </h3>
-  <ul>
-    @for (ln of supportedLanguages; track ln) {
-      <li [class]="'i18n-' + ln">
-        <a
-          href="javascript:void(0)"
-          [ngClass]="{'selected': ln === translate.getActiveLang()}"
-          (click)="onI18n($event)"
-          (keydown.enter)="onI18n($event)"
-        ><i [class]="'fi fi-' + translocoLoader.getCountry(ln)"></i> {{ translocoLoader.getNativeName(ln) }}</a>
-      </li>
-    }
-  </ul>
-</div>
+<a
+  #languageButton
+  href="javascript:void(0)"
+  (click)="toggleMenu()"
+  (keydown.enter)="toggleMenu()"
+>
+  <i class="pi pi-language"></i>&nbsp;<i [class]="'fi fi-' + translocoLoader.getCountry(translate.getActiveLang())"></i>
+</a>
+
+<ng-template #menuTemplate>
+  <div class="scroll-area menu-language-content" *transloco="let t">
+    <h3>
+      <i class="pi pi-language"></i>
+      {{ t('Language') }}
+      <a href="javascript:void(0)" class="close" (click)="closeMenu()" (keydown.enter)="closeMenu()">
+        <i class="pi pi-times"></i>
+      </a>
+      <hr />
+    </h3>
+    <ul>
+      @for (ln of supportedLanguages; track ln) {
+        <li [class]="'i18n-' + ln">
+          <a
+            href="javascript:void(0)"
+            [ngClass]="{'selected': ln === translate.getActiveLang()}"
+            (click)="onI18n($event)"
+            (keydown.enter)="onI18n($event)"
+          ><i [class]="'fi fi-' + translocoLoader.getCountry(ln)"></i> {{ translocoLoader.getNativeName(ln) }}</a>
+        </li>
+      }
+    </ul>
+  </div>
+</ng-template>
