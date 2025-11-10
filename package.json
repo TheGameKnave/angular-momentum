@@ -26,7 +26,8 @@
     "deploy:dev": "./deploy.sh dev",
     "deploy:staging": "./deploy.sh staging",
     "bump-version": "node bump_version.js",
-    "deploy:production": "./deploy.sh production"
+    "deploy:production": "./deploy.sh production",
+    "prepare": "husky"
   },
   "workspaces": [
     "./client",
@@ -36,6 +37,7 @@
     "@formatjs/icu-messageformat-parser": "^2.11.4",
     "@jirutka/ajv-cli": "^6.0.0-beta.5",
     "ajv": "^8.17.1",
+    "husky": "^9.1.7",
     "testcafe": "^3.6.2",
     "testcafe-angular-selectors": "^0.4.1",
     "testcafe-blink-diff": "^0.5.5",

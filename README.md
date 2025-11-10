@@ -18,6 +18,7 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Benchmark memory usage and response times (throttled for mobile) in tests
 * Internationalization (i18n) with Transloco
 * IndexedDB for offline storage *
+* Documentation enforced via husky
 * e2e testing with TestCafe + snapshots
 * 100% coverage in unit tests (jasmine for client and jest for server)
 * Feature flags *
@@ -34,9 +35,10 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 
 (* indicates a feature that’s visible in the sample app)
 
-## Future features:
-* Supabase(?) user management (emails and password resetting and deliverability) *
+## Future features
 * Server-side rendering
+* Supabase(?) user management (emails and password resetting and deliverability) *
+* timezone detection AND user-setting
 * Angular 21, Vitest, Zoneless
 * Lighthouse CI to mitigate performance slip
 
