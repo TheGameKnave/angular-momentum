@@ -11,6 +11,19 @@ import { isTauri } from '@tauri-apps/api/core';
 import { ENVIRONMENT } from 'src/environments/environment';
 import { LogService } from './log.service';
 
+/**
+ * Service for managing application updates across web and Tauri platforms.
+ *
+ * Handles update checking, downloading, and installation for both:
+ * - Angular Service Worker updates (PWA/web)
+ * - Tauri native application updates (desktop)
+ *
+ * Features:
+ * - Automatic update checks every 15 minutes
+ * - User confirmation before applying updates
+ * - Progress tracking for Tauri updates
+ * - Platform-specific update strategies
+ */
 @Injectable({ providedIn: 'root' })
 export class UpdateService {
   private confirming = false;
@@ -23,6 +36,11 @@ export class UpdateService {
     this.init();
   }
 
+  /**
+   * Initialize the update service.
+   * Sets up update checking intervals and event listeners.
+   * Only runs in production, staging, and local environments.
+   */
   protected init(): void {
     if (!['production', 'staging', 'local'].includes(ENVIRONMENT.env)) return;
 
@@ -44,6 +62,11 @@ export class UpdateService {
 
   // --- Angular SW ---
 
+  /**
+   * Check for Angular Service Worker updates.
+   * Only runs on web platforms (not Tauri).
+   * Automatically activates updates if available.
+   */
   private checkServiceWorkerUpdate(): void {
     // istanbul ignore next because jasmine is awful
     if (isTauri()) return;
@@ -62,6 +85,12 @@ export class UpdateService {
     });
   }
 
+  /**
+   * Handle Angular Service Worker version events.
+   * Prompts user to reload when a new version is ready.
+   *
+   * @param event - Service Worker version event
+   */
   private async handleSwEvent(event: VersionEvent): Promise<void> {
     if (event.type === 'VERSION_READY' && !this.confirming) {
       this.confirming = true;
@@ -78,6 +107,11 @@ export class UpdateService {
 
   // --- Tauri ---
 
+  /**
+   * Check for Tauri application updates.
+   * Only runs on Tauri platforms (not web).
+   * Prompts user to download and install if update is available.
+   */
   // istanbul ignore next
   private async checkTauriUpdate(): Promise<void> {
     if (!isTauri()) return;
@@ -95,6 +129,12 @@ export class UpdateService {
     }
   }
 
+  /**
+   * Prompt user to install Tauri update and handle download/installation.
+   * Tracks download progress and relaunches app when complete.
+   *
+   * @param update - Tauri update object containing update information
+   */
   private async promptTauriUpdate(update: Update): Promise<void> {
     this.confirming = true;
     const confirmed = await this.confirmUser('A new version is available. Install and restart now?');
@@ -131,11 +171,23 @@ export class UpdateService {
 
   // --- Wrappers that can be spied on in tests ---
 
+  /**
+   * Reload the current page.
+   * Wrapper method to allow spying in tests.
+   */
   // istanbul ignore next
   protected reloadPage(): void {
     window.location.reload();
   }
 
+  /**
+   * Show confirmation dialog to user.
+   * Uses native Tauri dialog on desktop, browser confirm on web.
+   * Wrapper method to allow spying in tests.
+   *
+   * @param message - Confirmation message to display
+   * @returns Promise resolving to true if user confirmed, false otherwise
+   */
   // istanbul ignore next
   protected async confirmUser(message: string): Promise<boolean> {
     try {
@@ -154,6 +206,10 @@ export class UpdateService {
     }
   }
 
+  /**
+   * Relaunch the Tauri application.
+   * Wrapper method to allow spying in tests.
+   */
   // istanbul ignore next
   protected async relaunchApp(): Promise<void> {
     await relaunch();

@@ -1,12 +1,24 @@
 /**
- * Notification message translation keys
- * These keys map to entries in the i18n translation files
+ * Notification message translation keys and default text values.
+ * These constants define the available notification templates used throughout the application.
  *
- * Note: In production apps, this should live on the server so that
- * the server sends translation keys (not translated text) to clients,
- * allowing each client to display notifications in their selected language.
+ * In production applications, these keys should ideally be sent from the server
+ * rather than hardcoded client-side, allowing the server to broadcast notification
+ * keys that each client can translate to their selected language.
+ *
+ * Message groups:
+ * - Welcome: Initial greeting notification for new users
+ * - Feature Update: Alerts about new features or updates
+ * - Maintenance: System maintenance and downtime notifications
+ * - Achievement: Success and milestone notifications
+ *
+ * Each notification group contains:
+ * - TITLE: The notification heading
+ * - BODY: The main message content (may contain {param} placeholders)
+ * - LABEL: Category label for the notification type
+ *
+ * @readonly
  */
-
 export const NotificationMessages = {
   // Welcome notification
   WELCOME_TITLE: 'Welcome!',
@@ -29,4 +41,9 @@ export const NotificationMessages = {
   ACHIEVEMENT_LABEL: 'Achievement',
 } as const;
 
+/**
+ * Type-safe union of all notification message values.
+ * Represents any valid notification message string from the NotificationMessages constant.
+ * Use this type to ensure type safety when working with notification message content.
+ */
 export type NotificationMessageKey = typeof NotificationMessages[keyof typeof NotificationMessages];

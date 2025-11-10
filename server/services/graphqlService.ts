@@ -6,7 +6,11 @@ import { changeLog } from '../data/changeLog';
 import { broadcastNotification, sendNotificationToUser } from './notificationService';
 import { NotificationPayload } from '../models/data.model';
 
-// Define GraphQL schema
+/**
+ * GraphQL schema definition.
+ * Defines queries for feature flags, version, changelog, and docs.
+ * Defines mutations for updating feature flags and sending push notifications.
+ */
 const schema = buildSchema(`
   type Query {
     featureFlags: [FeatureFlag]
@@ -40,18 +44,38 @@ const schema = buildSchema(`
   }
 `);
 
-// Define resolvers
+/**
+ * Root resolver functions for GraphQL operations.
+ * Provides resolver implementations with WebSocket integration for real-time feature flag and notification updates.
+ * @param io - Socket.IO server instance for broadcasting real-time updates
+ * @returns Object containing resolver functions for all queries and mutations
+ */
 const root = (io: any) => ({
+  /**
+   * Retrieves all feature flags.
+   * @returns Array of feature flag objects with key and value
+   */
   featureFlags: () => {
     const featureFlags = readFeatureFlags();
     return Object.keys(featureFlags).map(key => ({ key, value: featureFlags[key] }));
   },
 
+  /**
+   * Retrieves a specific feature flag value.
+   * @param key - Feature flag key to lookup
+   * @returns Boolean value of the feature flag
+   */
   featureFlag: ({ key }: { key: string }) => {
     const featureFlags = readFeatureFlags();
     return featureFlags[key];
   },
 
+  /**
+   * Updates a feature flag value and broadcasts the change via WebSocket.
+   * @param key - Feature flag key to update
+   * @param value - New boolean value for the feature flag
+   * @returns Updated feature flag object
+   */
   updateFeatureFlag: async ({ key, value }: { key: string; value: boolean }) => {
     const updatedFeatures = await writeFeatureFlags({ [key]: value });
     // Emit WebSocket event when a feature flag is updated
@@ -59,6 +83,14 @@ const root = (io: any) => ({
     return { key, value };
   },
 
+  /**
+   * Broadcasts a push notification to all connected clients via WebSocket.
+   * @param title - Notification title
+   * @param body - Notification body text
+   * @param icon - Optional icon URL
+   * @param data - Optional JSON string containing additional data
+   * @returns Result object with success status and message
+   */
   sendNotification: ({ title, body, icon, data }: { title: string; body: string; icon?: string; data?: string }) => {
     try {
       const notificationPayload: NotificationPayload = {
@@ -75,6 +107,15 @@ const root = (io: any) => ({
     }
   },
 
+  /**
+   * Sends a push notification to a specific connected client via WebSocket.
+   * @param socketId - Target socket ID
+   * @param title - Notification title
+   * @param body - Notification body text
+   * @param icon - Optional icon URL
+   * @param data - Optional JSON string containing additional data
+   * @returns Result object with success status and message
+   */
   sendNotificationToSocket: ({ socketId, title, body, icon, data }: { socketId: string; title: string; body: string; icon?: string; data?: string }) => {
     try {
       const notificationPayload: NotificationPayload = {
@@ -91,14 +132,26 @@ const root = (io: any) => ({
     }
   },
 
+  /**
+   * Returns the current API version.
+   * @returns API version number
+   */
   version: () => {
     return 1.0;
   },
 
+  /**
+   * Returns the application changelog.
+   * @returns Array of changelog entries with version, date, description, and changes
+   */
   changeLog: () => {
     return changeLog;
   },
-  
+
+  /**
+   * Returns API documentation in markdown format.
+   * @returns Markdown string containing API usage instructions
+   */
   docs: () => {
     return `
       # API Documentation
@@ -126,7 +179,11 @@ const root = (io: any) => ({
   },
 });
 
-// Create middleware function for GraphQL
+/**
+ * Creates Express middleware for handling GraphQL requests.
+ * Restricts requests to POST method only and integrates Socket.IO instance for real-time updates.
+ * @returns Express middleware function that handles GraphQL POST requests
+ */
 export function graphqlMiddleware() {
   return (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const io = req.app.get('io'); // Retrieve io instance

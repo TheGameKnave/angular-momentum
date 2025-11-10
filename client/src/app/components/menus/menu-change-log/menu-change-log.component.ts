@@ -10,6 +10,14 @@ import { Overlay, OverlayRef, OverlayModule } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+/**
+ * Menu changelog component that displays version information and update notifications.
+ *
+ * This component shows the current application version and provides a changelog overlay
+ * when updates are available. It compares the installed version with the latest release
+ * and displays semantic version difference messages. The component handles both Tauri
+ * (native app) and web/PWA contexts differently.
+ */
 @Component({
   selector: 'app-menu-change-log',
   templateUrl: './menu-change-log.component.html',
@@ -26,7 +34,6 @@ export class MenuChangeLogComponent implements OnDestroy {
 
   isTauri = isTauri;
   changeLog = this.changeLogService;
-
   Object = Object;
   packageJson = packageJson;
   classToLang: Record<string, string> = {};
@@ -55,6 +62,11 @@ export class MenuChangeLogComponent implements OnDestroy {
     }
   }
 
+  /**
+   * Opens the changelog overlay.
+   * Creates the overlay if it doesn't exist, attaches the changelog template portal,
+   * and sets up backdrop click handling to close the overlay.
+   */
   private openMenu() {
     if (!this.overlayRef) {
       const positionStrategy = this.overlay.position().global();
@@ -79,6 +91,10 @@ export class MenuChangeLogComponent implements OnDestroy {
     this.showMenu.set(true);
   }
 
+  /**
+   * Closes the changelog overlay.
+   * Detaches the template portal from the overlay and updates the menu state.
+   */
   closeMenu() {
     if (this.overlayRef?.hasAttached()) {
       this.overlayRef.detach();
@@ -86,6 +102,12 @@ export class MenuChangeLogComponent implements OnDestroy {
     this.showMenu.set(false);
   }
 
+  /**
+   * Computed signal that generates a localized message about version differences.
+   * Determines whether the app is outdated by patches, minor versions, or major releases,
+   * and generates an appropriate pluralized message based on the semantic version delta.
+   * @returns A translated message indicating how many versions the app is behind
+   */
   semverMessage = computed(() => {
     const typeMap: Record<ChangeImpact, { key: string; var: string }> = {
       patch: { key: '{patches} patch(es)', var: 'patches' },
@@ -102,6 +124,12 @@ export class MenuChangeLogComponent implements OnDestroy {
     return this.translate.translate('This app is {semver} out of date.', { semver });
   });
 
+  /**
+   * Computed signal that generates a localized fallback message with webapp URL.
+   * Provides users with the webapp URL as an alternative if they encounter problems
+   * with the current app version. Performs string replacement to fix HTML tag formatting.
+   * @returns A translated message with the webapp URL link
+   */
   linkMessage = computed(() => {
   return this.translate.translate(
     'If you encounter problems, you can use the webapp at {url} until an app update is ready.',

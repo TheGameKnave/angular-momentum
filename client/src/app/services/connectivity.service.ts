@@ -58,12 +58,19 @@ export class ConnectivityService {
     this.scheduleNextCheck();
   }
 
-  /** Start initial verification */
+  /**
+   * Starts connectivity monitoring by immediately verifying network status.
+   * Triggers an initial connectivity check and updates all signals accordingly.
+   */
   async start(): Promise<void> {
     await this.verify();
   }
 
-  /** Stops all timers and polling */
+  /**
+   * Stop all timers and polling.
+   * Cleans up resources and cancels pending requests.
+   * Useful in tests and when service is no longer needed.
+   */
   stop() {
     this.stopped = true;
 
@@ -81,7 +88,11 @@ export class ConnectivityService {
     }
   }
 
-  /** Schedule the next connectivity check */
+  /**
+   * Schedules the next connectivity check using the current polling interval.
+   * Uses exponential backoff when offline (doubles interval up to maxInterval of 60s).
+   * Resets to baseInterval (10s) when connection is restored.
+   */
   private scheduleNextCheck() {
     if (this.stopped) return;
 
@@ -91,7 +102,11 @@ export class ConnectivityService {
     }, this.currentInterval);
   }
 
-  /** Perform ping to check connectivity */
+  /**
+   * Perform ping to check connectivity.
+   * Fetches favicon with cache-busting to verify real connectivity.
+   * Updates isOnline signal and manages offline banner display.
+   */
   private async verify() {
     if (!this.stopped) {
       this.verifyAbortController = new AbortController();
@@ -142,7 +157,10 @@ export class ConnectivityService {
     }
   }
 
-  /** Show offline banner after grace period */
+  /**
+   * Show offline banner after grace period.
+   * Delays banner display to avoid flashing during brief disconnections.
+   */
   private scheduleOfflineBanner() {
     if (!this.offlineTimer) {
       this.offlineTimer = setTimeout(() => {
@@ -153,7 +171,10 @@ export class ConnectivityService {
     }
   }
 
-  /** Hide offline banner if shown */
+  /**
+   * Hide offline banner if shown.
+   * Cancels scheduled banner display and hides banner if currently visible.
+   */
   private clearOfflineBanner() {
     if (this.offlineTimer) {
       clearTimeout(this.offlineTimer);

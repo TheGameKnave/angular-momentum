@@ -1,6 +1,12 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { readFeatureFlags } from './lowDBService';
 
+/**
+ * Initializes and configures the Socket.IO WebSocket server
+ * @param server - HTTP server instance to attach Socket.IO to
+ * @returns Configured Socket.IO server instance
+ * @description Sets up WebSocket with CORS configuration, connection handlers, and automatic feature flag synchronization for new clients
+ */
 export function setupWebSocket(server: any) {
   const io = new SocketIOServer(server, {
     cors: {

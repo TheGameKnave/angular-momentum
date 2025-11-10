@@ -20,6 +20,13 @@ export interface InitializeApiRes {
   };
 }
 
+/**
+ * GraphQL API component that demonstrates server communication via GraphQL.
+ *
+ * This component fetches and displays API documentation from a GraphQL endpoint,
+ * showcasing how to integrate GraphQL queries into an Angular application with
+ * proper error handling and async data display.
+ */
 @Component({
   selector: 'app-graphql-api',
   templateUrl: './graphql-api.component.html',
@@ -49,6 +56,10 @@ export class GraphqlApiComponent implements OnInit {
     );
   }
 
+  /**
+   * Executes a GraphQL query to retrieve API documentation from the server.
+   * @returns Observable that emits the API response with documentation
+   */
   private initializeApi(): Observable<InitializeApiRes> {
     return this.http.post<InitializeApiRes>(ENVIRONMENT.baseUrl + '/api', { query }, {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' }),

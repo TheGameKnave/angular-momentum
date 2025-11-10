@@ -6,8 +6,23 @@ import { catchError, map, Observable, of, take, tap } from 'rxjs';
 import equal from 'fast-deep-equal';
 import { ArbitraryFeatures, FeatureFlagResponse } from '@app/models/data.model';
 
+/**
+ * Type representing all possible feature flag keys.
+ */
 export type FeatureFlagKeys = keyof FeatureFlagResponse;
 
+/**
+ * Service for managing feature flags across the application.
+ *
+ * Provides functionality to fetch, update, and monitor feature flags using GraphQL.
+ * Supports real-time updates via WebSocket for synchronized flag changes across clients.
+ *
+ * Features:
+ * - GraphQL-based flag retrieval and updates
+ * - WebSocket support for real-time flag synchronization
+ * - Signal-based state management for reactive updates
+ * - Deep equality checking to prevent unnecessary updates
+ */
 @Injectable({ providedIn: 'root' })
 export class FeatureFlagService {
   features = signal<Partial<Record<FeatureFlagKeys, boolean>>>({});
@@ -23,6 +38,11 @@ export class FeatureFlagService {
     });
   }
 
+  /**
+   * Fetch all feature flags from the backend using GraphQL.
+   * Updates the features signal with the retrieved flags.
+   * @returns Observable of feature flag key-value pairs
+   */
   getFeatureFlags(): Observable<FeatureFlagResponse> {
     const query = getFeatureFlagsQuery();
     return this.http.post<{ data: { featureFlags: { key: FeatureFlagKeys; value: boolean }[] } }>(ENVIRONMENT.baseUrl + '/api', { query }).pipe(
@@ -45,6 +65,9 @@ export class FeatureFlagService {
   /**
    * Update a feature flag both locally and on the backend.
    * Sends updates via GraphQL.
+   * Uses deep equality checking to prevent unnecessary updates and backend calls.
+   * @param feature - The feature flag key to update
+   * @param value - The new boolean value for the feature flag
    */
   setFeature<T extends FeatureFlagKeys>(feature: T, value: boolean) {
     const newFeatures = { ...this.features(), [feature]: value };
@@ -62,14 +85,19 @@ export class FeatureFlagService {
 
   /**
    * Get the value of a specific feature flag.
+   * Returns true if the flag is not explicitly set to false (defaults to enabled).
+   * @param feature - The feature flag key to retrieve
+   * @returns Boolean value of the feature flag (defaults to true if not set)
    */
   getFeature<T extends FeatureFlagKeys>(feature: T): boolean {
     return this.features()[feature] !== false;
   }
 
 }
+
 /**
- * graphQL queries to handle feature flags
+ * Generate GraphQL query for fetching all feature flags.
+ * @returns GraphQL query string
  */
 export function getFeatureFlagsQuery() {
   return `
@@ -82,6 +110,10 @@ export function getFeatureFlagsQuery() {
   `;
 }
 
+/**
+ * Generate GraphQL mutation for updating a single feature flag.
+ * @returns GraphQL mutation string
+ */
 export function updateFeatureFlagMutation() {
   return `
     mutation UpdateFeatureFlag($key: String!, $value: Boolean!) {

@@ -6,13 +6,21 @@ const FileSync = require('lowdb/adapters/FileSync');
 const adapter = new FileSync('data/db.json');
 const db = low(adapter);
 
-// Read feature flags from the JSON mock DB
+/**
+ * Reads all feature flags from the JSON database.
+ * Retrieves the current state of all feature flags from the LowDB database file.
+ * @returns Object containing all feature flags as key-value pairs (key: string, value: boolean)
+ */
 export const readFeatureFlags = () => {
   return db.get('featureFlags').value();
 };
 
-
-// Write updated feature flags to the JSON mock DB
+/**
+ * Updates feature flags in the JSON database.
+ * Merges new feature flag values with existing ones and persists changes to the database file.
+ * @param newFeatures - Object containing feature flag keys and their new boolean values
+ * @returns Promise resolving to the complete updated feature flags object after merge
+ */
 export const writeFeatureFlags = async (newFeatures: Record<string, boolean>) => {
   const existingFeatures = await readFeatureFlags();
   const updatedFeatures = { ...existingFeatures, ...newFeatures };

@@ -9,6 +9,14 @@ import { CardModule } from 'primeng/card';
 import { FeatureMonitorService } from '@app/services/feature-monitor.service';
 import { ConnectivityService } from '@app/services/connectivity.service';
 
+/**
+ * Features component that provides a UI for managing application feature flags.
+ *
+ * This component displays a form with toggle controls for each feature flag,
+ * allowing users to enable or disable features in real-time. Changes are
+ * persisted and synchronized across the application using signals,
+ * as well as up to the server, to update distributed clients.
+ */
 @Component({
   selector: 'app-features',
   templateUrl: './features.component.html',
@@ -56,6 +64,11 @@ export class FeaturesComponent implements OnInit {
       });
   }
 
+  /**
+   * Retrieves a specific form control for a feature flag by name.
+   * @param name - The name of the feature flag
+   * @returns The FormControl for the specified feature
+   */
   featureControl(name: string): FormControl {
     return this.featureForm.get(name) as FormControl;
   }

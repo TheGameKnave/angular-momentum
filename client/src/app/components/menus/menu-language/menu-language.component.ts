@@ -8,6 +8,13 @@ import { Overlay, OverlayRef, OverlayModule } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+/**
+ * Menu language component that provides a language selection overlay.
+ *
+ * This component displays a button that opens an overlay menu showing all supported
+ * languages with their flags. Users can click on a language to switch the application's
+ * active language. The overlay uses CDK Overlay for proper positioning and backdrop handling.
+ */
 @Component({
   selector: 'app-menu-language',
   templateUrl: './menu-language.component.html',
@@ -51,6 +58,11 @@ export class MenuLanguageComponent implements OnDestroy {
     }
   }
 
+  /**
+   * Opens the language selection menu overlay.
+   * Creates the overlay if it doesn't exist, attaches the menu template portal,
+   * and sets up backdrop click handling to close the menu.
+   */
   private openMenu() {
     if (!this.overlayRef) {
       const positionStrategy = this.overlay.position().global();
@@ -75,6 +87,10 @@ export class MenuLanguageComponent implements OnDestroy {
     this.showMenu.set(true);
   }
 
+  /**
+   * Closes the language selection menu overlay.
+   * Detaches the template portal from the overlay and updates the menu state.
+   */
   closeMenu() {
     if (this.overlayRef?.hasAttached()) {
       this.overlayRef.detach();
@@ -82,6 +98,12 @@ export class MenuLanguageComponent implements OnDestroy {
     this.showMenu.set(false);
   }
 
+  /**
+   * Event handler for language selection.
+   * Triggered by click or Enter key press on a language option. Identifies the selected
+   * language from the element's CSS classes, sets it as the active language, and closes the menu.
+   * @param event - The DOM event (click or keydown)
+   */
   onI18n(event: Event): void {
     if (event.type === 'click' || (event.type === 'keydown' && event instanceof KeyboardEvent && event.key === 'Enter')) {
       const target = (event.target as HTMLElement).closest('li');

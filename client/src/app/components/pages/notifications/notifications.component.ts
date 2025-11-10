@@ -11,6 +11,13 @@ import { SendNotificationResponse, PredefinedNotification } from '@app/models/da
 import { NotificationMessages } from '@app/helpers/notification-messages';
 import { firstValueFrom } from 'rxjs';
 
+/**
+ * Notifications component that demonstrates push notification capabilities.
+ *
+ * This component provides interfaces for sending both local (client-side) and
+ * server-side notifications. It includes predefined notification templates and
+ * shows notification permission status, supporting both web/PWA and Tauri platforms.
+ */
 @Component({
   selector: 'app-notifications',
   templateUrl: './notifications.component.html',
@@ -27,6 +34,12 @@ export class NotificationsComponent {
   serverNotificationStatus = signal<string>('');
   loading = signal(false);
 
+  /**
+   * Gets the list of predefined notification templates with localized content.
+   * Includes various notification types (welcome, feature update, maintenance, achievement)
+   * with their corresponding translation keys, icons, and severity levels.
+   * @returns Array of predefined notification configurations
+   */
   get predefinedNotifications(): PredefinedNotification[] {
     return [
       {
@@ -82,7 +95,11 @@ export class NotificationsComponent {
   ) {}
 
   /**
-   * Send a local notification (client-side only)
+   * Sends a local notification (client-side only).
+   * Checks for notification permission and requests it if not already granted.
+   * If permission is denied, displays an error message instructing the user to
+   * enable notifications in their browser/OS settings.
+   * @param notification - The predefined notification to send
    */
   async sendLocalNotification(notification: PredefinedNotification) {
     this.localNotificationStatus.set('');
@@ -109,7 +126,12 @@ export class NotificationsComponent {
   }
 
   /**
-   * Send a notification via the server (broadcasts to all connected clients)
+   * Sends a notification via the server (broadcasts to all connected clients).
+   * Sends a GraphQL mutation to the server with translation keys rather than
+   * translated text, allowing each client to display the notification in their
+   * own language. Includes optional parameters like timestamps for locale-specific
+   * formatting on the client side.
+   * @param notification - The predefined notification to send
    */
   async sendServerNotification(notification: PredefinedNotification) {
     this.serverNotificationStatus.set('');
@@ -156,6 +178,10 @@ export class NotificationsComponent {
     }
   }
 
+  /**
+   * Gets the current notification permission status.
+   * @returns A string indicating whether notifications are supported and if permission is granted
+   */
   get permissionStatus(): string {
     if (!this.notificationService.isSupported()) {
       return 'Not supported';
@@ -163,6 +189,10 @@ export class NotificationsComponent {
     return this.notificationService.permissionGranted() ? 'Granted' : 'Not granted';
   }
 
+  /**
+   * Determines the current platform type.
+   * @returns A string indicating whether the app is running in Tauri (native) or Web/PWA
+   */
   get platformType(): string {
     return '__TAURI__' in window ? 'Tauri (Native)' : 'Web/PWA';
   }

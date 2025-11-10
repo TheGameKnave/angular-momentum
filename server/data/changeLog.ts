@@ -1,3 +1,7 @@
+/**
+ * Application version history and changelog
+ * @description Array of changelog entries tracking version releases, dates, descriptions, and changes
+ */
 export const changeLog = [  
   {
     version: "0.20.13",

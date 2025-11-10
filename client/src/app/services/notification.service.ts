@@ -6,20 +6,28 @@ import { SocketIoService } from './socket.io.service';
 import { Notification, NotificationOptions } from '../models/data.model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+/**
+ * Service for managing notifications across web and Tauri platforms.
+ *
+ * Handles notification permissions, display, and history management.
+ * Supports both browser notifications (using Web Notification API and Service Worker)
+ * and native notifications (using Tauri plugin).
+ *
+ * Features:
+ * - Cross-platform notification support (Web, PWA, Tauri)
+ * - WebSocket-based notification delivery from server
+ * - Automatic translation of notification content
+ * - Notification history with read/unread tracking
+ * - LocalStorage persistence for notification history
+ * - Permission management for both web and native platforms
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
-  // Signal to track notification permission state
   permissionGranted = signal<boolean>(false);
-
-  // Signal to track all notifications
   notifications = signal<Notification[]>([]);
-
-  // Signal to track unread count
   unreadCount = signal<number>(0);
-
-  // Check if running in Tauri
   private readonly isTauri = '__TAURI__' in window;
 
   constructor(
@@ -30,13 +38,13 @@ export class NotificationService {
   ) {
     this.loadNotificationsFromStorage();
     this.listenForWebSocketNotifications();
-    // Initialize permission state synchronously for web, Tauri will be checked lazily when needed
     this.initializePermissionSync();
   }
 
   /**
-   * Initialize permission state synchronously (no async operations)
-   * For Tauri, permission will be checked lazily when actually showing notifications
+   * Initialize permission state synchronously (no async operations).
+   * For Tauri, permission will be checked lazily when actually showing notifications.
+   * For web platforms, checks the current Notification.permission status.
    */
   private initializePermissionSync(): void {
     if (!this.isTauri && 'Notification' in window) {
@@ -51,9 +59,10 @@ export class NotificationService {
   }
 
   /**
-   * Listen for notifications from WebSocket
-   * Note: The server sends translation keys, which we translate here on the client
-   * so each client sees the notification in their selected language
+   * Listen for notifications from WebSocket.
+   * The server sends translation keys, which we translate here on the client
+   * so each client sees the notification in their selected language.
+   * Automatically formats timestamp parameters for the client's locale.
    */
   private listenForWebSocketNotifications(): void {
     this.socketService.listen<NotificationOptions>('notification').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
@@ -89,7 +98,8 @@ export class NotificationService {
   }
 
   /**
-   * Check if notifications are supported in the current environment
+   * Check if notifications are supported in the current environment.
+   * @returns True if running in Tauri or if browser supports Notification API and Service Workers
    */
   isSupported(): boolean {
     /* istanbul ignore next - Browser API feature detection */
@@ -97,7 +107,9 @@ export class NotificationService {
   }
 
   /**
-   * Check current permission status
+   * Check current permission status.
+   * Updates the permissionGranted signal with the current status.
+   * @returns Promise resolving to true if notification permission is granted
    */
   async checkPermission(): Promise<boolean> {
     try {
@@ -119,7 +131,9 @@ export class NotificationService {
   }
 
   /**
-   * Request notification permission
+   * Request notification permission from the user.
+   * Updates the permissionGranted signal with the result.
+   * @returns Promise resolving to true if permission was granted
    */
   async requestPermission(): Promise<boolean> {
     try {
@@ -145,7 +159,11 @@ export class NotificationService {
   }
 
   /**
-   * Show a notification
+   * Show a notification to the user.
+   * Automatically selects the appropriate notification method based on platform (Tauri, Service Worker, or basic).
+   * Stores the notification in history and checks permission before displaying.
+   * @param options - Notification configuration including title, body, icon, and custom data
+   * @returns Promise resolving to the unique notification ID
    */
   async show(options: NotificationOptions): Promise<string> {
     const notificationId = this.generateId();
@@ -195,7 +213,9 @@ export class NotificationService {
   }
 
   /**
-   * Show notification using Tauri plugin
+   * Show notification using Tauri plugin.
+   * Uses the native notification system on desktop platforms.
+   * @param options - Notification options including title, body, and icon
    */
   /* istanbul ignore next - Tauri API integration testing */
   private async showTauriNotification(options: NotificationOptions): Promise<void> {
@@ -225,7 +245,10 @@ export class NotificationService {
   }
 
   /**
-   * Show notification using Service Worker (for PWA)
+   * Show notification using Service Worker (for PWA).
+   * Used when running as a Progressive Web App with an active service worker.
+   * @param options - Notification options including title, body, icon, and additional settings
+   * @param id - Unique notification identifier
    */
   /* istanbul ignore next - Service Worker integration testing */
   private async showWebNotification(options: NotificationOptions, id: string): Promise<void> {
@@ -253,7 +276,10 @@ export class NotificationService {
   }
 
   /**
-   * Show notification using basic Notification API
+   * Show notification using basic Notification API.
+   * Fallback method when Service Worker is not available.
+   * Sets up event handlers for click, show, error, and close events.
+   * @param options - Notification options including title, body, icon, and additional settings
    */
   /* istanbul ignore next - Browser Notification API integration testing */
   private async showBasicNotification(options: NotificationOptions): Promise<void> {
@@ -304,7 +330,9 @@ export class NotificationService {
   }
 
   /**
-   * Add notification to history
+   * Add notification to history.
+   * Updates the unread count and persists to localStorage.
+   * @param notification - Notification object to add to history
    */
   private addNotification(notification: Notification): void {
     const notifications = this.notifications();
@@ -314,7 +342,8 @@ export class NotificationService {
   }
 
   /**
-   * Mark notification as read
+   * Mark a specific notification as read.
+   * @param notificationId - Unique identifier of the notification to mark as read
    */
   markAsRead(notificationId: string): void {
     const notifications = this.notifications();
@@ -326,9 +355,6 @@ export class NotificationService {
     this.saveNotificationsToStorage();
   }
 
-  /**
-   * Mark all notifications as read
-   */
   markAllAsRead(): void {
     const notifications = this.notifications();
     const updated = notifications.map(n => ({ ...n, read: true }));
@@ -338,7 +364,8 @@ export class NotificationService {
   }
 
   /**
-   * Delete notification
+   * Delete a specific notification from history.
+   * @param notificationId - Unique identifier of the notification to delete
    */
   deleteNotification(notificationId: string): void {
     const notifications = this.notifications();
@@ -348,25 +375,20 @@ export class NotificationService {
     this.saveNotificationsToStorage();
   }
 
-  /**
-   * Clear all notifications
-   */
   clearAll(): void {
     this.notifications.set([]);
     this.unreadCount.set(0);
     this.saveNotificationsToStorage();
   }
 
-  /**
-   * Update unread count
-   */
   private updateUnreadCount(): void {
     const count = this.notifications().filter(n => !n.read).length;
     this.unreadCount.set(count);
   }
 
   /**
-   * Save notifications to localStorage
+   * Save notifications to localStorage.
+   * Limits storage to the most recent 100 notifications to prevent excessive storage usage.
    */
   private saveNotificationsToStorage(): void {
     try {
@@ -381,7 +403,8 @@ export class NotificationService {
   }
 
   /**
-   * Load notifications from localStorage
+   * Load notifications from localStorage on service initialization.
+   * Converts timestamp strings back to Date objects.
    */
   private loadNotificationsFromStorage(): void {
     try {
@@ -402,14 +425,16 @@ export class NotificationService {
   }
 
   /**
-   * Generate unique notification ID
+   * Generate unique notification ID using timestamp and UUID.
+   * @returns Unique notification identifier string
    */
   private generateId(): string {
     return `notification_${Date.now()}_${crypto.randomUUID()}`;
   }
 
   /**
-   * Test notification (useful for development)
+   * Show a test notification (useful for development and testing).
+   * Displays a sample notification to verify the notification system is working.
    */
   async showTestNotification(): Promise<void> {
     await this.show({

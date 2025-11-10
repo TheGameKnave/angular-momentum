@@ -7,6 +7,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 
+/**
+ * Notification bell component that displays a notification center overlay.
+ *
+ * This component shows a bell icon with a badge indicating unread notifications.
+ * When clicked, it opens an overlay panel displaying all notifications with options
+ * to mark as read, delete individual notifications, or clear all. It also provides
+ * a button to request notification permissions if not already granted.
+ */
 @Component({
   selector: 'app-notification-bell',
   standalone: true,
@@ -39,6 +47,11 @@ export class NotificationBellComponent implements OnDestroy {
     }
   }
 
+  /**
+   * Opens the notification center overlay.
+   * Creates the overlay if it doesn't exist, attaches the notification center template portal,
+   * and sets up backdrop click handling to close the overlay.
+   */
   private openNotificationCenter() {
     if (!this.overlayRef) {
       const positionStrategy = this.overlay.position().global();
@@ -67,6 +80,10 @@ export class NotificationBellComponent implements OnDestroy {
     this.showCenter.set(true);
   }
 
+  /**
+   * Closes the notification center overlay.
+   * Detaches the template portal from the overlay and updates the visibility state.
+   */
   closeNotificationCenter() {
     if (this.overlayRef?.hasAttached()) {
       this.overlayRef.detach();
@@ -74,6 +91,10 @@ export class NotificationBellComponent implements OnDestroy {
     this.showCenter.set(false);
   }
 
+  /**
+   * Marks a specific notification as read.
+   * @param notificationId - The unique identifier of the notification to mark as read
+   */
   markAsRead(notificationId: string) {
     this.notificationService.markAsRead(notificationId);
   }
@@ -82,6 +103,12 @@ export class NotificationBellComponent implements OnDestroy {
     this.notificationService.markAllAsRead();
   }
 
+  /**
+   * Deletes a specific notification.
+   * Stops event propagation to prevent triggering the notification's click handler.
+   * @param event - The DOM event that triggered the deletion
+   * @param notificationId - The unique identifier of the notification to delete
+   */
   deleteNotification(event: Event, notificationId: string) {
     event.stopPropagation();
     this.notificationService.deleteNotification(notificationId);
@@ -95,6 +122,11 @@ export class NotificationBellComponent implements OnDestroy {
     await this.notificationService.requestPermission();
   }
 
+  /**
+   * Formats a timestamp into a human-readable relative time string.
+   * @param timestamp - The timestamp to format
+   * @returns A human-readable relative time string
+   */
   formatTime(timestamp: Date): string {
     const now = new Date();
     const diff = now.getTime() - new Date(timestamp).getTime();

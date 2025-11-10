@@ -6,6 +6,12 @@ import { MarkdownModule } from 'ngx-markdown';
 import { CardModule } from 'primeng/card';
 import { map, combineLatest } from 'rxjs';
 
+/**
+ * Index component that displays the main landing page with project information.
+ *
+ * This component combines multiple translated text strings to create a comprehensive
+ * introduction to the Angular Momentum project, rendered as markdown content.
+ */
 @Component({
   selector: 'app-index',
   templateUrl: './index.component.html',

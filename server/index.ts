@@ -8,6 +8,13 @@ import rateLimit from 'express-rate-limit';
 import { setupWebSocket } from './services/websocketService';
 import { graphqlMiddleware } from './services/graphqlService';
 
+/**
+ * Configures static file serving for the Angular application based on the environment.
+ * Sets up static file serving with 1-hour caching and SPA routing fallback for production, staging, and development environments.
+ * All routes are redirected to index.html to support client-side routing.
+ * @param app - Express application instance to configure
+ * @param env - Environment string (production, staging, or development)
+ */
 function setupStaticFileServing(app: express.Application, env: string) {
   if (env === 'production' || env === 'staging' || env === 'development') {
     const dirname = path.resolve(__dirname, '../client/dist/angular-momentum/browser');
@@ -19,6 +26,13 @@ function setupStaticFileServing(app: express.Application, env: string) {
   }
 }
 
+/**
+ * Creates and configures the Express application with all middleware and routes.
+ * Sets up CORS (allowing multiple origins including localhost, staging, and production domains),
+ * error logging via Pino, JSON body parsing, rate limiting (100 requests per 10 minutes),
+ * GraphQL API endpoint at /api, and static file serving for the Angular app.
+ * @returns Configured Express application instance ready to be attached to an HTTP server
+ */
 export function setupApp(): express.Application {
   const app = express();
   const logger = pino({level: 'error'});

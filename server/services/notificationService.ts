@@ -2,7 +2,10 @@ import { Server as SocketIOServer } from 'socket.io';
 import { NotificationPayload } from '../models/data.model';
 
 /**
- * Send notification to all connected clients
+ * Broadcasts a push notification to all connected WebSocket clients.
+ * Emits a 'notification' event to all connected sockets with the notification payload.
+ * @param io - Socket.IO server instance
+ * @param notification - Notification payload containing title, body, and optional metadata
  */
 export function broadcastNotification(io: SocketIOServer, notification: NotificationPayload): void {
   io.emit('notification', notification);
@@ -10,7 +13,11 @@ export function broadcastNotification(io: SocketIOServer, notification: Notifica
 }
 
 /**
- * Send notification to specific user/socket
+ * Sends a push notification to a specific connected client by socket ID.
+ * Emits a 'notification' event only to the targeted socket.
+ * @param io - Socket.IO server instance
+ * @param socketId - Target socket ID to send the notification to
+ * @param notification - Notification payload containing title, body, and optional metadata
  */
 export function sendNotificationToUser(io: SocketIOServer, socketId: string, notification: NotificationPayload): void {
   io.to(socketId).emit('notification', notification);
@@ -18,7 +25,12 @@ export function sendNotificationToUser(io: SocketIOServer, socketId: string, not
 }
 
 /**
- * Send notification to a room (e.g., all users in a group)
+ * Sends a push notification to all clients in a specific Socket.IO room.
+ * Useful for broadcasting to groups of users (e.g., team members, chat rooms).
+ * Emits a 'notification' event to all sockets that have joined the specified room.
+ * @param io - Socket.IO server instance
+ * @param room - Room name/identifier
+ * @param notification - Notification payload containing title, body, and optional metadata
  */
 export function sendNotificationToRoom(io: SocketIOServer, room: string, notification: NotificationPayload): void {
   io.to(room).emit('notification', notification);
