@@ -415,53 +415,6 @@ app-menu-feature {
   bottom: 0;
   font-size: 1.6rem;
   overflow-y: auto;
-  a {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    .label {
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      flex: 1; /* ← this is crucial */
-    }
-    &:hover, &.selected {
-      color: $light-brand;
-    }
-    &.selected {
-      cursor: default;
-    }
-  }
-}
-
-// Overlay menu containers
-.menu-overlay-panel {
-  max-height: calc(100vh - 8rem);
-}
-
-.menu-language-content, .menu-change-log-content {
-  font-size: 1.6rem;
-  height: 100%;
-  a {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    .label {
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      flex: 1;
-    }
-    &:hover, &.selected {
-      color: $light-brand;
-    }
-    &.selected {
-      cursor: default;
-    }
-  }
-}
-
-app-menu-feature {
   padding: 5.2rem 0.6rem 4.3rem;
   left: 0;
   width: 5rem;
@@ -494,11 +447,70 @@ app-menu-feature {
     justify-content: flex-start;
     gap: 1rem;
     padding: 0.4rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    .label {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      flex: 1; /* ← this is crucial */
+    }
+    &:hover, &.selected {
+      color: $light-brand;
+    }
+    &.selected {
+      cursor: default;
+    }
   }
   i.pi {
     font-size: 2.6rem;
     vertical-align: middle;
     border-radius: 1rem;
+  }
+}
+
+// Overlay menu containers
+.menu-overlay-panel {
+  max-height: calc(100vh - 8rem);
+}
+
+.menu-language-content, .menu-change-log-content {
+  font-size: 1.6rem;
+  height: 100%;
+  padding-top: 4rem;
+  min-width: 18rem;
+  h3 {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+    right: 0.6rem;
+  }
+  h4, p, ul, p-card {
+    margin: 1rem;
+  }
+  a {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    .label {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+    &:hover, &.selected {
+      color: $light-brand;
+    }
+    &.selected {
+      cursor: default;
+    }
+    &.close i {
+      font-size: 1.8rem;
+      position: absolute;
+      top: 0;
+      right: 0;
+    }
   }
 }
 
@@ -543,25 +555,6 @@ app-menu-feature {
   }
 }
 
-.menu-language-content, .menu-change-log-content {
-  padding-top: 4rem;
-  min-width: 18rem;
-  h3 {
-    position: absolute;
-    top: 0.6rem;
-    left: 0.6rem;
-    right: 0.6rem;
-  }
-  a.close i {
-    font-size: 1.8rem;
-    position: absolute;
-    top: 0;
-    right: 0;
-  }
-  h4, p, ul, p-card {
-    margin: 1rem;
-  }
-}
 .link-home, .kofi-button {
   left: 0.6rem;
   right: 0.6rem;
