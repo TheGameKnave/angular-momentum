@@ -37,6 +37,11 @@ export class IndexedDBComponent implements OnInit {
     private readonly cd: ChangeDetectorRef,
   ){}
 
+  /**
+   * Angular lifecycle hook called after component initialization.
+   * Loads the initial value from IndexedDB and sets up a debounced subscription
+   * to persist textarea value changes to IndexedDB on user input.
+   */
   ngOnInit() {
     this.getDbValue().then();
 

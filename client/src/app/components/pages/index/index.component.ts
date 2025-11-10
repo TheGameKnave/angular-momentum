@@ -31,6 +31,11 @@ export class IndexComponent implements OnInit {
     private readonly destroyRef: DestroyRef,
   ){}
 
+  /**
+   * Angular lifecycle hook called after component initialization.
+   * Combines multiple translated text strings to create the landing page content
+   * and displays them as markdown by setting the combined text to a signal.
+   */
   ngOnInit() {
     combineLatest([
       this.transloco.selectTranslate('This project is designed to rapidly spin up Angular applications...'),

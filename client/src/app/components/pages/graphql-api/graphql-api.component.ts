@@ -47,6 +47,11 @@ export class GraphqlApiComponent implements OnInit {
     private readonly featureMonitorService: FeatureMonitorService,
   ){}
 
+  /**
+   * Angular lifecycle hook called after component initialization.
+   * Initializes the GraphQL API call to fetch API documentation from the server
+   * and handles any errors that occur during the request.
+   */
   ngOnInit() {
     this.results$ = this.initializeApi().pipe(
       catchError((error: unknown) => {

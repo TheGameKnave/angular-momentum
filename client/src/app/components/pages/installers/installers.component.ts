@@ -37,6 +37,11 @@ export class InstallersComponent implements OnInit {
     protected readonly connectivity: ConnectivityService,
   ) {}
 
+  /**
+   * Angular lifecycle hook called after component initialization.
+   * Starts the connectivity service and refreshes the changelog service
+   * to fetch the latest version information for formatting installer download links.
+   */
   ngOnInit(): void {
     this.connectivity.start();
     this.changeLogService.refresh();

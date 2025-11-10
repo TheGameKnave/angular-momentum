@@ -59,10 +59,19 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
     protected readonly connectivity: ConnectivityService,
   ) {}
 
+  /**
+   * Angular lifecycle hook called after component initialization.
+   * Starts the connectivity service to begin monitoring server connection status.
+   */
   ngOnInit() {
     this.connectivity.start();
   }
 
+  /**
+   * Angular lifecycle hook called after component's view has been fully initialized.
+   * Performs initial scroll to center the active menu item and subscribes to router
+   * navigation events to scroll to center the active item after each route change.
+   */
   ngAfterViewInit() {
     // Initial scroll to active route
     this.scrollToCenter();

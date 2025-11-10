@@ -46,10 +46,18 @@ export class MenuLanguageComponent implements OnDestroy {
     this.supportedLanguages.forEach(lang => this.classToLang[`i18n-${lang}`] = lang);
   }
 
+  /**
+   * Angular lifecycle hook called when the component is destroyed.
+   * Ensures proper cleanup by closing the language selection menu overlay.
+   */
   ngOnDestroy() {
     this.closeMenu();
   }
 
+  /**
+   * Toggles the language selection menu visibility.
+   * Opens the menu if currently closed, closes it if currently open.
+   */
   toggleMenu() {
     if (this.showMenu()) {
       this.closeMenu();

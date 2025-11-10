@@ -50,10 +50,18 @@ export class MenuChangeLogComponent implements OnDestroy {
   ){
   }
 
+  /**
+   * Angular lifecycle hook called when the component is destroyed.
+   * Ensures proper cleanup by closing the changelog menu overlay.
+   */
   ngOnDestroy() {
     this.closeMenu();
   }
 
+  /**
+   * Toggles the changelog menu visibility.
+   * Opens the menu if currently closed, closes it if currently open.
+   */
   toggleMenu() {
     if (this.showMenu()) {
       this.closeMenu();

@@ -46,6 +46,11 @@ export class FeaturesComponent implements OnInit {
     });
   }
 
+  /**
+   * Angular lifecycle hook called after component initialization.
+   * Starts the connectivity service, builds form controls for all feature flags,
+   * and subscribes to form value changes to update feature flag settings in real-time.
+   */
   ngOnInit(): void {
     this.connectivity.start();
 

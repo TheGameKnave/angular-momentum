@@ -20,6 +20,14 @@ import { MenuChangeLogComponent } from './components/menus/menu-change-log/menu-
 import { ChangeLogService } from './services/change-log.service';
 import { NotificationBellComponent } from './components/notification-bell/notification-bell.component';
 
+/**
+ * Root component of the Angular Momentum application.
+ *
+ * This component serves as the main application shell, managing the layout structure,
+ * navigation state, and global UI elements like menus and notification bell.
+ * It dynamically updates body CSS classes based on the current route and screen size,
+ * enabling responsive design and route-specific styling.
+ */
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -65,6 +73,11 @@ export class AppComponent implements OnInit {
     protected readonly connectivity: ConnectivityService,
   ){}
 
+  /**
+   * Angular lifecycle hook called after component initialization.
+   * Starts the connectivity service and subscribes to router navigation events
+   * to update the route path, breadcrumb, and body CSS classes based on the current route.
+   */
   ngOnInit() {
     this.connectivity.start();
     // there might be a better way to detect the current component for the breadcrumbs...
@@ -81,6 +94,11 @@ export class AppComponent implements OnInit {
     });
   }
 
+  /**
+   * Updates the body element's CSS classes based on the current route and screen size.
+   * Applies responsive screen size classes and route-specific classes for targeted styling.
+   * This method is called on initialization, route changes, and window resize events.
+   */
   bodyClasses(): void {
     // remove all classes from body
     document.body.className = 'app-dark screen-xs';

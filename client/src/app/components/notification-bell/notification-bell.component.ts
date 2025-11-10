@@ -35,10 +35,18 @@ export class NotificationBellComponent implements OnDestroy {
     private readonly destroyRef: DestroyRef,
   ) {}
 
+  /**
+   * Angular lifecycle hook called when the component is destroyed.
+   * Ensures proper cleanup by closing the notification center overlay.
+   */
   ngOnDestroy() {
     this.closeNotificationCenter();
   }
 
+  /**
+   * Toggles the notification center visibility.
+   * Opens the notification center if currently closed, closes it if currently open.
+   */
   toggleNotificationCenter() {
     if (this.showCenter()) {
       this.closeNotificationCenter();
@@ -99,6 +107,10 @@ export class NotificationBellComponent implements OnDestroy {
     this.notificationService.markAsRead(notificationId);
   }
 
+  /**
+   * Marks all unread notifications as read.
+   * Updates the notification service to reflect that all notifications have been acknowledged.
+   */
   markAllAsRead() {
     this.notificationService.markAllAsRead();
   }
@@ -114,10 +126,19 @@ export class NotificationBellComponent implements OnDestroy {
     this.notificationService.deleteNotification(notificationId);
   }
 
+  /**
+   * Clears all notifications from the notification center.
+   * Removes all notifications from the notification service storage.
+   */
   clearAll() {
     this.notificationService.clearAll();
   }
 
+  /**
+   * Requests browser notification permission from the user.
+   * Prompts the user to grant permission for showing browser notifications.
+   * @returns Promise that resolves when the permission request is complete
+   */
   async requestPermission() {
     await this.notificationService.requestPermission();
   }
