@@ -1,19 +1,19 @@
-<div class="notification-bell-container">
-  <button
-    #bellButton
-    class="notification-bell-button"
-    (click)="toggleNotificationCenter()"
+<app-anchor-menu position="top-right" width="38rem">
+  <!-- Trigger: Notification Center Button -->
+  <span
+    menu-trigger
+    class="notification-center-button"
     [attr.aria-label]="'Notifications' + (notificationService.unreadCount() > 0 ? ' (' + notificationService.unreadCount() + ' unread)' : '')"
-    title="Notifications">
+    title="Notifications"
+  >
     <i class="pi pi-bell"></i>
     @if (notificationService.unreadCount() > 0) {
       <span class="notification-badge">{{ notificationService.unreadCount() }}</span>
     }
-  </button>
-</div>
+  </span>
 
-<ng-template #notificationCenter>
-  <div class="notification-center notification-center-content">
+  <!-- Menu Content: Notification Center -->
+  <div menu-content class="notification-center notification-center-content">
       <div class="notification-center-header">
         <h3>Notifications</h3>
         <div class="notification-center-actions">
@@ -36,9 +36,7 @@
             />
           }
         </div>
-        <a href="javascript:void(0)" class="close" (click)="closeNotificationCenter()" (keydown.enter)="closeNotificationCenter()">
-          <i class="pi pi-times"></i>
-        </a>
+        <!-- Close button removed - handled by anchor-menu backdrop -->
       </div>
 
       <div class="notification-center-body">
@@ -94,4 +92,4 @@
       </div>
     }
   </div>
-</ng-template>
+</app-anchor-menu>

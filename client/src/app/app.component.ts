@@ -18,13 +18,13 @@ import { SCREEN_SIZES } from './helpers/constants';
 import { ConnectivityService } from './services/connectivity.service';
 import { MenuChangeLogComponent } from './components/menus/menu-change-log/menu-change-log.component';
 import { ChangeLogService } from './services/change-log.service';
-import { NotificationBellComponent } from './components/notification-bell/notification-bell.component';
+import { NotificationCenterComponent } from './components/menus/notification-center/notification-center.component';
 
 /**
  * Root component of the Angular Momentum application.
  *
  * This component serves as the main application shell, managing the layout structure,
- * navigation state, and global UI elements like menus and notification bell.
+ * navigation state, and global UI elements like menus and notification center.
  * It dynamically updates body CSS classes based on the current route and screen size,
  * enabling responsive design and route-specific styling.
  */
@@ -38,7 +38,7 @@ import { NotificationBellComponent } from './components/notification-bell/notifi
     MenuChangeLogComponent,
     MenuFeatureComponent,
     TranslocoDirective,
-    NotificationBellComponent,
+    NotificationCenterComponent,
   ],
 })
 export class AppComponent implements OnInit {
@@ -98,10 +98,11 @@ export class AppComponent implements OnInit {
    * Updates the body element's CSS classes based on the current route and screen size.
    * Applies responsive screen size classes and route-specific classes for targeted styling.
    * This method is called on initialization, route changes, and window resize events.
+   * Note: Theme class is set on both html and body elements for CSS selector compatibility.
    */
   bodyClasses(): void {
     // remove all classes from body
-    document.body.className = 'app-dark screen-xs';
+    document.body.className = 'screen-xs';
     if (this.routePath) document.body.classList.add(this.routePath);
     // set class of body to reflect screen sizes
     for (const size in SCREEN_SIZES) {

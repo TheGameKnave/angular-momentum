@@ -1,0 +1,37 @@
+<!-- Trigger Button -->
+<a
+  class="anchor-menu-trigger"
+  href="javascript:void(0)"
+  (click)="toggle()"
+  (keydown.enter)="toggle()"
+  (keydown.space)="toggle()"
+  [attr.aria-label]="'Open menu'"
+  role="button"
+  tabindex="0"
+>
+  <ng-content select="[menu-trigger]"></ng-content>
+</a>
+
+<!-- Menu Overlay Template -->
+<ng-template #menuTemplate>
+  <div
+    class="anchor-menu-panel"
+    [ngClass]="'position-' + position()"
+    [style.width]="width()"
+    [style.z-index]="zIndex()"
+  >
+    @if (showCloseButton()) {
+      <a
+        href="javascript:void(0)"
+        class="anchor-menu-close-button close"
+        (click)="close()"
+        (keydown.enter)="close()"
+        [attr.aria-label]="'Close menu'"
+        type="button"
+      >
+        <i class="pi pi-times"></i>
+    </a>
+    }
+    <ng-content select="[menu-content]"></ng-content>
+  </div>
+</ng-template>

@@ -1,29 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NotificationBellComponent } from './notification-bell.component';
-import { NotificationService } from '../../services/notification.service';
-import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
+import { NotificationCenterComponent } from './notification-center.component';
+import { NotificationService } from '../../../services/notification.service';
 import { signal } from '@angular/core';
-import { Subject } from 'rxjs';
 
-describe('NotificationBellComponent', () => {
-  let component: NotificationBellComponent;
-  let fixture: ComponentFixture<NotificationBellComponent>;
+describe('NotificationCenterComponent', () => {
+  let component: NotificationCenterComponent;
+  let fixture: ComponentFixture<NotificationCenterComponent>;
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
-  let overlayRefSpy: jasmine.SpyObj<OverlayRef>;
-  let backdropClickSubject: Subject<MouseEvent>;
 
   beforeEach(async () => {
-    backdropClickSubject = new Subject<MouseEvent>();
-
-    overlayRefSpy = jasmine.createSpyObj('OverlayRef', [
-      'attach',
-      'detach',
-      'hasAttached',
-      'backdropClick'
-    ]);
-    overlayRefSpy.backdropClick.and.returnValue(backdropClickSubject.asObservable());
-    overlayRefSpy.hasAttached.and.returnValue(true);
-
     notificationServiceSpy = jasmine.createSpyObj('NotificationService', [
       'markAsRead',
       'markAllAsRead',
@@ -38,23 +23,19 @@ describe('NotificationBellComponent', () => {
     (notificationServiceSpy as any).permissionGranted = signal(false);
 
     await TestBed.configureTestingModule({
-      imports: [NotificationBellComponent, OverlayModule],
+      imports: [NotificationCenterComponent],
       providers: [
         { provide: NotificationService, useValue: notificationServiceSpy }
       ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(NotificationBellComponent);
+    fixture = TestBed.createComponent(NotificationCenterComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
-  });
-
-  it('should initialize with showCenter as false', () => {
-    expect(component.showCenter()).toBe(false);
   });
 
   describe('markAsRead', () => {
@@ -126,60 +107,6 @@ describe('NotificationBellComponent', () => {
       const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
       const result = component.formatTime(threeDaysAgo);
       expect(result).toBe('3d ago');
-    });
-  });
-
-  describe('toggleNotificationCenter', () => {
-    it('should open notification center when closed', () => {
-      expect(component.showCenter()).toBe(false);
-      component.toggleNotificationCenter();
-      expect(component.showCenter()).toBe(true);
-    });
-
-    it('should close notification center when open', () => {
-      // First open it
-      component.toggleNotificationCenter();
-      expect(component.showCenter()).toBe(true);
-
-      // Manually set overlayRef to simulate opened state
-      (component as any).overlayRef = overlayRefSpy;
-
-      // Then close it
-      component.toggleNotificationCenter();
-      expect(component.showCenter()).toBe(false);
-      expect(overlayRefSpy.detach).toHaveBeenCalled();
-    });
-
-    it('should create overlay on first open', () => {
-      expect((component as any).overlayRef).toBeNull();
-      component.toggleNotificationCenter();
-      expect((component as any).overlayRef).not.toBeNull();
-    });
-  });
-
-  describe('ngOnDestroy', () => {
-    it('should close notification center', () => {
-      component.showCenter.set(true);
-      (component as any).overlayRef = overlayRefSpy;
-
-      component.ngOnDestroy();
-
-      expect(component.showCenter()).toBe(false);
-      expect(overlayRefSpy.detach).toHaveBeenCalled();
-    });
-
-    it('should handle destroy when overlay is not attached', () => {
-      overlayRefSpy.hasAttached.and.returnValue(false);
-      (component as any).overlayRef = overlayRefSpy;
-
-      expect(() => component.ngOnDestroy()).not.toThrow();
-      expect(overlayRefSpy.detach).not.toHaveBeenCalled();
-    });
-
-    it('should handle destroy when overlayRef is null', () => {
-      (component as any).overlayRef = null;
-
-      expect(() => component.ngOnDestroy()).not.toThrow();
     });
   });
 });

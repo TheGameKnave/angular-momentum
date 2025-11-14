@@ -1,13 +1,13 @@
 <ng-container *transloco="let t">
   <div class="main">
     <header>
-      <div>
+      <div class="breadcrumbs">
         Momentum 
         @if(breadcrumb){ | {{ breadcrumb }}}
       </div>
-      <div>
+      <div class="header-actions">
         @if (showNotifications()) {
-          <app-notification-bell />
+          <app-notification-center />
         }
         @if(!connectivity.isOnline()){
           @if(connectivity.showOffline()){

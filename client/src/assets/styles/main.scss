@@ -34,24 +34,32 @@ $faint-brand: #9fe !default;
 $light-brand: #0ca !default;
 $brand: #1b9 !default;
 $dark-brand: #278 !default;
-$light-gray: #eee !default;
-$gray: #ccc !default;
-$dark-gray: #aaa !default;
-$mid-gray: #888 !default;
+$faint-gray: #eee !default;
+$light-gray: #ccc !default;
+$high-gray: #aaa !default;
+$mid-gray: #808080 !default;
+$low-gray: #444 !default;
+$dim-gray: #333 !default;
+$dark-gray: #222 !default;
 $shadow: rgba(0, 0, 0, 0.2) !default;
+$backdrop: rgba(0, 0, 0, 0.7) !default;
+$text-light: #f4f4f4 !default;
 $text-warning-light: #ffa !default;
 $text-error-light: #f88 !default;
+$text-success-light: #8f8 !default;
+$text-info-light: #8ff !default;
 
 .app-dark {
   // CSS Custom Properties for PrimeNG
-  --p-card-background: #4a4a4a;
-  --p-card-color: #f4f4f4;
-  --p-form-field-background: #333 !important;
-  --p-toggleswitch-handle-checked-background: #444 !important;
+  --p-card-background: #{$dim-gray} !important;
+  --p-panel-background: #{$dim-gray} !important;
+  --p-card-color: #{$text-light} !important;
+  --p-form-field-background: #{$dark-gray} !important;
+  --p-toggleswitch-handle-checked-background: #{$dim-gray} !important;
 
   // Base colors
-  background-color: #333;
-  color: #f4f4f4;
+  background-color: $dark-gray;
+  color: $text-light;
 
   // State colors
   .warning {
@@ -62,9 +70,14 @@ $text-error-light: #f88 !default;
   }
 
   // Links
+  a, button {
+    &:hover, &:focus {
+      color: $light-brand;
+    }
+  }
   p > a {
     color: $faint-brand;
-    &:hover {
+    &:hover, &:focus {
       color: $light-brand;
     }
     &:visited {
@@ -73,7 +86,7 @@ $text-error-light: #f88 !default;
   }
 
   // Borders
-  app-menu-feature, .menu-language-content, .menu-change-log-content, .notification-center-content, header, footer {
+  app-menu-feature, .anchor-menu-panel, header, footer {
     border-color: $mid-gray;
   }
   .p-tooltip .p-tooltip-text {
@@ -90,22 +103,22 @@ $text-error-light: #f88 !default;
 
   // Overlays
   .app-overlay-backdrop {
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: $backdrop;
   }
 
   // Menus
-  app-menu-feature, app-menu-language, app-menu-change-log {
-    background-color: #333;
-    color: #f4f4f4;
+  app-menu-feature, .menu-change-log-container, .menu-language-container, .notification-center-content {
+    background-color: $dark-gray;
+    color: $text-light;
     a {
-      color: #f4f4f4;
+      color: $text-light;
     }
   }
-  .menu-language-content, .menu-change-log-content, .notification-center-content {
-    background-color: #333;
-    color: #f4f4f4;
+  .anchor-menu-panel {
+    background-color: $dark-gray;
+    color: $text-light;
     a {
-      color: #f4f4f4;
+      color: $text-light;
       &.close:hover {
         color: $light-brand;
       }
@@ -114,16 +127,13 @@ $text-error-light: #f88 !default;
 
   // Footer
   footer {
-    background-color: #333;
-    color: #f4f4f4;
-    a:hover, button:hover {
-      color: $light-brand;
-    }
+    background-color: $dark-gray;
+    color: $text-light;
   }
 
   // Ko-fi button
   .kofi-button a {
-    color: #f4f4f4;
+    color: $text-light;
     border-color: $dark-brand;
     &:hover {
       border-color: $light-brand;
@@ -132,7 +142,7 @@ $text-error-light: #f88 !default;
 
   // Buttons
   .btn-primary {
-    color: #f4f4f4;
+    color: $text-light;
   }
 
   // Feature toggles
@@ -141,23 +151,12 @@ $text-error-light: #f88 !default;
   }
 
   // Notification system
-  .notification-bell-button:hover {
-    color: $light-brand;
-  }
   .notification-badge {
-    color: #f4f4f4;
-  }
-  .notification-center {
-    background: #4a4a4a;
-    color: #f4f4f4;
-  }
-  .notification-center-header,
-  .notification-center-footer {
-    border-color: #555;
+    color: $text-light;
   }
   .notification-center-actions {
     p-button button {
-      color: #f4f4f4;
+      color: $text-light;
       &:hover {
         color: $light-brand;
       }
@@ -165,10 +164,9 @@ $text-error-light: #f88 !default;
   }
   .notification-item {
     &:hover {
-      background-color: #555;
+      background-color: $dim-gray;
     }
     &.unread {
-      background-color: #2a3a4a;
       border-left-color: $light-brand;
     }
   }
@@ -176,34 +174,34 @@ $text-error-light: #f88 !default;
   // Notifications page
   .notifications-page {
     .notification-test-card {
-      background-color: #2a2a2a;
-      border-color: #444;
+      background-color: $dark-gray;
+      border-color: $low-gray;
 
       .notification-preview {
         p {
-          color: #aaa;
+          color: $text-light;
         }
       }
     }
 
     .status-message {
       &.local {
-        background-color: #1a2a3a;
-        color: #f4f4f4;
+        background-color: $low-gray;
+        color: $text-light;
       }
       &.server {
-        background-color: #1a2a1a;
-        color: #f4f4f4;
+        background-color: $dark-gray;
+        color: $text-light;
       }
     }
 
     .status-item {
       span {
         &.granted {
-          color: #22c55e;
+          color: $text-success-light;
         }
         &.denied {
-          color: #ef4444;
+          color: $text-error-light;
         }
       }
     }
@@ -368,7 +366,7 @@ ul {
   min-height: 100vh;
   padding-left: 5rem;
 }
-app-menu-feature, .menu-language-content, .menu-change-log-content, .notification-center-content, header, footer {
+.anchor-menu-panel, header, footer {
   border: 0 solid $mid-gray;
 }
 header {
@@ -380,7 +378,7 @@ header {
   > div {
     display: flex;
     align-items: center; /* centers text and icons inside each container */
-    gap: 0.25rem; /* optional: space between text and icons */
+    gap: 1rem; /* optional: space between text and icons */
   }
 }
 .content {
@@ -475,83 +473,97 @@ app-menu-feature {
   max-height: calc(100vh - 8rem);
 }
 
-.menu-language-content, .menu-change-log-content {
-  font-size: 1.6rem;
+// Menu Language Styles
+.menu-language-container {
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  padding-top: 4rem;
-  min-width: 18rem;
-  h3 {
-    position: absolute;
-    top: 0.6rem;
-    left: 0.6rem;
-    right: 0.6rem;
-  }
-  h4, p, ul, p-card {
-    margin: 1rem;
-  }
-  a {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    .label {
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      flex: 1;
-    }
-    &:hover, &.selected {
-      color: $light-brand;
-    }
-    &.selected {
-      cursor: default;
-    }
-    &.close i {
-      font-size: 1.8rem;
-      position: absolute;
-      top: 0;
-      right: 0;
-    }
-  }
+  font-size: 1.6rem;
 }
 
-.menu-language-content {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  top: 0;
-  border-left-width: 1px;
-  box-shadow: -1rem 0 1rem $shadow;
-  max-width: 65vw;
+.menu-language-header {
+  padding: 1.6rem;
+  border-bottom: 1px solid transparent;
+  flex-shrink: 0;
+}
+
+.menu-language-body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0 1.6rem 1.6rem 1.6rem;
+
   ul {
     display: grid;
-    grid-auto-flow: row;        /* fill horizontally first */
-    grid-auto-columns: max-content; /* each column only as wide as content */
-    gap: 0.5rem 1rem;              /* row/col spacing */
-    overflow-y: auto;              /* allow vertical scrolling if too tall */
+    grid-auto-flow: row;
+    grid-auto-columns: max-content;
+    gap: 0.5rem 1rem;
     max-width: 65vw;
     li {
-      break-inside: avoid; /* prevent items from splitting */
-      display: inline-block; /* required for proper column flow */
+      break-inside: avoid;
+      display: inline-block;
       width: max-content;
       a {
         padding: 0.4rem 0;
         display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        &:hover, &.selected {
+          color: $light-brand;
+        }
+        &.selected {
+          cursor: default;
+        }
       }
     }
   }
 }
 
-.menu-change-log-content {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  top: 0;
-  border-right-width: 1px;
-  box-shadow: 1rem 0 1rem $shadow;
-  max-width: 40rem;
+// Menu Change Log Styles
+.menu-change-log-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-size: 1.6rem;
+}
+
+.menu-change-log-header {
+  padding: 1.6rem;
+  border-bottom: 1px solid transparent;
+  flex-shrink: 0;
+
+  h4, p {
+    margin: 1rem 0;
+  }
+
+  a {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &:hover {
+      color: $light-brand;
+    }
+  }
+}
+
+.menu-change-log-body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0 1.6rem 1.6rem 1.6rem;
+
+  p-card {
+    display: block;
+    margin-bottom: 1rem;
+  }
+
   ul {
     list-style-type: disc;
-    li {font-size: 1.6rem !important;}
+    margin: 1rem 0;
+    li {
+      font-size: 1.6rem !important;
+    }
   }
 }
 
@@ -592,17 +604,11 @@ app-menu-feature {
 // Components //
 ////////////////
 
-// Notification Bell
-.notification-bell-container {
-  position: relative;
-}
-
-.notification-bell-button {
+.notification-center-button {
   position: relative;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 0.8rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -613,8 +619,8 @@ app-menu-feature {
 
 .notification-badge {
   position: absolute;
-  top: 0.4rem;
-  right: 0.4rem;
+  top: -0.6rem;
+  right: -0.6rem;
   background-color: $text-error-light;
   border-radius: 1rem;
   padding: 0.2rem 0.6rem;
@@ -624,16 +630,122 @@ app-menu-feature {
   text-align: center;
 }
 
-.notification-center-content {
+// Shared Anchor Menu Component Styles
+app-anchor-menu {
+  display: flex;
+}
+.anchor-menu-overlay-panel {
+  z-index: 1000;
+}
+
+.anchor-menu-trigger {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.anchor-menu-close-button {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  border: none;
+  cursor: pointer;
+  font-size: 2rem;
+  line-height: 1;
+  padding: 0.6rem;
+  z-index: 10;
+
+  i {
+    display: block;
+  }
+}
+
+.anchor-menu-panel {
   position: fixed;
-  top: 0;
-  right: 0;
-  width: 38rem;
-  max-width: 90vw;
   border: 0px solid $mid-gray;
-  border-radius: 0 0 0 0.6rem;
-  border-width: 0 0 1px 1px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  // Position variants
+
+  // Default: Centered modal (when position is empty)
+  &.position- {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 0.8rem;
+    border-width: 1px;
+    max-width: 90vw;
+  }
+
+  // Edge-anchored: Full height/width along edge
+  &.position-left {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    border-width: 0 1px 0 0;
+  }
+
+  &.position-right {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-width: 0 0 0 1px;
+  }
+
+  &.position-top {
+    top: 0;
+    left: 0;
+    right: 0;
+    border-width: 1px 0 0 0;
+  }
+
+  &.position-bottom {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-width: 0 0 1px 0;
+  }
+
+  // Corner-anchored: Full height from corner
+  &.position-top-right {
+    top: 0;
+    right: 0;
+    border-width: 0 0 1px 1px;
+    border-radius: 0 0 0 0.8rem;
+    max-height: 100vh;
+  }
+
+  &.position-top-left {
+    top: 0;
+    left: 0;
+    border-width: 0 1px 1px 0;
+    border-radius: 0 0 0.8rem 0;
+    max-height: 100vh;
+  }
+
+  &.position-bottom-right {
+    bottom: 0;
+    right: 0;
+    border-width: 1px 0 0 1px;
+    border-radius: 0.8rem 0 0 0;
+    max-height: 100vh;
+  }
+
+  &.position-bottom-left {
+    bottom: 0;
+    left: 0;
+    border-width: 1px 1px 0 0;
+    border-radius: 0 0.8rem 0 0;
+    max-height: 100vh;
+  }
+}
+
+.notification-center-content {
   max-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -667,10 +779,10 @@ app-menu-feature {
 .notification-center-actions {
   display: flex;
   gap: 0.8rem;
-
+  margin-right: 2rem;
   p-button button {
     font-size: 1.6rem !important;
-    padding: 0.8rem 1.6rem !important;
+    padding: 0.8rem !important;
   }
 }
 

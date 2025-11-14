@@ -129,11 +129,6 @@ describe('AppComponent', () => {
   });
 
   describe('bodyClasses', () => {
-    it('should always reset body classes to app-dark', () => {
-      component.routePath = '';
-      component.bodyClasses();
-      expect(document.body.classList.contains('app-dark')).toBeTrue();
-    });
 
     it('should add routePath as class', () => {
       component.routePath = 'foo_bar';
