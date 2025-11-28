@@ -1,0 +1,77 @@
+<form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form" *transloco="let t">
+  <!-- Email or Username Input -->
+  <div class="form-field">
+    <label for="login-email">{{ t('auth.Email or Username') }}</label>
+    <input
+      pInputText
+      id="login-email"
+      name="email"
+      formControlName="email"
+      type="text"
+      [placeholder]="t('auth.Enter your email or username')"
+      autocomplete="username"
+      class="w-full"
+      style="padding: 1rem; font-size: 1rem;"
+    />
+    @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+      <small class="error-message">{{ t('auth.Email or username is required') }}</small>
+    }
+  </div>
+
+  <!-- Password Input -->
+  <div class="form-field">
+    <label for="login-password">{{ t('Password') }}</label>
+    <p-iconfield>
+      <input
+        pInputText
+        id="login-password"
+        name="password"
+        formControlName="password"
+        type="password"
+        [attr.type]="showPassword() ? 'text' : 'password'"
+        [placeholder]="t('auth.Enter your password')"
+        autocomplete="current-password"
+        class="w-full"
+        style="padding: 1rem; font-size: 1rem;"
+      />
+      <p-inputicon
+        [styleClass]="'pi ' + (showPassword() ? 'pi-eye-slash' : 'pi-eye') + ' cursor-pointer text-2xl'"
+        (mousedown)="onPasswordPeekStart()"
+        (mouseup)="onPasswordPeekEnd()"
+        (mouseleave)="onPasswordPeekEnd()"
+        (touchstart)="onPasswordPeekStart()"
+        (touchend)="onPasswordPeekEnd()"
+      />
+    </p-iconfield>
+    @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+      <small class="error-message">{{ t('auth.Password is required') }}</small>
+    }
+  </div>
+
+  <!-- Error Message -->
+  @if (errorMessage()) {
+    <p-message severity="error" [text]="errorMessage()!" styleClass="w-full" />
+  }
+
+  <!-- Submit Button -->
+  <button
+    pButton
+    type="submit"
+    [loading]="loading()"
+    [disabled]="loginForm.invalid"
+    class="w-full"
+  >
+    {{ t('auth.Log in') }}
+  </button>
+
+  <!-- Forgot Password Link -->
+  <div class="forgot-password">
+    <button
+      type="button"
+      class="text-sm text-gray-600 hover:underline"
+      (click)="onForgotPassword()"
+    >
+      {{ t('auth.Forgot your password?') }}
+    </button>
+  </div>
+</form>

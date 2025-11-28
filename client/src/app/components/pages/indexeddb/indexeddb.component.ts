@@ -8,6 +8,7 @@ import { debounceTime } from 'rxjs';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { CardModule } from "primeng/card";
 import { TextareaModule } from 'primeng/textarea';
+import { INDEXEDDB_CONFIG } from '@app/constants/ui.constants';
 
 /**
  * IndexedDB component that demonstrates browser-based persistent storage.
@@ -46,7 +47,7 @@ export class IndexedDBComponent implements OnInit {
     this.getDbValue().then();
 
     this.textAreaData.valueChanges.pipe(
-      debounceTime(400),
+      debounceTime(INDEXEDDB_CONFIG.DEBOUNCE_TIME_MS),
     ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data) => {
       this.set('key', data);
     });
@@ -78,7 +79,7 @@ export class IndexedDBComponent implements OnInit {
    * Creates the 'momentum' database with version 1 and a 'keyval' object store
    * if it doesn't already exist.
    */
-  dbPromise = openDB('momentum', 1, {
+  dbPromise = openDB(INDEXEDDB_CONFIG.DB_NAME, INDEXEDDB_CONFIG.DB_VERSION, {
     // TODO figure out why this has inconsistent coverage
     // istanbul ignore next
     upgrade(db) {

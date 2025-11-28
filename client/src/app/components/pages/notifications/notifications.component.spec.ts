@@ -1,18 +1,17 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { NotificationsComponent } from './notifications.component';
 import { NotificationService } from '@app/services/notification.service';
-import { FeatureMonitorService } from '@app/services/feature-monitor.service';
 import { HttpClient } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 describe('NotificationsComponent', () => {
   let component: NotificationsComponent;
   let fixture: ComponentFixture<NotificationsComponent>;
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
   let httpClientSpy: jasmine.SpyObj<HttpClient>;
-  let featureMonitorServiceSpy: jasmine.SpyObj<FeatureMonitorService>;
 
   beforeEach(waitForAsync(() => {
     notificationServiceSpy = jasmine.createSpyObj('NotificationService', [
@@ -22,7 +21,6 @@ describe('NotificationsComponent', () => {
       'isSupported'
     ]);
     httpClientSpy = jasmine.createSpyObj('HttpClient', ['post']);
-    featureMonitorServiceSpy = jasmine.createSpyObj('FeatureMonitorService', ['trackEvent']);
 
     // Create signal spies
     (notificationServiceSpy as any).permissionGranted = signal(false);
@@ -35,9 +33,9 @@ describe('NotificationsComponent', () => {
         getTranslocoModule(),
       ],
       providers: [
+        provideNoopAnimations(),
         { provide: NotificationService, useValue: notificationServiceSpy },
-        { provide: HttpClient, useValue: httpClientSpy },
-        { provide: FeatureMonitorService, useValue: featureMonitorServiceSpy }
+        { provide: HttpClient, useValue: httpClientSpy }
       ]
     }).compileComponents();
 

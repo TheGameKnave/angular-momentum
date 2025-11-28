@@ -1,5 +1,5 @@
 import {TranslocoGlobalConfig} from '@jsverse/transloco-utils';
-import { SUPPORTED_LANGUAGES } from 'src/app/helpers/constants';
+import { SUPPORTED_LANGUAGES } from 'src/app/constants/app.constants';
     
 const config: TranslocoGlobalConfig = {
   rootTranslationsPath: 'src/assets/i18n/',

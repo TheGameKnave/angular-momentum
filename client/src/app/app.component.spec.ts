@@ -10,9 +10,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Socket } from 'ngx-socket-io';
 import { Subject } from 'rxjs';
-import { SCREEN_SIZES } from './helpers/constants';
 import { signal } from '@angular/core';
 import { ConnectivityService } from './services/connectivity.service';
+import { SCREEN_SIZES } from './constants/ui.constants';
 
 class MockConnectivityService {
   showOffline = signal(false);
@@ -129,6 +129,12 @@ describe('AppComponent', () => {
   });
 
   describe('bodyClasses', () => {
+    it('should not add empty routePath as class', () => {
+      component.routePath = '';
+      component.bodyClasses();
+      expect(document.body.classList.contains('')).toBeFalse();
+      expect(document.body.classList.contains('screen-xs')).toBeTrue();
+    });
 
     it('should add routePath as class', () => {
       component.routePath = 'foo_bar';
@@ -158,6 +164,36 @@ describe('AppComponent', () => {
       spyOn(component, 'bodyClasses');
       component.onResize();
       expect(component.bodyClasses).toHaveBeenCalled();
+    });
+  });
+
+  describe('Feature flag getters', () => {
+    it('should return showNotifications feature flag', () => {
+      featureFlagService.getFeature.and.returnValue(true);
+      const result = component.showNotifications();
+      expect(featureFlagService.getFeature).toHaveBeenCalledWith('Notifications');
+      expect(result).toBe(true);
+    });
+
+    it('should return showAppVersion feature flag', () => {
+      featureFlagService.getFeature.and.returnValue(true);
+      const result = component.showAppVersion();
+      expect(featureFlagService.getFeature).toHaveBeenCalledWith('App Version');
+      expect(result).toBe(true);
+    });
+
+    it('should return showEnvironment feature flag', () => {
+      featureFlagService.getFeature.and.returnValue(false);
+      const result = component.showEnvironment();
+      expect(featureFlagService.getFeature).toHaveBeenCalledWith('Environment');
+      expect(result).toBe(false);
+    });
+
+    it('should return showLanguage feature flag', () => {
+      featureFlagService.getFeature.and.returnValue(true);
+      const result = component.showLanguage();
+      expect(featureFlagService.getFeature).toHaveBeenCalledWith('Language');
+      expect(result).toBe(true);
     });
   });
 });

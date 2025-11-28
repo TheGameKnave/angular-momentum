@@ -3,6 +3,8 @@ import { Overlay, OverlayRef, OverlayModule } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgClass } from '@angular/common';
+import { OVERLAY_CONFIG } from '@app/constants/ui.constants';
+import { TranslocoService } from '@jsverse/transloco';
 
 /**
  * Reusable anchor menu component that provides consistent overlay behavior.
@@ -74,7 +76,7 @@ export class AnchorMenuComponent {
   /**
    * Z-index for the overlay.
    */
-  zIndex = input<number>(1000);
+  zIndex = input<number>(OVERLAY_CONFIG.DEFAULT_Z_INDEX);
 
   /**
    * Whether to show the close button in the menu panel.
@@ -86,13 +88,28 @@ export class AnchorMenuComponent {
    */
   isOpen = signal(false);
 
+  /**
+   * Translated aria-label for open menu button.
+   */
+  readonly ariaLabelOpen = signal('');
+
+  /**
+   * Translated aria-label for close menu button.
+   */
+  readonly ariaLabelClose = signal('');
+
   private overlayRef: OverlayRef | null = null;
 
   constructor(
     private readonly overlay: Overlay,
     private readonly viewContainerRef: ViewContainerRef,
     private readonly destroyRef: DestroyRef,
-  ) {}
+    private readonly translocoService: TranslocoService,
+  ) {
+    // Initialize translated aria labels
+    this.ariaLabelOpen.set(this.translocoService.translate('a11y.Open menu'));
+    this.ariaLabelClose.set(this.translocoService.translate('a11y.Close menu'));
+  }
 
   /**
    * Toggle menu open/closed.

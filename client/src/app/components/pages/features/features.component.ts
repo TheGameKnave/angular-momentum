@@ -6,8 +6,9 @@ import { FeatureFlagService, FeatureFlagKeys } from '@app/services/feature-flag.
 import { CheckboxModule } from 'primeng/checkbox';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { CardModule } from 'primeng/card';
-import { FeatureMonitorService } from '@app/services/feature-monitor.service';
+import { MessageModule } from 'primeng/message';
 import { ConnectivityService } from '@app/services/connectivity.service';
+import { AuthService } from '@app/services/auth.service';
 
 /**
  * Features component that provides a UI for managing application feature flags.
@@ -27,6 +28,7 @@ import { ConnectivityService } from '@app/services/connectivity.service';
     CheckboxModule,
     ToggleSwitchModule,
     CardModule,
+    MessageModule,
   ],
 })
 export class FeaturesComponent implements OnInit {
@@ -36,13 +38,26 @@ export class FeaturesComponent implements OnInit {
   constructor(
     protected featureFlagService: FeatureFlagService,
     readonly destroyRef: DestroyRef,
-    private readonly featureMonitorService: FeatureMonitorService,
     protected readonly connectivity: ConnectivityService,
+    protected readonly authService: AuthService,
   ){
     // Keep form in sync with signal changes
     effect(() => {
       const features = this.featureFlagService.features();
       this.featureForm.patchValue(features, { emitEvent: false });
+    });
+
+    // Enable/disable form controls based on authentication
+    effect(() => {
+      const isAuthenticated = this.authService.isAuthenticated();
+      Object.keys(this.featureForm.controls).forEach(key => {
+        const control = this.featureForm.get(key);
+        if (isAuthenticated) {
+          control?.enable({ emitEvent: false });
+        } else {
+          control?.disable({ emitEvent: false });
+        }
+      });
     });
   }
 

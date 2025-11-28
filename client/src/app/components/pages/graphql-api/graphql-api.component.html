@@ -1,8 +1,11 @@
 <p-card *transloco="let t">
-  @if (results$ | async; as results) {
-    <markdown [data]="results.data.docs || ''"></markdown>
+  @if (error()) {
+    <p class="error">{{ t('page.Unable to load API documentation. Please check your connection and try again.') }}</p>
+  }
+  @else if (docs()) {
+    <markdown [data]="docs()"></markdown>
   }
   @else {
-    <p class="error">{{ t('Error') }}</p>
+    <p>{{ t('page.Loading API documentation…') }}</p>
   }
 </p-card>

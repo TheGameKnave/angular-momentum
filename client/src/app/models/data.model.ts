@@ -76,9 +76,21 @@ export interface Installer {
  * Represents a notification in the application's notification system.
  * Stores notification metadata and tracking information.
  *
+ * For translatable notifications (e.g., from WebSocket broadcasts):
+ * - titleKey/bodyKey store the translation keys for dynamic translation on display
+ * - title/body store the translated text for native OS notifications
+ * - params stores translation parameters (e.g., {time: '10:00 PM'})
+ *
+ * For non-translatable notifications (e.g., user-generated):
+ * - title/body contain the final display text
+ * - titleKey/bodyKey are undefined
+ *
  * @property id - Unique identifier for the notification
- * @property title - Notification heading
- * @property body - Main notification message
+ * @property title - Notification heading (translated text for native notifications)
+ * @property body - Main notification message (translated text for native notifications)
+ * @property titleKey - Optional translation key for title (for in-app display)
+ * @property bodyKey - Optional translation key for body (for in-app display)
+ * @property params - Optional translation parameters for parameterized messages
  * @property icon - Optional icon URL or class name
  * @property data - Optional arbitrary data associated with the notification
  * @property timestamp - When the notification was created
@@ -88,6 +100,9 @@ export interface Notification {
   id: string;
   title: string;
   body: string;
+  titleKey?: string;
+  bodyKey?: string;
+  params?: Record<string, unknown>;
   icon?: string;
   data?: unknown;
   timestamp: Date;
@@ -98,8 +113,10 @@ export interface Notification {
  * Configuration options for creating and sending notifications.
  * Based on the Web Notifications API specification.
  *
- * @property title - Notification title (required)
- * @property body - Notification message body
+ * @property title - Notification title (translated text for display)
+ * @property body - Notification message body (translated text for display)
+ * @property titleKey - Original translation key for title (for re-translation on language change)
+ * @property bodyKey - Original translation key for body (for re-translation on language change)
  * @property icon - URL or path to notification icon
  * @property tag - Identifier for grouping related notifications
  * @property requireInteraction - Whether notification stays visible until user interacts
@@ -110,12 +127,13 @@ export interface Notification {
 export interface NotificationOptions {
   title: string;
   body: string;
+  titleKey?: string;
+  bodyKey?: string;
   icon?: string;
   tag?: string;
   requireInteraction?: boolean;
   silent?: boolean;
   data?: unknown;
-  // Translation parameters (for parameterized messages)
   params?: Record<string, unknown>;
 }
 

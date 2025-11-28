@@ -1,13 +1,9 @@
 <!-- Trigger Button -->
 <a
-  class="anchor-menu-trigger"
   href="javascript:void(0)"
+  class="anchor-menu-trigger"
   (click)="toggle()"
-  (keydown.enter)="toggle()"
-  (keydown.space)="toggle()"
-  [attr.aria-label]="'Open menu'"
-  role="button"
-  tabindex="0"
+  [attr.aria-label]="ariaLabelOpen()"
 >
   <ng-content select="[menu-trigger]"></ng-content>
 </a>
@@ -21,16 +17,14 @@
     [style.z-index]="zIndex()"
   >
     @if (showCloseButton()) {
-      <a
-        href="javascript:void(0)"
+      <button
+        type="button"
         class="anchor-menu-close-button close"
         (click)="close()"
-        (keydown.enter)="close()"
-        [attr.aria-label]="'Close menu'"
-        type="button"
+        [attr.aria-label]="ariaLabelClose()"
       >
         <i class="pi pi-times"></i>
-    </a>
+      </button>
     }
     <ng-content select="[menu-content]"></ng-content>
   </div>

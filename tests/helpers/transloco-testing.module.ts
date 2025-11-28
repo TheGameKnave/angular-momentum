@@ -1,6 +1,6 @@
 import { TranslocoTestingModule, TranslocoTestingOptions } from '@jsverse/transloco';
 import { provideTranslocoMessageformat } from '@jsverse/transloco-messageformat';
-import { SUPPORTED_LANGUAGES } from '../../client/src/app/helpers/constants';
+import { SUPPORTED_LANGUAGES } from '../../client/src/app/constants/app.constants';
 
 // TODO find a way to programmatically import languages from SUPPORTED_LANGUAGES
 // (may not be possible with TranslocoTestingModule or with the variable pattern below)
@@ -22,6 +22,11 @@ const generateLanguagePaths = (languages: readonly string[]) => {
 
 const LANGUAGE_PATHS = generateLanguagePaths(SUPPORTED_LANGUAGES);
 
+/**
+ * Create a configured Transloco testing module.
+ * @param options - Optional Transloco testing configuration
+ * @returns Configured TranslocoTestingModule
+ */
 export function getTranslocoModule(options: TranslocoTestingOptions = {}) {
   const module = TranslocoTestingModule.forRoot({
     langs: {

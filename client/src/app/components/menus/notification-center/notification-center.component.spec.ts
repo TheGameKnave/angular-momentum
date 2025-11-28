@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NotificationCenterComponent } from './notification-center.component';
 import { NotificationService } from '../../../services/notification.service';
 import { signal } from '@angular/core';
+import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 
 describe('NotificationCenterComponent', () => {
   let component: NotificationCenterComponent;
@@ -23,7 +24,7 @@ describe('NotificationCenterComponent', () => {
     (notificationServiceSpy as any).permissionGranted = signal(false);
 
     await TestBed.configureTestingModule({
-      imports: [NotificationCenterComponent],
+      imports: [NotificationCenterComponent, getTranslocoModule()],
       providers: [
         { provide: NotificationService, useValue: notificationServiceSpy }
       ]
@@ -107,6 +108,104 @@ describe('NotificationCenterComponent', () => {
       const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
       const result = component.formatTime(threeDaysAgo);
       expect(result).toBe('3d ago');
+    });
+  });
+
+  describe('getTitle', () => {
+    it('should return translated title when titleKey is present', () => {
+      const notification = {
+        id: '1',
+        title: 'Fallback Title',
+        body: 'Body',
+        titleKey: 'notification.Welcome!',
+        params: { name: 'Test' },
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getTitle(notification);
+
+      // TranslocoService returns the translated value
+      expect(result).toBe('Welcome!');
+    });
+
+    it('should return original title when titleKey is not present', () => {
+      const notification = {
+        id: '1',
+        title: 'Static Title',
+        body: 'Body',
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getTitle(notification);
+
+      expect(result).toBe('Static Title');
+    });
+
+    it('should use empty object when params is undefined', () => {
+      const notification = {
+        id: '1',
+        title: 'Fallback Title',
+        body: 'Body',
+        titleKey: 'notification.Welcome!',
+        // params intentionally omitted to cover || {} branch
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getTitle(notification);
+
+      expect(result).toBe('Welcome!');
+    });
+  });
+
+  describe('getBody', () => {
+    it('should return translated body when bodyKey is present', () => {
+      const notification = {
+        id: '1',
+        title: 'Title',
+        body: 'Fallback Body',
+        bodyKey: 'notification.Thanks for trying Angular Momentum—your modern Angular starter kit!',
+        params: { name: 'Test' },
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getBody(notification);
+
+      // TranslocoService returns the translated value
+      expect(result).toBe('Thanks for trying Angular Momentum—your modern Angular starter kit!');
+    });
+
+    it('should return original body when bodyKey is not present', () => {
+      const notification = {
+        id: '1',
+        title: 'Title',
+        body: 'Static Body',
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getBody(notification);
+
+      expect(result).toBe('Static Body');
+    });
+
+    it('should use empty object when params is undefined', () => {
+      const notification = {
+        id: '1',
+        title: 'Title',
+        body: 'Fallback Body',
+        bodyKey: 'notification.Thanks for trying Angular Momentum—your modern Angular starter kit!',
+        // params intentionally omitted to cover || {} branch
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getBody(notification);
+
+      expect(result).toBe('Thanks for trying Angular Momentum—your modern Angular starter kit!');
     });
   });
 });

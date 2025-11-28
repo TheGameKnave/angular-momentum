@@ -38,8 +38,8 @@ export class IndexComponent implements OnInit {
    */
   ngOnInit() {
     combineLatest([
-      this.transloco.selectTranslate('This project is designed to rapidly spin up Angular applications...'),
-      this.transloco.selectTranslate('If you find this project helpful and want to see it grow, consider...')
+      this.transloco.selectTranslate('page.This project is designed to rapidly spin up Angular applications within a monorepo with minimal configuration…'),
+      this.transloco.selectTranslate('page.If you find this project helpful and want to see it grow, consider supporting its development…')
     ]).pipe(
       map(([line1, line2]) => `${line1}\n\n${line2}`),
       takeUntilDestroyed(this.destroyRef)

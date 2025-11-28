@@ -1,6 +1,6 @@
 <p-card *transloco="let t">
   <div class="notifications-page">
-    <h2>{{ t('Push Notifications') }}</h2>
+    <h2>{{ t('page.Push Notifications') }}</h2>
 
     <!-- Status Info -->
     <div class="status-section">
@@ -22,7 +22,7 @@
             <span>{{ notificationService.isSupported() ? t('Yes') : t('No') }}</span>
           </div>
           <div class="status-item">
-            <strong>{{ t('Unread Count') }}:</strong>
+            <strong>{{ t('notification.Unread Count') }}:</strong>
             <span>{{ notificationService.unreadCount() }}</span>
           </div>
         </div>
@@ -32,8 +32,11 @@
     <!-- Test Notifications -->
     <div class="test-section">
       <p-card>
-        <h3>{{ t('Test Notifications') }}</h3>
-        <p>{{ t('Send predefined notifications to test the system') }}</p>
+        <h3>{{ t('page.Test Notifications') }}</h3>
+        <p>{{ t('page.Send predefined notifications to test the system') }}</p>
+        @if (!authService.isAuthenticated()) {
+          <p-message severity="info" [text]="t('auth.Register or log in to access all features')" styleClass="mb-3" />
+        }
 
         <div class="notification-buttons">
           @for (notification of predefinedNotifications; track notification.label) {
@@ -44,19 +47,20 @@
               </div>
               <div class="notification-actions">
                 <p-button
-                  [label]="t('Send Local')"
+                  [label]="t('page.Send Local')"
                   icon="pi pi-bell"
                   (onClick)="sendLocalNotification(notification)"
                   [severity]="notification.severity"
                   size="small"></p-button>
                 <p-button
-                  [label]="t('Broadcast')"
-                  icon="pi pi-server"
+                  [label]="t('page.Broadcast')"
+                  icon="pi pi-megaphone"
                   (onClick)="sendServerNotification(notification)"
                   [loading]="loading()"
                   [severity]="notification.severity"
                   size="small"
-                  [outlined]="true"></p-button>
+                  [outlined]="true"
+                  [disabled]="!authService.isAuthenticated()"></p-button>
               </div>
             </div>
           }
@@ -79,19 +83,19 @@
     <!-- Info Section -->
     <div class="info-section">
       <p-card>
-        <h3>{{ t('How It Works') }}</h3>
+        <h3>{{ t('page.How It Works') }}</h3>
         <ul>
           <li>
-            <strong>{{ t('Local Notification') }}:</strong>
-            {{ t('Sends a notification only to your current browser/device. Uses the NotificationService directly.') }}
+            <strong>{{ t('page.Local Notification') }}:</strong>
+            {{ t('page.Sends a notification only to your current browser/device. Uses the NotificationService directly.') }}
           </li>
           <li>
-            <strong>{{ t('Server Broadcast') }}:</strong>
-            {{ t('Sends a notification via GraphQL to the server, which broadcasts it to ALL connected clients via WebSocket.') }}
+            <strong>{{ t('page.Server Broadcast') }}:</strong>
+            {{ t('page.Sends a notification via GraphQL to the server, which broadcasts it to ALL connected clients via WebSocket.') }}
           </li>
           <li>
-            <strong>{{ t('Platform Detection') }}:</strong>
-            {{ t('Tauri apps use native OS notifications. Web/PWA uses browser notifications via Service Worker.') }}
+            <strong>{{ t('page.Platform Detection') }}:</strong>
+            {{ t('page.Tauri apps use native OS notifications. Web/PWA uses browser notifications via Service Worker.') }}
           </li>
         </ul>
       </p-card>

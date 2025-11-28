@@ -1,4 +1,17 @@
 /**
+ * Application metadata constants.
+ * Centralized configuration for branding and legal information.
+ */
+export const APP_METADATA = {
+  /** Company/organization name for legal documents */
+  companyName: 'GameKnave Design',
+  /** Privacy policy last updated date (ISO format for localization) */
+  privacyUpdatedDate: '2025-10-05',
+  /** Support email address */
+  supportEmail: 'admin@gameknave.com',
+} as const;
+
+/**
  * List of supported language codes for internationalization.
  * These codes correspond to available translation files in the i18n system.
  */
@@ -10,23 +23,6 @@ export const SUPPORTED_LANGUAGES: string[] = [
   'zh-CN', // Chinese (Simplified)
   'zh-TW', // Chinese (Traditional)
 ];
-
-/**
- * Bootstrap-style responsive breakpoints in pixels.
- * These values define the minimum viewport width for each screen size category.
- * Used for responsive design and layout adjustments.
- *
- * @property sm - Small screens (576px and up)
- * @property md - Medium screens (768px and up)
- * @property lg - Large screens (992px and up)
- * @property xl - Extra large screens (1200px and up)
- */
-export const SCREEN_SIZES: Record<'sm' | 'md' | 'lg' | 'xl', number> = {
-  sm: 576,
-  md: 768,
-  lg: 992,
-  xl: 1200,
-};
 
 /**
  * Platform-specific installer configurations for Angular Momentum.

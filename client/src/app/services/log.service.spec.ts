@@ -56,17 +56,17 @@ describe('LogService', () => {
     it('should log message in non-production environment', () => {
       Object.defineProperty(ENVIRONMENT, 'env', { value: 'development', configurable: true });
 
-      service.log('MyModule', 'Test message', { foo: 'bar' });
+      service.log('Test message', { foo: 'bar' });
 
-      expect(consoleSpy).toHaveBeenCalledWith(jasmine.stringMatching(/MyModule/), { foo: 'bar' });
+      expect(consoleSpy).toHaveBeenCalledWith('[UserContext] Test message', { foo: 'bar' });
     });
 
     it('should log message with no object if object not provided', () => {
       Object.defineProperty(ENVIRONMENT, 'env', { value: 'development', configurable: true });
 
-      service.log('MyModule', 'Test message');
+      service.log('Test message');
 
-      expect(consoleSpy).toHaveBeenCalledWith(jasmine.stringMatching(/MyModule/), '');
+      expect(consoleSpy).toHaveBeenCalledWith('[UserContext] Test message', '');
     });
 
     it('should not log in production environment', () => {
@@ -75,9 +75,31 @@ describe('LogService', () => {
       service = TestBed.inject(LogService);
       consoleSpy.calls.reset(); // <-- clear constructor log
 
-      service.log('MyModule', 'Test message', { foo: 'bar' });
+      service.log('Test message', { foo: 'bar' });
 
       expect(consoleSpy).not.toHaveBeenCalled();
+    });
+
+    it('should return Unknown when stack trace parsing fails', () => {
+      Object.defineProperty(ENVIRONMENT, 'env', { value: 'development', configurable: true });
+
+      // Force an error during stack trace parsing to trigger catch block
+      spyOn(String.prototype, 'split').and.throwError('Parse error');
+
+      service.log('Test message');
+
+      expect(consoleSpy).toHaveBeenCalledWith('[Unknown] Test message', '');
+    });
+
+    it('should return Unknown when caller line is empty', () => {
+      Object.defineProperty(ENVIRONMENT, 'env', { value: 'development', configurable: true });
+
+      // Mock split to return an array with fewer than 4 elements
+      spyOn(String.prototype, 'split').and.returnValue(['Error', 'at line1']);
+
+      service.log('Test message');
+
+      expect(consoleSpy).toHaveBeenCalledWith('[Unknown] Test message', '');
     });
   });
 });

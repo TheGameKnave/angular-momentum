@@ -3,6 +3,7 @@ import { AnchorMenuComponent } from './anchor-menu.component';
 import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
 import { Component } from '@angular/core';
 import { Subject } from 'rxjs';
+import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 
 // Test host component to use the anchor-menu with content projection
 @Component({
@@ -53,7 +54,7 @@ describe('AnchorMenuComponent', () => {
     overlaySpy.create.and.returnValue(overlayRefSpy);
 
     await TestBed.configureTestingModule({
-      imports: [AnchorMenuComponent],
+      imports: [AnchorMenuComponent, getTranslocoModule()],
       providers: [
         { provide: Overlay, useValue: overlaySpy }
       ]
@@ -159,7 +160,7 @@ describe('AnchorMenuComponent with host', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TestHostComponent, OverlayModule]
+      imports: [TestHostComponent, OverlayModule, getTranslocoModule()]
     }).compileComponents();
 
     hostFixture = TestBed.createComponent(TestHostComponent);

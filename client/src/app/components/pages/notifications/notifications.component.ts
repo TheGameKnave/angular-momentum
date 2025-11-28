@@ -4,12 +4,13 @@ import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
+import { MessageModule } from 'primeng/message';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { NotificationService } from '@app/services/notification.service';
-import { FeatureMonitorService } from '@app/services/feature-monitor.service';
 import { SendNotificationResponse, PredefinedNotification } from '@app/models/data.model';
-import { NotificationMessages } from '@app/helpers/notification-messages';
+import { NOTIFICATION_MESSAGES } from '@app/constants/translations.constants';
 import { firstValueFrom } from 'rxjs';
+import { AuthService } from '@app/services/auth.service';
 
 /**
  * Notifications component that demonstrates push notification capabilities.
@@ -26,6 +27,7 @@ import { firstValueFrom } from 'rxjs';
     CommonModule,
     CardModule,
     ButtonModule,
+    MessageModule,
     TranslocoDirective,
   ],
 })
@@ -43,32 +45,32 @@ export class NotificationsComponent {
   get predefinedNotifications(): PredefinedNotification[] {
     return [
       {
-        titleKey: NotificationMessages.WELCOME_TITLE,
-        bodyKey: NotificationMessages.WELCOME_BODY,
-        title: this.translocoService.translate(NotificationMessages.WELCOME_TITLE),
-        body: this.translocoService.translate(NotificationMessages.WELCOME_BODY),
+        titleKey: NOTIFICATION_MESSAGES.WELCOME_TITLE,
+        bodyKey: NOTIFICATION_MESSAGES.WELCOME_BODY,
+        title: this.translocoService.translate(NOTIFICATION_MESSAGES.WELCOME_TITLE),
+        body: this.translocoService.translate(NOTIFICATION_MESSAGES.WELCOME_BODY),
         icon: '/assets/icons/icon-192x192.png',
-        label: this.translocoService.translate(NotificationMessages.WELCOME_LABEL),
+        label: this.translocoService.translate(NOTIFICATION_MESSAGES.WELCOME_LABEL),
         severity: 'success'
       },
       {
-        titleKey: NotificationMessages.FEATURE_UPDATE_TITLE,
-        bodyKey: NotificationMessages.FEATURE_UPDATE_BODY,
-        title: this.translocoService.translate(NotificationMessages.FEATURE_UPDATE_TITLE),
-        body: this.translocoService.translate(NotificationMessages.FEATURE_UPDATE_BODY),
+        titleKey: NOTIFICATION_MESSAGES.FEATURE_UPDATE_TITLE,
+        bodyKey: NOTIFICATION_MESSAGES.FEATURE_UPDATE_BODY,
+        title: this.translocoService.translate(NOTIFICATION_MESSAGES.FEATURE_UPDATE_TITLE),
+        body: this.translocoService.translate(NOTIFICATION_MESSAGES.FEATURE_UPDATE_BODY),
         icon: '/assets/icons/icon-192x192.png',
-        label: this.translocoService.translate(NotificationMessages.FEATURE_UPDATE_LABEL),
+        label: this.translocoService.translate(NOTIFICATION_MESSAGES.FEATURE_UPDATE_LABEL),
         severity: 'info'
       },
       {
-        titleKey: NotificationMessages.MAINTENANCE_TITLE,
-        bodyKey: NotificationMessages.MAINTENANCE_BODY,
-        title: this.translocoService.translate(NotificationMessages.MAINTENANCE_TITLE),
-        body: this.translocoService.translate(NotificationMessages.MAINTENANCE_BODY, {
+        titleKey: NOTIFICATION_MESSAGES.MAINTENANCE_TITLE,
+        bodyKey: NOTIFICATION_MESSAGES.MAINTENANCE_BODY,
+        title: this.translocoService.translate(NOTIFICATION_MESSAGES.MAINTENANCE_TITLE),
+        body: this.translocoService.translate(NOTIFICATION_MESSAGES.MAINTENANCE_BODY, {
           time: new Date(Date.now() + 2 * 60 * 60 * 1000).toLocaleString()
         }),
         icon: '/assets/icons/icon-192x192.png',
-        label: this.translocoService.translate(NotificationMessages.MAINTENANCE_LABEL),
+        label: this.translocoService.translate(NOTIFICATION_MESSAGES.MAINTENANCE_LABEL),
         severity: 'warn',
         // Send timestamp in ISO format so receiving clients can format it according to their locale
         params: {
@@ -76,12 +78,12 @@ export class NotificationsComponent {
         }
       },
       {
-        titleKey: NotificationMessages.ACHIEVEMENT_TITLE,
-        bodyKey: NotificationMessages.ACHIEVEMENT_BODY,
-        title: this.translocoService.translate(NotificationMessages.ACHIEVEMENT_TITLE),
-        body: this.translocoService.translate(NotificationMessages.ACHIEVEMENT_BODY),
+        titleKey: NOTIFICATION_MESSAGES.ACHIEVEMENT_TITLE,
+        bodyKey: NOTIFICATION_MESSAGES.ACHIEVEMENT_BODY,
+        title: this.translocoService.translate(NOTIFICATION_MESSAGES.ACHIEVEMENT_TITLE),
+        body: this.translocoService.translate(NOTIFICATION_MESSAGES.ACHIEVEMENT_BODY),
         icon: '/assets/icons/icon-192x192.png',
-        label: this.translocoService.translate(NotificationMessages.ACHIEVEMENT_LABEL),
+        label: this.translocoService.translate(NOTIFICATION_MESSAGES.ACHIEVEMENT_LABEL),
         severity: 'secondary'
       }
     ];
@@ -90,8 +92,8 @@ export class NotificationsComponent {
   constructor(
     readonly http: HttpClient,
     readonly notificationService: NotificationService,
-    private readonly featureMonitorService: FeatureMonitorService,
     private readonly translocoService: TranslocoService,
+    protected readonly authService: AuthService,
   ) {}
 
   /**
@@ -148,7 +150,7 @@ export class NotificationsComponent {
 
     try {
       const response = await firstValueFrom(this.http.post<SendNotificationResponse>(
-        ENVIRONMENT.baseUrl + '/api',
+        ENVIRONMENT.baseUrl + '/gql',
         {
           query: mutation,
           variables: {

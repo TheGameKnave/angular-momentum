@@ -5,6 +5,8 @@ import { readFeatureFlags, writeFeatureFlags } from './lowDBService'; // Import 
 import { changeLog } from '../data/changeLog';
 import { broadcastNotification, sendNotificationToUser } from './notificationService';
 import { NotificationPayload } from '../models/data.model';
+import { UsernameService } from './usernameService';
+import config from '../config/environment';
 
 /**
  * GraphQL schema definition.
@@ -18,12 +20,15 @@ const schema = buildSchema(`
     docs: String
     version: Float
     changeLog: [ChangeEntry]
+    validateUsername(username: String!): UsernameValidationResult
+    checkUsernameAvailability(username: String!): UsernameAvailabilityResult
   }
 
   type Mutation {
     updateFeatureFlag(key: String!, value: Boolean!): FeatureFlag
     sendNotification(title: String!, body: String!, icon: String, data: String): NotificationResult
     sendNotificationToSocket(socketId: String!, title: String!, body: String!, icon: String, data: String): NotificationResult
+    createUsername(userId: String!, username: String!): UsernameCreationResult
   }
 
   type ChangeEntry {
@@ -42,7 +47,31 @@ const schema = buildSchema(`
     success: Boolean
     message: String
   }
+
+  type UsernameValidationResult {
+    valid: Boolean!
+    fingerprint: String
+    error: String
+  }
+
+  type UsernameAvailabilityResult {
+    available: Boolean!
+    fingerprint: String
+    error: String
+  }
+
+  type UsernameCreationResult {
+    success: Boolean!
+    fingerprint: String
+    error: String
+  }
 `);
+
+// Initialize Username Service
+const usernameService = new UsernameService(
+  config.supabase_url,
+  config.supabase_service_key
+);
 
 /**
  * Root resolver functions for GraphQL operations.
@@ -50,6 +79,7 @@ const schema = buildSchema(`
  * @param io - Socket.IO server instance for broadcasting real-time updates
  * @returns Object containing resolver functions for all queries and mutations
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const root = (io: any) => ({
   /**
    * Retrieves all feature flags.
@@ -102,7 +132,6 @@ const root = (io: any) => ({
       broadcastNotification(io, notificationPayload);
       return { success: true, message: 'Notification sent to all clients' };
     } catch (error) {
-      console.error('Error sending notification:', error);
       return { success: false, message: `Error: ${error}` };
     }
   },
@@ -127,7 +156,6 @@ const root = (io: any) => ({
       sendNotificationToUser(io, socketId, notificationPayload);
       return { success: true, message: `Notification sent to socket ${socketId}` };
     } catch (error) {
-      console.error('Error sending notification:', error);
       return { success: false, message: `Error: ${error}` };
     }
   },
@@ -156,7 +184,7 @@ const root = (io: any) => ({
     return `
       # API Documentation
 
-      This GraphQL-powered API provides access to feature flags, push notifications, and app metadata.
+      This GraphQL-powered API provides access to feature flags, push notifications, username management, and app metadata.
 
       ## Queries
 
@@ -165,17 +193,75 @@ const root = (io: any) => ({
       * \`docs\`: Returns the API instructions (this document).
       * \`version\`: Returns the APP version in semver format.
       * \`changeLog\`: Returns the APP change log.
+      * \`validateUsername(username: String!)\`: Validates username format and generates fingerprint.
+      * \`checkUsernameAvailability(username: String!)\`: Checks if a username is available.
 
       ## Mutations
 
       * \`updateFeatureFlag(key: String!, value: Boolean!)\`: Updates the status of a feature flag.
       * \`sendNotification(title: String!, body: String!, icon: String, data: String)\`: Broadcasts a push notification to all connected clients via WebSocket.
       * \`sendNotificationToSocket(socketId: String!, title: String!, body: String!, icon: String, data: String)\`: Sends a push notification to a specific socket/user via WebSocket.
+      * \`createUsername(userId: String!, username: String!)\`: Creates a new username for a user.
 
       ## Authentication
 
       This API uses [insert authentication mechanism here].
     `;
+  },
+
+  /**
+   * Validates username format and generates fingerprint.
+   * @param username - Username to validate
+   * @returns Validation result with fingerprint
+   */
+  validateUsername: ({ username }: { username: string }) => {
+    return usernameService.validateUsername(username);
+  },
+
+  /**
+   * Checks if a username is available.
+   * @param username - Username to check
+   * @returns Availability result
+   */
+  checkUsernameAvailability: async ({ username }: { username: string }) => {
+    const validationResult = usernameService.validateUsername(username);
+    if (!validationResult.valid || !validationResult.fingerprint) {
+      return {
+        available: false,
+        error: validationResult.error
+      };
+    }
+
+    const availabilityResult = await usernameService.checkAvailability(
+      validationResult.fingerprint
+    );
+
+    return {
+      ...availabilityResult,
+      fingerprint: validationResult.fingerprint
+    };
+  },
+
+  /**
+   * Creates a new username for a user.
+   * @param userId - Supabase user ID
+   * @param username - Username to create
+   * @returns Creation result
+   */
+  createUsername: async ({ userId, username }: { userId: string; username: string }) => {
+    const validationResult = usernameService.validateUsername(username);
+    if (!validationResult.valid || !validationResult.fingerprint) {
+      return {
+        success: false,
+        error: validationResult.error
+      };
+    }
+
+    return await usernameService.createUsername(
+      userId,
+      username,
+      validationResult.fingerprint
+    );
   },
 });
 

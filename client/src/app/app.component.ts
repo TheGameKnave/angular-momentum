@@ -14,11 +14,13 @@ import { FeatureFlagService } from './services/feature-flag.service';
 import { SlugPipe } from './pipes/slug.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { COMPONENT_LIST } from './helpers/component-list';
-import { SCREEN_SIZES } from './helpers/constants';
 import { ConnectivityService } from './services/connectivity.service';
 import { MenuChangeLogComponent } from './components/menus/menu-change-log/menu-change-log.component';
 import { ChangeLogService } from './services/change-log.service';
 import { NotificationCenterComponent } from './components/menus/notification-center/notification-center.component';
+import { MenuAuthComponent } from './components/menus/menu-auth/menu-auth.component';
+import { CookieBannerComponent } from './components/privacy/cookie-banner/cookie-banner.component';
+import { SCREEN_SIZES } from './constants/ui.constants';
 
 /**
  * Root component of the Angular Momentum application.
@@ -39,6 +41,8 @@ import { NotificationCenterComponent } from './components/menus/notification-cen
     MenuFeatureComponent,
     TranslocoDirective,
     NotificationCenterComponent,
+    MenuAuthComponent,
+    CookieBannerComponent,
   ],
 })
 export class AppComponent implements OnInit {

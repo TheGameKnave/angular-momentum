@@ -42,7 +42,7 @@ $low-gray: #444 !default;
 $dim-gray: #333 !default;
 $dark-gray: #222 !default;
 $shadow: rgba(0, 0, 0, 0.2) !default;
-$backdrop: rgba(0, 0, 0, 0.7) !default;
+$backdrop: rgba(0, 0, 0, 0.5) !default;
 $text-light: #f4f4f4 !default;
 $text-warning-light: #ffa !default;
 $text-error-light: #f88 !default;
@@ -70,7 +70,7 @@ $text-info-light: #8ff !default;
   }
 
   // Links
-  a, button {
+  a {
     &:hover, &:focus {
       color: $light-brand;
     }
@@ -107,7 +107,7 @@ $text-info-light: #8ff !default;
   }
 
   // Menus
-  app-menu-feature, .menu-change-log-container, .menu-language-container, .notification-center-content {
+  app-menu-feature {
     background-color: $dark-gray;
     color: $text-light;
     a {
@@ -115,7 +115,7 @@ $text-info-light: #8ff !default;
     }
   }
   .anchor-menu-panel {
-    background-color: $dark-gray;
+    background-color: $backdrop;
     color: $text-light;
     a {
       color: $text-light;
@@ -206,6 +206,22 @@ $text-info-light: #8ff !default;
       }
     }
   }
+
+  // Cookie Banner
+  .cookie-banner {
+    background-color: $backdrop;
+    color: $text-light;
+  }
+  .cookie-banner-text {
+    color: $text-light;
+  }
+  .cookie-banner-link {
+    color: $faint-brand;
+    &:hover {
+      color: $light-brand;
+    }
+  }
+
 }
 
 //////////
@@ -218,6 +234,10 @@ html {
 body {
   --p-icon-size: 2rem;
   --p-floatlabel-active-font-size: 1.4rem;
+  --p-message-text-font-size: 1.4rem;
+  --p-text-font-size: 1.4rem;
+  --p-inputtext-font-size: 1.4rem;
+  --p-content-font-size: 1.4rem;
   font: normal 1.2rem / 1.4 $text-font-stack;
   font-family: $text-font-stack;
   font-weight: 500;
@@ -262,6 +282,24 @@ body {
     line-height: 1.6;
   }
 }
+
+// PrimeNG font size overrides to compensate for reduced base font size
+// PrimeNG assumes 1rem = 16px, but we set 1rem = 10px for easier math
+.p-inputtext,
+.p-button,
+.p-button-label {
+  font-size: 1.4rem !important;
+}
+.p-checkbox,
+.p-checkbox-box {
+  width: 2rem !important;
+  height: 2rem !important;
+}
+.p-message .p-message-text,
+.p-message .p-message-detail {
+  font-size: 1.4rem !important;
+}
+
 .monospace {
   font-family: $code-font-stack;
 }
@@ -308,8 +346,18 @@ p-panel {
     gap: 1rem;
   }
 }
+.p-tooltip-top {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
 .p-tooltip .p-tooltip-text {
   border: 1px solid transparent;
+  max-width: 30rem !important;
+  width: max-content !important;
+  white-space: pre-line !important;
+  text-align: left !important;
+  display: block !important;
 }
 .scroll-area {
   height: 100%;
@@ -388,9 +436,17 @@ header {
 footer {
   flex: 0 0 auto;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
   min-height: 4rem;
   border-top-width: 1px;
+  padding: 0 1rem;
+
+  > h4 {
+    margin: 0;
+    font-size: 1.8rem;
+  }
 
   app-menu-language,
   app-menu-change-log {
@@ -643,6 +699,7 @@ app-anchor-menu {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
 }
 
 .anchor-menu-close-button {
@@ -667,6 +724,7 @@ app-anchor-menu {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  backdrop-filter: blur(2px);
   z-index: 1000;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
@@ -749,6 +807,16 @@ app-anchor-menu {
   max-height: 100vh;
   display: flex;
   flex-direction: column;
+  width: 38rem;
+}
+
+.auth-menu-panel {
+  width: 42rem;
+}
+
+.auth-menu-body {
+  padding: 1.6rem;
+  overflow-y: auto;
 }
 
 .notification-center-header {
@@ -1080,4 +1148,407 @@ p-card.indexeddb {
     margin: 0.5rem 0rem;
     font-size: 1.5rem;
   }
+}
+
+// Auth Menu
+.auth-menu-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.7;
+  }
+
+  i {
+    color: inherit;
+    transition: color 0.2s ease-in-out;
+
+    &.active-route {
+      color: $light-brand;
+    }
+  }
+}
+
+.menu-auth-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-size: 1.6rem;
+}
+
+.menu-auth-header {
+  padding: 1.6rem;
+  border-bottom: 1px solid transparent;
+  flex-shrink: 0;
+
+  h3 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+  }
+
+  .auth-tabs {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .auth-tab {
+    background: none;
+    border: none;
+    padding: 0.8rem 1.6rem;
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: inherit;
+    opacity: 0.6;
+    border-bottom: 2px solid transparent;
+    transition: opacity 0.2s, border-color 0.2s;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    &.active {
+      opacity: 1;
+      border-bottom-color: currentColor;
+    }
+  }
+}
+
+.menu-auth-body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0 1.6rem 1.6rem 1.6rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+
+    &.hidden {
+      display: none;
+    }
+
+    label {
+      margin: 0;
+      padding-bottom: 0.8rem;
+      display: block;
+    }
+
+    .error-message {
+      color: #e74c3c;
+      display: block;
+      position: absolute;
+      bottom: -1.6rem;
+      left: 0;
+      font-size: 1.2rem;
+      margin: 0;
+    }
+  }
+  .form-field-optional {
+    color: $mid-gray;
+    font-size: 0.9em;
+  }
+
+  // Override PrimeNG panel content width constraints
+  .p-panel .p-panel-content {
+    width: 100%;
+    max-width: none;
+  }
+
+  .mode-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    padding: 1.6rem 0 0;
+    border-top: 1px solid rgba(128, 128, 128, 0.2);
+
+    span {
+      color: rgba(128, 128, 128, 0.8);
+    }
+
+    button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .forgot-password {
+    text-align: center;
+    margin-top: -0.8rem;
+
+    button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+// Profile Menu (when authenticated)
+.profile-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  .profile-info {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    padding-bottom: 1.6rem;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+    transition: all 0.2s ease;
+
+    // Clickable state
+    &.clickable {
+      cursor: pointer;
+      border-radius: 0.8rem;
+      padding: 1.2rem;
+      margin: -1.2rem;
+      margin-bottom: 0.4rem;
+
+      &:hover {
+        background-color: rgba(102, 126, 234, 0.08);
+      }
+
+      &:active {
+        background-color: rgba(102, 126, 234, 0.12);
+      }
+
+      &:focus-visible {
+        outline: 2px solid #667eea;
+        outline-offset: 2px;
+      }
+    }
+
+    .profile-avatar {
+      width: 5.6rem;
+      height: 5.6rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      font-weight: 600;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+
+    .profile-details {
+      flex: 1;
+      min-width: 0;
+
+      .profile-email {
+        font-size: 1.6rem;
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+        word-break: break-all;
+      }
+
+      .profile-username {
+        font-size: 1.4rem;
+        opacity: 0.7;
+      }
+    }
+
+    .profile-chevron {
+      font-size: 2rem;
+      opacity: 0.3;
+      transition: all 0.2s ease;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    &.clickable:hover .profile-chevron {
+      opacity: 0.6;
+      transform: translateX(4px);
+    }
+  }
+
+  .profile-metadata {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    padding-bottom: 1.6rem;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+
+    .metadata-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.4rem;
+
+      .metadata-label {
+        opacity: 0.7;
+      }
+
+      .metadata-value {
+        font-weight: 500;
+      }
+    }
+  }
+
+  .profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+// OTP Verification styles
+.otp-instructions {
+  text-align: center;
+  margin-bottom: 1.6rem;
+
+  p {
+    margin: 0 0 0.8rem;
+    font-size: 1.4rem;
+  }
+
+  .otp-email {
+    font-weight: 600;
+    font-size: 1.5rem;
+    word-break: break-all;
+  }
+}
+
+.otp-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.6rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid rgba(128, 128, 128, 0.2);
+
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: inherit;
+    opacity: 0.8;
+
+    &:hover:not(:disabled) {
+      text-decoration: underline;
+      opacity: 1;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// Cookie Banner
+.cookie-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  backdrop-filter: blur(2px);
+  border-top: 2px solid rgba(255, 255, 255, 0.1);
+  padding: 1.5rem 2rem;
+  z-index: 10000;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.cookie-banner-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.cookie-banner-text {
+  margin: 0;
+  font-size: 1.6rem;
+  line-height: 1.6;
+  font-weight: 400;
+  text-align: center;
+}
+
+.cookie-banner-link {
+  text-decoration: underline;
+  margin-left: 0.5rem;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.cookie-banner-actions {
+  display: flex;
+  gap: 1rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .cookie-banner-actions {
+    width: 100%;
+
+    ::ng-deep button {
+      flex: 1;
+    }
+  }
+}
+
+// Privacy Policy
+.privacy-content {
+  line-height: 1.6;
+
+  a {
+    text-decoration: underline;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+// Auto-close progress bar (used in auth profile)
+.auto-close-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 6px;
+  width: 0;
+  background: linear-gradient(90deg, #10b981, #059669);
+  animation: fill-progress linear forwards;
+}
+
+@keyframes fill-progress {
+  from { width: 0; }
+  to { width: 100%; }
 }

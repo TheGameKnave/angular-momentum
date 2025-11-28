@@ -9,7 +9,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { Subject } from 'rxjs';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ConnectivityService } from '@app/services/connectivity.service';
-import { SCREEN_SIZES } from '@app/helpers/constants';
+import { SCREEN_SIZES } from '@app/constants/ui.constants';
 
 class MockConnectivityService {
   showOffline = signal(false);

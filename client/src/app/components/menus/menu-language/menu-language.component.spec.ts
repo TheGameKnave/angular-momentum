@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { SUPPORTED_LANGUAGES } from '@app/helpers/constants';
+import { SUPPORTED_LANGUAGES } from '@app/constants/app.constants';
 import { MenuLanguageComponent } from './menu-language.component';
 import { TranslocoService } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';

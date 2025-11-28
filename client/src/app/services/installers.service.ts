@@ -1,5 +1,5 @@
 import { computed, Injectable, Signal } from '@angular/core';
-import { INSTALLERS, PLATFORMS } from '@app/helpers/constants';
+import { INSTALLERS, PLATFORMS } from '@app/constants/app.constants';
 import { Installer } from '@app/models/data.model';
 import { ChangeLogService } from './change-log.service';
 
@@ -19,6 +19,8 @@ import { ChangeLogService } from './change-log.service';
   providedIn: 'root'
 })
 export class InstallersService {
+  private _cachedInstallers: Installer[] | null = null;
+  private _cachedVersion: string | null = null;
 
   constructor(
     private readonly changeLogService: ChangeLogService,
@@ -42,10 +44,19 @@ export class InstallersService {
    */
   private readonly installers = computed(() => {
     const version = this.changeLogService.appVersion();
-    return INSTALLERS.map(installer => ({
+    
+    // Return cached array if version hasn't changed
+    if (this._cachedVersion === version && this._cachedInstallers) {
+      return this._cachedInstallers;
+    }
+    
+    this._cachedVersion = version;
+    this._cachedInstallers = INSTALLERS.map(installer => ({
       ...installer,
       url: installer.url.replace(/{version}/g, version),
     }));
+    
+    return this._cachedInstallers;
   });
   
   /**

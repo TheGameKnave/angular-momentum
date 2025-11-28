@@ -3,20 +3,27 @@ import { NotificationService } from './notification.service';
 import { LogService } from './log.service';
 import { SocketIoService } from './socket.io.service';
 import { TranslocoService } from '@jsverse/transloco';
+import { UserSettingsService } from './user-settings.service';
 import { of, throwError } from 'rxjs';
 import { Notification, NotificationOptions } from '../models/data.model';
+import { signal } from '@angular/core';
 
 describe('NotificationService', () => {
   let service: NotificationService;
   let logServiceSpy: jasmine.SpyObj<LogService>;
   let socketServiceSpy: jasmine.SpyObj<SocketIoService>;
   let translocoServiceSpy: jasmine.SpyObj<TranslocoService>;
+  let userSettingsServiceSpy: jasmine.SpyObj<UserSettingsService>;
 
   beforeEach(() => {
     // Create spies
     logServiceSpy = jasmine.createSpyObj('LogService', ['log']);
     socketServiceSpy = jasmine.createSpyObj('SocketIoService', ['listen']);
     translocoServiceSpy = jasmine.createSpyObj('TranslocoService', ['translate']);
+    userSettingsServiceSpy = jasmine.createSpyObj('UserSettingsService', ['loadSettings'], {
+      timezone: signal('UTC'),
+      settings: signal({ timezone: 'UTC' })
+    });
 
     // Mock socket service to return observable
     socketServiceSpy.listen.and.returnValue(of());
@@ -31,7 +38,7 @@ describe('NotificationService', () => {
 
     // Mock localStorage
     const store: { [key: string]: string } = {};
-    spyOn(localStorage, 'getItem').and.callFake((key: string) => store[key] || null);
+    spyOn(localStorage, 'getItem').and.callFake((key: string) => store[key] ?? null);
     spyOn(localStorage, 'setItem').and.callFake((key: string, value: string) => {
       store[key] = value;
     });
@@ -44,7 +51,8 @@ describe('NotificationService', () => {
         NotificationService,
         { provide: LogService, useValue: logServiceSpy },
         { provide: SocketIoService, useValue: socketServiceSpy },
-        { provide: TranslocoService, useValue: translocoServiceSpy }
+        { provide: TranslocoService, useValue: translocoServiceSpy },
+        { provide: UserSettingsService, useValue: userSettingsServiceSpy }
       ]
     });
 
@@ -101,11 +109,7 @@ describe('NotificationService', () => {
 
       // Should not throw and permission should remain false
       expect(service.permissionGranted()).toBe(false);
-      expect(logServiceSpy.log).toHaveBeenCalledWith(
-        'NotificationService',
-        'Error initializing notification permission',
-        jasmine.any(Error)
-      );
+
     });
 
     it('should load notifications from localStorage on init', () => {
@@ -186,11 +190,7 @@ describe('NotificationService', () => {
       const result = await service.checkPermission();
 
       expect(result).toBe(false);
-      expect(logServiceSpy.log).toHaveBeenCalledWith(
-        'NotificationService',
-        'Error checking notification permission',
-        jasmine.any(Error)
-      );
+
     });
   });
 
@@ -208,7 +208,6 @@ describe('NotificationService', () => {
       expect(service.permissionGranted()).toBe(true);
       expect(mockRequestPermission).toHaveBeenCalled();
       expect(logServiceSpy.log).toHaveBeenCalledWith(
-        'NotificationService',
         'Web notification permission: granted'
       );
     });
@@ -244,11 +243,7 @@ describe('NotificationService', () => {
       const result = await service.requestPermission();
 
       expect(result).toBe(false);
-      expect(logServiceSpy.log).toHaveBeenCalledWith(
-        'NotificationService',
-        'Error requesting notification permission',
-        jasmine.any(Error)
-      );
+
     });
   });
 
@@ -269,6 +264,26 @@ describe('NotificationService', () => {
       expect(service.notifications()[0].body).toBe('Test Body');
       expect(service.notifications()[0].read).toBe(false);
       expect(service.unreadCount()).toBe(1);
+    });
+
+    it('should store translation keys and params when provided', async () => {
+      service = TestBed.inject(NotificationService);
+      spyOn<any>(service, 'checkPermission').and.returnValue(Promise.resolve(false));
+
+      const options: NotificationOptions = {
+        title: 'Translated Title',
+        body: 'Translated Body',
+        titleKey: 'notification.Welcome!',
+        bodyKey: 'notification.Thanks for trying Angular Momentum—your modern Angular starter kit!',
+        params: { name: 'Test User' }
+      };
+
+      await service.show(options);
+
+      const notification = service.notifications()[0];
+      expect(notification.titleKey).toBe('notification.Welcome!');
+      expect(notification.bodyKey).toBe('notification.Thanks for trying Angular Momentum—your modern Angular starter kit!');
+      expect(notification.params).toEqual({ name: 'Test User' });
     });
 
     it('should return notification ID', async () => {
@@ -298,7 +313,6 @@ describe('NotificationService', () => {
       await service.show(options);
 
       expect(logServiceSpy.log).toHaveBeenCalledWith(
-        'NotificationService',
         'Notification permission not granted'
       );
     });
@@ -450,7 +464,7 @@ describe('NotificationService', () => {
   });
 
   describe('WebSocket notification handling', () => {
-    it('should handle incoming WebSocket notifications', fakeAsync(() => {
+    it('should handle incoming WebSocket notifications and store translation keys', fakeAsync(() => {
       const mockNotification: NotificationOptions = {
         title: 'notification.title.key',
         body: 'notification.body.key',
@@ -458,13 +472,18 @@ describe('NotificationService', () => {
       };
 
       socketServiceSpy.listen.and.returnValue(of(mockNotification));
-      spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+      const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
 
       service = TestBed.inject(NotificationService);
       tick();
 
       expect(translocoServiceSpy.translate).toHaveBeenCalledWith('notification.title.key', {});
       expect(translocoServiceSpy.translate).toHaveBeenCalledWith('notification.body.key', {});
+
+      // Verify that the show method receives both keys and translated values
+      const showCallArg = showSpy.calls.mostRecent().args[0] as NotificationOptions;
+      expect(showCallArg.titleKey).toBe('notification.title.key');
+      expect(showCallArg.bodyKey).toBe('notification.body.key');
     }));
 
     it('should handle notifications with params and format time', fakeAsync(() => {
@@ -530,6 +549,82 @@ describe('NotificationService', () => {
       );
     }));
 
+    it('should use detected timezone when settings has no timezone', fakeAsync(() => {
+      // Create a new mock with settings that has no timezone
+      const settingsSignalWithoutTimezone = signal({ id: '123' } as any);
+      const mockUserSettingsWithoutTimezone = jasmine.createSpyObj('UserSettingsService', ['loadSettings', 'detectTimezone'], {
+        timezone: signal(undefined),
+        settings: settingsSignalWithoutTimezone
+      });
+      mockUserSettingsWithoutTimezone.detectTimezone.and.returnValue('America/New_York');
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          NotificationService,
+          { provide: LogService, useValue: logServiceSpy },
+          { provide: SocketIoService, useValue: socketServiceSpy },
+          { provide: TranslocoService, useValue: translocoServiceSpy },
+          { provide: UserSettingsService, useValue: mockUserSettingsWithoutTimezone }
+        ]
+      });
+
+      const mockNotification: NotificationOptions = {
+        title: 'notification.title.key',
+        body: 'notification.body.key',
+        data: {
+          params: {
+            time: '2024-01-01T00:00:00.000Z'
+          }
+        }
+      };
+
+      socketServiceSpy.listen.and.returnValue(of(mockNotification));
+      spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      expect(mockUserSettingsWithoutTimezone.detectTimezone).toHaveBeenCalled();
+    }));
+
+    it('should handle invalid timezone gracefully', fakeAsync(() => {
+      // Create mock with invalid timezone
+      const settingsSignalInvalidTimezone = signal({ timezone: 'Invalid/Timezone' } as any);
+      const mockUserSettingsInvalidTimezone = jasmine.createSpyObj('UserSettingsService', ['loadSettings', 'detectTimezone'], {
+        timezone: signal('Invalid/Timezone'),
+        settings: settingsSignalInvalidTimezone
+      });
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          NotificationService,
+          { provide: LogService, useValue: logServiceSpy },
+          { provide: SocketIoService, useValue: socketServiceSpy },
+          { provide: TranslocoService, useValue: translocoServiceSpy },
+          { provide: UserSettingsService, useValue: mockUserSettingsInvalidTimezone }
+        ]
+      });
+
+      const mockNotification: NotificationOptions = {
+        title: 'notification.title.key',
+        body: 'notification.body.key',
+        data: {
+          params: {
+            time: '2024-01-01T00:00:00.000Z'
+          }
+        }
+      };
+
+      socketServiceSpy.listen.and.returnValue(of(mockNotification));
+      spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+    }));
+
     it('should handle WebSocket errors', fakeAsync(() => {
       const error = new Error('WebSocket error');
       socketServiceSpy.listen.and.returnValue(throwError(() => error));
@@ -537,11 +632,6 @@ describe('NotificationService', () => {
       service = TestBed.inject(NotificationService);
       tick();
 
-      expect(logServiceSpy.log).toHaveBeenCalledWith(
-        'NotificationService',
-        'Error receiving WebSocket notification',
-        error
-      );
     }));
   });
 

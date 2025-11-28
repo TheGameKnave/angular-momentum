@@ -32,14 +32,10 @@ describe('FeatureFlagService', () => {
   });
 
   it('should get feature flags', () => {
-    const graphqlResponse = {
-      data: {
-        featureFlags: [
-          { key: 'Environment', value: true },
-          { key: 'GraphQL API', value: false },
-        ],
-      },
-    };
+    const restResponse = [
+      { key: 'Environment', value: true },
+      { key: 'GraphQL API', value: false },
+    ];
 
     const expectedFlags = {
       'Environment': true,
@@ -50,32 +46,24 @@ describe('FeatureFlagService', () => {
       expect(flags).toEqual(jasmine.objectContaining(expectedFlags));
     });
 
-    const req = httpMock.expectOne('http://localhost:4200/api');
-    expect(req.request.method).toBe('POST');
-    req.flush(graphqlResponse);
+    const req = httpMock.expectOne('http://localhost:4200/api/feature-flags');
+    expect(req.request.method).toBe('GET');
+    req.flush(restResponse);
   });
   
 
-  it('should update feature flags via GraphQL mutation', fakeAsync(() => {
+  it('should update feature flags via REST API', fakeAsync(() => {
     const feature = 'Environment';
     const value = false;
-    const expectedMutation = `
-    mutation UpdateFeatureFlag($key: String!, $value: Boolean!) {
-      updateFeatureFlag(key: $key, value: $value) {
-        key
-        value
-      }
-    }`;
 
     service.setFeature(feature, value);
     tick();
 
-    const req = httpMock.expectOne('http://localhost:4200/api');
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body.query).toContain('mutation UpdateFeatureFlag');
-    expect(req.request.body.variables).toEqual({ key: feature, value });
+    const req = httpMock.expectOne('http://localhost:4200/api/feature-flags/Environment');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ value });
 
-    req.flush({ data: { updateFeatureFlag: { key: feature, value } } });
+    req.flush({ success: true });
   }));
 
   it('should update features when WebSocket emits an update', () => {
@@ -103,7 +91,7 @@ describe('FeatureFlagService', () => {
       expect(Object.keys(flags).length).toBe(0);  // fallback empty object
     });
 
-    const req = httpMock.expectOne('http://localhost:4200/api');
+    const req = httpMock.expectOne('http://localhost:4200/api/feature-flags');
     req.error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
 
     expect(console.error).toHaveBeenCalledWith('Error getting feature flags:', jasmine.any(HttpErrorResponse));

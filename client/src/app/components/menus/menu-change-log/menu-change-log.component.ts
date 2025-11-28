@@ -3,10 +3,10 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 import packageJson from 'src/../package.json';
 import { isTauri } from '@tauri-apps/api/core';
-import { ChangeImpact } from '@app/models/data.model';
 import { ChangeLogService } from '@app/services/change-log.service';
 import { CardModule } from 'primeng/card';
 import { AnchorMenuComponent } from '../anchor-menu/anchor-menu.component';
+import { SEMVER_MESSAGE_MAP, CHANGE_LOG_MESSAGES } from '@app/constants/translations.constants';
 
 /**
  * Menu changelog component that displays version information and update notifications.
@@ -47,19 +47,14 @@ export class MenuChangeLogComponent {
    * @returns A translated message indicating how many versions the app is behind
    */
   semverMessage = computed(() => {
-    const typeMap: Record<ChangeImpact, { key: string; var: string }> = {
-      patch: { key: '{patches} patch(es)', var: 'patches' },
-      minor: { key: '{minors} minor version(s)', var: 'minors' },
-      major: { key: '{majors} major release(s)', var: 'majors' }
-    };
-    const { key, var: pluralVar } = typeMap[this.changeLogService.appDiff().impact];
+    const { key, var: pluralVar } = SEMVER_MESSAGE_MAP[this.changeLogService.appDiff().impact];
     const pluralValue = { [pluralVar]: this.changeLogService.appDiff().delta };
 
     // First: pluralize (e.g., "2 minor versions")
     const semver = this.translate.translate(key, pluralValue);
 
     // Then: insert into main sentence
-    return this.translate.translate('This app is {semver} out of date.', { semver });
+    return this.translate.translate(CHANGE_LOG_MESSAGES.APP_OUT_OF_DATE, { semver });
   });
 
   /**
@@ -69,9 +64,9 @@ export class MenuChangeLogComponent {
    * @returns A translated message with the webapp URL link
    */
   linkMessage = computed(() => {
-  return this.translate.translate(
-    'If you encounter problems, you can use the webapp at {url} until an app update is ready.',
-    { url: this.packageJson.siteUrl }
-  ).replace(/>a/g,'<a').replace(/>\/a/g,'</a');
-});
+    return this.translate.translate(
+      CHANGE_LOG_MESSAGES.USE_WEBAPP,
+      { url: this.packageJson.siteUrl }
+    ).replace(/>a/g, '<a').replace(/>\/a/g, '</a');
+  });
 }

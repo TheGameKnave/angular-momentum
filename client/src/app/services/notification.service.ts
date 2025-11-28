@@ -3,8 +3,10 @@ import { sendNotification, isPermissionGranted, requestPermission } from '@tauri
 import { TranslocoService } from '@jsverse/transloco';
 import { LogService } from './log.service';
 import { SocketIoService } from './socket.io.service';
+import { UserSettingsService } from './user-settings.service';
 import { Notification, NotificationOptions } from '../models/data.model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NOTIFICATION_CONFIG } from '@app/constants/service.constants';
 
 /**
  * Service for managing notifications across web and Tauri platforms.
@@ -34,6 +36,7 @@ export class NotificationService {
     private readonly logService: LogService,
     private readonly socketService: SocketIoService,
     private readonly translocoService: TranslocoService,
+    private readonly userSettingsService: UserSettingsService,
     private readonly destroyRef: DestroyRef,
   ) {
     this.loadNotificationsFromStorage();
@@ -53,21 +56,21 @@ export class NotificationService {
         this.permissionGranted.set(granted);
       } catch (error) {
         // Silently fail - permission will be checked when actually needed
-        this.logService.log('NotificationService', 'Error initializing notification permission', error);
+        this.logService.log('Error initializing notification permission', error);
       }
     }
   }
 
   /**
    * Listen for notifications from WebSocket.
-   * The server sends translation keys, which we translate here on the client
-   * so each client sees the notification in their selected language.
-   * Automatically formats timestamp parameters for the client's locale.
+   * The server sends translation keys, which we store for later translation.
+   * We also translate immediately for native OS notifications.
+   * Automatically formats timestamp parameters for the client's locale and timezone.
    */
   private listenForWebSocketNotifications(): void {
     this.socketService.listen<NotificationOptions>('notification').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (notification) => {
-        this.logService.log('NotificationService', 'Received notification from WebSocket', notification);
+        this.logService.log('Received notification from WebSocket', notification);
 
         // Extract params from data field if present
         let params: Record<string, unknown> | undefined;
@@ -75,26 +78,53 @@ export class NotificationService {
           const dataObj = notification.data as { params?: Record<string, unknown> };
           params = dataObj.params;
 
-          // Format timestamp params for the client's locale
+          // Format timestamp params for the client's locale and timezone
           if (typeof params?.['time'] === 'string') {
-            params['time'] = new Date(params['time']).toLocaleString();
+            params['time'] = this.formatTimestampWithTimezone(params['time']);
           }
         }
 
-        // Translate the notification title and body if they are translation keys
-        // Pass params for parameterized translations (e.g., timestamps)
-        const translatedNotification: NotificationOptions = {
+        // Store original keys for dynamic translation on display
+        // Translate for native OS notifications (which can't translate dynamically)
+        const notificationWithKeys: NotificationOptions = {
           ...notification,
+          titleKey: notification.title,
+          bodyKey: notification.body,
+          params,
           title: this.translocoService.translate(notification.title, params || {}),
           body: this.translocoService.translate(notification.body, params || {})
         };
 
-        this.show(translatedNotification);
+        this.show(notificationWithKeys);
       },
       error: (error: unknown) => {
-        this.logService.log('NotificationService', 'Error receiving WebSocket notification', error);
+        this.logService.log('Error receiving WebSocket notification', error);
       }
     });
+  }
+
+  /**
+   * Format a timestamp string according to the user's timezone preference.
+   * @param timestamp - ISO timestamp string
+   * @returns Formatted timestamp in the user's preferred timezone
+   */
+  private formatTimestampWithTimezone(timestamp: string): string {
+    const userTimezone = this.userSettingsService.settings()?.timezone ?? this.userSettingsService.detectTimezone();
+
+    try {
+      return new Date(timestamp).toLocaleString(undefined, {
+        timeZone: userTimezone,
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      // Fallback to default formatting if timezone is invalid
+      this.logService.log('Error formatting timestamp with timezone', error);
+      return new Date(timestamp).toLocaleString();
+    }
   }
 
   /**
@@ -102,7 +132,7 @@ export class NotificationService {
    * @returns True if running in Tauri or if browser supports Notification API and Service Workers
    */
   isSupported(): boolean {
-    /* istanbul ignore next - Browser API feature detection */
+    // istanbul ignore next - Browser API feature detection
     return this.isTauri || ('Notification' in window && 'serviceWorker' in navigator);
   }
 
@@ -113,7 +143,7 @@ export class NotificationService {
    */
   async checkPermission(): Promise<boolean> {
     try {
-      /* istanbul ignore next - Tauri API integration testing */
+      // istanbul ignore next - Tauri API integration testing
       if (this.isTauri) {
         const granted = await isPermissionGranted();
         this.permissionGranted.set(granted);
@@ -125,7 +155,7 @@ export class NotificationService {
       }
       return false;
     } catch (error) {
-      this.logService.log('NotificationService', 'Error checking notification permission', error);
+      this.logService.log('Error checking notification permission', error);
       return false;
     }
   }
@@ -137,23 +167,23 @@ export class NotificationService {
    */
   async requestPermission(): Promise<boolean> {
     try {
-      /* istanbul ignore next - Tauri API integration testing */
+      // istanbul ignore next - Tauri API integration testing
       if (this.isTauri) {
         const permission = await requestPermission();
         const granted = permission === 'granted';
         this.permissionGranted.set(granted);
-        this.logService.log('NotificationService', `Tauri notification permission: ${permission}`);
+        this.logService.log(`Tauri notification permission: ${permission}`);
         return granted;
       } else if ('Notification' in window) {
         const permission = await Notification.requestPermission();
         const granted = permission === 'granted';
         this.permissionGranted.set(granted);
-        this.logService.log('NotificationService', `Web notification permission: ${permission}`);
+        this.logService.log(`Web notification permission: ${permission}`);
         return granted;
       }
       return false;
     } catch (error) {
-      this.logService.log('NotificationService', 'Error requesting notification permission', error);
+      this.logService.log('Error requesting notification permission', error);
       return false;
     }
   }
@@ -168,11 +198,15 @@ export class NotificationService {
   async show(options: NotificationOptions): Promise<string> {
     const notificationId = this.generateId();
 
-    // Store notification in history
+    // Store notification in history with both translated text and original keys
+    // Keys allow re-translation on language change in the notification center
     const notification: Notification = {
       id: notificationId,
       title: options.title,
       body: options.body,
+      titleKey: options.titleKey,
+      bodyKey: options.bodyKey,
+      params: options.params,
       icon: options.icon,
       data: options.data,
       timestamp: new Date(),
@@ -184,31 +218,31 @@ export class NotificationService {
     // Check permission before showing
     const hasPermission = await this.checkPermission();
     if (!hasPermission) {
-      this.logService.log('NotificationService', 'Notification permission not granted');
+      this.logService.log('Notification permission not granted');
       return notificationId;
     }
 
-    /* istanbul ignore next - Tauri API, Service Worker, and Browser Notification API integration testing */
+    // istanbul ignore next - Tauri API, Service Worker, and Browser Notification API integration testing
     try {
       if (this.isTauri) {
-        this.logService.log('NotificationService', 'Showing Tauri notification');
+        this.logService.log('Showing Tauri notification');
         await this.showTauriNotification(options);
       } else if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        this.logService.log('NotificationService', 'Showing service worker notification');
+        this.logService.log('Showing service worker notification');
         await this.showWebNotification(options, notificationId);
       } else {
-        this.logService.log('NotificationService', 'Showing basic notification (no service worker)', {
+        this.logService.log('Showing basic notification (no service worker)', {
           hasServiceWorker: 'serviceWorker' in navigator,
           hasController: navigator.serviceWorker?.controller !== null
         });
         await this.showBasicNotification(options);
       }
 
-      this.logService.log('NotificationService', 'Notification shown', { id: notificationId, title: options.title });
+      this.logService.log('Notification shown', { id: notificationId, title: options.title });
     } catch (error) {
-      this.logService.log('NotificationService', 'Error showing notification', error);
+      this.logService.log('Error showing notification', error);
     }
-    /* istanbul ignore next */
+    // istanbul ignore next
     return notificationId;
   }
 
@@ -217,9 +251,9 @@ export class NotificationService {
    * Uses the native notification system on desktop platforms.
    * @param options - Notification options including title, body, and icon
    */
-  /* istanbul ignore next - Tauri API integration testing */
+  // istanbul ignore next - Tauri API integration testing
   private async showTauriNotification(options: NotificationOptions): Promise<void> {
-    this.logService.log('NotificationService', 'Sending Tauri notification with options:', {
+    this.logService.log('Sending Tauri notification with options:', {
       title: options.title,
       body: options.body,
       icon: options.icon
@@ -233,13 +267,13 @@ export class NotificationService {
         icon: options.icon
       };
 
-      this.logService.log('NotificationService', 'Tauri notification payload:', notificationPayload);
+      this.logService.log('Tauri notification payload:', notificationPayload);
 
       await sendNotification(notificationPayload);
 
-      this.logService.log('NotificationService', 'Tauri notification sent successfully');
+      this.logService.log('Tauri notification sent successfully');
     } catch (error) {
-      this.logService.log('NotificationService', 'Tauri notification failed:', error);
+      this.logService.log('Tauri notification failed:', error);
       throw error;
     }
   }
@@ -250,7 +284,7 @@ export class NotificationService {
    * @param options - Notification options including title, body, icon, and additional settings
    * @param id - Unique notification identifier
    */
-  /* istanbul ignore next - Service Worker integration testing */
+  // istanbul ignore next - Service Worker integration testing
   private async showWebNotification(options: NotificationOptions, id: string): Promise<void> {
     const registration = await navigator.serviceWorker.ready;
 
@@ -281,10 +315,10 @@ export class NotificationService {
    * Sets up event handlers for click, show, error, and close events.
    * @param options - Notification options including title, body, icon, and additional settings
    */
-  /* istanbul ignore next - Browser Notification API integration testing */
+  // istanbul ignore next - Browser Notification API integration testing
   private async showBasicNotification(options: NotificationOptions): Promise<void> {
     try {
-      this.logService.log('NotificationService', 'Creating basic notification with options', {
+      this.logService.log('Creating basic notification with options', {
         title: options.title,
         body: options.body,
         icon: options.icon,
@@ -300,31 +334,31 @@ export class NotificationService {
         data: options.data
       });
 
-      this.logService.log('NotificationService', 'Basic notification created successfully');
+      this.logService.log('Basic notification created successfully');
 
       // Handle notification click
       notification.onclick = () => {
-        this.logService.log('NotificationService', 'Notification clicked');
+        this.logService.log('Notification clicked');
         window.focus();
         notification.close();
       };
 
       // Log when notification is shown
       notification.onshow = () => {
-        this.logService.log('NotificationService', 'Notification displayed');
+        this.logService.log('Notification displayed');
       };
 
       // Log errors
       notification.onerror = (error) => {
-        this.logService.log('NotificationService', 'Notification error', error);
+        this.logService.log('Notification error', error);
       };
 
       // Log when closed
       notification.onclose = () => {
-        this.logService.log('NotificationService', 'Notification closed');
+        this.logService.log('Notification closed');
       };
     } catch (error) {
-      this.logService.log('NotificationService', 'Failed to create basic notification', error);
+      this.logService.log('Failed to create basic notification', error);
       throw error;
     }
   }
@@ -355,6 +389,9 @@ export class NotificationService {
     this.saveNotificationsToStorage();
   }
 
+  /**
+   * Mark all notifications as read.
+   */
   markAllAsRead(): void {
     const notifications = this.notifications();
     const updated = notifications.map(n => ({ ...n, read: true }));
@@ -375,12 +412,18 @@ export class NotificationService {
     this.saveNotificationsToStorage();
   }
 
+  /**
+   * Clear all notifications from history.
+   */
   clearAll(): void {
     this.notifications.set([]);
     this.unreadCount.set(0);
     this.saveNotificationsToStorage();
   }
 
+  /**
+   * Update the unread notification count signal.
+   */
   private updateUnreadCount(): void {
     const count = this.notifications().filter(n => !n.read).length;
     this.unreadCount.set(count);
@@ -388,17 +431,17 @@ export class NotificationService {
 
   /**
    * Save notifications to localStorage.
-   * Limits storage to the most recent 100 notifications to prevent excessive storage usage.
+   * Limits storage to the most recent notifications to prevent excessive storage usage.
    */
   private saveNotificationsToStorage(): void {
     try {
       const notifications = this.notifications();
-      // Keep only last 100 notifications
-      const toSave = notifications.slice(0, 100);
+      // Keep only last N notifications
+      const toSave = notifications.slice(0, NOTIFICATION_CONFIG.MAX_STORED_NOTIFICATIONS);
       localStorage.setItem('app_notifications', JSON.stringify(toSave));
     } catch (error) {
-      /* istanbul ignore next - localStorage error handling */
-      this.logService.log('NotificationService', 'Error saving notifications to storage', error);
+      // istanbul ignore next - localStorage error handling
+      this.logService.log('Error saving notifications to storage', error);
     }
   }
 
@@ -419,8 +462,8 @@ export class NotificationService {
         this.updateUnreadCount();
       }
     } catch (error) {
-      /* istanbul ignore next - localStorage error handling */
-      this.logService.log('NotificationService', 'Error loading notifications from storage', error);
+      // istanbul ignore next - localStorage error handling
+      this.logService.log('Error loading notifications from storage', error);
     }
   }
 

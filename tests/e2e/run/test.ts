@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { Selector, test, ClientFunction } from 'testcafe';
 import { getThreshold } from '../data/constants';
-import { SUPPORTED_LANGUAGES } from '../../../client/src/app/helpers/constants';
+import { SUPPORTED_LANGUAGES } from '../../../client/src/app/constants/app.constants';
 
 const screenshotMode = process.env['TEST_MODE'] || 'tested';
 const takeScreenshot = async (t: TestController, screenshotDir: string, element?: string) => {

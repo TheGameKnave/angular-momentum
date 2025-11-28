@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { FeaturesComponent } from './features.component';
 import { FeatureFlagService } from '@app/services/feature-flag.service';
 import db from 'src/../../server/data/db.json';
@@ -7,6 +8,7 @@ import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.mo
 import { signal } from '@angular/core';
 import { FeatureMonitorService } from '@app/services/feature-monitor.service';
 import { ConnectivityService } from '@app/services/connectivity.service';
+import { AuthService } from '@app/services/auth.service';
 
 class MockConnectivityService {
   showOffline = signal(false);
@@ -25,6 +27,13 @@ describe('FeaturesComponent', () => {
   const mockFeaturesSignal = signal({...features});
 
   beforeEach(waitForAsync(() => {
+    const mockAuthService = jasmine.createSpyObj('AuthService', ['isAuthenticated'], {
+      currentUser: signal(null),
+      currentSession: signal(null),
+      loading: signal(false)
+    });
+    mockAuthService.isAuthenticated.and.returnValue(true); // Enable form controls
+
     featureFlagServiceSpy = jasmine.createSpyObj('FeatureFlagService', ['features', 'getFeature', 'setFeature']);
     featureFlagServiceSpy.features.and.returnValue({...features});
     featureFlagServiceSpy.getFeature.and.callFake((feature: any) => {
@@ -38,7 +47,7 @@ describe('FeaturesComponent', () => {
         mockFeaturesSignal.set(value);
       },
     });
-  
+
     TestBed.configureTestingModule({
       imports: [
         FormsModule,
@@ -47,9 +56,11 @@ describe('FeaturesComponent', () => {
         getTranslocoModule(),
       ],
       providers: [
+        provideNoopAnimations(),
         { provide: FeatureFlagService, useValue: featureFlagServiceSpy },
         { provide: FeatureMonitorService, useValue: jasmine.createSpyObj('FeatureMonitorService', ['watchRouteFeatureAndRedirect']) },
         { provide: ConnectivityService, useClass: MockConnectivityService },
+        { provide: AuthService, useValue: mockAuthService },
       ],
     }).compileComponents();
 
@@ -116,5 +127,40 @@ describe('FeaturesComponent', () => {
     // Verify that the form control's value is updated to false
     expect(appVersionFormControl.value).toBe(!features[featureName]);
   });
+
+  it('should disable form controls when user is not authenticated', waitForAsync(() => {
+    const mockAuthService = jasmine.createSpyObj('AuthService', ['isAuthenticated'], {
+      currentUser: signal(null),
+      currentSession: signal(null),
+      loading: signal(false)
+    });
+    mockAuthService.isAuthenticated.and.returnValue(false); // Not authenticated
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [
+        FormsModule,
+        ReactiveFormsModule,
+        FeaturesComponent,
+        getTranslocoModule(),
+      ],
+      providers: [
+        provideNoopAnimations(),
+        { provide: FeatureFlagService, useValue: featureFlagServiceSpy },
+        { provide: FeatureMonitorService, useValue: jasmine.createSpyObj('FeatureMonitorService', ['watchRouteFeatureAndRedirect']) },
+        { provide: ConnectivityService, useClass: MockConnectivityService },
+        { provide: AuthService, useValue: mockAuthService },
+      ],
+    }).compileComponents();
+
+    const testFixture = TestBed.createComponent(FeaturesComponent);
+    testFixture.detectChanges();
+
+    // All controls should be disabled
+    Object.keys(testFixture.componentInstance.featureForm.controls).forEach(key => {
+      const control = testFixture.componentInstance.featureForm.get(key);
+      expect(control?.disabled).toBe(true);
+    });
+  }));
 
 });

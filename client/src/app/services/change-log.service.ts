@@ -5,6 +5,7 @@ import { catchError, map, of, switchMap, timer, tap, merge, Subject } from 'rxjs
 import { ChangeImpact } from '@app/models/data.model';
 import packageJson from 'src/../package.json';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CHANGELOG_CONFIG } from '@app/constants/service.constants';
 
 /**
  * Represents a single changelog entry with version information and changes.
@@ -20,7 +21,7 @@ export interface ChangeLogResponse {
 /**
  * Service for managing application changelog data.
  *
- * Fetches changelog from backend via GraphQL and provides version comparison utilities.
+ * Fetches changelog from backend via REST API and provides version comparison utilities.
  * Automatically refreshes changelog data every hour, with support for manual refresh.
  *
  * Features:
@@ -40,7 +41,7 @@ export class ChangeLogService {
   });
 
   private readonly manualRefresh$ = new Subject<void>();
-  private readonly refreshIntervalMs = 1000 * 60 * 60; // 1 hour
+  private readonly refreshIntervalMs = CHANGELOG_CONFIG.REFRESH_INTERVAL_MS;
   private readonly refresh$ = merge(
     timer(0, this.refreshIntervalMs),
     this.manualRefresh$,
@@ -68,21 +69,16 @@ export class ChangeLogService {
   }
 
   /**
-   * Fetches changelog data from the backend GraphQL API and updates all signals.
+   * Fetches changelog data from the backend REST API and updates all signals.
    * Retrieves version history, calculates semantic version differences, and updates the changes, appVersion, and appDiff signals.
    * Automatically handles errors by returning an empty observable.
    * @returns Observable that emits when changelog data has been fetched and processed
    */
   private getChangeLogs() {
-    const query = getChangeLogQuery();
     return this.http
-      .post<{ data: { changeLog: ChangeLogResponse[] } }>(
-        ENVIRONMENT.baseUrl + '/api',
-        { query },
-      )
+      .get<ChangeLogResponse[]>(ENVIRONMENT.baseUrl + '/api/changelog')
       .pipe(
-        tap((res) => {
-          const changeLogArr = res.data.changeLog;
+        tap((changeLogArr) => {
           this.changes.set(changeLogArr);
           this.appVersion.set(changeLogArr[0].version);
           const { impact, delta } = this.calculateDiff(
@@ -137,22 +133,4 @@ export class ChangeLogService {
     return { impact, delta };
   }
 
-}
-
-/**
- * Generates the GraphQL query string for fetching changelog data.
- * Requests version, date, description, and changes array for all changelog entries.
- * @returns GraphQL query string for the changeLog query
- */
-export function getChangeLogQuery() {
-  return `
-    query GetChangeLog {
-      changeLog {
-        version
-        date
-        description
-        changes
-      }
-    }
-  `;
 }

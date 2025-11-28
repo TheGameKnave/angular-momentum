@@ -1,0 +1,64 @@
+<div class="menu-auth-body profile-menu" *transloco="let t">
+  <!-- Username Creation Failed Warning -->
+  @if (usernameService.creationFailed()) {
+    <div class="px-4 pt-4">
+      <p-message
+        severity="warn"
+        [text]="t('auth.The username you selected was unavailable. You can set a new one in your user profile')"
+        styleClass="w-full text-sm"
+      />
+    </div>
+  }
+
+  <!-- User Info (clickable to view full profile) -->
+  <button
+    type="button"
+    class="profile-info clickable"
+    [attr.title]="t('auth.View Profile')"
+    (click)="onViewProfile()"
+  >
+    <div class="profile-avatar">
+      {{ getUserInitials() }}
+    </div>
+    <div class="profile-details">
+      <div class="profile-email">{{ authService.currentUser()?.email }}</div>
+      @if (usernameService.username()?.username) {
+        <div class="profile-username">{{ usernameService.username()?.username }}</div>
+      }
+    </div>
+    <i class="pi pi-angle-right profile-chevron"></i>
+  </button>
+
+  <!-- User Metadata -->
+  <div class="profile-metadata">
+    @if (authService.currentUser()?.created_at) {
+      <div class="metadata-item">
+        <span class="metadata-label">{{ t('profile.Member Since') }}</span>
+        <span class="metadata-value">{{ authService.currentUser()?.created_at | date:'shortDate' }}</span>
+      </div>
+    }
+    @if (authService.currentUser()?.last_sign_in_at) {
+      <div class="metadata-item">
+        <span class="metadata-label">{{ t('profile.Last Sign In') }}</span>
+        <span class="metadata-value">{{ authService.currentUser()?.last_sign_in_at | date:'short' }}</span>
+      </div>
+    }
+  </div>
+
+  <!-- Actions -->
+  <div class="profile-actions">
+    <button
+      pButton
+      severity="danger"
+      (click)="onLogout()"
+      class="w-full"
+    >
+      <i class="pi pi-sign-out"></i> {{ t('auth.Logout') }}
+    </button>
+  </div>
+
+  <!-- Auto-close progress bar -->
+  @if (autoCloseSeconds() > 0) {
+    <div class="auto-close-progress" [style.animation-duration.s]="autoCloseSeconds()"></div>
+  }
+</div>

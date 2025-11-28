@@ -1,6 +1,8 @@
 // Import lowdb 1.0.0; TODO rip this out as soon as you have a data solution
+/* eslint-disable @typescript-eslint/no-require-imports */
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
+/* eslint-enable @typescript-eslint/no-require-imports */
 
 // Path to the mock database file
 const adapter = new FileSync('data/db.json');

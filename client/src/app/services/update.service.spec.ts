@@ -115,14 +115,14 @@ describe('UpdateService', () => {
       tick();
       expect(swUpdateMock.checkForUpdate).toHaveBeenCalled();
       expect(swUpdateMock.activateUpdate).toHaveBeenCalled();
-      expect(logMock.log).toHaveBeenCalledWith(jasmine.any(String), 'SW: Update available, activating...');
+      expect(logMock.log).toHaveBeenCalledWith('SW: Update available, activating...');
     }));
 
     it('should log if no SW update', fakeAsync(() => {
       swUpdateMock.checkForUpdate.and.returnValue(Promise.resolve(false));
       (service as any).checkServiceWorkerUpdate();
       tick();
-      expect(logMock.log).toHaveBeenCalledWith(jasmine.any(String), 'SW: No update available.');
+      expect(logMock.log).toHaveBeenCalledWith('SW: No update available.');
     }));
 
     it('should handle VERSION_READY and reload if confirmed', fakeAsync(async () => {
@@ -145,7 +145,7 @@ describe('UpdateService', () => {
         version: { hash: 'v1.2.3' }
       };
       (service as any).handleSwEvent(versionDetectedEvent);
-      expect(logMock.log).toHaveBeenCalledWith(jasmine.any(String), 'SW: New version detected:', { hash: 'v1.2.3' });
+      expect(logMock.log).toHaveBeenCalledWith('SW: New version detected:', { hash: 'v1.2.3' });
     });
   });
 

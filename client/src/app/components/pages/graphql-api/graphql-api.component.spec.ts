@@ -1,15 +1,16 @@
-import { TestBed } from '@angular/core/testing';
-import { GraphqlApiComponent, InitializeApiRes } from './graphql-api.component';
-import { HttpClient, provideHttpClient } from '@angular/common/http';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { GraphqlApiComponent, GraphQLDocsResponse } from './graphql-api.component';
+import { HttpClient } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
-import { MarkdownModule } from 'ngx-markdown';
-import { SecurityContext } from '@angular/core';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { FeatureMonitorService } from '@app/services/feature-monitor.service';
 import { getTranslocoModule } from '../../../../../../tests/helpers/transloco-testing.module';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { ENVIRONMENT } from 'src/environments/environment';
 
 describe('GraphqlApiComponent', () => {
   let component: GraphqlApiComponent;
+  let fixture: ComponentFixture<GraphqlApiComponent>;
   let httpClientSpy: jasmine.SpyObj<HttpClient>;
 
   beforeEach(async () => {
@@ -18,16 +19,16 @@ describe('GraphqlApiComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         GraphqlApiComponent,
-        MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),
         getTranslocoModule(),
       ],
       providers: [
         { provide: HttpClient, useValue: httpClientSpy },
-        { provide: FeatureMonitorService, useValue: jasmine.createSpyObj('FeatureMonitorService', ['watchRouteFeatureAndRedirect']) }
+        { provide: FeatureMonitorService, useValue: jasmine.createSpyObj('FeatureMonitorService', ['']) },
+        { provide: ENVIRONMENT, useValue: { baseUrl: 'http://test' } },
       ],
     }).compileComponents();
 
-    const fixture = TestBed.createComponent(GraphqlApiComponent);
+    fixture = TestBed.createComponent(GraphqlApiComponent);
     component = fixture.componentInstance;
   });
 
@@ -35,37 +36,36 @@ describe('GraphqlApiComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should make a POST request and emit API data on results$', (done) => {
-    const mockResponse: InitializeApiRes = { data: { docs: 'Sample docs' } };
-    httpClientSpy.post.and.returnValue(of(mockResponse));
-
-    component.ngOnInit();  // <---- IMPORTANT: call lifecycle hook!
-
-    component.results$.subscribe((res) => {
-      expect(res).toEqual(mockResponse);
-      expect(httpClientSpy.post).toHaveBeenCalledWith(
-        'http://localhost:4200/api',
-        { query: `
-query GetApiData {
-  docs
-}
-` },
-        jasmine.any(Object) // headers object
-      );
-      done();
-    });
+  it('should initialize with empty docs and no error', () => {
+    expect(component.docs()).toBe('');
+    expect(component.error()).toBe(false);
   });
 
-  it('should set error and emit null when HTTP POST fails', (done) => {
-    const mockError = new Error('Network error');
-    httpClientSpy.post.and.returnValue(throwError(() => mockError));
+  it('should fetch API docs on init and set docs signal', () => {
+    const mockResponse: GraphQLDocsResponse = { data: { docs: 'Sample docs content' } };
+    httpClientSpy.post.and.returnValue(of(mockResponse));
 
-    component.ngOnInit();  // <---- call lifecycle hook
+    component.ngOnInit();
 
-    component.results$.subscribe((res) => {
-      expect(res).toBeNull();
-      expect(component.error).toEqual(mockError); // use .toEqual, not .toBe
-      done();
-    });
+    expect(httpClientSpy.post).toHaveBeenCalled();
+    expect(component.docs()).toBe('Sample docs content');
+    expect(component.error()).toBe(false);
+  });
+
+  it('should set error when response has no docs', () => {
+    const mockResponse: GraphQLDocsResponse = { data: { docs: '' } };
+    httpClientSpy.post.and.returnValue(of(mockResponse));
+
+    component.ngOnInit();
+
+    expect(component.error()).toBe(true);
+  });
+
+  it('should handle HTTP errors and set error signal', () => {
+    httpClientSpy.post.and.returnValue(throwError(() => new Error('Network error')));
+
+    component.ngOnInit();
+
+    expect(component.error()).toBe(true);
   });
 });

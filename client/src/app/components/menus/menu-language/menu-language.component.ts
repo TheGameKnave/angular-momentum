@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { SUPPORTED_LANGUAGES } from '@app/helpers/constants';
+import { SUPPORTED_LANGUAGES } from '@app/constants/app.constants';
 import { LANGUAGES } from 'i18n-l10n-flags';
 import { NgClass } from '@angular/common';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';

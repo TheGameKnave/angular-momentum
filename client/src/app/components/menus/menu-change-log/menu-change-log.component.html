@@ -23,7 +23,7 @@
       <h3>
         <a [href]="packageJson.repository" target="_blank" rel="noopener noreferrer">
           <i class="pi pi-github"></i>
-          {{ t('Change Log') }}
+          {{ t('menu.Change Log') }}
         </a>
       </h3>
       <hr />
@@ -34,13 +34,13 @@
         >
           {{ semverMessage() }}
         </h4>
-        @if( !isTauri() ) { <p>{{ t('If it doesn't update momentarily, please try to clear your cache and refresh your browser.')}}</p> }
+        @if( !isTauri() ) { <p>{{ t("menu.If it doesn’t update momentarily, please try to clear your cache and refresh your browser.")}}</p> }
         @else { <p [innerHTML]="linkMessage()"></p> }
       }
     </div>
 
     <div class="menu-change-log-body scroll-area">
-      @for (change of changeLog.changes(); track change) {
+      @for (change of changeLog.changes(); track change.version) {
         <p-card>
           <h5>{{ change.version }}</h5>
           <p>{{ change.description }}, {{ change.date }}</p>

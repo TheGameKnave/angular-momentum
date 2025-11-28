@@ -1,0 +1,103 @@
+<form [formGroup]="resetForm" (ngSubmit)="onVerifyOtp()" class="auth-form" *transloco="let t">
+    <!-- Email Input -->
+    <div class="form-field">
+      <label for="reset-email">{{ t('Email') }}</label>
+      <input
+        pInputText
+        id="reset-email"
+        name="email"
+        formControlName="email"
+        type="email"
+        [placeholder]="t('auth.Enter your email')"
+        autocomplete="email"
+        class="w-full"
+        style="padding: 1rem; font-size: 1rem;"
+      />
+      @if (resetForm.get('email')?.invalid && resetForm.get('email')?.touched) {
+        @if (resetForm.get('email')?.hasError('emailTypo')) {
+          <small class="error-message">
+            {{ t('auth.Did you mean') }}: <strong>{{ resetForm.get('email')?.errors?.['emailTypo'].suggestion }}</strong>?
+          </small>
+        } @else {
+          <small class="error-message">{{ t('auth.Email is required') }}</small>
+        }
+      }
+    </div>
+
+    <!-- Send Code Button -->
+    @if (!codeSent()) {
+      <button
+        pButton
+        type="button"
+        [loading]="loading()"
+        [disabled]="resetForm.get('email')?.invalid"
+        class="w-full"
+        (click)="requestCode()"
+      >
+        {{ t('auth.Send Reset Code') }}
+      </button>
+    } @else {
+      <p-message severity="success" [text]="t('auth.If an account with that information exists, a password reset email has been sent.')" styleClass="w-full" />
+    }
+
+    <!-- OTP Code Input (only shown after code is sent) -->
+    @if (codeSent()) {
+      <div class="form-field">
+        <label for="reset-otp">{{ t('auth.Verification Code') }}</label>
+        <input
+          pInputText
+          id="reset-otp"
+          name="otpCode"
+          formControlName="otpCode"
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="6"
+          placeholder="000000"
+          autocomplete="one-time-code"
+          class="w-full"
+          style="padding: 1rem; font-size: 1.5rem; text-align: center; letter-spacing: 0.5rem;"
+          (input)="onOtpInput($event)"
+          (paste)="onOtpPaste($event)"
+        />
+        @if (resetForm.get('otpCode')?.invalid && resetForm.get('otpCode')?.touched) {
+          <small class="error-message">{{ t('auth.Please enter the 6-digit code') }}</small>
+        }
+      </div>
+
+      <!-- Verify Button -->
+      <button
+        pButton
+        type="submit"
+        [loading]="loading()"
+        [disabled]="resetForm.invalid"
+        class="w-full"
+      >
+        {{ t('auth.Verify Code') }}
+      </button>
+    }
+
+    <!-- Error Message -->
+    @if (errorMessage()) {
+      <p-message severity="error" [text]="errorMessage()!" styleClass="w-full" />
+    }
+
+    <!-- Resend Code Button (always visible after code sent) -->
+    @if (codeSent()) {
+      <div class="resend-section">
+        <button
+          pButton
+          type="button"
+          class="p-button-text p-button-secondary w-full"
+          [loading]="resending()"
+          [disabled]="loading()"
+          (click)="resendCode()"
+        >
+          {{ t('auth.Resend code') }}
+        </button>
+        @if (resendSuccess()) {
+          <p-message severity="info" [text]="t('auth.New verification code sent!')" styleClass="w-full" />
+        }
+      </div>
+    }
+  </form>

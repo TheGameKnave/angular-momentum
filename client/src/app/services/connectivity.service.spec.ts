@@ -82,7 +82,7 @@ describe('ConnectivityService', () => {
     expect(service.showOffline()).toBeTrue();
 
     // verify log was called (ignore first argument)
-    expect(logService.log).toHaveBeenCalledWith(jasmine.any(String), '📴 Offline banner shown');
+    expect(logService.log).toHaveBeenCalledWith('📴 Offline banner shown');
   }));
 
 

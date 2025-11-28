@@ -10,6 +10,7 @@ import { isTauri } from '@tauri-apps/api/core';
 
 import { ENVIRONMENT } from 'src/environments/environment';
 import { LogService } from './log.service';
+import { UPDATE_CONFIG } from '@app/constants/service.constants';
 
 /**
  * Service for managing application updates across web and Tauri platforms.
@@ -31,7 +32,7 @@ export class UpdateService {
   constructor(
     private readonly updates: SwUpdate,
     private readonly destroyRef: DestroyRef,
-    private readonly log: LogService,
+    private readonly logService: LogService,
   ) {
     this.init();
   }
@@ -51,10 +52,10 @@ export class UpdateService {
       .subscribe(event => this.handleSwEvent(event));
 
     // Run immediate and interval-based update checks
-    interval(15 * 60 * 1000)
+    interval(UPDATE_CONFIG.CHECK_INTERVAL_MS)
       .pipe(startWith(0), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        /*keep*/console.log('Checking for updates...');
+        /**/console.log('Checking for updates...');
         this.checkServiceWorkerUpdate();
         this.checkTauriUpdate();
       });
@@ -72,13 +73,13 @@ export class UpdateService {
     if (isTauri()) return;
     this.updates.checkForUpdate().then(available => {
       if (available) {
-        this.log.log(this.constructor.name,'SW: Update available, activating...');
+        this.logService.log('SW: Update available, activating...');
         this.updates.activateUpdate().then(() => {
-          this.log.log(this.constructor.name,'SW: Update activated. Awaiting VERSION_READY...');
+          this.logService.log('SW: Update activated. Awaiting VERSION_READY...');
           // VERSION_READY will trigger handleSwEvent
         });
       } else {
-        this.log.log(this.constructor.name,'SW: No update available.');
+        this.logService.log('SW: No update available.');
       }
     }).catch(err => {
       console.error('SW: Failed to check for update:', err);
@@ -101,7 +102,7 @@ export class UpdateService {
         this.reloadPage();
       }
     } else if (event.type === 'VERSION_DETECTED') {
-      this.log.log(this.constructor.name,'SW: New version detected:', event.version);
+      this.logService.log('SW: New version detected:', event.version);
     }
   }
 
@@ -119,10 +120,10 @@ export class UpdateService {
     try {
       const update = await check();
       if (update && !this.confirming) {
-        this.log.log(this.constructor.name,'Tauri: Update available', update);
+        this.logService.log('Tauri: Update available', update);
         await this.promptTauriUpdate(update);
       } else {
-        this.log.log(this.constructor.name,'Tauri: No update available');
+        this.logService.log('Tauri: No update available');
       }
     } catch (err) {
       console.error('Tauri updater failed:', err);
@@ -146,19 +147,18 @@ export class UpdateService {
           switch (event.event) {
             case 'Started':
               contentLength = event.data.contentLength ?? 0;
-              this.log.log(this.constructor.name,`started downloading ${event.data.contentLength} bytes`);
+              this.logService.log(`started downloading ${event.data.contentLength} bytes`);
               break;
             case 'Progress':
               downloaded += event.data.chunkLength;
-              this.log.log(this.constructor.name,`downloaded ${downloaded} from ${contentLength}`);
+              this.logService.log(`downloaded ${downloaded} from ${contentLength}`);
               break;
             case 'Finished':
-              this.log.log(this.constructor.name,'download finished');
+              this.logService.log('download finished');
               break;
           }
         });
 
-        console.log('update installed');
         await this.relaunchApp();
       } catch (err) {
         // istanbul ignore next

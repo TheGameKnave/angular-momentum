@@ -1,10 +1,10 @@
-<app-anchor-menu position="top-right" width="38rem">
+<app-anchor-menu position="top-right" width="38rem" *transloco="let t">
   <!-- Trigger: Notification Center Button -->
   <span
     menu-trigger
     class="notification-center-button"
-    [attr.aria-label]="'Notifications' + (notificationService.unreadCount() > 0 ? ' (' + notificationService.unreadCount() + ' unread)' : '')"
-    title="Notifications"
+    [attr.aria-label]="t('nav.Notifications') + (notificationService.unreadCount() > 0 ? ' (' + notificationService.unreadCount() + ' ' + t('a11y.unread') + ')' : '')"
+    [attr.title]="t('nav.Notifications')"
   >
     <i class="pi pi-bell"></i>
     @if (notificationService.unreadCount() > 0) {
@@ -15,24 +15,24 @@
   <!-- Menu Content: Notification Center -->
   <div menu-content class="notification-center notification-center-content">
       <div class="notification-center-header">
-        <h3>Notifications</h3>
+        <h3>{{ t('nav.Notifications') }}</h3>
         <div class="notification-center-actions">
           @if (notificationService.unreadCount() > 0) {
             <p-button
               (onClick)="markAllAsRead()"
-              label="Mark all read"
+              [label]="t('notification.Mark all read')"
               [text]="true"
               size="small"
-              [attr.aria-label]="'Mark all read'"
+              [attr.aria-label]="t('notification.Mark all read')"
             />
           }
           @if (notificationService.notifications().length > 0) {
             <p-button
               (onClick)="clearAll()"
-              label="Clear all"
+              [label]="t('notification.Clear all')"
               [text]="true"
               size="small"
-              [attr.aria-label]="'Clear all'"
+              [attr.aria-label]="t('notification.Clear all')"
             />
           }
         </div>
@@ -43,14 +43,14 @@
         @if (notificationService.notifications().length === 0) {
           <div class="notification-empty">
             <i class="pi pi-bell"></i>
-            <p>No notifications</p>
+            <p>{{ t('notification.No notifications') }}</p>
           </div>
         } @else {
           <div class="notification-list">
             @for (notification of notificationService.notifications(); track notification.id) {
               <p-card
                 [styleClass]="'notification-item' + (!notification.read ? ' unread' : '')"
-                [attr.aria-label]="notification.title + '. ' + notification.body + '. ' + formatTime(notification.timestamp) + '. ' + (notification.read ? 'Read' : 'Unread')"
+                [attr.aria-label]="getTitle(notification) + '. ' + getBody(notification) + '. ' + formatTime(notification.timestamp) + '. ' + (notification.read ? t('a11y.Read') : t('a11y.Unread'))"
               >
                 <ng-template pTemplate="header">
                   <div class="notification-header">
@@ -59,7 +59,7 @@
                         <img [src]="notification.icon" alt="" class="notification-icon" />
                       }
                       <div class="notification-text">
-                        <div class="notification-title">{{ notification.title }}</div>
+                        <div class="notification-title">{{ getTitle(notification) }}</div>
                         <div class="notification-time">{{ formatTime(notification.timestamp) }}</div>
                       </div>
                     </div>
@@ -70,11 +70,11 @@
                       [rounded]="true"
                       severity="secondary"
                       size="small"
-                      [attr.aria-label]="'Delete notification'"
+                      [attr.aria-label]="t('notification.Delete notification')"
                     />
                   </div>
                 </ng-template>
-                <div class="notification-body">{{ notification.body }}</div>
+                <div class="notification-body">{{ getBody(notification) }}</div>
               </p-card>
             }
           </div>
@@ -85,8 +85,8 @@
       <div class="notification-center-footer">
         <p-button
           (onClick)="requestPermission()"
-          label="Enable Notifications"
-          [attr.aria-label]="'Enable Notifications'"
+          [label]="t('notification.Enable Notifications')"
+          [attr.aria-label]="t('notification.Enable Notifications')"
           styleClass="w-full"
         />
       </div>

@@ -29,9 +29,14 @@ jobs:
         run: |
           echo "\nRunning translation validation\n\n"
           cd tests/translation && npx ts-node translation-validation.ts
+          echo "\nRunning translation key usage check\n\n"
+          npx ts-node translation-key-usage.ts
 
-      - name: Run ESLint
+      - name: Run Client ESLint
         run: cd client && npx eslint --ext .ts,.js src/
+
+      - name: Run Server ESLint
+        run: cd server && npx eslint .
 
       - name: Build the Client
         run: |

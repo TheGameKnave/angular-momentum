@@ -12,7 +12,6 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Heroku deployment
 * Google Analytics
 * Service worker to persist app and manage versions *
-* Hot module replacement for faster dev iteration
 * Typescript with node for back-end
 * Client & Server unit testing via jasmine
 * Benchmark memory usage and response times (throttled for mobile) in tests
@@ -31,14 +30,15 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * CDN for static assets and binary distros
 * Tauri app signing and (desktop) auto-updating for distribution to Android, iOS, macOS, Windows, and Linux.
 * Automatic platform deploys via Github Actions
-* Push notifications (WebSocket-based) for Web, PWA, and all Tauri platforms *
+* Supabase(?) user management (emails and password resetting, etc) *
+* cookie consent banner *
+* timezone detection AND user-setting *
+* Push notifications (WebSocket-based) for Web, PWA, and all Tauri platforms
 
 (* indicates a feature that’s visible in the sample app)
 
 ## Future features
 * Server-side rendering
-* Supabase(?) user management (emails and password resetting and deliverability) *
-* timezone detection AND user-setting
 * Angular 21, Vitest, Zoneless
 * Lighthouse CI to mitigate performance slip
 
