@@ -21,7 +21,8 @@
       "<rootDir>/**/*",
       "!**/node_modules/**",
       "!**/vendor/**",
-      "!**/coverage/**"
+      "!**/coverage/**",
+      "!eslint.config.js"
     ],
     "coverageReporters": [
       "json",
@@ -37,6 +38,8 @@
     "not op_mini all"
   ],
   "dependencies": {
+    "@2toad/profanity": "^3.2.0",
+    "@supabase/supabase-js": "^2.81.1",
     "@types/express": "^4.17.21",
     "@types/socket.io": "^3.0.2",
     "body-parser": "^1.20.1",
@@ -56,6 +59,7 @@
     "sqlstring": "^2.3.3",
     "string-similarity": "^4.0.4",
     "ts-node": "^10.9.1",
+    "unhomoglyph": "^1.0.6",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

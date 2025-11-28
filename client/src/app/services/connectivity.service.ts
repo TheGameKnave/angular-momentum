@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { LogService } from './log.service';
+import { CONNECTIVITY_CONFIG } from '@app/constants/service.constants';
 
 /**
  * Service for tracking online/offline connectivity status.
@@ -32,25 +33,27 @@ export class ConnectivityService {
 
   // private readonly pingUrl = 'https://angularmomentum.app/favicon.ico';
   private readonly pingUrl = window.location.origin + '/favicon.ico';
-  private readonly baseInterval = 10000;
-  private currentInterval = this.baseInterval;
-  private readonly maxInterval = 60000;
-  private readonly gracePeriod = 2000;
+  private readonly baseInterval = CONNECTIVITY_CONFIG.BASE_INTERVAL_MS;
+  private currentInterval: number = this.baseInterval;
+  private readonly maxInterval = CONNECTIVITY_CONFIG.MAX_INTERVAL_MS;
+  private readonly gracePeriod = CONNECTIVITY_CONFIG.GRACE_PERIOD_MS;
 
   private pollingTimer?: ReturnType<typeof setTimeout>;
   private offlineTimer?: ReturnType<typeof setTimeout>;
   private verifyAbortController?: AbortController;
 
-  constructor(private readonly logService: LogService) {
+  constructor(
+    private readonly logService: LogService
+  ) {
     window.addEventListener('online', () => {
       this._osOnline.set(true);
-      console.log('🔵 OS reports online — verifying...');
+      this.logService.log('🔵 OS reports online — verifying...');
       this.verify();
     });
 
     window.addEventListener('offline', () => {
       this._osOnline.set(false);
-      console.log('🔴 OS reports offline');
+      this.logService.log('🔴 OS reports offline');
       this._isOnline.set(false);         // logical offline immediately
       this.scheduleOfflineBanner();      // banner delayed
     });
@@ -58,12 +61,19 @@ export class ConnectivityService {
     this.scheduleNextCheck();
   }
 
-  /** Start initial verification */
+  /**
+   * Starts connectivity monitoring by immediately verifying network status.
+   * Triggers an initial connectivity check and updates all signals accordingly.
+   */
   async start(): Promise<void> {
     await this.verify();
   }
 
-  /** Stops all timers and polling */
+  /**
+   * Stop all timers and polling.
+   * Cleans up resources and cancels pending requests.
+   * Useful in tests and when service is no longer needed.
+   */
   stop() {
     this.stopped = true;
 
@@ -81,7 +91,11 @@ export class ConnectivityService {
     }
   }
 
-  /** Schedule the next connectivity check */
+  /**
+   * Schedules the next connectivity check using the current polling interval.
+   * Uses exponential backoff when offline (doubles interval up to maxInterval of 60s).
+   * Resets to baseInterval (10s) when connection is restored.
+   */
   private scheduleNextCheck() {
     if (this.stopped) return;
 
@@ -91,7 +105,11 @@ export class ConnectivityService {
     }, this.currentInterval);
   }
 
-  /** Perform ping to check connectivity */
+  /**
+   * Perform ping to check connectivity.
+   * Fetches favicon with cache-busting to verify real connectivity.
+   * Updates isOnline signal and manages offline banner display.
+   */
   private async verify() {
     if (!this.stopped) {
       this.verifyAbortController = new AbortController();
@@ -112,7 +130,7 @@ export class ConnectivityService {
           this.clearOfflineBanner();
   
           if (this.lastLoggedOnline !== true) {
-            console.log(`✅ Verified online at ${new Date().toLocaleTimeString()}`);
+            this.logService.log(`✅ Verified online at ${new Date().toLocaleTimeString()}`);
             this.lastLoggedOnline = true;
           }
         } else {
@@ -121,7 +139,7 @@ export class ConnectivityService {
           this.scheduleOfflineBanner();
   
           if (this.lastLoggedOnline !== false) {
-            console.log('⚠️ Ping failed — treating as offline');
+            this.logService.log('⚠️ Ping failed — treating as offline');
             this.lastLoggedOnline = false;
           }
         }
@@ -132,7 +150,7 @@ export class ConnectivityService {
           this.scheduleOfflineBanner();
   
           if (this.lastLoggedOnline !== false) {
-            console.log('⚠️ Ping error — treating as offline');
+            this.logService.log('⚠️ Ping error — treating as offline');
             this.lastLoggedOnline = false;
           }
         }
@@ -142,25 +160,31 @@ export class ConnectivityService {
     }
   }
 
-  /** Show offline banner after grace period */
+  /**
+   * Show offline banner after grace period.
+   * Delays banner display to avoid flashing during brief disconnections.
+   */
   private scheduleOfflineBanner() {
     if (!this.offlineTimer) {
       this.offlineTimer = setTimeout(() => {
         this._showOffline.set(true);
-        this.logService.log(this.constructor.name, '📴 Offline banner shown');
+        this.logService.log('📴 Offline banner shown');
         this.offlineTimer = undefined;
       }, this.gracePeriod);
     }
   }
 
-  /** Hide offline banner if shown */
+  /**
+   * Hide offline banner if shown.
+   * Cancels scheduled banner display and hides banner if currently visible.
+   */
   private clearOfflineBanner() {
     if (this.offlineTimer) {
       clearTimeout(this.offlineTimer);
       this.offlineTimer = undefined;
     }
     if (this._showOffline()) {
-      this.logService.log(this.constructor.name, '🔵 Connectivity restored — hiding offline banner');
+      this.logService.log('🔵 Connectivity restored — hiding offline banner');
     }
     this._showOffline.set(false);
   }

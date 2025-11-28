@@ -1,6 +1,14 @@
+// Mock console before imports to suppress module-level logs
+global.console = {
+  ...console,
+  log: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+};
+
 import request from 'supertest';
 import express from 'express';
-import { setupApp } from './index'; 
+import { setupApp } from './index';
 
 describe('Express server', () => {
   let app: express.Application;
@@ -85,6 +93,58 @@ describe('Express server', () => {
     it('should start the server on the specified port', async () => {
       await startServer('production', 9203);
       expect(server.address().port).toBe(9203);
+      await stopServer();
+    });
+  });
+
+  describe('Supabase Initialization', () => {
+    it('should initialize Supabase when config is provided (lines 43-44, 61)', async () => {
+      // Set environment variables BEFORE importing the module
+      const originalUrl = process.env.SUPABASE_URL;
+      const originalKey = process.env.SUPABASE_SERVICE_KEY;
+
+      process.env.SUPABASE_URL = 'https://test.supabase.co';
+      process.env.SUPABASE_SERVICE_KEY = 'test-service-key-1234567890';
+
+      // Reset modules to force re-import with new env vars
+      jest.resetModules();
+
+      // Re-import after setting env vars
+      const { setupApp: setupAppWithConfig } = require('./index');
+      const appWithConfig = setupAppWithConfig();
+
+      // Verify app was created successfully
+      expect(appWithConfig).toBeDefined();
+
+      // Clean up
+      if (originalUrl) {
+        process.env.SUPABASE_URL = originalUrl;
+      } else {
+        delete process.env.SUPABASE_URL;
+      }
+      if (originalKey) {
+        process.env.SUPABASE_SERVICE_KEY = originalKey;
+      } else {
+        delete process.env.SUPABASE_SERVICE_KEY;
+      }
+
+      // Reset modules back to original state
+      jest.resetModules();
+    });
+
+    it('should start server successfully with Supabase configured', async () => {
+      // Set environment variables
+      process.env.SUPABASE_URL = 'https://test.supabase.co';
+      process.env.SUPABASE_SERVICE_KEY = 'test-service-key-1234567890';
+
+      await startServer('production', 9205);
+
+      // App should start successfully with Supabase configured
+      expect(server.address().port).toBe(9205);
+
+      // Clean up
+      delete process.env.SUPABASE_URL;
+      delete process.env.SUPABASE_SERVICE_KEY;
       await stopServer();
     });
   });

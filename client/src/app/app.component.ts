@@ -13,12 +13,23 @@ import { MenuFeatureComponent } from '@app/components/menus/menu-feature/menu-fe
 import { FeatureFlagService } from './services/feature-flag.service';
 import { SlugPipe } from './pipes/slug.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ComponentListService } from './services/component-list.service';
-import { SCREEN_SIZES } from './helpers/constants';
+import { COMPONENT_LIST } from './helpers/component-list';
 import { ConnectivityService } from './services/connectivity.service';
 import { MenuChangeLogComponent } from './components/menus/menu-change-log/menu-change-log.component';
 import { ChangeLogService } from './services/change-log.service';
+import { NotificationCenterComponent } from './components/menus/notification-center/notification-center.component';
+import { MenuAuthComponent } from './components/menus/menu-auth/menu-auth.component';
+import { CookieBannerComponent } from './components/privacy/cookie-banner/cookie-banner.component';
+import { SCREEN_SIZES } from './constants/ui.constants';
 
+/**
+ * Root component of the Angular Momentum application.
+ *
+ * This component serves as the main application shell, managing the layout structure,
+ * navigation state, and global UI elements like menus and notification center.
+ * It dynamically updates body CSS classes based on the current route and screen size,
+ * enabling responsive design and route-specific styling.
+ */
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -29,6 +40,9 @@ import { ChangeLogService } from './services/change-log.service';
     MenuChangeLogComponent,
     MenuFeatureComponent,
     TranslocoDirective,
+    NotificationCenterComponent,
+    MenuAuthComponent,
+    CookieBannerComponent,
   ],
 })
 export class AppComponent implements OnInit {
@@ -41,10 +55,15 @@ export class AppComponent implements OnInit {
   isDevMode = isDevMode();
   appDiff = this.changeLogService.appDiff;
   routePath = '';
-  openMenu = '';
   breadcrumb = '';
   version: string = packageJson.version;
-  menuTransitionOptions = '0.3s cubic-bezier(0, 0, 0.2, 1) transform';
+
+  // Type-safe feature flag getters for template use
+  // These will show compile errors if the feature name is invalid
+  readonly showNotifications = () => this.featureFlagService.getFeature('Notifications');
+  readonly showAppVersion = () => this.featureFlagService.getFeature('App Version');
+  readonly showEnvironment = () => this.featureFlagService.getFeature('Environment');
+  readonly showLanguage = () => this.featureFlagService.getFeature('Language');
 
   constructor(
     readonly updateService: UpdateService,
@@ -55,18 +74,21 @@ export class AppComponent implements OnInit {
     private readonly slugPipe: SlugPipe,
     private readonly router: Router,
     private readonly destroyRef: DestroyRef,
-    private readonly componentListService: ComponentListService,
     protected readonly connectivity: ConnectivityService,
   ){}
 
+  /**
+   * Angular lifecycle hook called after component initialization.
+   * Starts the connectivity service and subscribes to router navigation events
+   * to update the route path, breadcrumb, and body CSS classes based on the current route.
+   */
   ngOnInit() {
     this.connectivity.start();
     // there might be a better way to detect the current component for the breadcrumbs...
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd){
-        this.openMenu = '';
         this.routePath = event.urlAfterRedirects.replace('/', '').replace(/\//, '_') || 'index';
-        this.componentListService.getComponentList().forEach((component) => {
+        COMPONENT_LIST.forEach((component) => {
           if(this.slugPipe.transform(component.name) === this.routePath){
             this.breadcrumb = component.name;
           }
@@ -76,9 +98,15 @@ export class AppComponent implements OnInit {
     });
   }
 
+  /**
+   * Updates the body element's CSS classes based on the current route and screen size.
+   * Applies responsive screen size classes and route-specific classes for targeted styling.
+   * This method is called on initialization, route changes, and window resize events.
+   * Note: Theme class is set on both html and body elements for CSS selector compatibility.
+   */
   bodyClasses(): void {
     // remove all classes from body
-    document.body.className = 'app-dark screen-xs';
+    document.body.className = 'screen-xs';
     if (this.routePath) document.body.classList.add(this.routePath);
     // set class of body to reflect screen sizes
     for (const size in SCREEN_SIZES) {
@@ -89,12 +117,6 @@ export class AppComponent implements OnInit {
         document.body.classList.remove('screen-' + size);
         document.body.classList.add('not-' + size);
       }
-    }
-  }
-
-  toggleMenu(menu: string, event: Event): void {
-    if (event.type === 'click' || (event.type === 'keydown' && event instanceof KeyboardEvent && event.key === 'Enter')) {
-      this.openMenu = this.openMenu === menu ? '' : menu;
     }
   }
 }

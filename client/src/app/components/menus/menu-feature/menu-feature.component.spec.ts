@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { MenuFeatureComponent } from './menu-feature.component';
-import { ComponentListService } from '@app/services/component-list.service';
 import { FeatureFlagService } from '@app/services/feature-flag.service';
 import { HelpersService } from '@app/services/helpers.service';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
@@ -10,7 +9,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { Subject } from 'rxjs';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ConnectivityService } from '@app/services/connectivity.service';
-import { SCREEN_SIZES } from '@app/helpers/constants';
+import { SCREEN_SIZES } from '@app/constants/ui.constants';
 
 class MockConnectivityService {
   showOffline = signal(false);
@@ -36,7 +35,6 @@ describe('MenuFeatureComponent', () => {
   ]);
 
   beforeEach(async () => {
-    const componentListServiceSpy = jasmine.createSpyObj('ComponentListService', ['getComponentList']);
     const featureFlagServiceSpy = jasmine.createSpyObj('FeatureFlagService', ['getFeature']);
     helpersServiceSpy = jasmine.createSpyObj('HelpersService', [], {
       enabledComponents: mockEnabledComponents
@@ -52,7 +50,6 @@ describe('MenuFeatureComponent', () => {
       ],
       providers: [
         provideHttpClientTesting(),
-        { provide: ComponentListService, useValue: componentListServiceSpy },
         { provide: FeatureFlagService, useValue: featureFlagServiceSpy },
         { provide: HelpersService, useValue: helpersServiceSpy },
         { provide: Router, useValue: routerSpy },

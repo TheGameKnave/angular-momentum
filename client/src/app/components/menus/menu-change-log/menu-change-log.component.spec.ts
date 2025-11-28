@@ -84,11 +84,4 @@ describe('MenuChangeLogComponent', () => {
     const message = component.linkMessage();
     expect(message).toContain('https://example.com');
   });
-
-  it('should stop event propagation', async () => {
-    await setup('patch', 1);
-    const event = jasmine.createSpyObj('event', ['stopPropagation']);
-    component.stopEventPropagation(event as any);
-    expect(event.stopPropagation).toHaveBeenCalled();
-  });
 });

@@ -23,7 +23,7 @@ if (!fs.existsSync(rootPkgPath)) {
 const rootPkg = JSON.parse(fs.readFileSync(rootPkgPath, "utf8"));
 const oldVersion = rootPkg.version;
 const newVersion = process.argv[2] || bumpPatch(oldVersion);
-console.log(`🔁 Bumping version: ${oldVersion} → ${newVersion}`);
+/**/console.log(`🔁 Bumping version: ${oldVersion} → ${newVersion}`);
 
 // -----------------------------
 // Update iOS bundleVersion in tauri.conf.json
@@ -36,9 +36,9 @@ if (!tauriConf.bundle.iOS) tauriConf.bundle.iOS = {};
 // Only increment bundleVersion if semver increased
 if (isSemverGreater(newVersion, oldVersion)) {
   tauriConf.bundle.iOS.bundleVersion = (Number(tauriConf.bundle.iOS.bundleVersion || 0) + 1).toString();
-  console.log(`🔢 iOS bundleVersion incremented to ${tauriConf.bundle.iOS.bundleVersion}`);
+  /**/console.log(`🔢 iOS bundleVersion incremented to ${tauriConf.bundle.iOS.bundleVersion}`);
   tauriConf.bundle.android.versionCode = Number(tauriConf.bundle.android.versionCode || 0) + 1;
-  console.log(`🔢 android bundleVersion incremented to ${tauriConf.bundle.android.versionCode}`);
+  /**/console.log(`🔢 android bundleVersion incremented to ${tauriConf.bundle.android.versionCode}`);
 }
 
 fs.writeFileSync(tauriConfPath, JSON.stringify(tauriConf, null, 2));
@@ -101,9 +101,9 @@ for (const { file, pattern, replacement } of targets) {
 
   if (updated !== content) {
     fs.writeFileSync(filePath, updated, "utf8");
-    console.log(`✅ Updated: ${file}`);
+    /**/console.log(`✅ Updated: ${file}`);
   } else {
-    console.log(`ℹ️  No changes needed: ${file}`);
+    /**/console.log(`ℹ️  No changes needed: ${file}`);
   }
 }
 
@@ -153,8 +153,8 @@ if (isSemverGreater(newVersion, oldVersion)) {
     );
 
     fs.writeFileSync(changeLogPath, updatedContent, "utf8");
-    console.log(`📝 Added new changelog entry for version ${newVersion} (${bumpType})`);
+    /**/console.log(`📝 Added new changelog entry for version ${newVersion} (${bumpType})`);
   }
 } else {
-  console.log(`ℹ️  Version did not increase; no new changelog entry added.`);
+  /**/console.log(`ℹ️  Version did not increase; no new changelog entry added.`);
 }

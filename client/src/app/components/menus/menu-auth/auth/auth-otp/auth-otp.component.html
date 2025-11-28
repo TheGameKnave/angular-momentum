@@ -1,0 +1,82 @@
+<form [formGroup]="otpForm" (ngSubmit)="onVerifyOtp()" class="auth-form" *transloco="let t">
+  <!-- OTP Instructions -->
+  <div class="otp-instructions">
+    <p>{{ t("auth.We’ve sent a 6-digit verification code to:") }}</p>
+    <p class="otp-email">{{ email() }}</p>
+    <p class="text-sm text-muted-foreground mt-3">
+      {{ t("auth.Didn’t receive the code? Check your spam folder, whitelist support@angularmomentum.app, or try logging in if you already have an account.") }}
+    </p>
+  </div>
+
+  <!-- OTP Input -->
+  <div class="form-field">
+    <label for="auth-otp">{{ t('auth.Verification Code') }}</label>
+    <input
+      #otpInput
+      pInputText
+      id="auth-otp"
+      name="otp"
+      formControlName="otp"
+      type="text"
+      inputmode="numeric"
+      pattern="[0-9]*"
+      maxlength="6"
+      placeholder="000000"
+      autocomplete="one-time-code"
+      class="w-full otp-input"
+      style="padding: 1rem; font-size: 1.5rem; text-align: center; letter-spacing: 0.5rem;"
+      (input)="onOtpInput($event)"
+      (paste)="onOtpPaste($event)"
+    />
+    @if (otpForm.get('otp')?.invalid && otpForm.get('otp')?.touched) {
+      <small class="error-message">{{ t('auth.Please enter the 6-digit code') }}</small>
+    }
+  </div>
+
+  <!-- Success Message -->
+  @if (successMessage()) {
+    <p-message severity="success" [text]="successMessage()!" styleClass="w-full" />
+  }
+
+  <!-- Error Message -->
+  @if (errorMessage()) {
+    <p-message severity="error" [text]="errorMessage()!" styleClass="w-full" />
+  }
+
+  <!-- Verify Button -->
+  <button
+    pButton
+    type="submit"
+    [loading]="loading()"
+    [disabled]="otpForm.invalid"
+    class="w-full"
+  >
+    {{ t('auth.Verify Code') }}
+  </button>
+
+  <!-- OTP Actions -->
+  <div class="otp-actions">
+    <button
+      type="button"
+      class="text-sm hover:underline"
+      (click)="onResendOtp()"
+      [disabled]="loading()"
+    >
+      {{ t('auth.Resend code') }}
+    </button>
+    <button
+      type="button"
+      class="text-sm hover:underline"
+      (click)="onBackToSignup()"
+    >
+      {{ t('Cancel') }}
+    </button>
+    <button
+      type="button"
+      class="text-sm hover:underline"
+      (click)="onSwitchToLogin()"
+    >
+      {{ t('auth.Switch to login') }}
+    </button>
+  </div>
+</form>

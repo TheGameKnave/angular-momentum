@@ -1,17 +1,20 @@
 import { TestBed } from '@angular/core/testing';
 import { InstallersService } from './installers.service';
-import { INSTALLERS } from '@app/helpers/constants';
+import { INSTALLERS } from '@app/constants/app.constants';
 import packageJson from 'src/../package.json';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { ChangeLogService } from './change-log.service';
+import { signal } from '@angular/core';
 
 describe('InstallersService', () => {
   let service: InstallersService;
+  let mockChangeLogService: any;
 
   beforeEach(() => {
-    const mockChangeLogService = {
-      appVersion: jasmine.createSpy('appVersion').and.returnValue(packageJson.version)
+    mockChangeLogService = {
+      // Use custom equality to allow forcing re-evaluation with same value
+      appVersion: signal(packageJson.version, { equal: () => false })
     };
     TestBed.configureTestingModule({
       providers: [
@@ -66,6 +69,19 @@ describe('InstallersService', () => {
       value: originalUserAgent,
       configurable: true,
     });
+  });
+
+  it('should cache installers when version unchanged', () => {
+    // First call - builds cache
+    const first = service.getOtherInstallers();
+
+    // Set to same value - signal will notify due to custom equality,
+    // forcing computed re-run, but cache check should pass
+    mockChangeLogService.appVersion.set(packageJson.version);
+    const second = service.getOtherInstallers();
+
+    // Should be the same cached array (tests cache hit branch)
+    expect(second).toBe(first);
   });
 
 });

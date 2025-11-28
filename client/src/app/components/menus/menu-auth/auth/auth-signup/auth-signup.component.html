@@ -1,0 +1,179 @@
+<form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="auth-form" *transloco="let t">
+  <!-- Email Input -->
+  <div class="form-field">
+    <label for="signup-email">{{ t('Email') }}</label>
+    <input
+      pInputText
+      pTooltip="{{ emailTooltip }}"
+      tooltipPosition="top"
+      id="signup-email"
+      name="email"
+      formControlName="email"
+      type="email"
+      [placeholder]="t('auth.Enter your email')"
+      autocomplete="email"
+      class="w-full"
+    />
+    @if (signupForm.get('email')?.invalid && signupForm.get('email')?.touched) {
+      @if (signupForm.get('email')?.hasError('emailTypo')) {
+        <small class="error-message">
+          {{ t('auth.Did you mean') }}: <strong>{{ signupForm.get('email')?.errors?.['emailTypo'].suggestion }}</strong>?
+        </small>
+      } @else {
+        <small class="error-message">{{ t('auth.Email is required') }}</small>
+      }
+    }
+  </div>
+
+  <!-- Username Input (Optional) -->
+  <div class="form-field">
+    <label for="signup-username">
+      {{ t('Username') }}
+      <span class="form-field-optional">({{ t('optional') }})</span>
+    </label>
+    <input
+      pInputText
+      pTooltip="{{ usernameTooltip }}"
+      tooltipPosition="top"
+      id="signup-username"
+      name="username"
+      formControlName="username"
+      type="text"
+      [placeholder]="t('auth.Choose a username')"
+      autocomplete="username"
+      class="w-full"
+    />
+    @if (signupForm.get('username')?.invalid && signupForm.get('username')?.touched) {
+      <small class="error-message">{{ t('auth.Username not available') }}</small>
+    }
+  </div>
+
+  <!-- Password Input -->
+  <div class="form-field">
+    <label for="signup-password">{{ t('Password') }}</label>
+    <p-iconfield>
+      <input
+        pInputText
+        pTooltip="{{ passwordTooltip }}"
+        tooltipPosition="top"
+        id="signup-password"
+        name="password"
+        formControlName="password"
+        type="password"
+        [attr.type]="showPassword() ? 'text' : 'password'"
+        [placeholder]="t('auth.Enter your password')"
+        autocomplete="new-password"
+        class="w-full"
+      />
+      <p-inputicon
+        [styleClass]="'pi ' + (showPassword() ? 'pi-eye-slash' : 'pi-eye') + ' cursor-pointer text-2xl'"
+        (mousedown)="onPasswordPeekStart()"
+        (mouseup)="onPasswordPeekEnd()"
+        (mouseleave)="onPasswordPeekEnd()"
+        (touchstart)="onPasswordPeekStart()"
+        (touchend)="onPasswordPeekEnd()"
+      />
+    </p-iconfield>
+    @if (signupForm.get('password')?.invalid && signupForm.get('password')?.touched) {
+      <small class="error-message">{{ t('auth.Password is required') }}</small>
+    }
+  </div>
+
+  <!-- Confirm Password Input -->
+  <div class="form-field">
+    <label for="signup-confirm-password">
+      {{ t('auth.Confirm Password') }}
+    </label>
+    <p-iconfield>
+      <input
+        pInputText
+        id="signup-confirm-password"
+        name="confirm-password"
+        formControlName="confirmPassword"
+        type="password"
+        [attr.type]="showConfirmPassword() ? 'text' : 'password'"
+        [placeholder]="t('auth.Re-enter your password')"
+        autocomplete="new-password"
+        class="w-full"
+      />
+      <p-inputicon
+        [styleClass]="'pi ' + (showConfirmPassword() ? 'pi-eye-slash' : 'pi-eye') + ' cursor-pointer text-2xl'"
+        (mousedown)="onConfirmPasswordPeekStart()"
+        (mouseup)="onConfirmPasswordPeekEnd()"
+        (mouseleave)="onConfirmPasswordPeekEnd()"
+        (touchstart)="onConfirmPasswordPeekStart()"
+        (touchend)="onConfirmPasswordPeekEnd()"
+      />
+    </p-iconfield>
+    @if (signupForm.hasError('passwordMismatch') && signupForm.get('confirmPassword')?.touched) {
+      <small class="error-message">{{ t('auth.Passwords do not match') }}</small>
+    }
+  </div>
+
+  <!-- Age Verification Checkbox -->
+  <div class="flex items-center gap-2 mb-4">
+    <p-checkbox
+      formControlName="ageVerification"
+      [binary]="true"
+      inputId="age-verification"
+    />
+    <label for="age-verification" class="cursor-pointer">
+      {{ t('auth.I confirm that I am 16 years of age or older') }}
+    </label>
+  </div>
+
+  <!-- Privacy Policy Checkbox -->
+  <div class="flex items-center gap-2 mb-4">
+    <p-checkbox
+      formControlName="privacyPolicy"
+      [binary]="true"
+      inputId="privacy-policy"
+    />
+    <label for="privacy-policy" class="cursor-pointer">
+      {{ t('auth.I agree to the') }}
+      <a href="/privacy" target="_blank" class="text-primary hover:underline">
+        {{ t('privacy.Privacy Policy') }}
+      </a>
+    </label>
+  </div>
+
+  <!-- Turnstile CAPTCHA (Invisible) -->
+  <div class="form-field hidden">
+    <ngx-turnstile
+      [siteKey]="turnstileSiteKey"
+      (resolved)="onTurnstileResolved($event)"
+      (errored)="onTurnstileError()"
+      theme="light"
+    />
+  </div>
+
+  <!-- Error Message -->
+  @if (errorMessage()) {
+    <div class="mb-4">
+      <p-message severity="error" styleClass="w-full mb-2">
+        <span [innerHTML]="errorMessage()"></span>
+      </p-message>
+
+      @if (showRetry()) {
+        <button
+          pButton
+          type="button"
+          (click)="retryCaptcha()"
+          severity="secondary"
+          class="w-full"
+        >{{t('auth.Try Again')}}</button>
+      }
+    </div>
+  }
+
+  <!-- Submit Button -->
+  <button
+    pButton
+    type="submit"
+    [loading]="loading()"
+    [disabled]="signupForm.invalid"
+    class="w-full"
+  >
+    {{ t('auth.Create Account') }}
+  </button>
+</form>

@@ -1,19 +1,33 @@
-import { Injectable, signal } from '@angular/core';
+import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Socket } from 'ngx-socket-io';
 import { ENVIRONMENT } from 'src/environments/environment';
-import { catchError, map, Observable, of, take, tap } from 'rxjs';
+import { catchError, map, Observable, of, tap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import equal from 'fast-deep-equal';
 import { ArbitraryFeatures, FeatureFlagResponse } from '@app/models/data.model';
 
-type _FeatureFlagKeys = keyof FeatureFlagResponse;
-export type FeatureFlagKeys = {
-  [K in _FeatureFlagKeys]: K;
-}[_FeatureFlagKeys];
+/**
+ * Type representing all possible feature flag keys.
+ */
+export type FeatureFlagKeys = keyof FeatureFlagResponse;
 
+/**
+ * Service for managing feature flags across the application.
+ *
+ * Provides functionality to fetch, update, and monitor feature flags using REST API.
+ * Supports real-time updates via WebSocket for synchronized flag changes across clients.
+ *
+ * Features:
+ * - REST API-based flag retrieval and updates
+ * - WebSocket support for real-time flag synchronization
+ * - Signal-based state management for reactive updates
+ * - Deep equality checking to prevent unnecessary updates
+ */
 @Injectable({ providedIn: 'root' })
 export class FeatureFlagService {
-  features = signal<Record<string, boolean>>({});
+  features = signal<Partial<Record<FeatureFlagKeys, boolean>>>({});
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
     protected readonly http: HttpClient,
@@ -26,11 +40,15 @@ export class FeatureFlagService {
     });
   }
 
+  /**
+   * Fetch all feature flags from the backend using REST API.
+   * Updates the features signal with the retrieved flags.
+   * @returns Observable of feature flag key-value pairs
+   */
   getFeatureFlags(): Observable<FeatureFlagResponse> {
-    const query = getFeatureFlagsQuery();
-    return this.http.post<{ data: { featureFlags: { key: FeatureFlagKeys; value: boolean }[] } }>(ENVIRONMENT.baseUrl + '/api', { query }).pipe(
-      map((response) => {
-        const featureFlags = response.data.featureFlags.reduce((acc, flag) => {
+    return this.http.get<{ key: FeatureFlagKeys; value: boolean }[]>(ENVIRONMENT.baseUrl + '/api/feature-flags').pipe(
+      map((flags) => {
+        const featureFlags = flags.reduce((acc, flag) => {
           acc[flag.key] = flag.value;
           return acc;
         }, {} as FeatureFlagResponse);
@@ -47,51 +65,31 @@ export class FeatureFlagService {
 
   /**
    * Update a feature flag both locally and on the backend.
-   * Sends updates via GraphQL.
+   * Sends updates via REST API.
+   * Uses deep equality checking to prevent unnecessary updates and backend calls.
+   * @param feature - The feature flag key to update
+   * @param value - The new boolean value for the feature flag
    */
-  setFeature(feature: FeatureFlagKeys, value: boolean) {
+  setFeature<T extends FeatureFlagKeys>(feature: T, value: boolean) {
     const newFeatures = { ...this.features(), [feature]: value };
     if(!equal(newFeatures,this.features())){
       this.features.set(newFeatures);
-    
-      // Notify backend of the updated flag using GraphQL request
-      const mutation = updateFeatureFlagMutation();
-      this.http.post(ENVIRONMENT.baseUrl + '/api', {
-        query: mutation,
-        variables: { key: feature, value },
-      }).pipe(take(1)).subscribe();
+
+      // Notify backend of the updated flag using REST API
+      this.http.put(ENVIRONMENT.baseUrl + `/api/feature-flags/${feature}`, { value })
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe();
     }
   }
 
   /**
    * Get the value of a specific feature flag.
+   * Returns true if the flag is not explicitly set to false (defaults to enabled).
+   * @param feature - The feature flag key to retrieve
+   * @returns Boolean value of the feature flag (defaults to true if not set)
    */
-  getFeature(feature: FeatureFlagKeys): boolean {
-    return this.features()[feature] ?? feature === 'Features';
+  getFeature<T extends FeatureFlagKeys>(feature: T): boolean {
+    return this.features()[feature] !== false;
   }
 
-}
-/**
- * graphQL queries to handle feature flags
- */
-export function getFeatureFlagsQuery() {
-  return `
-    query GetFeatureFlags {
-      featureFlags {
-        key
-        value
-      }
-    }
-  `;
-}
-
-export function updateFeatureFlagMutation() {
-  return `
-    mutation UpdateFeatureFlag($key: String!, $value: Boolean!) {
-      updateFeatureFlag(key: $key, value: $value) {
-        key
-        value
-      }
-    }
-  `;
 }

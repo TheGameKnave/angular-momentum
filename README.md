@@ -12,12 +12,12 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Heroku deployment
 * Google Analytics
 * Service worker to persist app and manage versions *
-* Hot module replacement for faster dev iteration
 * Typescript with node for back-end
 * Client & Server unit testing via jasmine
 * Benchmark memory usage and response times (throttled for mobile) in tests
 * Internationalization (i18n) with Transloco
 * IndexedDB for offline storage *
+* Documentation enforced via husky
 * e2e testing with TestCafe + snapshots
 * 100% coverage in unit tests (jasmine for client and jest for server)
 * Feature flags *
@@ -29,14 +29,17 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Network connectivity detection *
 * CDN for static assets and binary distros
 * Tauri app signing and (desktop) auto-updating for distribution to Android, iOS, macOS, Windows, and Linux.
+* Automatic platform deploys via Github Actions
+* Supabase(?) user management (emails and password resetting, etc) *
+* cookie consent banner *
+* timezone detection AND user-setting *
+* Push notifications (WebSocket-based) for Web, PWA, and all Tauri platforms
 
 (* indicates a feature that’s visible in the sample app)
 
-## Future features:
-* Automatic platform deploys via Github Actions
-* Supabase(?) user management (emails and password resetting and deliverability) *
-* Push notifications
+## Future features
 * Server-side rendering
+* Angular 21, Vitest, Zoneless
 * Lighthouse CI to mitigate performance slip
 
 ## License
@@ -198,6 +201,121 @@ See build instructions above.
 
 #### Linux
 On a linux install; run `npm run tauri build` to build a standalone release for Linux.
+
+## Push Notifications
+
+The app includes a complete push notification system that works across all platforms (Web, PWA, Desktop, Mobile).
+
+### Architecture
+
+- **NotificationService** - Main service for managing notifications, permissions, and notification history
+- **NotificationBellComponent** - UI component with bell icon, badge, and dropdown notification center
+- **WebSocket Delivery** - Real-time notification delivery via Socket.IO
+- **GraphQL API** - Backend mutations for sending notifications
+- **Platform Support**:
+  - **Web/PWA**: Uses Web Notifications API + Service Worker
+  - **Tauri (Desktop/Mobile)**: Uses `tauri-plugin-notification` for native OS notifications
+
+### Quick Start
+
+#### 1. Add Notification Bell to Your App
+
+```typescript
+import { NotificationBellComponent } from './components/notification-bell/notification-bell.component';
+
+@Component({
+  imports: [NotificationBellComponent],
+  template: `
+    <nav>
+      <app-notification-bell />
+    </nav>
+  `
+})
+```
+
+#### 2. Request Permission
+
+```typescript
+constructor(private notificationService: NotificationService) {}
+
+async enableNotifications() {
+  const granted = await this.notificationService.requestPermission();
+}
+```
+
+#### 3. Send Notifications
+
+**From Angular:**
+```typescript
+await this.notificationService.show({
+  title: 'New Message',
+  body: 'You have a new message',
+  icon: '/assets/icons/icon.png'
+});
+```
+
+**From Backend (GraphQL):**
+```graphql
+mutation {
+  sendNotification(
+    title: "System Update"
+    body: "Update available"
+  ) {
+    success
+    message
+  }
+}
+```
+
+**From Backend (Node.js):**
+```typescript
+import { broadcastNotification } from './services/notificationService';
+
+const io = app.get('io');
+broadcastNotification(io, {
+  title: 'Alert',
+  body: 'Maintenance tonight'
+});
+```
+
+### API Reference
+
+**NotificationService Methods:**
+- `show(options)` - Show a notification
+- `requestPermission()` - Request notification permission
+- `checkPermission()` - Check current permission status
+- `isSupported()` - Check if notifications are supported
+- `markAsRead(id)` - Mark notification as read
+- `clearAll()` - Clear all notifications
+
+**Reactive Signals:**
+- `permissionGranted` - Permission status
+- `notifications` - All notifications array
+- `unreadCount` - Number of unread notifications
+
+**Backend Functions:**
+- `broadcastNotification(io, notification)` - Send to all clients
+- `sendNotificationToUser(io, socketId, notification)` - Send to specific user
+- `sendNotificationToRoom(io, room, notification)` - Send to room/group
+
+### Feature Flag
+
+Push notifications are controlled by the `Notifications` feature flag. Toggle via GraphQL:
+
+```graphql
+mutation {
+  updateFeatureFlag(key: "Notifications", value: true) {
+    key
+    value
+  }
+}
+```
+
+### Platform Notes
+
+- **Web/PWA**: Requires HTTPS in production, service worker registration
+- **Tauri Desktop**: Native OS notifications, works even when app is closed
+- **Tauri Mobile**: Requires notification permissions in platform-specific configs
 
 ## CDN
 

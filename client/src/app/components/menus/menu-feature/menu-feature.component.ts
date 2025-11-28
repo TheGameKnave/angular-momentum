@@ -13,14 +13,21 @@ import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { filter } from 'rxjs';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { SlugPipe } from '@app/pipes/slug.pipe';
-import { ComponentListService } from '@app/services/component-list.service';
 import { FeatureFlagService } from '@app/services/feature-flag.service';
 import { HelpersService } from '@app/services/helpers.service';
-import { SCREEN_SIZES } from '@app/helpers/constants';
+import { SCREEN_SIZES } from '@app/constants/ui.constants';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConnectivityService } from '@app/services/connectivity.service';
 
+/**
+ * Menu feature component that displays a horizontal navigation menu of enabled features.
+ *
+ * This component provides a responsive navigation menu that automatically scrolls to
+ * center the active menu item. On mobile devices, it uses horizontal scrolling with
+ * special handling for Chrome Mobile to prevent visual jumps. The menu dynamically
+ * shows only features that are currently enabled based on feature flags.
+ */
 @Component({
   selector: 'app-menu-feature',
   templateUrl: './menu-feature.component.html',
@@ -44,7 +51,6 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
   isMobile = signal(window.innerWidth < SCREEN_SIZES.sm);
 
   constructor(
-    readonly componentListService: ComponentListService,
     protected featureFlagService: FeatureFlagService,
     protected readonly helpersService: HelpersService,
     private readonly router: Router,
@@ -53,10 +59,19 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
     protected readonly connectivity: ConnectivityService,
   ) {}
 
+  /**
+   * Angular lifecycle hook called after component initialization.
+   * Starts the connectivity service to begin monitoring server connection status.
+   */
   ngOnInit() {
     this.connectivity.start();
   }
 
+  /**
+   * Angular lifecycle hook called after component's view has been fully initialized.
+   * Performs initial scroll to center the active menu item and subscribes to router
+   * navigation events to scroll to center the active item after each route change.
+   */
   ngAfterViewInit() {
     // Initial scroll to active route
     this.scrollToCenter();
@@ -70,12 +85,20 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
       .subscribe(() => this.scrollToCenter());
   }
 
+  /**
+   * Detects if the current browser is Chrome on a mobile device.
+   * @returns True if running on Chrome Mobile, false otherwise
+   */
   isChromeMobile(): boolean {
     return /Chrome/.test(navigator.userAgent) && /Mobile/.test(navigator.userAgent);
   }
+
   /**
    * Smoothly scrolls the selected menu item into horizontal center view.
-   * Fully zoneless + Chrome-safe (no setTimeout).
+   * Uses a retry mechanism with requestAnimationFrame to ensure the DOM is ready.
+   * On Chrome Mobile, uses immediate scrolling without animation to prevent visual jumps.
+   * On other platforms, uses smooth scrolling behavior. On desktop, resets scroll to left.
+   * Fully zoneless and Chrome-safe (no setTimeout).
    */
   scrollToCenter(): void {
     const container = this.scrollArea?.nativeElement;
@@ -113,10 +136,19 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
     requestAnimationFrame(tryScroll);
   }
 
+  /**
+   * Determines whether to show tooltips for menu items.
+   * @param always - If true, always shows tooltip regardless of device type
+   * @returns True if tooltips should be shown (mobile or always parameter is true)
+   */
   showTooltip(always = false): boolean {
     return this.isMobile() || always;
   }
 
+  /**
+   * Gets the count of enabled components.
+   * @returns The number of components currently enabled via feature flags
+   */
   componentCount(): number {
     return this.helpersService.enabledComponents().length;
   }

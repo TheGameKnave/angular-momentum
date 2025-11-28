@@ -1,0 +1,88 @@
+<app-anchor-menu position="top-right" width="38rem">
+  <!-- Auth Menu Button -->
+  <span
+    menu-trigger
+    class="auth-menu-button"
+    [attr.aria-label]="authService.isAuthenticated() ? 'Profile' : 'Log in'"
+  >
+    @if (authService.isAuthenticated()) {
+      <i class="pi pi-user text-xl" [class.active-route]="isProfileRoute()"></i>
+    } @else {
+      <i class="pi pi-sign-in text-xl"></i>
+    }
+  </span>
+
+  <!-- Auth Menu Content -->
+  <div menu-content class="menu-auth-container" *transloco="let t">
+    @if (authService.isAuthenticated()) {
+      <!-- Profile View (when authenticated) -->
+      <div class="menu-auth-header">
+        <h3 class="text-lg font-semibold">{{ t('profile.Profile') }}</h3>
+      </div>
+
+      <app-auth-profile
+        [autoCloseSeconds]="autoCloseTimer()"
+        (profileClick)="onViewProfile()"
+        (logoutClick)="onLogout()"
+      />
+
+    } @else {
+      <!-- Login/Signup/Reset View (when not authenticated) -->
+      <div class="menu-auth-header">
+        <div class="auth-tabs">
+          <button
+            type="button"
+            class="auth-tab"
+            [class.active]="authUiState.mode() === 'signup'"
+            (click)="setMode('signup')"
+          >
+            {{ t('auth.Sign Up') }}
+          </button>
+          <button
+            type="button"
+            class="auth-tab"
+            [class.active]="authUiState.mode() === 'login'"
+            (click)="setMode('login')"
+          >
+            {{ t('auth.Log in') }}
+          </button>
+        </div>
+      </div>
+
+      <div class="menu-auth-body">
+        @if (authUiState.awaitingOtpVerification()) {
+          <!-- OTP Verification -->
+          <app-auth-otp
+            [email]="authUiState.pendingEmail()!"
+            (backToSignup)="onBackToSignup()"
+            (switchToLogin)="setMode('login')"
+            (verifySuccess)="onVerifySuccess()"
+          />
+
+        } @else if (authUiState.mode() === 'reset') {
+          <!-- Password Reset -->
+          <app-auth-reset
+            [prefillEmail]="authUiState.loginFormEmail()"
+            (switchToLogin)="setMode('login')"
+            (resetSuccess)="onResetSuccess()"
+          />
+
+        } @else if (authUiState.mode() === 'signup') {
+          <!-- Signup -->
+          <app-auth-signup
+            (switchToLogin)="setMode('login')"
+            (signupSuccess)="onSignupSuccess($event)"
+          />
+
+        } @else {
+          <!-- Login (default) -->
+          <app-auth-login
+            (switchToReset)="onSwitchToReset($event)"
+            (switchToSignup)="setMode('signup')"
+            (loginSuccess)="onLoginSuccess()"
+          />
+        }
+      </div>
+    }
+  </div>
+</app-anchor-menu>

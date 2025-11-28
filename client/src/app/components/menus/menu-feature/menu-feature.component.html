@@ -1,4 +1,4 @@
-<div class="scroll-area scroll-shadows" #scrollArea *transloco="let t">
+<div class="scroll-area" #scrollArea *transloco="let t">
   <ul>
     <!-- Home link -->
     <li class="link-home" #itemEl>
@@ -6,29 +6,29 @@
         [routerLink]="''"
         routerLinkActive="selected"
         [routerLinkActiveOptions]="{ exact: true }"
-        [pTooltip]="showTooltip() ? t('Momentum') : null"
+        [pTooltip]="showTooltip() ? t('page.Momentum') : null"
         tooltipPosition="bottom"
         [tooltipDisabled]="!showTooltip()"
       >
-        <img src="assets/icons/icon-72x72.png" alt="Angular Logo" />
-        @if (!isMobile()) { {{ t('Momentum') }} }
+        <img src="assets/icons/icon-72x72.png" [alt]="t('a11y.{name} Logo', { name: 'Angular' })" />
+        @if (!isMobile()) { {{ t('page.Momentum') }} }
       </a>
       <hr />
     </li>
 
     <!-- Dynamic components -->
-    @for (p of helpersService.enabledComponents(); track p; let i = $index) {
+    @for (p of helpersService.enabledComponents(); track p.name; let i = $index) {
       @if (featureFlagService.getFeature(p.name)) {
         <li #itemEl>
           <a
             [routerLink]="[p.name | slug]"
             routerLinkActive="selected"
-            [pTooltip]="showTooltip() ? t(p.name) : null"
+            [pTooltip]="showTooltip() ? t('nav.' + p.name) : null"
             tooltipPosition="top"
             [tooltipDisabled]="!showTooltip()"
           >
             <i class="{{ p.icon }}"></i>
-            @if (!isMobile()) { <span class="label">{{ t(p.name) }}</span> }
+            @if (!isMobile()) { <span class="label">{{ t('nav.' + p.name) }}</span> }
           </a>
         </li>
       }
@@ -41,12 +41,12 @@
         href="https://ko-fi.com/K3K81AQJZO"
         target="_blank"
         [class.disabled]="!connectivity.isOnline()"
-        [pTooltip]="showTooltip() ? t('Support') : null"
+        [pTooltip]="showTooltip() ? t('page.Support') : null"
         tooltipPosition="top"
         [tooltipDisabled]="!showTooltip()"
       >
-        <img src="assets/icons/kofi-logo.png" alt="Ko-fi Logo" />
-        @if (!isMobile()) { {{ t('Support') }} }
+        <img src="assets/icons/kofi-logo.png" [alt]="t('a11y.{name} Logo', { name: 'Ko-fi' })" />
+        @if (!isMobile()) { {{ t('page.Support') }} }
       </a>
     </li>
   </ul>

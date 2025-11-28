@@ -32,38 +32,30 @@ describe('ChangeLogService', () => {
   });
 
   it('should detect major version', fakeAsync(() => {
-    const mockResponse: { data: { changeLog: ChangeLogResponse[] } } = {
-      data: {
-        changeLog: [
-          { version: '2.0.0', date: '2025-10-25', description: 'Major release', changes: ['New features'] },
-        ],
-      },
-    };
+    const mockResponse: ChangeLogResponse[] = [
+      { version: '2.0.0', date: '2025-10-25', description: 'Major release', changes: ['New features'] },
+    ];
 
     service.refresh();
 
-    const req = httpMock.expectOne('http://localhost:4200/api');
+    const req = httpMock.expectOne('http://localhost:4200/api/changelog');
     req.flush(mockResponse);
     tick();
 
-    expect(service.changes()).toEqual(mockResponse.data.changeLog);
+    expect(service.changes()).toEqual(mockResponse);
     expect(service.appVersion()).toBe('2.0.0');
     expect(service.appDiff().impact).toBe('major');
     expect(service.appDiff().delta).toBe(1);
   }));
 
   it('should detect minor version', fakeAsync(() => {
-    const mockResponse: { data: { changeLog: ChangeLogResponse[] } } = {
-      data: {
-        changeLog: [
-          { version: '1.2.0', date: '2025-10-25', description: 'Minor release', changes: ['Some improvements'] },
-        ],
-      },
-    };
+    const mockResponse: ChangeLogResponse[] = [
+      { version: '1.2.0', date: '2025-10-25', description: 'Minor release', changes: ['Some improvements'] },
+    ];
 
     service.refresh();
 
-    const req = httpMock.expectOne('http://localhost:4200/api');
+    const req = httpMock.expectOne('http://localhost:4200/api/changelog');
     req.flush(mockResponse);
     tick();
 
@@ -72,17 +64,13 @@ describe('ChangeLogService', () => {
   }));
 
   it('should detect patch version', fakeAsync(() => {
-    const mockResponse: { data: { changeLog: ChangeLogResponse[] } } = {
-      data: {
-        changeLog: [
-          { version: '1.0.3', date: '2025-10-25', description: 'Patch release', changes: ['Bug fixes'] },
-        ],
-      },
-    };
+    const mockResponse: ChangeLogResponse[] = [
+      { version: '1.0.3', date: '2025-10-25', description: 'Patch release', changes: ['Bug fixes'] },
+    ];
 
     service.refresh();
 
-    const req = httpMock.expectOne('http://localhost:4200/api');
+    const req = httpMock.expectOne('http://localhost:4200/api/changelog');
     req.flush(mockResponse);
     tick();
 
@@ -95,7 +83,7 @@ describe('ChangeLogService', () => {
 
     service.refresh();
 
-    const req = httpMock.expectOne('http://localhost:4200/api');
+    const req = httpMock.expectOne('http://localhost:4200/api/changelog');
     req.error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
     tick();
 
