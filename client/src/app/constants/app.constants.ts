@@ -48,17 +48,17 @@ export const INSTALLERS: Record<'name' | 'icon' | 'url', string>[] = [
   {
     name: 'Windows',
     icon: 'pi-microsoft',
-    url: 'https://github.com/TheGameKnave/angular-momentum/releases/latest/download/Angular.Momentum_{version}_x64_en-US_windows.msi',
+    url: 'https://github.com/TheGameKnave/angular-momentum/releases/latest/download/Angular.Momentum_{version}_x64_en-US.msi',
   },
   {
     name: 'Mac',
     icon: 'pi-apple',
-    url: 'https://github.com/TheGameKnave/angular-momentum/releases/latest/download/Angular.Momentum_{version}_x64_darwin.dmg',
+    url: 'https://github.com/TheGameKnave/angular-momentum/releases/latest/download/Angular.Momentum_{version}_x64.dmg',
   },
   {
     name: 'Linux',
     icon: 'pi-desktop',
-    url: 'https://github.com/TheGameKnave/angular-momentum/releases/latest/download/Angular.Momentum_{version}_amd64_linux.AppImage',
+    url: 'https://github.com/TheGameKnave/angular-momentum/releases/latest/download/Angular.Momentum_{version}_amd64_AppImage',
   },
 ];
 
