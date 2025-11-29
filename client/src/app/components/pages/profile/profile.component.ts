@@ -160,14 +160,14 @@ export class ProfileComponent implements OnInit {
    * Check if we should auto-expand password panel (e.g., coming from password reset email)
    * and load user settings.
    */
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     // Check for password reset flow via AuthService OR router state
     // The auth service tracks PASSWORD_RECOVERY events from Supabase (email link flow)
     const isResetFlow = this.authService.isPasswordRecovery();
 
     // Check for router state from OTP password reset flow
     const navigation = this.router.getCurrentNavigation();
-    const routerState = navigation?.extras?.state || window.history.state;
+    const routerState = navigation?.extras?.state || globalThis.history.state;
     const expandPasswordPanel = routerState?.['expandPasswordPanel'];
 
     if (isResetFlow || expandPasswordPanel) {
@@ -189,7 +189,15 @@ export class ProfileComponent implements OnInit {
       this.selectedTimezone.set(this.userSettingsService.detectTimezone());
     }
 
-    // Load username
+    // Load username asynchronously
+    this.loadUsernameAsync();
+  }
+
+  /**
+   * Load username data asynchronously.
+   * Called from ngOnInit without blocking.
+   */
+  private async loadUsernameAsync(): Promise<void> {
     await this.usernameService.loadUsername();
     const usernameData = this.usernameService.username();
     const username = usernameData?.username ?? '';
@@ -417,14 +425,14 @@ export class ProfileComponent implements OnInit {
     this.usernameSuccess.set(false);
 
     try {
-      if (!newUsername) {
-        // Blank username = delete
-        await this.usernameService.deleteUsername();
-        this.originalUsername.set('');
-      } else {
+      if (newUsername) {
         // Update username
         await this.usernameService.updateUsername(newUsername);
         this.originalUsername.set(newUsername);
+      } else {
+        // Blank username = delete
+        await this.usernameService.deleteUsername();
+        this.originalUsername.set('');
       }
 
       // Success!

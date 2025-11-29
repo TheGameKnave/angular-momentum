@@ -101,5 +101,21 @@ describe('LogService', () => {
 
       expect(consoleSpy).toHaveBeenCalledWith('[Unknown] Test message', '');
     });
+
+    it('should return Unknown when caller line does not match expected pattern', () => {
+      Object.defineProperty(ENVIRONMENT, 'env', { value: 'development', configurable: true });
+
+      // Mock split to return a stack with a non-matching caller line format
+      spyOn(String.prototype, 'split').and.returnValue([
+        'Error: Stack trace',
+        '    at getCallerName',
+        '    at log',
+        '    <anonymous>',  // Line that doesn't match "at ClassName.method" pattern
+      ]);
+
+      service.log('Test message');
+
+      expect(consoleSpy).toHaveBeenCalledWith('[Unknown] Test message', '');
+    });
   });
 });

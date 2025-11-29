@@ -134,7 +134,7 @@ export class AuthResetComponent implements OnInit {
    */
   onOtpInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const filtered = input.value.replace(/\D/g, '');
+    const filtered = input.value.replaceAll(/\D/g, '');
     if (input.value !== filtered) {
       input.value = filtered;
       this.resetForm.get('otpCode')?.setValue(filtered);
@@ -154,7 +154,7 @@ export class AuthResetComponent implements OnInit {
   onOtpPaste(event: ClipboardEvent): void {
     event.preventDefault();
     const pastedText = event.clipboardData?.getData('text') ?? '';
-    const filtered = pastedText.replace(/\D/g, '').slice(0, 6); // Only take first 6 digits
+    const filtered = pastedText.replaceAll(/\D/g, '').slice(0, 6); // Only take first 6 digits
     this.resetForm.get('otpCode')?.setValue(filtered);
 
     // Auto-submit when 6 digits are pasted

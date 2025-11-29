@@ -74,7 +74,7 @@ export class CookieConsentService {
    */
   private loadAnalytics(): void {
     // Skip if on localhost (Hotjar already does this check)
-    if (window.location.hostname === 'localhost') {
+    if (globalThis.location.hostname === 'localhost') {
       this.logService.log('Skipping analytics on localhost');
       return;
     }
@@ -98,13 +98,13 @@ export class CookieConsentService {
     // istanbul ignore next
     gaScript.onload = () => {
       /* eslint-disable @typescript-eslint/no-explicit-any */
-      (window as any).dataLayer = (window as any).dataLayer || [];
+      (globalThis as any).dataLayer = (globalThis as any).dataLayer || [];
       /**
        * Push data to Google Analytics dataLayer.
        * @param args - Arguments to push to dataLayer
        */
       function gtag(...args: (string | Date)[]) {
-        (window as any).dataLayer.push(args);
+        (globalThis as any).dataLayer.push(args);
       }
       /* eslint-enable @typescript-eslint/no-explicit-any */
       gtag('js', new Date());
@@ -118,22 +118,19 @@ export class CookieConsentService {
    */
   // istanbul ignore next
   private loadHotjar(): void {
-    const logService = this.logService;
-    const constructorName = this.constructor.name;
     /* eslint-disable @typescript-eslint/no-explicit-any, prefer-rest-params */
-    (function (h: any, o: any, t: any, j: any, a?: any, r?: any) {
-      h.hj = h.hj || function () {
-        h.hj.q = h.hj.q || [];
-        h.hj.q.push(arguments);
-      };
-      h._hjSettings = { hjid: 5248028, hjsv: 6 };
-      a = o.getElementsByTagName('head')[0];
-      r = o.createElement('script');
-      r.async = 1;
-      r.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv;
-      a.appendChild(r);
-      logService.log(constructorName, 'Hotjar loaded');
-    })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=');
+    const win = globalThis as any;
+    win.hj = win.hj || function () {
+      win.hj.q = win.hj.q || [];
+      win.hj.q.push(arguments);
+    };
+    win._hjSettings = { hjid: this.HOTJAR_ID, hjsv: this.HOTJAR_SV };
+
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://static.hotjar.com/c/hotjar-${this.HOTJAR_ID}.js?sv=${this.HOTJAR_SV}`;
+    document.head.appendChild(script);
+    this.logService.log('Hotjar loaded');
     /* eslint-enable @typescript-eslint/no-explicit-any, prefer-rest-params */
   }
 }

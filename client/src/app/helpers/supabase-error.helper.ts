@@ -136,7 +136,7 @@ function parseByErrorCode(code: string | undefined, message: string): ParsedSupa
     if (execResult) {
       return {
         key: ERROR_CODE_MAP[code],
-        params: { seconds: parseInt(execResult[1], 10) },
+        params: { seconds: Number.parseInt(execResult[1], 10) },
       };
     }
   }

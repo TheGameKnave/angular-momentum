@@ -18,7 +18,7 @@ import packageJson from 'src/../package.json';
 export class LogService {
   constructor(){
     // Only log in browser, not during tests (Jasmine sets jasmine global)
-    if(typeof (window as Window & { jasmine?: unknown })['jasmine'] === 'undefined' && ENVIRONMENT.env !== 'testing'){
+    if((globalThis as typeof globalThis & { jasmine?: unknown })['jasmine'] === undefined && ENVIRONMENT.env !== 'testing'){
       /**/console.log(`Angular Momentum!
 Version: ${packageJson.version}
 Environment: ${ENVIRONMENT.env}
@@ -53,7 +53,7 @@ github: ${packageJson.repository}
    */
   private getCallerName(): string {
     try {
-      const stack = new Error().stack;
+      const stack = new Error('Stack trace').stack;
       // istanbul ignore next - Error.stack is always defined in V8/Chrome
       if (!stack) return 'Unknown';
 

@@ -71,9 +71,9 @@ export const appProviders = [
   ),
   provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
   // istanbul ignore next
-  !isTestEnvironment ? provideFeatureFlag() : [], // TODO figure out how to mock this in test environment without putting it in the code!!
+  isTestEnvironment ? [] : provideFeatureFlag(), // TODO figure out how to mock this in test environment without putting it in the code!!
   // istanbul ignore next
-  !isTestEnvironment ? provideFeatureMonitor() : [], // Initialize feature monitoring at app startup
+  isTestEnvironment ? [] : provideFeatureMonitor(), // Initialize feature monitoring at app startup
   provideTransloco({
     config: {
       availableLangs: SUPPORTED_LANGUAGES,

@@ -93,7 +93,7 @@ jobs:
           node-version: 22.14.0
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@6d9817901c499d6b02debbb57edb38d33daa680b  # stable
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
@@ -109,7 +109,7 @@ jobs:
           npm ci
 
       - name: Build & Release with Tauri Action
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@19a0c48ddbab7e32639b02f4f553f4f40f2860bd  # v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -155,7 +155,7 @@ jobs:
           java-version: '17'
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@6d9817901c499d6b02debbb57edb38d33daa680b  # stable
         with:
           targets: aarch64-apple-ios,aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
 
@@ -210,7 +210,7 @@ jobs:
           path: ${{ steps.find-ipa.outputs.ipa_path }}
 
       - name: Upload to TestFlight
-        uses: apple-actions/upload-testflight-build@v1
+        uses: apple-actions/upload-testflight-build@54dc215b4cd5529730db39f11c84efdb71414e07  # v1
         with:
           app-path: ${{ steps.find-ipa.outputs.ipa_path }}
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
@@ -218,7 +218,7 @@ jobs:
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407  # v3
 
       - name: Install Android SDK components
         run: |
@@ -226,7 +226,7 @@ jobs:
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Setup Android NDK
-        uses: nttld/setup-ndk@v1
+        uses: nttld/setup-ndk@774e76ad15229a4d9b1b40c8f450ca02cf4c97f0  # v1
         with:
           ndk-version: r26b
           local-cache: true
@@ -249,19 +249,24 @@ jobs:
           echo "android.nonFinalResIds=false" >> "$FILE"
 
       - name: Decode and setup release keystore
+        env:
+          ANDROID_RELEASE_KEYSTORE_BASE64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}
         run: |
-          echo "${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > release.keystore
+          printf '%s' "$ANDROID_RELEASE_KEYSTORE_BASE64" | base64 --decode > release.keystore
           mkdir -p client/build-tools
           mkdir -p client/src-tauri/build-tools
           cp release.keystore client/build-tools/upload-keystore.jks
           cp release.keystore client/src-tauri/build-tools/upload-keystore.jks
 
       - name: Create keystore.properties for production
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           mkdir -p client/src-tauri/gen/android
-          echo "password=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" > client/src-tauri/gen/android/keystore.properties
-          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> client/src-tauri/gen/android/keystore.properties
-          echo "storeFile=../../../build-tools/upload-keystore.jks" >> client/src-tauri/gen/android/keystore.properties
+          printf 'password=%s\n' "$ANDROID_KEYSTORE_PASSWORD" > client/src-tauri/gen/android/keystore.properties
+          printf 'keyAlias=%s\n' "$ANDROID_KEY_ALIAS" >> client/src-tauri/gen/android/keystore.properties
+          printf 'storeFile=../../../build-tools/upload-keystore.jks\n' >> client/src-tauri/gen/android/keystore.properties
 
       - name: Build Android
         run: |
@@ -281,7 +286,7 @@ jobs:
           path: client/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
 
       - name: Deploy to Google Play Store
-        uses: r0adkll/upload-google-play@v1
+        uses: r0adkll/upload-google-play@0250910c30c1c098744c510e32e1659c6af78eb6  # v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: app.angularmomentum

@@ -77,7 +77,7 @@ export class PlatformService {
 
     // At this point we know we're in a browser environment
     // Check if running in Tauri
-    if (typeof window !== 'undefined' && '__TAURI__' in window) {
+    if (globalThis.window !== undefined && '__TAURI__' in globalThis) {
       return Platform.TAURI_APP;
     }
 

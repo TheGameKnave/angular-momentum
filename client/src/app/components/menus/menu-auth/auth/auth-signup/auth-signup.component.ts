@@ -137,7 +137,7 @@ export class AuthSignupComponent {
     this.signupForm.patchValue({ turnstile: '' });
     this.errorMessage.set(
       this.translocoService.translate('auth.Bot check failed. This may be due to network issues or security restrictions. Please reload the page…')
-        .replace(/>a/g,'<a').replace(/>\/a/g,'</a')
+        .replaceAll('>a','<a').replaceAll('>/a','</a')
     );
     this.showRetry.set(true);
   }

@@ -113,7 +113,7 @@ export function emailTypoValidator(): ValidatorFn {
 
     // Check for comma instead of dot in domain
     if (email.includes(',')) {
-      const suggestion = email.replace(/,/g, '.');
+      const suggestion = email.replaceAll(',', '.');
       return {
         emailTypo: {
           message: 'Email contains comma - did you mean a dot?',
@@ -142,7 +142,7 @@ export function isCapsLockOn(event: KeyboardEvent): boolean {
   const char = event.key;
   const shiftPressed = event.shiftKey;
 
-  if (char && char.length === 1) {
+  if (char?.length === 1) {
     const isUpperCase = char === char.toUpperCase() && char !== char.toLowerCase();
     const isLowerCase = char === char.toLowerCase() && char !== char.toUpperCase();
 

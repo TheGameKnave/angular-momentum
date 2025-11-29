@@ -12,12 +12,16 @@ describe('IndexedDBComponent initialization', () => {
   let db: IDBPDatabase;
 
   beforeEach(async () => {
+    TestBed.resetTestingModule();
+
     db = await openDB('momentum', 1, {
-      upgrade(db) {
-        db.createObjectStore('keyval');
+      upgrade(database) {
+        if (!database.objectStoreNames.contains('keyval')) {
+          database.createObjectStore('keyval');
+        }
       },
     });
-    
+
     await TestBed.configureTestingModule({
       imports: [
         IndexedDBComponent,
@@ -37,8 +41,12 @@ describe('IndexedDBComponent initialization', () => {
   });
 
   afterEach(async () => {
-    await db.clear('keyval');
-    db.close();
+    try {
+      await db.clear('keyval');
+      db.close();
+    } catch {
+      // Database may already be closed or in invalid state
+    }
   });
 
   it('should create', () => {
@@ -61,6 +69,8 @@ describe('IndexedDBComponent operations', () => {
   let db: IDBPDatabase;
 
   beforeEach(async () => {
+    TestBed.resetTestingModule();
+
     await TestBed.configureTestingModule({
       imports: [
         IndexedDBComponent,
@@ -78,16 +88,22 @@ describe('IndexedDBComponent operations', () => {
 
     // Create a mock IndexedDB instance
     db = await openDB('momentum', 1, {
-      upgrade(db) {
-        db.createObjectStore('keyval');
+      upgrade(database) {
+        if (!database.objectStoreNames.contains('keyval')) {
+          database.createObjectStore('keyval');
+        }
       },
     });
     await fixture.whenStable();
   });
 
   afterEach(async () => {
-    await db.clear('keyval');
-    db.close();
+    try {
+      await db.clear('keyval');
+      db.close();
+    } catch {
+      // Database may already be closed or in invalid state
+    }
   });
 
   it('should store text area value in IndexedDB', fakeAsync(async () => {
