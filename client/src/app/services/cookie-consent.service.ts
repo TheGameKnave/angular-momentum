@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { LogService } from './log.service';
+import { PlatformService } from './platform.service';
 
 export type CookieConsentStatus = 'pending' | 'accepted' | 'declined';
 
@@ -22,6 +23,7 @@ export class CookieConsentService {
 
   constructor(
     private readonly logService: LogService,
+    private readonly platformService: PlatformService,
   ) {
     logService.log('Service initialized');
     logService.log('Initial consent status:', this.consentStatus());
@@ -34,9 +36,15 @@ export class CookieConsentService {
   }
 
   /**
-   * Load consent status from localStorage
+   * Load consent status from localStorage.
+   * In Tauri apps, skip consent entirely (no cookies in native apps).
    */
   private loadConsentStatus(): CookieConsentStatus {
+    // Skip cookie consent in Tauri apps - no cookies, no banner needed
+    if (this.platformService.isTauri()) {
+      return 'declined';
+    }
+
     const stored = localStorage.getItem(this.CONSENT_KEY);
     return (stored as CookieConsentStatus) || 'pending';
   }
