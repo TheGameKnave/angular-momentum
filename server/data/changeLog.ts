@@ -7,9 +7,12 @@ export const changeLog = [
   {
     version: "20.0.0",
     date: "2025-11-28",
-    description: "New major release",
+    description: "gigantic: menu anchors, privacy/cookies, AUTH",
     changes: [
-      "",
+      "Menu anchor consolidation",
+      "Privacy policy center",
+      "Cookie consent banner",
+      "Auth system via supabase",
     ]
   },
   {
