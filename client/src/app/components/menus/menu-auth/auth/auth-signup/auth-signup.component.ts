@@ -21,6 +21,7 @@ import {
   PASSWORD_REQUIREMENT_KEYS,
   EMAIL_REQUIREMENT_KEYS
 } from '@app/helpers/validation';
+import { parseApiError } from '@app/helpers/api-error.helper';
 
 /**
  * Signup form component for new user registration.
@@ -135,10 +136,7 @@ export class AuthSignupComponent {
 
     this.turnstileToken.set(null);
     this.signupForm.patchValue({ turnstile: '' });
-    this.errorMessage.set(
-      this.translocoService.translate('auth.Bot check failed. This may be due to network issues or security restrictions. Please reload the page…')
-        .replaceAll('>a','<a').replaceAll('>/a','</a')
-    );
+    this.errorMessage.set('auth.Bot check failed. This may be due to network issues or security restrictions. Please reload the page…');
     this.showRetry.set(true);
   }
 
@@ -172,7 +170,8 @@ export class AuthSignupComponent {
     this.loading.set(false);
 
     if (result.error) {
-      this.errorMessage.set(this.translocoService.translate(result.error.message));
+      const parsed = parseApiError(result.error.message);
+      this.errorMessage.set(parsed.key);
       return;
     }
 

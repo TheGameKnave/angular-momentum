@@ -151,7 +151,7 @@
   @if (errorMessage()) {
     <div class="mb-4">
       <p-message severity="error" styleClass="w-full mb-2">
-        <span [innerHTML]="errorMessage()"></span>
+        <span [innerHTML]="t(errorMessage()!)"></span>
       </p-message>
 
       @if (showRetry()) {

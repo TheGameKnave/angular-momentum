@@ -50,7 +50,7 @@
 
   <!-- Error Message -->
   @if (errorMessage()) {
-    <p-message severity="error" [text]="errorMessage()!" styleClass="w-full" />
+    <p-message severity="error" [text]="t(errorMessage()!)" styleClass="w-full" />
   }
 
   <!-- Submit Button -->

@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, input, output, signal, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { AuthService } from '@app/services/auth.service';
 import { OTP_CONFIG } from '@app/constants/auth.constants';
+import { parseApiError } from '@app/helpers/api-error.helper';
 
 /**
  * OTP verification form component.
@@ -50,7 +51,6 @@ export class AuthOtpComponent implements AfterViewInit {
   constructor(
     private readonly authService: AuthService,
     private readonly fb: FormBuilder,
-    private readonly translocoService: TranslocoService,
   ) {
     this.otpForm = this.fb.group({
       otp: ['', [Validators.required, Validators.pattern(OTP_CONFIG.PATTERN)]],
@@ -123,7 +123,8 @@ export class AuthOtpComponent implements AfterViewInit {
     this.loading.set(false);
 
     if (result.error) {
-      this.errorMessage.set(this.translocoService.translate(result.error.message));
+      const parsed = parseApiError(result.error.message);
+      this.errorMessage.set(parsed.key);
       return;
     }
 
@@ -145,11 +146,12 @@ export class AuthOtpComponent implements AfterViewInit {
     this.loading.set(false);
 
     if (error) {
-      this.errorMessage.set(this.translocoService.translate(error.message));
+      const parsed = parseApiError(error.message);
+      this.errorMessage.set(parsed.key);
       return;
     }
 
-    this.successMessage.set(this.translocoService.translate('auth.New verification code sent!'));
+    this.successMessage.set('auth.New verification code sent!');
   }
 
   /**

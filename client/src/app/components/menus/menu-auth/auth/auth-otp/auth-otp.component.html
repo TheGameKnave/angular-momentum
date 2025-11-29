@@ -35,12 +35,12 @@
 
   <!-- Success Message -->
   @if (successMessage()) {
-    <p-message severity="success" [text]="successMessage()!" styleClass="w-full" />
+    <p-message severity="success" [text]="t(successMessage()!)" styleClass="w-full" />
   }
 
   <!-- Error Message -->
   @if (errorMessage()) {
-    <p-message severity="error" [text]="errorMessage()!" styleClass="w-full" />
+    <p-message severity="error" [text]="t(errorMessage()!)" styleClass="w-full" />
   }
 
   <!-- Verify Button -->

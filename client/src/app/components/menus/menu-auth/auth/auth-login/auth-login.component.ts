@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, output, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -8,6 +8,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { MessageModule } from 'primeng/message';
 import { AuthService } from '@app/services/auth.service';
 import { passwordComplexityValidator } from '@app/helpers/validation';
+import { parseApiError } from '@app/helpers/api-error.helper';
 
 /**
  * Login form component for authentication.
@@ -48,7 +49,6 @@ export class AuthLoginComponent {
   constructor(
     private readonly authService: AuthService,
     private readonly fb: FormBuilder,
-    private readonly translocoService: TranslocoService,
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required]], // Accept email or username
@@ -73,7 +73,8 @@ export class AuthLoginComponent {
     this.loading.set(false);
 
     if (result.error) {
-      this.errorMessage.set(this.translocoService.translate(result.error.message));
+      const parsed = parseApiError(result.error.message);
+      this.errorMessage.set(parsed.key);
       return;
     }
 
