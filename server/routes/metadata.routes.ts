@@ -9,11 +9,11 @@ const router = Router();
  *
  * Response:
  * {
- *   "version": 1.0
+ *   "version": 1
  * }
  */
 router.get('/version', (req: Request, res: Response) => {
-  res.json({ version: 1.0 });
+  res.json({ version: 1 });
 });
 
 /**

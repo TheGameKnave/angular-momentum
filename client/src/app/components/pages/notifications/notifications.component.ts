@@ -196,6 +196,6 @@ export class NotificationsComponent {
    * @returns A string indicating whether the app is running in Tauri (native) or Web/PWA
    */
   get platformType(): string {
-    return '__TAURI__' in window ? 'Tauri (Native)' : 'Web/PWA';
+    return '__TAURI__' in globalThis ? 'Tauri (Native)' : 'Web/PWA';
   }
 }

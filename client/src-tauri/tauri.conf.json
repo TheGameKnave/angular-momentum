@@ -4,7 +4,7 @@
   "version": "20.0.0",
   "identifier": "app.angularmomentum",
   "build": {
-    "beforeDevCommand": "ng serve --hmr --proxy-config src/proxy.conf.json --configuration=tauri-local",
+    "beforeDevCommand": "ng serve --hmr --proxy-config src/proxy.conf.js --configuration=tauri-local",
     "devUrl": "http://localhost:4200",
     "beforeBuildCommand": "npm run build --configuration=production",
     "frontendDist": "../dist/angular-momentum/browser"

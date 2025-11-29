@@ -1,6 +1,6 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { readFeatureFlags } from './lowDBService';
-import { Server as HTTPServer } from 'http';
+import { Server as HTTPServer } from 'node:http';
 import { ALLOWED_ORIGINS } from '../constants/server.constants';
 
 /**

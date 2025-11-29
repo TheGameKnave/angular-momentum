@@ -585,7 +585,7 @@ export class AuthService {
 
     try {
       const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/profile`,
+        redirectTo: `${globalThis.location.origin}/profile`,
       });
 
       if (error) {
@@ -727,14 +727,14 @@ export class AuthService {
 
       // Download the JSON file
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const url = globalThis.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `user-data-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      globalThis.URL.revokeObjectURL(url);
+      a.remove();
 
       this.logService.log('User data exported successfully');
       return { error: null };

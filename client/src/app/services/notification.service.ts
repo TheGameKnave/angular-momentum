@@ -30,7 +30,7 @@ export class NotificationService {
   permissionGranted = signal<boolean>(false);
   notifications = signal<Notification[]>([]);
   unreadCount = signal<number>(0);
-  private readonly isTauri = '__TAURI__' in window;
+  private readonly isTauri = '__TAURI__' in globalThis;
 
   constructor(
     private readonly logService: LogService,
@@ -50,7 +50,7 @@ export class NotificationService {
    * For web platforms, checks the current Notification.permission status.
    */
   private initializePermissionSync(): void {
-    if (!this.isTauri && 'Notification' in window) {
+    if (!this.isTauri && 'Notification' in globalThis) {
       try {
         const granted = Notification.permission === 'granted';
         this.permissionGranted.set(granted);
@@ -133,7 +133,7 @@ export class NotificationService {
    */
   isSupported(): boolean {
     // istanbul ignore next - Browser API feature detection
-    return this.isTauri || ('Notification' in window && 'serviceWorker' in navigator);
+    return this.isTauri || ('Notification' in globalThis && 'serviceWorker' in navigator);
   }
 
   /**
@@ -148,7 +148,7 @@ export class NotificationService {
         const granted = await isPermissionGranted();
         this.permissionGranted.set(granted);
         return granted;
-      } else if ('Notification' in window) {
+      } else if ('Notification' in globalThis) {
         const granted = Notification.permission === 'granted';
         this.permissionGranted.set(granted);
         return granted;
@@ -174,7 +174,7 @@ export class NotificationService {
         this.permissionGranted.set(granted);
         this.logService.log(`Tauri notification permission: ${permission}`);
         return granted;
-      } else if ('Notification' in window) {
+      } else if ('Notification' in globalThis) {
         const permission = await Notification.requestPermission();
         const granted = permission === 'granted';
         this.permissionGranted.set(granted);
@@ -339,7 +339,7 @@ export class NotificationService {
       // Handle notification click
       notification.onclick = () => {
         this.logService.log('Notification clicked');
-        window.focus();
+        globalThis.focus();
         notification.close();
       };
 
