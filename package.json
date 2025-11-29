@@ -27,7 +27,7 @@
     "deploy:staging": "./deploy.sh staging",
     "bump-version": "node bump_version.js",
     "deploy:production": "./deploy.sh production",
-    "prepare": "npx --yes is-ci || husky"
+    "prepare": "npx --yes is-ci || husky || true"
   },
   "workspaces": [
     "./client",
