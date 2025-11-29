@@ -216,6 +216,13 @@ export class MenuAuthComponent implements AfterViewInit {
   }
 
   /**
+   * Handle menu closed - reset UI state to clear any error messages
+   */
+  onMenuClosed(): void {
+    this.authUiState.reset();
+  }
+
+  /**
    * Check if the current route requires authentication by inspecting its guards.
    * Returns true if the current route has AuthGuard in its canActivate array.
    */
