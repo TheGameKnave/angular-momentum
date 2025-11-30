@@ -230,6 +230,11 @@ $text-info-light: #8ff !default;
 
 html {
   font-size: 62.5%;
+
+  // Boost interface size on mobile (1rem = 12px instead of 10px)
+  @media (max-width: 575px) {
+    font-size: 75%;
+  }
 }
 body {
   --p-icon-size: 2rem;
@@ -341,6 +346,9 @@ hr {
 }
 p-panel {
   margin: 1rem 0;
+  .p-panel-header {
+    cursor: pointer;
+  }
   .p-panel-content {
     display: flex;
     gap: 1rem;
@@ -801,6 +809,20 @@ app-anchor-menu {
     border-radius: 0 0.8rem 0 0;
     max-height: 100vh;
   }
+}
+
+// On narrow screens, all anchor menus become top-aligned centered modals
+.screen-xs.not-sm .anchor-menu-panel[class*="position-"] {
+  top: 2rem !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translateX(-50%);
+  width: 95vw !important;
+  max-width: 95vw;
+  max-height: calc(100vh - 4rem);
+  border-radius: 0.8rem;
+  border-width: 1px;
 }
 
 .notification-center-content {

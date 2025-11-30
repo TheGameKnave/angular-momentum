@@ -29,7 +29,7 @@ Add after username section:
 
 ```html
 <!-- Change Email -->
-<p-panel [toggleable]="true" [collapsed]="!emailPanelExpanded()">
+<p-panel toggler="header" [toggleable]="true" [collapsed]="!emailPanelExpanded()">
   <ng-template pTemplate="header">
     <div class="flex items-center gap-2">
       <i class="pi pi-envelope"></i>
