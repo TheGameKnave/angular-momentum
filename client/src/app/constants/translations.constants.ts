@@ -219,6 +219,7 @@ export const PRIVACY_KEYS = [
 export const AUTH_TEMPLATE_KEYS = [
   'auth.We’ve sent a 6-digit verification code to:',
   'auth.Didn’t receive the code? Check your spam folder, whitelist support@angularmomentum.app, or try logging in if you already have an account.',
+  'auth.Bot check failed. This may be due to network issues or security restrictions. Please reload the page…',
   'menu.If it doesn’t update momentarily, please try to clear your cache and refresh your browser.',
 ] as const;
 

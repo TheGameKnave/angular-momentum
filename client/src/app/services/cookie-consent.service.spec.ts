@@ -1,10 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-import { CookieConsentService, CookieConsentStatus } from './cookie-consent.service';
+import { CookieConsentService } from './cookie-consent.service';
 import { LogService } from './log.service';
+import { PlatformService } from './platform.service';
 
 describe('CookieConsentService', () => {
   let service: CookieConsentService;
   let mockLogService: jasmine.SpyObj<LogService>;
+  let mockPlatformService: jasmine.SpyObj<PlatformService>;
   let localStorageStore: { [key: string]: string };
 
   beforeEach(() => {
@@ -21,10 +23,15 @@ describe('CookieConsentService', () => {
     // Mock LogService
     mockLogService = jasmine.createSpyObj('LogService', ['log']);
 
+    // Mock PlatformService (default to non-Tauri)
+    mockPlatformService = jasmine.createSpyObj('PlatformService', ['isTauri']);
+    mockPlatformService.isTauri.and.returnValue(false);
+
     TestBed.configureTestingModule({
       providers: [
         CookieConsentService,
-        { provide: LogService, useValue: mockLogService }
+        { provide: LogService, useValue: mockLogService },
+        { provide: PlatformService, useValue: mockPlatformService }
       ]
     });
   });
@@ -51,6 +58,25 @@ describe('CookieConsentService', () => {
       service = TestBed.inject(CookieConsentService);
 
       expect(service.consentStatus()).toBe('declined');
+    });
+
+    it('should return declined status in Tauri apps (skip cookie consent)', () => {
+      // Reset TestBed to configure with Tauri enabled
+      TestBed.resetTestingModule();
+      mockPlatformService.isTauri.and.returnValue(true);
+
+      TestBed.configureTestingModule({
+        providers: [
+          CookieConsentService,
+          { provide: LogService, useValue: mockLogService },
+          { provide: PlatformService, useValue: mockPlatformService }
+        ]
+      });
+
+      service = TestBed.inject(CookieConsentService);
+
+      expect(service.consentStatus()).toBe('declined');
+      expect(mockPlatformService.isTauri).toHaveBeenCalled();
     });
 
     it('should log initialization details', () => {
@@ -189,7 +215,8 @@ describe('CookieConsentService', () => {
       TestBed.configureTestingModule({
         providers: [
           CookieConsentService,
-          { provide: LogService, useValue: mockLogService }
+          { provide: LogService, useValue: mockLogService },
+          { provide: PlatformService, useValue: mockPlatformService }
         ]
       });
 
@@ -207,7 +234,8 @@ describe('CookieConsentService', () => {
       TestBed.configureTestingModule({
         providers: [
           CookieConsentService,
-          { provide: LogService, useValue: mockLogService }
+          { provide: LogService, useValue: mockLogService },
+          { provide: PlatformService, useValue: mockPlatformService }
         ]
       });
 

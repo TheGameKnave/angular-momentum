@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, NavigationEnd } from '@angular/router';
 import { signal } from '@angular/core';
-import { of, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { MenuAuthComponent } from './menu-auth.component';
 import { AuthService } from '@app/services/auth.service';
 import { AuthUiStateService } from '@app/services/auth-ui-state.service';
@@ -326,6 +326,13 @@ describe('MenuAuthComponent', () => {
       fixture.detectChanges();
 
       expect(component.isProfileRoute()).toBe(false);
+    });
+  });
+
+  describe('onMenuClosed', () => {
+    it('should reset auth UI state', () => {
+      component.onMenuClosed();
+      expect(mockAuthUiState.reset).toHaveBeenCalled();
     });
   });
 });

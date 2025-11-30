@@ -109,8 +109,8 @@ describe('AuthLoginComponent', () => {
       await component.onSubmit();
 
       expect(component.loading()).toBe(false);
-      // Component translates the key, so expect translated value
-      expect(component.errorMessage()).toBe('Invalid credentials');
+      // Component stores the translation key, template translates it
+      expect(component.errorMessage()).toBe('error.Invalid credentials');
     });
 
     it('should set loading state during login', async () => {

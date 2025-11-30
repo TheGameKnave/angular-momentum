@@ -277,7 +277,8 @@ describe('AuthOtpComponent', () => {
       expect(mockAuthService.resendOtp).toHaveBeenCalledWith('test@example.com');
       expect(component.loading()).toBe(false);
       expect(component.errorMessage()).toBeNull();
-      expect(component.successMessage()).toBe('New verification code sent!');
+      // Component stores the translation key, template translates it
+      expect(component.successMessage()).toBe('auth.New verification code sent!');
     });
 
     it('should handle resend OTP error', async () => {
