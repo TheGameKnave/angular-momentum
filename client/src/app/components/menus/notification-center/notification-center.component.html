@@ -13,8 +13,8 @@
   </span>
 
   <!-- Menu Content: Notification Center -->
-  <div menu-content class="notification-center notification-center-content">
-      <div class="notification-center-header">
+  <div menu-content>
+      <div menu-header class="notification-center-header">
         <h3>{{ t('nav.Notifications') }}</h3>
         <div class="notification-center-actions">
           @if (notificationService.unreadCount() > 0) {
@@ -39,7 +39,7 @@
         <!-- Close button removed - handled by anchor-menu backdrop -->
       </div>
 
-      <div class="notification-center-body">
+      <div menu-body class="notification-center-body">
         @if (notificationService.notifications().length === 0) {
           <div class="notification-empty">
             <i class="pi pi-bell"></i>
@@ -82,7 +82,7 @@
       </div>
 
     @if (!notificationService.permissionGranted()) {
-      <div class="notification-center-footer">
+      <div menu-footer class="notification-center-footer">
         <p-button
           (onClick)="requestPermission()"
           [label]="t('notification.Enable Notifications')"

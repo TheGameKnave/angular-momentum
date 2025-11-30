@@ -13,10 +13,10 @@
   </span>
 
   <!-- Auth Menu Content -->
-  <div menu-content class="menu-auth-container" *transloco="let t">
+  <div menu-content *transloco="let t">
     @if (authService.isAuthenticated()) {
       <!-- Profile View (when authenticated) -->
-      <div class="menu-auth-header">
+      <div menu-header class="menu-auth-header">
         <h3 class="text-lg font-semibold">{{ t('profile.Profile') }}</h3>
       </div>
 
@@ -28,7 +28,7 @@
 
     } @else {
       <!-- Login/Signup/Reset View (when not authenticated) -->
-      <div class="menu-auth-header">
+      <div menu-header class="menu-auth-header">
         <div class="auth-tabs">
           <button
             type="button"
@@ -49,7 +49,7 @@
         </div>
       </div>
 
-      <div class="menu-auth-body">
+      <div menu-body class="menu-auth-body">
         @if (authUiState.awaitingOtpVerification()) {
           <!-- OTP Verification -->
           <app-auth-otp

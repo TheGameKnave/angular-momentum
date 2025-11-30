@@ -1,5 +1,9 @@
 @charset "UTF-8";
 
+// ============================================================================
+// 1. IMPORTS & FONTS
+// ============================================================================
+
 @use "tailwindcss";
 @import "./vendor/flag-icons.css";
 @import "primeicons/primeicons.css";
@@ -18,6 +22,7 @@
   font-weight: 100 900;
   font-style: italic;
 }
+
 /// Regular font family
 /// @type List
 $text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC', 'Segoe UI', 'Arial Unicode MS', Arial, sans-serif !default;
@@ -26,14 +31,17 @@ $text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC
 /// @type List
 $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Monaco', monospace !default;
 
-///////////
-// Theme //
-///////////
+// ============================================================================
+// 2. VARIABLES (THEME)
+// ============================================================================
 
+// Brand colors
 $faint-brand: #9fe !default;
 $light-brand: #0ca !default;
 $brand: #1b9 !default;
 $dark-brand: #278 !default;
+
+// Gray scale
 $faint-gray: #eee !default;
 $light-gray: #ccc !default;
 $high-gray: #aaa !default;
@@ -41,13 +49,29 @@ $mid-gray: #808080 !default;
 $low-gray: #444 !default;
 $dim-gray: #333 !default;
 $dark-gray: #222 !default;
+
+// Effects
 $shadow: rgba(0, 0, 0, 0.2) !default;
 $backdrop: rgba(0, 0, 0, 0.5) !default;
+
+// Text colors
 $text-light: #f4f4f4 !default;
 $text-warning-light: #ffa !default;
 $text-error-light: #f88 !default;
 $text-success-light: #8f8 !default;
 $text-info-light: #8ff !default;
+
+// UI colors
+$error-red: #e74c3c !default;
+$focus-ring: #667eea !default;
+$highlight-bg: rgba(102, 126, 234, 0.08) !default;
+$highlight-bg-active: rgba(102, 126, 234, 0.12) !default;
+$progress-start: #10b981 !default;
+$progress-end: #059669 !default;
+
+// ============================================================================
+// 3. DARK THEME (.app-dark)
+// ============================================================================
 
 .app-dark {
   // CSS Custom Properties for PrimeNG
@@ -86,7 +110,7 @@ $text-info-light: #8ff !default;
   }
 
   // Borders
-  app-menu-feature, .anchor-menu-panel, header, footer {
+  app-menu-feature, .anchor-menu-panel, header, footer, .cookie-banner {
     border-color: $mid-gray;
   }
   .p-tooltip .p-tooltip-text {
@@ -138,11 +162,6 @@ $text-info-light: #8ff !default;
     &:hover {
       border-color: $light-brand;
     }
-  }
-
-  // Buttons
-  .btn-primary {
-    color: $text-light;
   }
 
   // Feature toggles
@@ -221,12 +240,11 @@ $text-info-light: #8ff !default;
       color: $light-brand;
     }
   }
-
 }
 
-//////////
-// Base //
-//////////
+// ============================================================================
+// 4. BASE STYLES (html, body, typography, reset)
+// ============================================================================
 
 html {
   font-size: 62.5%;
@@ -236,6 +254,7 @@ html {
     font-size: 75%;
   }
 }
+
 body {
   --p-icon-size: 2rem;
   --p-floatlabel-active-font-size: 1.4rem;
@@ -244,9 +263,9 @@ body {
   --p-inputtext-font-size: 1.4rem;
   --p-content-font-size: 1.4rem;
   font: normal 1.2rem / 1.4 $text-font-stack;
-  font-family: $text-font-stack;
   font-weight: 500;
   font-feature-settings: "lnum";
+
   .main, app-menu-feature {
     padding-bottom: env(safe-area-inset-bottom) !important;
   }
@@ -256,58 +275,29 @@ body {
   app-menu-feature {
     top: env(safe-area-inset-top);
   }
+
   h1 {
     font-weight: 600;
     font-size: 2.8rem;
   }
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  h2, h3, h4, h5, h6 {
     font-weight: 500;
   }
-  h2 {
-    font-size: 2.4rem;
-  }
-  h3 {
-    font-size: 2rem;
-  }
-  h4 {
-    font-size: 1.8rem;
-  }
-  h5 {
-    font-size: 1.6rem;
-  }
-  h6 {
-    font-size: 1.4rem;
-  }
+  h2 { font-size: 2.4rem; }
+  h3 { font-size: 2rem; }
+  h4 { font-size: 1.8rem; }
+  h5 { font-size: 1.6rem; }
+  h6 { font-size: 1.4rem; }
   p {
     font-size: 1.6rem;
     line-height: 1.6;
   }
 }
 
-// PrimeNG font size overrides to compensate for reduced base font size
-// PrimeNG assumes 1rem = 16px, but we set 1rem = 10px for easier math
-.p-inputtext,
-.p-button,
-.p-button-label {
-  font-size: 1.4rem !important;
-}
-.p-checkbox,
-.p-checkbox-box {
-  width: 2rem !important;
-  height: 2rem !important;
-}
-.p-message .p-message-text,
-.p-message .p-message-detail {
-  font-size: 1.4rem !important;
-}
-
 .monospace {
   font-family: $code-font-stack;
 }
+
 hr {
   border: 0;
   margin-block-end: 0;
@@ -325,8 +315,9 @@ hr {
     height: 1.5px;
   }
 }
+
 * {
-    &:not(.p-tooltip) {
+  &:not(.p-tooltip) {
     transition: color 0.2s ease-in-out,
                 background-color 0.2s ease-in-out,
                 border-color 0.2s ease-in-out,
@@ -341,40 +332,11 @@ hr {
     display: none;                /* Chrome, Safari, iOS */
   }
 }
-.movable, .resizable, .menu, .panel, .sidebar, app-menu-feature, app-menu-language, app-menu-change-log {
-  transition: all 0.2s ease-in-out;
-}
-p-panel {
-  margin: 1rem 0;
-  .p-panel-header {
-    cursor: pointer;
-  }
-  .p-panel-content {
-    display: flex;
-    gap: 1rem;
-  }
-}
-.p-tooltip-top {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-}
-.p-tooltip .p-tooltip-text {
-  border: 1px solid transparent;
-  max-width: 30rem !important;
-  width: max-content !important;
-  white-space: pre-line !important;
-  text-align: left !important;
-  display: block !important;
-}
-.scroll-area {
-  height: 100%;
-  overflow-y: auto;
-}
 
 a {
   text-decoration: none;
 }
+
 p a:hover {
   text-decoration: underline;
   cursor: pointer;
@@ -386,6 +348,7 @@ p a:hover {
   -webkit-filter: grayscale(100%);
   filter: grayscale(100%);
 }
+
 button {
   font-size: 2rem;
   ul {
@@ -393,28 +356,79 @@ button {
     text-align: left;
   }
 }
+
 button,
 input[type="submit"],
 input[type="reset"],
 input[type="button"],
 input[type="checkbox"],
-label[for]
-{
+label[for] {
   cursor: pointer;
 }
+
 textarea {
   font-size: 1.4rem !important;
   width: 100%;
 }
+
 ul {
   list-style-type: none;
   margin: 0;
   padding: 0;
 }
 
-////////////
-// Layout //
-////////////
+// ============================================================================
+// 5. PRIMENG OVERRIDES
+// ============================================================================
+
+// PrimeNG font size overrides to compensate for reduced base font size
+// PrimeNG assumes 1rem = 16px, but we set 1rem = 10px for easier math
+.p-inputtext,
+.p-button,
+.p-button-label {
+  font-size: 1.4rem !important;
+}
+
+.p-checkbox,
+.p-checkbox-box {
+  width: 2rem !important;
+  height: 2rem !important;
+}
+
+.p-message .p-message-text,
+.p-message .p-message-detail {
+  font-size: 1.4rem !important;
+}
+
+p-panel {
+  margin: 1rem 0;
+  .p-panel-header {
+    cursor: pointer;
+  }
+  .p-panel-content {
+    display: flex;
+    gap: 1rem;
+  }
+}
+
+.p-tooltip-top {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.p-tooltip .p-tooltip-text {
+  border: 1px solid transparent;
+  max-width: 30rem !important;
+  width: max-content !important;
+  white-space: pre-line !important;
+  text-align: left !important;
+  display: block !important;
+}
+
+// ============================================================================
+// 6. LAYOUT (main, header, footer, content)
+// ============================================================================
 
 .main {
   display: flex;
@@ -422,9 +436,11 @@ ul {
   min-height: 100vh;
   padding-left: 5rem;
 }
-.anchor-menu-panel, header, footer {
+
+header, footer {
   border: 0 solid $mid-gray;
 }
+
 header {
   flex: 0 0 auto;
   display: flex;
@@ -433,14 +449,16 @@ header {
   border-bottom-width: 1px;
   > div {
     display: flex;
-    align-items: center; /* centers text and icons inside each container */
-    gap: 1rem; /* optional: space between text and icons */
+    align-items: center;
+    gap: 1rem;
   }
 }
+
 .content {
   flex: 1 0 auto;
   padding: 1rem;
 }
+
 footer {
   flex: 0 0 auto;
   display: flex;
@@ -470,6 +488,14 @@ footer {
   }
 }
 
+// ============================================================================
+// 7. COMPONENTS
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// 7.1 Feature Menu (app-menu-feature)
+// ----------------------------------------------------------------------------
+
 app-menu-feature {
   position: fixed;
   z-index: 100;
@@ -482,11 +508,20 @@ app-menu-feature {
   width: 5rem;
   transition: width 0.1s ease-in-out !important;
   border-right-width: 1px;
+
   &:hover {
     width: 18rem;
     box-shadow: 1rem 0 1rem $shadow;
   }
+
+  .link-home, .kofi-button {
+    position: absolute;
+    left: 0.6rem;
+    right: 0.6rem;
+  }
+
   .link-home {
+    top: 0.6rem;
     white-space: nowrap;
     img {
       width: 3rem;
@@ -502,6 +537,31 @@ app-menu-feature {
       }
     }
   }
+
+  .kofi-button {
+    bottom: 0.6rem;
+    a {
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      background-color: $dark-brand;
+      border: 1px solid transparent;
+      border-radius: 0.6rem;
+      padding: 0.4rem 0.6rem;
+      font-size: 1.6rem;
+      white-space: nowrap;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    img {
+      width: 2.6rem;
+      height: 2.6rem;
+      object-fit: contain;
+      flex-shrink: 0;
+      display: block;
+    }
+  }
+
   a {
     display: inline-flex;
     width: 100%;
@@ -516,7 +576,6 @@ app-menu-feature {
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
-      flex: 1; /* ← this is crucial */
     }
     &:hover, &.selected {
       color: $light-brand;
@@ -525,6 +584,7 @@ app-menu-feature {
       cursor: default;
     }
   }
+
   i.pi {
     font-size: 2.6rem;
     vertical-align: middle;
@@ -532,172 +592,18 @@ app-menu-feature {
   }
 }
 
-// Overlay menu containers
-.menu-overlay-panel {
-  max-height: calc(100vh - 8rem);
+.movable, .resizable, .menu, .panel, .sidebar, app-menu-feature, app-menu-language, app-menu-change-log {
+  transition: all 0.2s ease-in-out;
 }
 
-// Menu Language Styles
-.menu-language-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  font-size: 1.6rem;
-}
+// ----------------------------------------------------------------------------
+// 7.2 Anchor Menu System (shared styles)
+// ----------------------------------------------------------------------------
 
-.menu-language-header {
-  padding: 1.6rem;
-  border-bottom: 1px solid transparent;
-  flex-shrink: 0;
-}
-
-.menu-language-body {
-  overflow-y: auto;
-  flex: 1;
-  padding: 0 1.6rem 1.6rem 1.6rem;
-
-  ul {
-    display: grid;
-    grid-auto-flow: row;
-    grid-auto-columns: max-content;
-    gap: 0.5rem 1rem;
-    max-width: 65vw;
-    li {
-      break-inside: avoid;
-      display: inline-block;
-      width: max-content;
-      a {
-        padding: 0.4rem 0;
-        display: block;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-
-        &:hover, &.selected {
-          color: $light-brand;
-        }
-        &.selected {
-          cursor: default;
-        }
-      }
-    }
-  }
-}
-
-// Menu Change Log Styles
-.menu-change-log-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  font-size: 1.6rem;
-}
-
-.menu-change-log-header {
-  padding: 1.6rem;
-  border-bottom: 1px solid transparent;
-  flex-shrink: 0;
-
-  h4, p {
-    margin: 1rem 0;
-  }
-
-  a {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    &:hover {
-      color: $light-brand;
-    }
-  }
-}
-
-.menu-change-log-body {
-  overflow-y: auto;
-  flex: 1;
-  padding: 0 1.6rem 1.6rem 1.6rem;
-
-  p-card {
-    display: block;
-    margin-bottom: 1rem;
-  }
-
-  ul {
-    list-style-type: disc;
-    margin: 1rem 0;
-    li {
-      font-size: 1.6rem !important;
-    }
-  }
-}
-
-.link-home, .kofi-button {
-  left: 0.6rem;
-  right: 0.6rem;
-}
-.link-home {
-  position: absolute;
-  top: 0.6rem;
-}
-.kofi-button {
-  position: absolute;
-  bottom: 0.6rem;
-  a {
-    display: inline-flex;
-    align-items: center;
-    gap: 1rem;
-    background-color: $dark-brand;
-    border: 1px solid transparent;
-    border-radius: 0.6rem;
-    padding: 0.4rem 0.6rem;
-    font-size: 1.6rem;
-    white-space: nowrap;
-    cursor: pointer;
-    text-decoration: none;
-  }
-  img {
-    width: 2.6rem;
-    height: 2.6rem;
-    object-fit: contain;
-    flex-shrink: 0;
-    display: block;
-  }
-}
-
-////////////////
-// Components //
-////////////////
-
-.notification-center-button {
-  position: relative;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: inherit;
-  border-radius: .4rem;
-  transition: background-color 0.2s;
-}
-
-.notification-badge {
-  position: absolute;
-  top: -0.6rem;
-  right: -0.6rem;
-  background-color: $text-error-light;
-  border-radius: 1rem;
-  padding: 0.2rem 0.6rem;
-  font-size: 1.1rem;
-  font-weight: bold;
-  min-width: 1.8rem;
-  text-align: center;
-}
-
-// Shared Anchor Menu Component Styles
 app-anchor-menu {
   display: flex;
 }
+
 .anchor-menu-overlay-panel {
   z-index: 1000;
 }
@@ -729,12 +635,41 @@ app-anchor-menu {
 .anchor-menu-panel {
   position: fixed;
   border: 0px solid $mid-gray;
-  overflow-y: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   backdrop-filter: blur(2px);
   z-index: 1000;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  // Generic styles for projected content using attribute selectors
+  // Menus should use: <div menu-content>, <div menu-header>, <div menu-body>
+  [menu-content] {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    font-size: 1.6rem;
+  }
+
+  [menu-header] {
+    padding: 1.6rem;
+    border-bottom: 1px solid transparent;
+    flex-shrink: 0;
+  }
+
+  [menu-body] {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 1.6rem 1.6rem 1.6rem;
+  }
+
+  [menu-footer] {
+    padding: 1.6rem;
+    border-top: 1px solid transparent;
+    flex-shrink: 0;
+  }
 
   // Position variants
 
@@ -811,39 +746,105 @@ app-anchor-menu {
   }
 }
 
-// On narrow screens, all anchor menus become top-aligned centered modals
-.screen-xs.not-sm .anchor-menu-panel[class*="position-"] {
-  top: 2rem !important;
-  left: 50% !important;
-  right: auto !important;
-  bottom: auto !important;
-  transform: translateX(-50%);
-  width: 95vw !important;
-  max-width: 95vw;
-  max-height: calc(100vh - 4rem);
-  border-radius: 0.8rem;
-  border-width: 1px;
+// ----------------------------------------------------------------------------
+// 7.3 Language Menu
+// ----------------------------------------------------------------------------
+
+.menu-language-body {
+  ul {
+    display: grid;
+    grid-auto-flow: row;
+    grid-auto-columns: max-content;
+    gap: 0.5rem 1rem;
+    max-width: 65vw;
+    li {
+      break-inside: avoid;
+      display: inline-block;
+      width: max-content;
+      a {
+        padding: 0.4rem 0;
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        &:hover, &.selected {
+          color: $light-brand;
+        }
+        &.selected {
+          cursor: default;
+        }
+      }
+    }
+  }
 }
 
-.notification-center-content {
-  max-height: 100vh;
+// ----------------------------------------------------------------------------
+// 7.4 Change Log Menu
+// ----------------------------------------------------------------------------
+
+.menu-change-log-header {
+  h4, p {
+    margin: 1rem 0;
+  }
+
+  a {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &:hover {
+      color: $light-brand;
+    }
+  }
+}
+
+.menu-change-log-body {
+  p-card {
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  ul {
+    list-style-type: disc;
+    margin: 1rem 0;
+    li {
+      font-size: 1.6rem !important;
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+// 7.5 Notification Center
+// ----------------------------------------------------------------------------
+
+.notification-center-button {
+  position: relative;
+  background: transparent;
+  border: none;
+  cursor: pointer;
   display: flex;
-  flex-direction: column;
-  width: 38rem;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  border-radius: .4rem;
+  transition: background-color 0.2s;
 }
 
-.auth-menu-panel {
-  width: 42rem;
-}
-
-.auth-menu-body {
-  padding: 1.6rem;
-  overflow-y: auto;
+.notification-badge {
+  position: absolute;
+  top: -0.6rem;
+  right: -0.6rem;
+  background-color: $text-error-light;
+  border-radius: 1rem;
+  padding: 0.2rem 0.6rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  min-width: 1.8rem;
+  text-align: center;
 }
 
 .notification-center-header {
-  padding: 1.6rem;
-  border-bottom: 1px solid transparent;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -874,11 +875,6 @@ app-anchor-menu {
     font-size: 1.6rem !important;
     padding: 0.8rem !important;
   }
-}
-
-.notification-center-body {
-  overflow-y: auto;
-  max-height: 45rem;
 }
 
 .notification-empty {
@@ -966,12 +962,382 @@ app-anchor-menu {
   opacity: 0.7;
 }
 
-.notification-center-footer {
-  padding: 1.6rem;
-  border-top: 1px solid transparent;
+// ----------------------------------------------------------------------------
+// 7.6 Auth Menu (button, header, form, profile, OTP)
+// ----------------------------------------------------------------------------
+
+.auth-menu-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.7;
+  }
+
+  i {
+    color: inherit;
+    transition: color 0.2s ease-in-out;
+
+    &.active-route {
+      color: $light-brand;
+    }
+  }
 }
 
-// Notifications page
+.menu-auth-header {
+  h3 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+  }
+
+  .auth-tabs {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .auth-tab {
+    background: none;
+    border: none;
+    padding: 0.8rem 1.6rem;
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: inherit;
+    opacity: 0.6;
+    border-bottom: 2px solid transparent;
+    transition: opacity 0.2s, border-color 0.2s;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    &.active {
+      opacity: 1;
+      border-bottom-color: currentColor;
+    }
+  }
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+
+    &.hidden {
+      display: none;
+    }
+
+    label {
+      margin: 0;
+      padding-bottom: 0.8rem;
+      display: block;
+    }
+
+    .error-message {
+      color: $error-red;
+      display: block;
+      position: absolute;
+      bottom: -1.6rem;
+      left: 0;
+      font-size: 1.2rem;
+      margin: 0;
+    }
+  }
+
+  .form-field-optional {
+    color: $mid-gray;
+    font-size: 0.9em;
+  }
+
+  // Override PrimeNG panel content width constraints
+  .p-panel .p-panel-content {
+    width: 100%;
+    max-width: none;
+  }
+
+  .mode-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    padding: 1.6rem 0 0;
+    border-top: 1px solid rgba(128, 128, 128, 0.2);
+
+    span {
+      color: rgba(128, 128, 128, 0.8);
+    }
+
+    button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .forgot-password {
+    text-align: center;
+    margin-top: -0.8rem;
+
+    button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.profile-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  .profile-info {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    padding-bottom: 1.6rem;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+    transition: all 0.2s ease;
+
+    // Clickable state
+    &.clickable {
+      cursor: pointer;
+      border-radius: 0.8rem;
+      padding: 1.2rem;
+      margin: -1.2rem;
+      margin-bottom: 0.4rem;
+
+      &:hover {
+        background-color: $highlight-bg;
+      }
+
+      &:active {
+        background-color: $highlight-bg-active;
+      }
+
+      &:focus-visible {
+        outline: 2px solid $focus-ring;
+        outline-offset: 2px;
+      }
+    }
+
+    .profile-avatar {
+      width: 5.6rem;
+      height: 5.6rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5264d3 0%, #663d91 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      font-weight: 600;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+
+    .profile-details {
+      flex: 1;
+      min-width: 0;
+
+      .profile-email {
+        font-size: 1.6rem;
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+        word-break: break-all;
+      }
+
+      .profile-username {
+        font-size: 1.4rem;
+        opacity: 0.7;
+      }
+    }
+
+    .profile-chevron {
+      font-size: 2rem;
+      opacity: 0.3;
+      transition: all 0.2s ease;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    &.clickable:hover .profile-chevron {
+      opacity: 0.6;
+      transform: translateX(4px);
+    }
+  }
+
+  .profile-metadata {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    padding-bottom: 1.6rem;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+
+    .metadata-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.4rem;
+
+      .metadata-label {
+        opacity: 0.7;
+      }
+
+      .metadata-value {
+        font-weight: 500;
+      }
+    }
+  }
+
+  .profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+.otp-instructions {
+  text-align: center;
+  margin-bottom: 1.6rem;
+
+  p {
+    margin: 0 0 0.8rem;
+    font-size: 1.4rem;
+  }
+
+  .otp-email {
+    font-weight: 600;
+    font-size: 1.5rem;
+    word-break: break-all;
+  }
+}
+
+.otp-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.6rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid rgba(128, 128, 128, 0.2);
+
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: inherit;
+    opacity: 0.8;
+
+    &:hover:not(:disabled) {
+      text-decoration: underline;
+      opacity: 1;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+// 7.7 Cookie Banner
+// ----------------------------------------------------------------------------
+
+.cookie-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  backdrop-filter: blur(2px);
+  border-top: 1px solid transparent;
+  padding: 1.5rem 2rem;
+  z-index: 10000;
+  box-shadow: 0 -0.4rem 2rem $shadow;
+}
+
+.cookie-banner-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.cookie-banner-text {
+  margin: 0;
+  font-size: 1.6rem;
+  line-height: 1.6;
+  font-weight: 400;
+  text-align: center;
+}
+
+.cookie-banner-link {
+  text-decoration: underline;
+  margin-left: 0.5rem;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.cookie-banner-actions {
+  display: flex;
+  gap: 1rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+// ----------------------------------------------------------------------------
+// 7.8 Privacy Policy
+// ----------------------------------------------------------------------------
+
+.privacy-content {
+  line-height: 1.6;
+
+  a {
+    text-decoration: underline;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+// ============================================================================
+// 8. PAGE-SPECIFIC STYLES
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// 8.1 Notifications Page
+// ----------------------------------------------------------------------------
+
 .notifications-page {
   h2 {
     margin-bottom: 2rem;
@@ -1068,13 +1434,30 @@ app-anchor-menu {
   }
 }
 
-//////////////////
-// screen sizes //
-//////////////////
+// ----------------------------------------------------------------------------
+// 8.2 IndexedDB Demo Card Styles
+// ----------------------------------------------------------------------------
+
+p-card ul li, p-card.indexeddb {
+  margin: 0.6rem 0;
+  padding: 0;
+  font-size: 2rem;
+}
+
+p-card.indexeddb {
+  input {
+    margin: 0.5rem 0;
+    font-size: 1.5rem;
+  }
+}
+
+// ============================================================================
+// 9. RESPONSIVE OVERRIDES (screen sizes)
+// ============================================================================
 
 .screen-xl {
   body.index footer {
-      left: 18rem;
+    left: 18rem;
   }
   app-menu-feature {
     width: 18rem;
@@ -1084,7 +1467,9 @@ app-anchor-menu {
     padding-left: 18rem;
   }
 }
+
 .screen-xs.not-sm {
+  // Layout overrides
   .main {
     padding-left: 0;
   }
@@ -1098,6 +1483,8 @@ app-anchor-menu {
       font-size: 1.6rem;
     }
   }
+
+  // Feature menu becomes bottom bar
   app-menu-feature {
     position: fixed;
     bottom: 0;
@@ -1112,6 +1499,9 @@ app-anchor-menu {
     padding: 0;
     overflow-x: auto;
     border-width: 1px 0 0 0;
+    > div {
+      overflow-y: auto;
+    }
     > * {
       margin: 0;
     }
@@ -1155,418 +1545,70 @@ app-anchor-menu {
       margin: 0;
     }
   }
-  p-card ul li , p-card.indexeddb{
-    margin: 0.4rem 0;
-    padding: 0rem 0;
-  }
-}
-p-card ul li , p-card.indexeddb{
-  margin: 0.6rem 0;
-  padding: 0rem 0;
-  font-size: 2rem;
-}
-p-card.indexeddb {
-  input {
-    margin: 0.5rem 0rem;
-    font-size: 1.5rem;
-  }
-}
 
-// Auth Menu
-.auth-menu-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.4rem 0.8rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: opacity 0.2s;
-
-  &:hover {
-    opacity: 0.7;
-  }
-
-  i {
-    color: inherit;
-    transition: color 0.2s ease-in-out;
-
-    &.active-route {
-      color: $light-brand;
-    }
-  }
-}
-
-.menu-auth-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  font-size: 1.6rem;
-}
-
-.menu-auth-header {
-  padding: 1.6rem;
-  border-bottom: 1px solid transparent;
-  flex-shrink: 0;
-
-  h3 {
-    margin: 0;
-    font-size: 1.8rem;
-    font-weight: 600;
-  }
-
-  .auth-tabs {
+  // Anchor menus become scrollable centered modals
+  .cdk-overlay-pane:has(.anchor-menu-panel) {
+    position: fixed !important;
+    inset: 0 !important;
+    overflow-y: auto;
     display: flex;
-    gap: 0.5rem;
-  }
-
-  .auth-tab {
-    background: none;
-    border: none;
-    padding: 0.8rem 1.6rem;
-    font-size: 1.6rem;
-    font-weight: 500;
-    color: inherit;
-    opacity: 0.6;
-    border-bottom: 2px solid transparent;
-    transition: opacity 0.2s, border-color 0.2s;
-
-    &:hover {
-      opacity: 0.8;
-    }
-
-    &.active {
-      opacity: 1;
-      border-bottom-color: currentColor;
-    }
-  }
-}
-
-.menu-auth-body {
-  overflow-y: auto;
-  flex: 1;
-  padding: 0 1.6rem 1.6rem 1.6rem;
-}
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-
-    &.hidden {
-      display: none;
-    }
-
-    label {
-      margin: 0;
-      padding-bottom: 0.8rem;
-      display: block;
-    }
-
-    .error-message {
-      color: #e74c3c;
-      display: block;
-      position: absolute;
-      bottom: -1.6rem;
-      left: 0;
-      font-size: 1.2rem;
-      margin: 0;
-    }
-  }
-  .form-field-optional {
-    color: $mid-gray;
-    font-size: 0.9em;
-  }
-
-  // Override PrimeNG panel content width constraints
-  .p-panel .p-panel-content {
-    width: 100%;
-    max-width: none;
-  }
-
-  .mode-toggle {
-    display: flex;
-    align-items: center;
     justify-content: center;
-    gap: 0.8rem;
-    padding: 1.6rem 0 0;
-    border-top: 1px solid rgba(128, 128, 128, 0.2);
-
-    span {
-      color: rgba(128, 128, 128, 0.8);
-    }
-
-    button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 0;
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
+    align-items: flex-start;
+    padding: 2rem 0;
+    pointer-events: none;
   }
 
-  .forgot-password {
-    text-align: center;
-    margin-top: -0.8rem;
-
-    button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 0;
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-  }
-}
-
-// Profile Menu (when authenticated)
-.profile-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-
-  .profile-info {
-    display: flex;
-    align-items: center;
-    gap: 1.6rem;
-    padding-bottom: 1.6rem;
-    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
-    transition: all 0.2s ease;
-
-    // Clickable state
-    &.clickable {
-      cursor: pointer;
-      border-radius: 0.8rem;
-      padding: 1.2rem;
-      margin: -1.2rem;
-      margin-bottom: 0.4rem;
-
-      &:hover {
-        background-color: rgba(102, 126, 234, 0.08);
-      }
-
-      &:active {
-        background-color: rgba(102, 126, 234, 0.12);
-      }
-
-      &:focus-visible {
-        outline: 2px solid #667eea;
-        outline-offset: 2px;
-      }
-    }
-
-    .profile-avatar {
-      width: 5.6rem;
-      height: 5.6rem;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #5264d3 0%, #663d91 100%);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.4rem;
-      font-weight: 600;
-      flex-shrink: 0;
-      transition: all 0.2s ease;
-    }
-
-    .profile-details {
-      flex: 1;
-      min-width: 0;
-
-      .profile-email {
-        font-size: 1.6rem;
-        font-weight: 600;
-        margin-bottom: 0.4rem;
-        word-break: break-all;
-      }
-
-      .profile-username {
-        font-size: 1.4rem;
-        opacity: 0.7;
-      }
-    }
-
-    .profile-chevron {
-      font-size: 2rem;
-      opacity: 0.3;
-      transition: all 0.2s ease;
-      margin-left: auto;
-      flex-shrink: 0;
-    }
-
-    &.clickable:hover .profile-chevron {
-      opacity: 0.6;
-      transform: translateX(4px);
-    }
+  .anchor-menu-panel[class*="position-"] {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none;
+    width: 95vw !important;
+    max-width: 95vw;
+    max-height: none;
+    border-radius: 0.8rem;
+    border-width: 1px;
+    flex-shrink: 0;
+    pointer-events: auto;
   }
 
-  .profile-metadata {
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
-    padding-bottom: 1.6rem;
-    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
-
-    .metadata-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 1.4rem;
-
-      .metadata-label {
-        opacity: 0.7;
-      }
-
-      .metadata-value {
-        font-weight: 500;
-      }
-    }
+  // Let inner content grow naturally (overlay scrolls)
+  [menu-body] {
+    overflow-y: visible;
+    flex: none;
   }
 
-  .profile-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-}
-
-// OTP Verification styles
-.otp-instructions {
-  text-align: center;
-  margin-bottom: 1.6rem;
-
-  p {
-    margin: 0 0 0.8rem;
-    font-size: 1.4rem;
-  }
-
-  .otp-email {
-    font-weight: 600;
-    font-size: 1.5rem;
-    word-break: break-all;
-  }
-}
-
-.otp-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 1.6rem;
-  padding-top: 1.6rem;
-  border-top: 1px solid rgba(128, 128, 128, 0.2);
-
-  button {
-    background: none;
-    border: none;
-    cursor: pointer;
+  // IndexedDB card overrides
+  p-card ul li, p-card.indexeddb {
+    margin: 0.4rem 0;
     padding: 0;
-    color: inherit;
-    opacity: 0.8;
-
-    &:hover:not(:disabled) {
-      text-decoration: underline;
-      opacity: 1;
-    }
-
-    &:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
   }
 }
 
-// Cookie Banner
-.cookie-banner {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  backdrop-filter: blur(2px);
-  border-top: 2px solid rgba(255, 255, 255, 0.1);
-  padding: 1.5rem 2rem;
-  z-index: 10000;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.cookie-banner-content {
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-}
-
-.cookie-banner-text {
-  margin: 0;
-  font-size: 1.6rem;
-  line-height: 1.6;
-  font-weight: 400;
-  text-align: center;
-}
-
-.cookie-banner-link {
-  text-decoration: underline;
-  margin-left: 0.5rem;
-  font-weight: 500;
-
-  &:hover {
-    text-decoration: none;
-  }
-}
-
-.cookie-banner-actions {
-  display: flex;
-  gap: 1rem;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-}
-
+// Cookie banner responsive
 @media (max-width: 768px) {
   .cookie-banner-actions {
     width: 100%;
 
-    ::ng-deep button {
+    button {
       flex: 1;
     }
   }
 }
 
-// Privacy Policy
-.privacy-content {
-  line-height: 1.6;
+// ============================================================================
+// 10. UTILITIES & ANIMATIONS
+// ============================================================================
 
-  a {
-    text-decoration: underline;
-
-    &:hover {
-      opacity: 0.8;
-    }
-  }
-}
-
-// Auto-close progress bar (used in auth profile)
 .auto-close-progress {
   position: absolute;
   bottom: 0;
   left: 0;
   height: 6px;
   width: 0;
-  background: linear-gradient(90deg, #10b981, #059669);
+  background: linear-gradient(90deg, $progress-start, $progress-end);
   animation: fill-progress linear forwards;
 }
 

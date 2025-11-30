@@ -138,7 +138,7 @@ export class AnchorMenuComponent {
         positionStrategy,
         hasBackdrop: true,
         backdropClass: 'app-overlay-backdrop',
-        scrollStrategy: this.overlay.scrollStrategies.noop(),
+        scrollStrategy: this.overlay.scrollStrategies.block(),
         panelClass: 'anchor-menu-overlay-panel'
       });
 
