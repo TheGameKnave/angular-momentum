@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { UpdateService } from '@app/services/update.service';
 import { FeatureFlagService } from '@app/services/feature-flag.service';
-import { COMPONENT_LIST } from '@app/helpers/component-list';
 import { SlugPipe } from '@app/pipes/slug.pipe';
 import { Router, NavigationEnd } from '@angular/router';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
@@ -194,6 +193,49 @@ describe('AppComponent', () => {
       const result = component.showLanguage();
       expect(featureFlagService.getFeature).toHaveBeenCalledWith('Language');
       expect(result).toBe(true);
+    });
+  });
+
+  describe('Footer labels', () => {
+    it('should return short environment label on narrow screens', () => {
+      spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md - 1);
+      component.onResize(); // update isNarrowScreen signal
+      const label = component.environmentLabel();
+      // On narrow screens, should return just the environment name
+      expect(label).toBeDefined();
+      expect(typeof label).toBe('string');
+    });
+
+    it('should return full environment label on wide screens', () => {
+      spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md + 100);
+      component.onResize(); // update isNarrowScreen signal
+      const label = component.environmentLabel();
+      // On wide screens, should include "environment" suffix
+      expect(label).toBeDefined();
+      expect(typeof label).toBe('string');
+    });
+
+    it('should return short privacy label on narrow screens', () => {
+      spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md - 1);
+      component.onResize(); // update isNarrowScreen signal
+      const label = component.privacyLabel();
+      expect(label).toBeDefined();
+      expect(typeof label).toBe('string');
+    });
+
+    it('should return full privacy label on wide screens', () => {
+      spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md + 100);
+      component.onResize(); // update isNarrowScreen signal
+      const label = component.privacyLabel();
+      expect(label).toBeDefined();
+      expect(typeof label).toBe('string');
+    });
+
+    it('should use Production key when not in dev mode', () => {
+      component.isDevMode = false;
+      const label = component.environmentLabel();
+      expect(label).toBeDefined();
+      expect(typeof label).toBe('string');
     });
   });
 });

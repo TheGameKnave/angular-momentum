@@ -198,6 +198,7 @@ export const A11Y_KEYS = [
  * Keys must match exactly what's in the translation JSON files.
  */
 export const PRIVACY_KEYS = [
+  'privacy.Privacy',
   'privacy.Privacy Policy',
   'privacy.We use cookies to improve your experience and analyze site usage.',
   'privacy.Learn more',

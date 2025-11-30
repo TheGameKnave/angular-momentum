@@ -975,6 +975,10 @@
           "type": "string",
           "description": "Privacy: Page/link title"
         },
+        "Privacy": {
+          "type": "string",
+          "description": "Privacy: Short label for mobile footer"
+        },
         "We use cookies to improve your experience and analyze site usage.": {
           "type": "string",
           "description": "Privacy: Cookie banner message"
@@ -1037,6 +1041,7 @@
         }
       },
       "required": [
+        "Privacy",
         "Privacy Policy",
         "We use cookies to improve your experience and analyze site usage.",
         "Learn more",

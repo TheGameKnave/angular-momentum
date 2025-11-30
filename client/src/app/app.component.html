@@ -31,9 +31,9 @@
         <app-menu-change-log />
       }
       @if (showEnvironment()) {
-        <h4>{{ t('menu.{environmentName} environment',{ environmentName: isDevMode ? t('menu.Development') : t('menu.Production') }) }}</h4>
+        <h4>{{ environmentLabel() }}</h4>
       }
-      <h4><a routerLink="/privacy" class="privacy-link">{{ t('privacy.Privacy Policy') }}</a></h4>
+      <h4><a routerLink="/privacy" class="privacy-link">{{ privacyLabel() }}</a></h4>
       @if (showLanguage()) {
         <app-menu-language />
       }

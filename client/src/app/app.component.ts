@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, HostListener, isDevMode, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, HostListener, isDevMode, OnInit, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 
 import { UpdateService } from '@app/services/update.service';
@@ -12,7 +12,7 @@ import { MenuLanguageComponent } from '@app/components/menus/menu-language/menu-
 import { MenuFeatureComponent } from '@app/components/menus/menu-feature/menu-feature.component';
 import { FeatureFlagService } from './services/feature-flag.service';
 import { SlugPipe } from './pipes/slug.pipe';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { COMPONENT_LIST } from './helpers/component-list';
 import { ConnectivityService } from './services/connectivity.service';
 import { MenuChangeLogComponent } from './components/menus/menu-change-log/menu-change-log.component';
@@ -48,6 +48,7 @@ import { SCREEN_SIZES } from './constants/ui.constants';
 export class AppComponent implements OnInit {
   @HostListener('window:resize')
   onResize() {
+    this.isNarrowScreen.set(window.innerWidth < SCREEN_SIZES.md);
     this.bodyClasses();
   }
   window = window;
@@ -64,6 +65,21 @@ export class AppComponent implements OnInit {
   readonly showAppVersion = () => this.featureFlagService.getFeature('App Version');
   readonly showEnvironment = () => this.featureFlagService.getFeature('Environment');
   readonly showLanguage = () => this.featureFlagService.getFeature('Language');
+
+  // Reactive signals for screen size and language
+  private readonly isNarrowScreen = signal(typeof globalThis.window !== 'undefined' && globalThis.window.innerWidth < SCREEN_SIZES.md);
+  private readonly lang = toSignal(this.translate.langChanges$, { initialValue: this.translate.getActiveLang() });
+
+  // Footer labels (reactive to language and screen size)
+  readonly environmentLabel = computed(() => {
+    this.lang(); // trigger on language change
+    const name = this.translate.translate(this.isDevMode ? 'menu.Development' : 'menu.Production');
+    return this.isNarrowScreen() ? name : this.translate.translate('menu.{environmentName} environment', { environmentName: name });
+  });
+  readonly privacyLabel = computed(() => {
+    this.lang(); // trigger on language change
+    return this.translate.translate(this.isNarrowScreen() ? 'privacy.Privacy' : 'privacy.Privacy Policy');
+  });
 
   constructor(
     readonly updateService: UpdateService,
