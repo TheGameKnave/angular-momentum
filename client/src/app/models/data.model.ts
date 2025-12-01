@@ -1,14 +1,6 @@
 import { Type } from "@angular/core";
 import { ComponentName } from "@app/helpers/component-list";
-
-/**
- * Union type for non-component feature flags.
- * These are application-wide features that aren't tied to specific page components.
- */
-export type ArbitraryFeatureName =
-  'App Version' |
-  'Environment' |
-  'Language';
+import { ArbitraryFeatureName } from "@app/constants/translations.constants";
 
 export type ArbitraryFeatures = Record<ArbitraryFeatureName, boolean>;
 export type ComponentFlags = Record<ComponentName, boolean>;

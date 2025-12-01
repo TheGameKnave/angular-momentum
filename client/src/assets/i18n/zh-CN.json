@@ -44,6 +44,16 @@
     ,"Installers": "安装程序"
     ,"Features": "功能"
   }
+  ,"feature": {
+    "Notifications": "通知"
+    ,"GraphQL API": "GraphQL API"
+    ,"IndexedDB": "IndexedDB"
+    ,"Installers": "安装程序"
+    ,"Features": "功能"
+    ,"App Version": "应用版本"
+    ,"Environment": "环境"
+    ,"Language": "语言"
+  }
   ,"Status": "状态"
   ,"Platform": "平台"
   ,"Permission": "权限"

@@ -44,6 +44,16 @@
     ,"Installers": "Programme"
     ,"Features": "Funktionen"
   }
+  ,"feature": {
+    "Notifications": "Benachrichtigungen"
+    ,"GraphQL API": "GraphQL API"
+    ,"IndexedDB": "IndexedDB"
+    ,"Installers": "Programme"
+    ,"Features": "Funktionen"
+    ,"App Version": "App-Version"
+    ,"Environment": "Umgebung"
+    ,"Language": "Sprache"
+  }
   ,"Status": "Status"
   ,"Platform": "Plattform"
   ,"Permission": "Berechtigung"

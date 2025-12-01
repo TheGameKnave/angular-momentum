@@ -66,6 +66,21 @@ export const COMPONENT_NAMES = {
 } as const;
 
 /**
+ * Arbitrary feature names (non-component features).
+ * Single source of truth - ArbitraryFeatureName type is derived from this.
+ */
+export const ARBITRARY_FEATURE_NAMES = [
+  'App Version',
+  'Environment',
+  'Language',
+] as const;
+
+/**
+ * Type for arbitrary feature names, derived from ARBITRARY_FEATURE_NAMES.
+ */
+export type ArbitraryFeatureName = typeof ARBITRARY_FEATURE_NAMES[number];
+
+/**
  * Helper to get the nav-namespaced translation key for a component name.
  */
 export function getNavTranslationKey(componentName: string): string {
@@ -73,10 +88,26 @@ export function getNavTranslationKey(componentName: string): string {
 }
 
 /**
+ * Helper to get the feature-namespaced translation key for a feature flag.
+ */
+export function getFeatureTranslationKey(featureName: string): string {
+  return `feature.${featureName}`;
+}
+
+/**
  * Component name translation keys (namespaced) for validation.
  * These are the actual keys in translation files (nav.Features, etc.)
  */
 export const COMPONENT_NAME_KEYS = Object.values(COMPONENT_NAMES).map(name => `nav.${name}`);
+
+/**
+ * Feature flag translation keys (namespaced) for validation.
+ * Includes both component features and arbitrary features.
+ */
+export const FEATURE_FLAG_KEYS = [
+  ...Object.values(COMPONENT_NAMES).map(name => `feature.${name}`),
+  ...ARBITRARY_FEATURE_NAMES.map(name => `feature.${name}`),
+];
 
 /**
  * Notification message translation keys.
@@ -253,6 +284,7 @@ export const ALL_PROGRAMMATIC_KEYS = [
   ...AUTH_ERROR_KEYS,
   ...SEMVER_KEYS,
   ...COMPONENT_NAME_KEYS,
+  ...FEATURE_FLAG_KEYS,
   ...NOTIFICATION_KEYS,
   ...CHANGE_LOG_KEYS,
   ...SUPABASE_ERROR_KEYS,

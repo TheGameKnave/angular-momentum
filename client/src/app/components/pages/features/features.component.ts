@@ -3,6 +3,7 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective} from '@jsverse/transloco';
 import { FeatureFlagService, FeatureFlagKeys } from '@app/services/feature-flag.service';
+import { getFeatureTranslationKey } from '@app/constants/translations.constants';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { CardModule } from 'primeng/card';
@@ -34,6 +35,7 @@ import { AuthService } from '@app/services/auth.service';
 export class FeaturesComponent implements OnInit {
   Object = Object;
   featureForm = new FormGroup<Record<string, FormControl>>({});
+  featureKey = getFeatureTranslationKey;
 
   constructor(
     protected featureFlagService: FeatureFlagService,

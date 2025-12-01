@@ -61,6 +61,16 @@
     ,"Installers": "Installers"
     ,"Features": "Features"
   }
+  ,"feature": {
+    "Notifications": "Notifications"
+    ,"GraphQL API": "GraphQL API"
+    ,"IndexedDB": "IndexedDB"
+    ,"Installers": "Installers"
+    ,"Features": "Features"
+    ,"App Version": "App Version"
+    ,"Environment": "Environment"
+    ,"Language": "Language"
+  }
   ,"notification": {
     "Unread Count": "Unread Count"
     ,"Mark all read": "Mark all read"

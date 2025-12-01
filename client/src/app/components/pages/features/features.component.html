@@ -13,7 +13,7 @@
             [formControl]="featureControl(feature[0])"
           ></p-toggleswitch>&nbsp;
         <label
-          [for]="'thing'+feature[0]">{{ t(feature[0]) }}
+          [for]="'thing'+feature[0]">{{ t(featureKey(feature[0])) }}
         </label>
         </li>
       }

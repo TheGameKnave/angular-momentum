@@ -44,6 +44,16 @@
     ,"Installers": "Installateurs"
     ,"Features": "Fonctionnalités"
   }
+  ,"feature": {
+    "Notifications": "Notifications"
+    ,"GraphQL API": "GraphQL API"
+    ,"IndexedDB": "IndexedDB"
+    ,"Installers": "Installateurs"
+    ,"Features": "Fonctionnalités"
+    ,"App Version": "Version de l'App"
+    ,"Environment": "Environnement"
+    ,"Language": "Langue"
+  }
   ,"Status": "Statut"
   ,"Platform": "Plateforme"
   ,"Permission": "Permission"
