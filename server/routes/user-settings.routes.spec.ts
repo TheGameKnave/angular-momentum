@@ -7,12 +7,15 @@ describe('User Settings Routes', () => {
   let mockSupabase: any;
 
   beforeEach(() => {
+    // Reset all mocks completely to prevent state leakage between tests
+    jest.resetAllMocks();
+
     // Suppress console output during tests
     jest.spyOn(console, 'log').mockImplementation();
     jest.spyOn(console, 'warn').mockImplementation();
     jest.spyOn(console, 'error').mockImplementation();
 
-    // Mock Supabase client
+    // Mock Supabase client - create fresh mock for each test
     mockSupabase = {
       auth: {
         getUser: jest.fn(),
@@ -26,15 +29,16 @@ describe('User Settings Routes', () => {
       upsert: jest.fn().mockReturnThis(),
     };
 
-    // Create Express app
+    // Create fresh Express app for each test
     app = express();
     app.use(express.json());
     app.use('/api/user-settings', createUserSettingsRoutes(mockSupabase));
   });
 
   afterEach(() => {
-    // Restore console methods
+    // Restore console methods and reset mocks
     jest.restoreAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('GET /', () => {

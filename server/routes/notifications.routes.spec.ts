@@ -13,8 +13,8 @@ describe('Notifications Routes', () => {
   let mockIo: any;
 
   beforeEach(() => {
-    // Clear all mocks
-    jest.clearAllMocks();
+    // Reset all mocks completely to prevent state leakage
+    jest.resetAllMocks();
 
     // Get mocked functions
     mockBroadcastNotification = notificationService.broadcastNotification as jest.MockedFunction<typeof notificationService.broadcastNotification>;
@@ -30,11 +30,15 @@ describe('Notifications Routes', () => {
       to: jest.fn().mockReturnThis(),
     };
 
-    // Create Express app
+    // Create fresh Express app for each test
     app = express();
     app.use(express.json());
     app.set('io', mockIo);
     app.use('/api/notifications', notificationsRoutes);
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
   describe('POST /broadcast', () => {
