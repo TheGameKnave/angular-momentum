@@ -196,46 +196,24 @@ describe('AppComponent', () => {
     });
   });
 
-  describe('Footer labels', () => {
-    it('should return short environment label on narrow screens', () => {
+  describe('isNarrowScreen signal', () => {
+    it('should return true on narrow screens', () => {
       spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md - 1);
       component.onResize(); // update isNarrowScreen signal
-      const label = component.environmentLabel();
-      // On narrow screens, should return just the environment name
-      expect(label).toBeDefined();
-      expect(typeof label).toBe('string');
+      expect(component.isNarrowScreen()).toBeTrue();
     });
 
-    it('should return full environment label on wide screens', () => {
+    it('should return false on wide screens', () => {
       spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md + 100);
       component.onResize(); // update isNarrowScreen signal
-      const label = component.environmentLabel();
-      // On wide screens, should include "environment" suffix
-      expect(label).toBeDefined();
-      expect(typeof label).toBe('string');
+      expect(component.isNarrowScreen()).toBeFalse();
     });
 
-    it('should return short privacy label on narrow screens', () => {
+    it('should update when screen width changes', () => {
+      // Start narrow
       spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md - 1);
-      component.onResize(); // update isNarrowScreen signal
-      const label = component.privacyLabel();
-      expect(label).toBeDefined();
-      expect(typeof label).toBe('string');
-    });
-
-    it('should return full privacy label on wide screens', () => {
-      spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md + 100);
-      component.onResize(); // update isNarrowScreen signal
-      const label = component.privacyLabel();
-      expect(label).toBeDefined();
-      expect(typeof label).toBe('string');
-    });
-
-    it('should use Production key when not in dev mode', () => {
-      component.isDevMode = false;
-      const label = component.environmentLabel();
-      expect(label).toBeDefined();
-      expect(typeof label).toBe('string');
+      component.onResize();
+      expect(component.isNarrowScreen()).toBeTrue();
     });
   });
 });

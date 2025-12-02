@@ -20,19 +20,24 @@ export class HelpersService {
   ) {
     // istanbul ignore next
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (ENVIRONMENT.env !== 'production') (window as any).helpersService = this;
+    if (globalThis.window && ENVIRONMENT.env !== 'production') (globalThis.window as any).helpersService = this;
   }
 
   /**
-   * Computed signal providing list of components that are enabled via feature flags.
-   * Filters the application's component list based on feature flags,
-   * providing a reactive list of enabled components.
+   * Computed signal providing list of components that are enabled.
+   * - Components with `featureFlagged: true` are controlled by feature flags (fail-closed)
+   * - Components without `featureFlagged` or with `featureFlagged: false` are always enabled
    * Automatically updates when feature flags change.
-   * @returns Array of components where their corresponding feature flag is not false
+   * @returns Array of enabled components
    */
   enabledComponents = computed(() =>
-    COMPONENT_LIST.filter(
-      (component) => this.featureFlagService.getFeature(component.name) !== false
-    )
+    COMPONENT_LIST.filter((component) => {
+      // Components not governed by feature flags are always enabled
+      if (!('featureFlagged' in component) || !component.featureFlagged) {
+        return true;
+      }
+      // Feature-flagged components use fail-closed logic
+      return this.featureFlagService.getFeature(component.name);
+    })
   );
 }

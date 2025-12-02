@@ -21,11 +21,13 @@
         <hr />
       </div>
 
-      <app-auth-profile
-        [autoCloseSeconds]="autoCloseTimer()"
-        (profileClick)="onViewProfile()"
-        (logoutClick)="onLogout()"
-      />
+      <div menu-body appScrollIndicator class="menu-auth-body profile-menu">
+        <app-auth-profile
+          [autoCloseSeconds]="autoCloseTimer()"
+          (profileClick)="onViewProfile()"
+          (logoutClick)="onLogout()"
+        />
+      </div>
 
     } @else {
       <!-- Login/Signup/Reset View (when not authenticated) -->

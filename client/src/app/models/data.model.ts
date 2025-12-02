@@ -25,6 +25,25 @@ export interface ApiResponse {
 export type ChangeImpact = 'patch' | 'minor' | 'major';
 
 /**
+ * Represents an entry in the COMPONENT_LIST registry.
+ * Defines the structure for navigable page components with their metadata.
+ *
+ * @property name - Display name (used in UI, routing, and as translation key)
+ * @property component - Angular component class reference
+ * @property icon - PrimeIcons CSS class for the component's icon
+ * @property route - Optional custom route path (defaults to slugified name)
+ * @property featureFlagged - If true, visibility is controlled by feature flags (fail-closed)
+ */
+export interface ComponentListEntry {
+  readonly name: string;
+  readonly route?: string;
+  readonly component: Type<unknown>;
+  readonly icon: string;
+  readonly featureFlagged?: boolean;
+}
+
+/**
+ * @deprecated Use ComponentListEntry instead
  * Represents a dynamically loaded Angular component with metadata.
  * Used for dynamic component rendering in the application.
  *

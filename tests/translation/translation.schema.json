@@ -222,6 +222,54 @@
       ],
       "additionalProperties": false
     },
+    "feature": {
+      "type": "object",
+      "properties": {
+        "Notifications": {
+          "type": "string",
+          "description": "Feature flag: Notifications feature name"
+        },
+        "GraphQL API": {
+          "type": "string",
+          "description": "Feature flag: GraphQL API feature name"
+        },
+        "IndexedDB": {
+          "type": "string",
+          "description": "Feature flag: IndexedDB feature name"
+        },
+        "Installers": {
+          "type": "string",
+          "description": "Feature flag: Installers feature name"
+        },
+        "Features": {
+          "type": "string",
+          "description": "Feature flag: Features feature name"
+        },
+        "App Version": {
+          "type": "string",
+          "description": "Feature flag: App Version feature name"
+        },
+        "Environment": {
+          "type": "string",
+          "description": "Feature flag: Environment feature name"
+        },
+        "Language": {
+          "type": "string",
+          "description": "Feature flag: Language feature name"
+        }
+      },
+      "required": [
+        "Notifications",
+        "GraphQL API",
+        "IndexedDB",
+        "Installers",
+        "Features",
+        "App Version",
+        "Environment",
+        "Language"
+      ],
+      "additionalProperties": false
+    },
     "Status": {
       "type": "string",
       "description": "Notifications: Status section header"
@@ -1152,7 +1200,8 @@
     "Accept",
     "Decline",
     "connectivity",
-    "time"
+    "time",
+    "feature"
   ],
   "additionalProperties": false
 }
