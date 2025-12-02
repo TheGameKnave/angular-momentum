@@ -240,6 +240,14 @@ $progress-end: #059669 !default;
       color: $light-brand;
     }
   }
+
+  // Scroll indicators
+  .scroll-indicator-vertical {
+    background: linear-gradient(to bottom, $light-brand, $dark-brand);
+  }
+  .scroll-indicator-horizontal {
+    background: linear-gradient(to right, $light-brand, $dark-brand);
+  }
 }
 
 // ============================================================================
@@ -845,9 +853,6 @@ app-anchor-menu {
 }
 
 .notification-center-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   position: relative;
 
   h3 {
@@ -1548,14 +1553,12 @@ p-card.indexeddb {
 
   // Anchor menus become scrollable centered modals
   .cdk-overlay-pane:has(.anchor-menu-panel) {
-    position: fixed !important;
     inset: 0 !important;
     overflow-y: auto;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 2rem 0;
+    display: block;
+    padding: 2rem 2.5vw;
     pointer-events: none;
+    width: 100%;
   }
 
   .anchor-menu-panel[class*="position-"] {
@@ -1565,7 +1568,7 @@ p-card.indexeddb {
     right: auto !important;
     bottom: auto !important;
     transform: none;
-    width: 95vw !important;
+    width: 100% !important;
     max-width: 95vw;
     max-height: none;
     border-radius: 0.8rem;
@@ -1615,4 +1618,41 @@ p-card.indexeddb {
 @keyframes fill-progress {
   from { width: 0; }
   to { width: 100%; }
+}
+
+// ----------------------------------------------------------------------------
+// Scroll Indicator
+// ----------------------------------------------------------------------------
+
+// Track: sticky positioned at bottom-right corner
+.scroll-indicator-track {
+  position: sticky;
+  bottom: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 100000;
+}
+
+// Common indicator styles
+.scroll-indicator-vertical,
+.scroll-indicator-horizontal {
+  position: absolute;
+  bottom: calc(-1 * var(--si-offset-bottom, 0px) + 4px);
+  right: calc(-1 * var(--si-offset-right, 0px) + 4px);
+  background-color: $mid-gray;
+  border-radius: 0.2rem;
+  opacity: 0;
+  pointer-events: none;
+}
+
+// Vertical: fixed width, variable height
+.scroll-indicator-vertical {
+  width: 0.4rem;
+  height: var(--si-height, 0px);
+}
+
+// Horizontal: fixed height, variable width
+.scroll-indicator-horizontal {
+  height: 0.4rem;
+  width: var(--si-width, 0px);
 }

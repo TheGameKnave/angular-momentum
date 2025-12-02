@@ -4,6 +4,7 @@ import { NotificationService } from '../../../services/notification.service';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { AnchorMenuComponent } from '../anchor-menu/anchor-menu.component';
+import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
 import { TIME_CONSTANTS } from '@app/constants/ui.constants';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { Notification } from '@app/models/data.model';
@@ -21,7 +22,7 @@ import { Notification } from '@app/models/data.model';
 @Component({
   selector: 'app-notification-center',
   standalone: true,
-  imports: [CommonModule, ButtonModule, CardModule, AnchorMenuComponent, TranslocoDirective],
+  imports: [CommonModule, ButtonModule, CardModule, AnchorMenuComponent, ScrollIndicatorDirective, TranslocoDirective],
   templateUrl: './notification-center.component.html'
 })
 export class NotificationCenterComponent {

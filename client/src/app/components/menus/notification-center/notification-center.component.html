@@ -36,10 +36,10 @@
             />
           }
         </div>
-        <!-- Close button removed - handled by anchor-menu backdrop -->
+        <hr />
       </div>
 
-      <div menu-body class="notification-center-body">
+      <div menu-body appScrollIndicator class="notification-center-body">
         @if (notificationService.notifications().length === 0) {
           <div class="notification-empty">
             <i class="pi pi-bell"></i>

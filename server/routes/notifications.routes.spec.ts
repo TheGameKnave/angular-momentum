@@ -20,9 +20,9 @@ describe('Notifications Routes', () => {
     mockBroadcastNotification = notificationService.broadcastNotification as jest.MockedFunction<typeof notificationService.broadcastNotification>;
     mockSendNotificationToUser = notificationService.sendNotificationToUser as jest.MockedFunction<typeof notificationService.sendNotificationToUser>;
 
-    // Reset mock implementations to no-op functions
-    mockBroadcastNotification.mockImplementation(() => {});
-    mockSendNotificationToUser.mockImplementation(() => {});
+    // Reset mock implementations to async no-op functions (for proper async handling)
+    mockBroadcastNotification.mockImplementation(() => Promise.resolve());
+    mockSendNotificationToUser.mockImplementation(() => Promise.resolve());
 
     // Setup mock WebSocket io
     mockIo = {

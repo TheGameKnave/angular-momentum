@@ -67,7 +67,7 @@ export class AppComponent implements OnInit {
   readonly showLanguage = () => this.featureFlagService.getFeature('Language');
 
   // Reactive signals for screen size and language
-  private readonly isNarrowScreen = signal(typeof globalThis.window !== 'undefined' && globalThis.window.innerWidth < SCREEN_SIZES.md);
+  private readonly isNarrowScreen = signal(globalThis.window !== undefined && globalThis.window.innerWidth < SCREEN_SIZES.md);
   private readonly lang = toSignal(this.translate.langChanges$, { initialValue: this.translate.getActiveLang() });
 
   // Footer labels (reactive to language and screen size)

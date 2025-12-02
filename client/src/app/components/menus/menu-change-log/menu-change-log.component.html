@@ -39,7 +39,7 @@
       }
     </div>
 
-    <div menu-body class="menu-change-log-body">
+    <div menu-body appScrollIndicator class="menu-change-log-body">
       @for (change of changeLog.changes(); track change.version) {
         <p-card>
           <h5>{{ change.version }}</h5>
