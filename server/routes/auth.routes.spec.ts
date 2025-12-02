@@ -177,6 +177,10 @@ describe('Auth Routes', () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'production';
 
+      // Explicitly reset mocks to ensure clean state
+      mockTurnstileService.verifyFromMetadata.mockReset();
+      mockSupabase.auth.admin.deleteUser.mockReset();
+
       mockTurnstileService.verifyFromMetadata.mockResolvedValue({
         success: false,
         error: 'Invalid CAPTCHA',

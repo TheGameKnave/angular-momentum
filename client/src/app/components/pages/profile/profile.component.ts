@@ -239,8 +239,8 @@ export class ProfileComponent implements OnInit {
   /**
    * Handle password change panel collapse/expand
    */
-  onPanelCollapsedChange(collapsed: boolean): void {
-    this.passwordPanelExpanded.set(!collapsed);
+  onPanelCollapsedChange(collapsed: boolean | undefined): void {
+    this.passwordPanelExpanded.set(!(collapsed ?? false));
 
     if (!collapsed) {
       // Expanding - reset form
@@ -302,8 +302,8 @@ export class ProfileComponent implements OnInit {
   /**
    * Handle email change panel collapse/expand
    */
-  onEmailPanelCollapsedChange(collapsed: boolean): void {
-    this.emailPanelExpanded.set(!collapsed);
+  onEmailPanelCollapsedChange(collapsed: boolean | undefined): void {
+    this.emailPanelExpanded.set(!(collapsed ?? false));
 
     if (!collapsed) {
       // Expanding - reset form
@@ -400,8 +400,8 @@ export class ProfileComponent implements OnInit {
   /**
    * Handle username panel collapse/expand
    */
-  onUsernamePanelCollapsedChange(collapsed: boolean): void {
-    this.usernamePanelExpanded.set(!collapsed);
+  onUsernamePanelCollapsedChange(collapsed: boolean | undefined): void {
+    this.usernamePanelExpanded.set(!(collapsed ?? false));
 
     if (!collapsed) {
       // Expanding - reset form

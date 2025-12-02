@@ -285,12 +285,15 @@ describe('Notifications Routes', () => {
     });
 
     it('should handle errors in try-catch block', async () => {
+      // Explicitly reset and set mock to ensure clean state
+      mockSendNotificationToUser.mockReset();
       mockSendNotificationToUser.mockImplementation(() => {
         throw new Error('Mock error');
       });
 
       const response = await request(app)
         .post('/api/notifications/send/socket123')
+        .set('Content-Type', 'application/json')
         .send({ title: 'Test Title', body: 'Test Body' });
 
       expect(response.status).toBe(500);
