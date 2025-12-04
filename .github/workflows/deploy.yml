@@ -106,7 +106,7 @@ jobs:
       - name: Install frontend dependencies
         run: |
           cd client
-          npm ci
+          npm ci --ignore-scripts
 
       - name: Build & Release with Tauri Action
         uses: tauri-apps/tauri-action@19a0c48ddbab7e32639b02f4f553f4f40f2860bd  # v0
@@ -162,7 +162,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd client
-          npm ci
+          npm ci --ignore-scripts
 
       - name: Import iOS certificates
         env:
