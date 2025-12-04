@@ -6,6 +6,7 @@ import { isTauri } from '@tauri-apps/api/core';
 import { ChangeLogService } from '@app/services/change-log.service';
 import { CardModule } from 'primeng/card';
 import { AnchorMenuComponent } from '../anchor-menu/anchor-menu.component';
+import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
 import { SEMVER_MESSAGE_MAP, CHANGE_LOG_MESSAGES } from '@app/constants/translations.constants';
 
 /**
@@ -24,6 +25,7 @@ import { SEMVER_MESSAGE_MAP, CHANGE_LOG_MESSAGES } from '@app/constants/translat
     TranslocoDirective,
     CardModule,
     AnchorMenuComponent,
+    ScrollIndicatorDirective,
   ],
 })
 export class MenuChangeLogComponent {

@@ -13,16 +13,16 @@ describe('Notifications Routes', () => {
   let mockIo: any;
 
   beforeEach(() => {
-    // Clear all mocks
-    jest.clearAllMocks();
+    // Reset all mocks completely to prevent state leakage
+    jest.resetAllMocks();
 
     // Get mocked functions
     mockBroadcastNotification = notificationService.broadcastNotification as jest.MockedFunction<typeof notificationService.broadcastNotification>;
     mockSendNotificationToUser = notificationService.sendNotificationToUser as jest.MockedFunction<typeof notificationService.sendNotificationToUser>;
 
-    // Reset mock implementations to no-op functions
-    mockBroadcastNotification.mockImplementation(() => {});
-    mockSendNotificationToUser.mockImplementation(() => {});
+    // Reset mock implementations to async no-op functions (for proper async handling)
+    mockBroadcastNotification.mockImplementation(() => Promise.resolve());
+    mockSendNotificationToUser.mockImplementation(() => Promise.resolve());
 
     // Setup mock WebSocket io
     mockIo = {
@@ -30,11 +30,15 @@ describe('Notifications Routes', () => {
       to: jest.fn().mockReturnThis(),
     };
 
-    // Create Express app
+    // Create fresh Express app for each test
     app = express();
     app.use(express.json());
     app.set('io', mockIo);
     app.use('/api/notifications', notificationsRoutes);
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
   describe('POST /broadcast', () => {
@@ -281,12 +285,15 @@ describe('Notifications Routes', () => {
     });
 
     it('should handle errors in try-catch block', async () => {
+      // Explicitly reset and set mock to ensure clean state
+      mockSendNotificationToUser.mockReset();
       mockSendNotificationToUser.mockImplementation(() => {
         throw new Error('Mock error');
       });
 
       const response = await request(app)
         .post('/api/notifications/send/socket123')
+        .set('Content-Type', 'application/json')
         .send({ title: 'Test Title', body: 'Test Body' });
 
       expect(response.status).toBe(500);

@@ -5,6 +5,7 @@ import { NgClass } from '@angular/common';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 import { AnchorMenuComponent } from '../anchor-menu/anchor-menu.component';
+import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
 
 /**
  * Menu language component that provides a language selection overlay.
@@ -21,6 +22,7 @@ import { AnchorMenuComponent } from '../anchor-menu/anchor-menu.component';
     TranslocoDirective,
     NgClass,
     AnchorMenuComponent,
+    ScrollIndicatorDirective,
   ],
 })
 export class MenuLanguageComponent {

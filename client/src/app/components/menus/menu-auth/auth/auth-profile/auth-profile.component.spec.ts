@@ -12,7 +12,7 @@ describe('AuthProfileComponent', () => {
   let mockUsernameService: jasmine.SpyObj<UsernameService>;
 
   beforeEach(async () => {
-    mockAuthService = jasmine.createSpyObj('AuthService', [], {
+    mockAuthService = jasmine.createSpyObj('AuthService', ['isAuthenticated'], {
       currentUser: signal({
         id: 'user-123',
         email: 'test@example.com',
@@ -23,8 +23,9 @@ describe('AuthProfileComponent', () => {
       loading: signal(false),
       isPasswordRecovery: signal(false)
     });
+    mockAuthService.isAuthenticated.and.returnValue(true);
 
-    mockUsernameService = jasmine.createSpyObj('UsernameService', [], {
+    mockUsernameService = jasmine.createSpyObj('UsernameService', ['loadUsername'], {
       username: signal({
         username: 'testuser',
         fingerprint: 'test-fingerprint'
@@ -95,11 +96,18 @@ describe('AuthProfileComponent', () => {
     });
 
     it('should return question mark if no user', () => {
-      mockAuthService = jasmine.createSpyObj('AuthService', [], {
+      mockAuthService = jasmine.createSpyObj('AuthService', ['isAuthenticated'], {
         currentUser: signal(null),
         currentSession: signal(null),
         loading: signal(false),
         isPasswordRecovery: signal(false)
+      });
+      mockAuthService.isAuthenticated.and.returnValue(false);
+
+      mockUsernameService = jasmine.createSpyObj('UsernameService', ['loadUsername'], {
+        username: signal({ username: 'testuser', fingerprint: 'test-fingerprint' }),
+        loading: signal(false),
+        creationFailed: signal(false)
       });
 
       TestBed.resetTestingModule();
@@ -120,11 +128,18 @@ describe('AuthProfileComponent', () => {
     });
 
     it('should return question mark if user has no email', () => {
-      mockAuthService = jasmine.createSpyObj('AuthService', [], {
+      mockAuthService = jasmine.createSpyObj('AuthService', ['isAuthenticated'], {
         currentUser: signal({ id: 'user-123' } as any),
         currentSession: signal(null),
         loading: signal(false),
         isPasswordRecovery: signal(false)
+      });
+      mockAuthService.isAuthenticated.and.returnValue(true);
+
+      mockUsernameService = jasmine.createSpyObj('UsernameService', ['loadUsername'], {
+        username: signal({ username: 'testuser', fingerprint: 'test-fingerprint' }),
+        loading: signal(false),
+        creationFailed: signal(false)
       });
 
       TestBed.resetTestingModule();
@@ -145,11 +160,18 @@ describe('AuthProfileComponent', () => {
     });
 
     it('should handle lowercase email', () => {
-      mockAuthService = jasmine.createSpyObj('AuthService', [], {
+      mockAuthService = jasmine.createSpyObj('AuthService', ['isAuthenticated'], {
         currentUser: signal({ id: 'user-123', email: 'abc@example.com' } as any),
         currentSession: signal(null),
         loading: signal(false),
         isPasswordRecovery: signal(false)
+      });
+      mockAuthService.isAuthenticated.and.returnValue(true);
+
+      mockUsernameService = jasmine.createSpyObj('UsernameService', ['loadUsername'], {
+        username: signal({ username: 'testuser', fingerprint: 'test-fingerprint' }),
+        loading: signal(false),
+        creationFailed: signal(false)
       });
 
       TestBed.resetTestingModule();
@@ -182,7 +204,21 @@ describe('AuthProfileComponent', () => {
     });
 
     it('should handle user without username', () => {
-      mockUsernameService = jasmine.createSpyObj('UsernameService', [], {
+      // Recreate authService mock with isAuthenticated method
+      mockAuthService = jasmine.createSpyObj('AuthService', ['isAuthenticated'], {
+        currentUser: signal({
+          id: 'user-123',
+          email: 'test@example.com',
+          created_at: '2024-01-01T00:00:00Z',
+          last_sign_in_at: '2024-01-15T12:00:00Z'
+        } as any),
+        currentSession: signal(null),
+        loading: signal(false),
+        isPasswordRecovery: signal(false)
+      });
+      mockAuthService.isAuthenticated.and.returnValue(true);
+
+      mockUsernameService = jasmine.createSpyObj('UsernameService', ['loadUsername'], {
         username: signal(null),
         loading: signal(false),
         creationFailed: signal(false)
@@ -261,6 +297,80 @@ describe('AuthProfileComponent', () => {
       const compiled = fixture.nativeElement as HTMLElement;
       // The component has styles defined in the @Component decorator
       expect(component).toBeTruthy();
+    });
+  });
+
+  describe('ngOnInit Username Loading', () => {
+    it('should load username when authenticated but username is null', () => {
+      mockAuthService = jasmine.createSpyObj('AuthService', ['isAuthenticated'], {
+        currentUser: signal({
+          id: 'user-123',
+          email: 'test@example.com',
+          created_at: '2024-01-01T00:00:00Z',
+          last_sign_in_at: '2024-01-15T12:00:00Z'
+        } as any),
+        currentSession: signal(null),
+        loading: signal(false),
+        isPasswordRecovery: signal(false)
+      });
+      mockAuthService.isAuthenticated.and.returnValue(true);
+
+      mockUsernameService = jasmine.createSpyObj('UsernameService', ['loadUsername'], {
+        username: signal(null), // username is null
+        loading: signal(false),
+        creationFailed: signal(false)
+      });
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [AuthProfileComponent, getTranslocoModule()],
+        providers: [
+          { provide: AuthService, useValue: mockAuthService },
+          { provide: UsernameService, useValue: mockUsernameService },
+        ]
+      });
+
+      fixture = TestBed.createComponent(AuthProfileComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges(); // triggers ngOnInit
+
+      expect(mockUsernameService.loadUsername).toHaveBeenCalled();
+    });
+
+    it('should not load username when already loaded', () => {
+      // Default setup has username already loaded
+      expect(mockUsernameService.loadUsername).not.toHaveBeenCalled();
+    });
+
+    it('should not load username when not authenticated', () => {
+      mockAuthService = jasmine.createSpyObj('AuthService', ['isAuthenticated'], {
+        currentUser: signal(null),
+        currentSession: signal(null),
+        loading: signal(false),
+        isPasswordRecovery: signal(false)
+      });
+      mockAuthService.isAuthenticated.and.returnValue(false);
+
+      mockUsernameService = jasmine.createSpyObj('UsernameService', ['loadUsername'], {
+        username: signal(null),
+        loading: signal(false),
+        creationFailed: signal(false)
+      });
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [AuthProfileComponent, getTranslocoModule()],
+        providers: [
+          { provide: AuthService, useValue: mockAuthService },
+          { provide: UsernameService, useValue: mockUsernameService },
+        ]
+      });
+
+      fixture = TestBed.createComponent(AuthProfileComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      expect(mockUsernameService.loadUsername).not.toHaveBeenCalled();
     });
   });
 });

@@ -44,6 +44,16 @@
     ,"Installers": "安装程序"
     ,"Features": "功能"
   }
+  ,"feature": {
+    "Notifications": "通知"
+    ,"GraphQL API": "GraphQL API"
+    ,"IndexedDB": "IndexedDB"
+    ,"Installers": "安装程序"
+    ,"Features": "功能"
+    ,"App Version": "应用版本"
+    ,"Environment": "环境"
+    ,"Language": "语言"
+  }
   ,"Status": "状态"
   ,"Platform": "平台"
   ,"Permission": "权限"
@@ -200,6 +210,7 @@
   ,"Save": "保存"
   ,"privacy": {
     "Privacy Policy": "隐私政策"
+    ,"Privacy": "隐私"
     ,"We use cookies to improve your experience and analyze site usage.": "我们使用Cookie来改善您的体验并分析网站使用情况。"
     ,"Learn more": "了解更多"
     ,"Last updated {date}": "最后更新于 {date}"

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, OnInit, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
@@ -28,7 +28,7 @@ import { getUserInitials } from '@app/helpers/user.helper';
     DatePipe,
   ],
 })
-export class AuthProfileComponent {
+export class AuthProfileComponent implements OnInit {
   // Input for auto-close timer (0 = no timer)
   readonly autoCloseSeconds = input<number>(0);
 
@@ -40,6 +40,15 @@ export class AuthProfileComponent {
     protected readonly authService: AuthService,
     protected readonly usernameService: UsernameService,
   ) {}
+
+  /**
+   * Load username if not already loaded (e.g., on page refresh with existing session).
+   */
+  ngOnInit(): void {
+    if (this.authService.isAuthenticated() && this.usernameService.username() === null) {
+      this.usernameService.loadUsername();
+    }
+  }
 
   /**
    * Handle view profile button click

@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { UpdateService } from '@app/services/update.service';
 import { FeatureFlagService } from '@app/services/feature-flag.service';
-import { COMPONENT_LIST } from '@app/helpers/component-list';
 import { SlugPipe } from '@app/pipes/slug.pipe';
 import { Router, NavigationEnd } from '@angular/router';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
@@ -194,6 +193,27 @@ describe('AppComponent', () => {
       const result = component.showLanguage();
       expect(featureFlagService.getFeature).toHaveBeenCalledWith('Language');
       expect(result).toBe(true);
+    });
+  });
+
+  describe('isNarrowScreen signal', () => {
+    it('should return true on narrow screens', () => {
+      spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md - 1);
+      component.onResize(); // update isNarrowScreen signal
+      expect(component.isNarrowScreen()).toBeTrue();
+    });
+
+    it('should return false on wide screens', () => {
+      spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md + 100);
+      component.onResize(); // update isNarrowScreen signal
+      expect(component.isNarrowScreen()).toBeFalse();
+    });
+
+    it('should update when screen width changes', () => {
+      // Start narrow
+      spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md - 1);
+      component.onResize();
+      expect(component.isNarrowScreen()).toBeTrue();
     });
   });
 });

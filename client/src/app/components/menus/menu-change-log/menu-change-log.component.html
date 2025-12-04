@@ -18,8 +18,8 @@
   </span>
 
   <!-- Menu Content: Changelog -->
-  <div menu-content class="menu-change-log-container" *transloco="let t">
-    <div class="menu-change-log-header">
+  <div menu-content *transloco="let t">
+    <div menu-header class="menu-change-log-header">
       <h3>
         <a [href]="packageJson.repository" target="_blank" rel="noopener noreferrer">
           <i class="pi pi-github"></i>
@@ -34,12 +34,12 @@
         >
           {{ semverMessage() }}
         </h4>
-        @if( !isTauri() ) { <p>{{ t("menu.If it doesn’t update momentarily, please try to clear your cache and refresh your browser.")}}</p> }
+        @if( !isTauri() ) { <p>{{ t("menu.If it doesn't update momentarily, please try to clear your cache and refresh your browser.")}}</p> }
         @else { <p [innerHTML]="linkMessage()"></p> }
       }
     </div>
 
-    <div class="menu-change-log-body scroll-area">
+    <div menu-body appScrollIndicator class="menu-change-log-body">
       @for (change of changeLog.changes(); track change.version) {
         <p-card>
           <h5>{{ change.version }}</h5>

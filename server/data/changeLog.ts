@@ -3,13 +3,26 @@
  * @description Array of changelog entries tracking version releases, dates, descriptions, and changes
  */
 export const changeLog = [  
-  
+  {
+    version: "20.0.1",
+    date: "2025-12-04",
+    description: "Scroll indicators, etc.",
+    changes: [
+      "installer links correction",
+      "no cookie consent in apps",
+      "ui styling adjustments",
+      "scroll indicators",
+    ]
+  },
   {
     version: "20.0.0",
     date: "2025-11-28",
-    description: "New major release",
+    description: "gigantic: menu anchors, privacy/cookies, AUTH",
     changes: [
-      "",
+      "Menu anchor consolidation",
+      "Privacy policy center",
+      "Cookie consent banner",
+      "Auth system via supabase",
     ]
   },
   {

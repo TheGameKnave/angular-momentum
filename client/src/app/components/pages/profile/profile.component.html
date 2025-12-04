@@ -19,7 +19,7 @@
       <!-- Password Change Panel -->
       <p-panel
         [header]="t('profile.Change Password')"
-        [toggleable]="true"
+        toggler="header" [toggleable]="true"
         [collapsed]="!passwordPanelExpanded()"
         (collapsedChange)="onPanelCollapsedChange($event)"
         styleClass="w-full"
@@ -145,7 +145,7 @@
       <!-- Email Change Panel -->
       <p-panel
         [header]="t('profile.Change Email Address')"
-        [toggleable]="true"
+        toggler="header" [toggleable]="true"
         [collapsed]="!emailPanelExpanded()"
         (collapsedChange)="onEmailPanelCollapsedChange($event)"
         styleClass="w-full"
@@ -206,7 +206,7 @@
       <!-- Username Panel -->
       <p-panel
         [header]="usernameService.username()?.username ? t('profile.Change Username') : t('profile.Set Username')"
-        [toggleable]="true"
+        toggler="header" [toggleable]="true"
         [collapsed]="!usernamePanelExpanded()"
         (collapsedChange)="onUsernamePanelCollapsedChange($event)"
         styleClass="w-full"

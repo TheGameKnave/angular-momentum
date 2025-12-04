@@ -44,6 +44,16 @@
     ,"Installers": "Instaladores"
     ,"Features": "Características"
   }
+  ,"feature": {
+    "Notifications": "Notificaciones"
+    ,"GraphQL API": "GraphQL API"
+    ,"IndexedDB": "IndexedDB"
+    ,"Installers": "Instaladores"
+    ,"Features": "Características"
+    ,"App Version": "Versión de la App"
+    ,"Environment": "Entorno"
+    ,"Language": "Idioma"
+  }
   ,"Status": "Estado"
   ,"Platform": "Plataforma"
   ,"Permission": "Permiso"
@@ -200,6 +210,7 @@
   ,"Save": "Guardar"
   ,"privacy": {
     "Privacy Policy": "Política de Privacidad"
+    ,"Privacy": "Privacidad"
     ,"We use cookies to improve your experience and analyze site usage.": "Usamos cookies para mejorar tu experiencia y analizar el uso del sitio."
     ,"Learn more": "Más información"
     ,"Last updated {date}": "Última actualización {date}"

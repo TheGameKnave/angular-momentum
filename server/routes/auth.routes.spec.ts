@@ -7,12 +7,19 @@ describe('Auth Routes', () => {
   let mockSupabase: any;
   let mockUsernameService: any;
   let mockTurnstileService: any;
+  const originalNodeEnv = process.env.NODE_ENV;
 
   beforeEach(() => {
+    // Reset all mocks completely to prevent state leakage
+    jest.resetAllMocks();
+
     // Suppress console output during tests
     jest.spyOn(console, 'log').mockImplementation();
     jest.spyOn(console, 'warn').mockImplementation();
     jest.spyOn(console, 'error').mockImplementation();
+
+    // Restore NODE_ENV to original value before each test
+    process.env.NODE_ENV = originalNodeEnv;
 
     // Mock Supabase client
     mockSupabase = {
@@ -54,6 +61,8 @@ describe('Auth Routes', () => {
   });
 
   afterEach(() => {
+    // Restore NODE_ENV to original value
+    process.env.NODE_ENV = originalNodeEnv;
     // Restore console methods
     jest.restoreAllMocks();
   });
@@ -167,6 +176,10 @@ describe('Auth Routes', () => {
     it('should return 500 if user deletion fails after CAPTCHA failure', async () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'production';
+
+      // Explicitly reset mocks to ensure clean state
+      mockTurnstileService.verifyFromMetadata.mockReset();
+      mockSupabase.auth.admin.deleteUser.mockReset();
 
       mockTurnstileService.verifyFromMetadata.mockResolvedValue({
         success: false,

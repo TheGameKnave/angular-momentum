@@ -8,8 +8,8 @@
   </span>
 
   <!-- Menu Content: Language Selection -->
-  <div menu-content class="menu-language-container" *transloco="let t">
-    <div class="menu-language-header">
+  <div menu-content *transloco="let t">
+    <div menu-header>
       <h3>
         <i class="pi pi-language"></i>
         {{ t('menu.Language') }}
@@ -17,7 +17,7 @@
       <hr />
     </div>
 
-    <div class="menu-language-body scroll-area">
+    <div menu-body appScrollIndicator class="menu-language-body">
       <ul>
         @for (ln of supportedLanguages; track ln) {
           <li [class]="'i18n-' + ln">

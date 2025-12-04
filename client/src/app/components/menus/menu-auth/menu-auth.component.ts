@@ -9,6 +9,7 @@ import { UserSettingsService } from '@app/services/user-settings.service';
 import { UsernameService } from '@app/services/username.service';
 import { AuthGuard } from '@app/guards/auth.guard';
 import { AnchorMenuComponent } from '@app/components/menus/anchor-menu/anchor-menu.component';
+import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
 import { AuthLoginComponent } from './auth/auth-login/auth-login.component';
 import { AuthSignupComponent } from './auth/auth-signup/auth-signup.component';
 import { AuthResetComponent } from './auth/auth-reset/auth-reset.component';
@@ -37,6 +38,7 @@ import { LogService } from '@app/services/log.service';
   imports: [
     TranslocoDirective,
     AnchorMenuComponent,
+    ScrollIndicatorDirective,
     AuthLoginComponent,
     AuthSignupComponent,
     AuthResetComponent,
@@ -213,6 +215,13 @@ export class MenuAuthComponent implements AfterViewInit {
     if (requiresAuth) {
       await this.router.navigate(['/']);
     }
+  }
+
+  /**
+   * Handle menu closed - reset UI state to clear any error messages
+   */
+  onMenuClosed(): void {
+    this.authUiState.reset();
   }
 
   /**

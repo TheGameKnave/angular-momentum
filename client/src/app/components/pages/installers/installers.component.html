@@ -12,7 +12,7 @@
       <i class="pi {{ installersService.currentPlatformInstaller().icon || '' }}"></i> {{ installersService.currentPlatformInstaller().name || '' }}
     </a>
   </p-card>
-  <p-panel header="{{ t('page.Other Installers') }}" [toggleable]="true" [collapsed]="true">
+  <p-panel header="{{ t('page.Other Installers') }}" [toggleable]="true" toggler="header" [collapsed]="true">
     @for (installer of installersService.otherInstallers(); track installer.name) {
       <a
         pButton

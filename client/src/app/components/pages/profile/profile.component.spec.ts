@@ -151,6 +151,21 @@ describe('ProfileComponent', () => {
     expect(component.passwordForm.reset).toHaveBeenCalled();
   });
 
+  it('should handle undefined collapsed value for password panel', () => {
+    component.onPanelCollapsedChange(undefined);
+    expect(component.passwordPanelExpanded()).toBe(true);
+  });
+
+  it('should handle undefined collapsed value for email panel', () => {
+    component.onEmailPanelCollapsedChange(undefined);
+    expect(component.emailPanelExpanded()).toBe(true);
+  });
+
+  it('should handle undefined collapsed value for username panel', () => {
+    component.onUsernamePanelCollapsedChange(undefined);
+    expect(component.usernamePanelExpanded()).toBe(true);
+  });
+
   it('should detect username as dirty when editedUsername differs from originalUsername', () => {
     component.editedUsername.set('newuser');
     component.originalUsername.set('olduser');
@@ -179,9 +194,8 @@ describe('ProfileComponent', () => {
     });
 
     it('should auto-expand password panel from router state', async () => {
-      mockRouter.getCurrentNavigation.and.returnValue({
-        extras: { state: { expandPasswordPanel: true } }
-      } as any);
+      const originalState = globalThis.history.state;
+      spyOnProperty(globalThis.history, 'state', 'get').and.returnValue({ expandPasswordPanel: true });
       await component.ngOnInit();
       expect(component.passwordPanelExpanded()).toBe(true);
       expect(component.isPasswordResetFlow()).toBe(true);

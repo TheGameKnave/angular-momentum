@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, HostListener, isDevMode, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, HostListener, inject, isDevMode, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 
 import { UpdateService } from '@app/services/update.service';
 
-import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 
 import packageJson from 'src/../package.json';
@@ -46,11 +47,18 @@ import { SCREEN_SIZES } from './constants/ui.constants';
   ],
 })
 export class AppComponent implements OnInit {
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
+
   @HostListener('window:resize')
   onResize() {
-    this.bodyClasses();
+    if (this.isBrowser) {
+      this.isNarrowScreen.set(window.innerWidth < SCREEN_SIZES.md);
+      this.bodyClasses();
+    }
   }
-  window = window;
+  // istanbul ignore next - SSR fallback branch can't be tested in browser context
+  window: Window | undefined = globalThis.window;
   SCREEN_SIZES = SCREEN_SIZES;
   isDevMode = isDevMode();
   appDiff = this.changeLogService.appDiff;
@@ -65,11 +73,13 @@ export class AppComponent implements OnInit {
   readonly showEnvironment = () => this.featureFlagService.getFeature('Environment');
   readonly showLanguage = () => this.featureFlagService.getFeature('Language');
 
+  // Reactive signal for screen size (used in template for responsive footer labels)
+  readonly isNarrowScreen = signal(globalThis.window !== undefined && globalThis.window.innerWidth < SCREEN_SIZES.md);
+
   constructor(
     readonly updateService: UpdateService,
     readonly changeLogService: ChangeLogService,
     protected translocoLoader: TranslocoHttpLoader,
-    protected translate: TranslocoService,
     protected featureFlagService: FeatureFlagService,
     private readonly slugPipe: SlugPipe,
     private readonly router: Router,
@@ -105,6 +115,8 @@ export class AppComponent implements OnInit {
    * Note: Theme class is set on both html and body elements for CSS selector compatibility.
    */
   bodyClasses(): void {
+    // istanbul ignore next - SSR fallback branch can't be tested in browser context
+    if (!this.isBrowser) return;
     // remove all classes from body
     document.body.className = 'screen-xs';
     if (this.routePath) document.body.classList.add(this.routePath);

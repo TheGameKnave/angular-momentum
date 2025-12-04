@@ -166,8 +166,7 @@ export class ProfileComponent implements OnInit {
     const isResetFlow = this.authService.isPasswordRecovery();
 
     // Check for router state from OTP password reset flow
-    const navigation = this.router.getCurrentNavigation();
-    const routerState = navigation?.extras?.state || globalThis.history.state;
+    const routerState = globalThis.history.state;
     const expandPasswordPanel = routerState?.['expandPasswordPanel'];
 
     if (isResetFlow || expandPasswordPanel) {
@@ -239,8 +238,8 @@ export class ProfileComponent implements OnInit {
   /**
    * Handle password change panel collapse/expand
    */
-  onPanelCollapsedChange(collapsed: boolean): void {
-    this.passwordPanelExpanded.set(!collapsed);
+  onPanelCollapsedChange(collapsed: boolean | undefined): void {
+    this.passwordPanelExpanded.set(!(collapsed ?? false));
 
     if (!collapsed) {
       // Expanding - reset form
@@ -302,8 +301,8 @@ export class ProfileComponent implements OnInit {
   /**
    * Handle email change panel collapse/expand
    */
-  onEmailPanelCollapsedChange(collapsed: boolean): void {
-    this.emailPanelExpanded.set(!collapsed);
+  onEmailPanelCollapsedChange(collapsed: boolean | undefined): void {
+    this.emailPanelExpanded.set(!(collapsed ?? false));
 
     if (!collapsed) {
       // Expanding - reset form
@@ -400,8 +399,8 @@ export class ProfileComponent implements OnInit {
   /**
    * Handle username panel collapse/expand
    */
-  onUsernamePanelCollapsedChange(collapsed: boolean): void {
-    this.usernamePanelExpanded.set(!collapsed);
+  onUsernamePanelCollapsedChange(collapsed: boolean | undefined): void {
+    this.usernamePanelExpanded.set(!(collapsed ?? false));
 
     if (!collapsed) {
       // Expanding - reset form

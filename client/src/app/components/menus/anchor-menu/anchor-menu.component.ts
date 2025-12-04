@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ViewContainerRef, TemplateRef, ViewChild, signal, input } from '@angular/core';
+import { Component, DestroyRef, ViewContainerRef, TemplateRef, ViewChild, signal, input, output } from '@angular/core';
 import { Overlay, OverlayRef, OverlayModule } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -89,6 +89,11 @@ export class AnchorMenuComponent {
   isOpen = signal(false);
 
   /**
+   * Emitted when the menu is closed.
+   */
+  readonly closed = output<void>();
+
+  /**
    * Translated aria-label for open menu button.
    */
   readonly ariaLabelOpen = signal('');
@@ -133,7 +138,7 @@ export class AnchorMenuComponent {
         positionStrategy,
         hasBackdrop: true,
         backdropClass: 'app-overlay-backdrop',
-        scrollStrategy: this.overlay.scrollStrategies.noop(),
+        scrollStrategy: this.overlay.scrollStrategies.block(),
         panelClass: 'anchor-menu-overlay-panel'
       });
 
@@ -160,5 +165,6 @@ export class AnchorMenuComponent {
       this.overlayRef.detach();
     }
     this.isOpen.set(false);
+    this.closed.emit();
   }
 }
