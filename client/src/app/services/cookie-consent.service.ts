@@ -15,7 +15,7 @@ export type CookieConsentStatus = 'pending' | 'accepted' | 'declined';
 export class CookieConsentService {
   private readonly CONSENT_KEY = 'cookie_consent_status';
   private readonly GA_ID = 'G-NZS60CFH48';
-  private readonly HOTJAR_ID = 5248028;
+  private readonly HOTJAR_ID = 6475773;
   private readonly HOTJAR_SV = 6;
 
   // Consent state (initialized after CONSENT_KEY is defined)
