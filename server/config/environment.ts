@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-dotenv.config({path: '../.env'});
+dotenv.config();
 
 /**
  * Configuration interface for environment variables
@@ -23,10 +23,10 @@ interface Config {
  * @description Loads configuration from .env file using dotenv
  */
 const config: Config = {
-  server_port: process.env.PORT,
+  server_port: process.env.API_PORT,
   server_id: process.env.SERVER_ID,
   data_key: process.env.DATA_KEY,
-  turnstile_secret_key: process.env.TURNSTILE_SECRET_KEY || '',
+  turnstile_secret_key: process.env.TURNSTILE_SECRET_KEY,
   supabase_url: process.env.SUPABASE_URL,
   supabase_service_key: process.env.SUPABASE_SERVICE_KEY,
 };

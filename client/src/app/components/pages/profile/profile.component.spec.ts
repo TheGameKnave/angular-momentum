@@ -194,9 +194,8 @@ describe('ProfileComponent', () => {
     });
 
     it('should auto-expand password panel from router state', async () => {
-      mockRouter.getCurrentNavigation.and.returnValue({
-        extras: { state: { expandPasswordPanel: true } }
-      } as any);
+      const originalState = globalThis.history.state;
+      spyOnProperty(globalThis.history, 'state', 'get').and.returnValue({ expandPasswordPanel: true });
       await component.ngOnInit();
       expect(component.passwordPanelExpanded()).toBe(true);
       expect(component.isPasswordResetFlow()).toBe(true);

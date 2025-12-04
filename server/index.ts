@@ -124,7 +124,7 @@ if (require.main === module) {
 
   app.set('io', io);
 
-  const PORT = Number(config.server_port);
+  const API_PORT = Number(config.server_port);
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  server.listen(PORT, '0.0.0.0', () => {});
+  server.listen(API_PORT, '0.0.0.0', () => {});
 }

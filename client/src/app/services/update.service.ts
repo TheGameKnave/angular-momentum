@@ -177,7 +177,7 @@ export class UpdateService {
    */
   // istanbul ignore next
   protected reloadPage(): void {
-    window.location.reload();
+    globalThis.location.reload();
   }
 
   /**

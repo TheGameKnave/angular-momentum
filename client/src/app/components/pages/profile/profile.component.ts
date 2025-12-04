@@ -166,8 +166,7 @@ export class ProfileComponent implements OnInit {
     const isResetFlow = this.authService.isPasswordRecovery();
 
     // Check for router state from OTP password reset flow
-    const navigation = this.router.getCurrentNavigation();
-    const routerState = navigation?.extras?.state || globalThis.history.state;
+    const routerState = globalThis.history.state;
     const expandPasswordPanel = routerState?.['expandPasswordPanel'];
 
     if (isResetFlow || expandPasswordPanel) {

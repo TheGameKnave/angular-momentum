@@ -26,4 +26,4 @@ cd ../client && npm test
 # cd ../../ && npx testcafe-blink-diff tests/e2e/screenshots --compare accepted:tested --open --threshold 0.003
 
 echo "\n Running sonar-scanner\n\n"
-cd ../ && sonar-scanner
+cd ../ && npm run sonar

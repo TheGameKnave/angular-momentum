@@ -98,6 +98,38 @@ describe('Express server', () => {
   });
 
   describe('Supabase Initialization', () => {
+    it('should return null when Supabase URL is missing', async () => {
+      jest.resetModules();
+      jest.doMock('./config/environment', () => ({
+        default: {
+          supabase_url: undefined,
+          supabase_service_key: 'test-key',
+        },
+      }));
+
+      const { setupApp: setupAppNoUrl } = require('./index');
+      const appNoUrl = setupAppNoUrl();
+
+      expect(appNoUrl).toBeDefined();
+      jest.resetModules();
+    });
+
+    it('should return null when Supabase service key is missing', async () => {
+      jest.resetModules();
+      jest.doMock('./config/environment', () => ({
+        default: {
+          supabase_url: 'https://test.supabase.co',
+          supabase_service_key: undefined,
+        },
+      }));
+
+      const { setupApp: setupAppNoKey } = require('./index');
+      const appNoKey = setupAppNoKey();
+
+      expect(appNoKey).toBeDefined();
+      jest.resetModules();
+    });
+
     it('should initialize Supabase when config is provided (lines 43-44, 61)', async () => {
       // Set environment variables BEFORE importing the module
       const originalUrl = process.env.SUPABASE_URL;

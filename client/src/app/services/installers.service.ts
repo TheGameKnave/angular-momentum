@@ -33,7 +33,7 @@ export class InstallersService {
    * @returns Platform name (e.g., 'Windows', 'macOS', 'Linux') or 'Unknown'
    */
   private determinePlatform(): string {
-    const userAgent = window.navigator.userAgent;
+    const userAgent = globalThis.navigator.userAgent;
 
     return PLATFORMS.find(p => p.regex.test(userAgent))?.platform ?? 'Unknown';
   }
