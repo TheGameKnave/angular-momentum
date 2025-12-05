@@ -149,8 +149,8 @@ $progress-end: #059669 !default;
     }
   }
 
-  // Footer
-  footer {
+  // Header & Footer (need explicit background for sticky positioning)
+  header, footer {
     background-color: $dark-gray;
     color: $text-light;
   }
@@ -441,20 +441,27 @@ p-panel {
 .main {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: auto;
   padding-left: 5rem;
 }
 
 header, footer {
   border: 0 solid $mid-gray;
+  flex-shrink: 0;
 }
 
 header {
+  position: sticky;
+  top: 0;
+  left:0;
+  z-index: 100;
   flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
   padding: .6rem;
   border-bottom-width: 1px;
+  transition: transform 0.2s ease-out;
   > div {
     display: flex;
     align-items: center;
@@ -468,6 +475,9 @@ header {
 }
 
 footer {
+  position: relative;
+  left: 0;
+  z-index: 100;
   flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
@@ -476,6 +486,7 @@ footer {
   min-height: 4rem;
   border-top-width: 1px;
   padding: 0 1rem;
+  transition: transform 0.2s ease-out;
 
   > h4 {
     margin: 0;
@@ -1477,13 +1488,12 @@ p-card.indexeddb {
   // Layout overrides
   .main {
     padding-left: 0;
+    height: calc(100vh - 4rem);
   }
   header, footer {
     border-left-width: 0;
   }
   footer {
-    padding-bottom: 4rem;
-    left: 0;
     > * {
       font-size: 1.6rem;
     }
@@ -1624,16 +1634,19 @@ p-card.indexeddb {
 // Scroll Indicator
 // ----------------------------------------------------------------------------
 
-// Track: sticky positioned at bottom-right corner
+// Sticky track: sticks to bottom-left of scroll viewport
+// Width is set via JS to match viewport width
 .scroll-indicator-track {
   position: sticky;
   bottom: 0;
-  right: 0;
+  left: 0;
+  height: 0;
   pointer-events: none;
-  z-index: 100000;
+  z-index: 50;
 }
 
-// Common indicator styles
+// Common indicator styles - absolutely positioned within sticky track
+// Negative offset moves indicators INTO the padding area (toward viewport edge)
 .scroll-indicator-vertical,
 .scroll-indicator-horizontal {
   position: absolute;
@@ -1643,15 +1656,16 @@ p-card.indexeddb {
   border-radius: 0.2rem;
   opacity: 0;
   pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
 }
 
-// Vertical: fixed width, variable height
+// Vertical indicator: thin bar extending upward from bottom-right
 .scroll-indicator-vertical {
   width: 0.4rem;
   height: var(--si-height, 0px);
 }
 
-// Horizontal: fixed height, variable width
+// Horizontal indicator: thin bar extending leftward from bottom-right
 .scroll-indicator-horizontal {
   height: 0.4rem;
   width: var(--si-width, 0px);

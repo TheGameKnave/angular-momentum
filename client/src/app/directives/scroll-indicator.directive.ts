@@ -20,7 +20,7 @@ import {
 export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
   private readonly el = inject(ElementRef);
 
-  @Input() appScrollIndicator: 'vertical' | 'horizontal' | 'both' | '' = 'vertical';
+  @Input() appScrollIndicator: 'vertical' | 'horizontal' | 'both' | '' = 'both';
 
   private hostElement!: HTMLElement;
   private scrollElement!: HTMLElement;
@@ -29,6 +29,7 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
   private horizontalIndicator: HTMLElement | null = null;
   private resizeObserver: ResizeObserver | null = null;
   private mutationObserver: MutationObserver | null = null;
+  private contentObserver: MutationObserver | null = null;
   private scrollHandler: (() => void) | null = null;
   private rafId: number | null = null;
   private pollRafId: number | null = null;
@@ -40,6 +41,19 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
   private cachedClientHeight = 0;
   private cachedScrollWidth = 0;
   private cachedClientWidth = 0;
+
+  // Header/footer show/hide state
+  private headerElement: HTMLElement | null = null;
+  private footerElement: HTMLElement | null = null; // Used for indicator placement
+  private headerHeight = 0;
+  private lastScrollTop = 0;
+  private lastDirectionChangeScrollTop = 0; // Track position where direction last changed
+  private headerMagicVisible = false; // True when header shown via scroll-up magic
+  private headerAnimating = false; // True during CSS transition, prevents interruption
+  private readonly SCROLL_THRESHOLD = 10; // Min px to travel before triggering magic show/hide
+  private readonly ANIMATION_DURATION = 200; // Match CSS transition duration
+  private scrollEndTimeout: ReturnType<typeof setTimeout> | null = null;
+  private animationTimeout: ReturnType<typeof setTimeout> | null = null;
 
   /**
    * Angular lifecycle hook called after the view is initialized.
@@ -80,10 +94,12 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
     // Initialize if we found a scrollable element (or host itself is scrollable)
     if (scrollEl !== this.hostElement || this.isScrollable(scrollEl)) {
       this.scrollElement = scrollEl;
+      this.findHeaderFooter();
       this.createIndicator();
       this.setupListeners();
       this.updateDimensionCache();
       this.updateIndicator();
+      this.initHeaderFooterState();
       this.initialized = true;
       return;
     }
@@ -171,6 +187,18 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
       this.mutationObserver.disconnect();
       this.mutationObserver = null;
     }
+    if (this.contentObserver) {
+      this.contentObserver.disconnect();
+      this.contentObserver = null;
+    }
+    if (this.scrollEndTimeout) {
+      clearTimeout(this.scrollEndTimeout);
+      this.scrollEndTimeout = null;
+    }
+    if (this.animationTimeout) {
+      clearTimeout(this.animationTimeout);
+      this.animationTimeout = null;
+    }
     if (this.track) {
       this.track.remove();
       this.track = null;
@@ -211,7 +239,7 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
    */
   private isScrollable(el: HTMLElement): boolean {
     const style = globalThis.getComputedStyle(el);
-    const mode = this.appScrollIndicator || 'vertical';
+    const mode = this.appScrollIndicator || 'both';
 
     const isScrollableY = style.overflowY === 'auto' || style.overflowY === 'scroll';
     const isScrollableX = style.overflowX === 'auto' || style.overflowX === 'scroll';
@@ -242,30 +270,37 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Create track and indicator(s) inside the scroll element.
+   * Create a single sticky track with indicator(s) inside.
+   * Track uses sticky positioning; indicators are absolutely positioned within.
+   * Insert before footer if present to avoid creating a gap after footer.
    */
   private createIndicator(): void {
-    // Force scroll element to have positioning context
-    this.scrollElement.style.position = 'relative';
+    const mode = this.appScrollIndicator || 'both';
 
+    // Create single track to hold all indicators
     this.track = document.createElement('div');
     this.track.className = 'scroll-indicator-track';
 
-    const mode = this.appScrollIndicator || 'vertical';
+    // Insert before footer if present, otherwise append
+    if (this.footerElement) {
+      this.scrollElement.insertBefore(this.track, this.footerElement);
+    } else {
+      this.scrollElement.appendChild(this.track);
+    }
 
+    // Vertical indicator
     if (mode === 'vertical' || mode === 'both') {
       this.verticalIndicator = document.createElement('div');
       this.verticalIndicator.className = 'scroll-indicator-vertical';
       this.track.appendChild(this.verticalIndicator);
     }
 
+    // Horizontal indicator
     if (mode === 'horizontal' || mode === 'both') {
       this.horizontalIndicator = document.createElement('div');
       this.horizontalIndicator.className = 'scroll-indicator-horizontal';
       this.track.appendChild(this.horizontalIndicator);
     }
-
-    this.scrollElement.appendChild(this.track);
   }
 
   /**
@@ -281,11 +316,16 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
       }
       // Update synchronously to stay in sync with scroll rendering
       this.updateIndicator();
+      this.updateHeaderFooter();
+
+      // Schedule scroll-end check to correct header if it got left behind during fast scroll
+      this.scheduleScrollEndCheck();
     };
     this.scrollElement.addEventListener('scroll', this.scrollHandler, { passive: true });
 
     this.resizeObserver = new ResizeObserver(() => this.handleResize());
     this.resizeObserver.observe(document.body);
+    this.resizeObserver.observe(this.scrollElement);
 
     // Watch for host element being removed from DOM (portal detach)
     // istanbul ignore next - mutation observer callback for portal scenarios
@@ -300,6 +340,20 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
     if (overlayContainer) {
       this.mutationObserver.observe(overlayContainer, { childList: true, subtree: true });
     }
+
+    // Watch scroll element for content changes (e.g., route navigation)
+    this.contentObserver = new MutationObserver(() => this.handleContentChange());
+    this.contentObserver.observe(this.scrollElement, { childList: true, subtree: true });
+  }
+
+  /**
+   * Handle content changes inside scroll element (e.g., navigation).
+   */
+  private handleContentChange(): void {
+    if (this.destroyed) return;
+    // Debounce with RAF to batch rapid mutations
+    this.updateDimensionCache();
+    this.scheduleUpdate();
   }
 
   /**
@@ -329,9 +383,9 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
         this.scrollElement.removeEventListener('scroll', this.scrollHandler);
       }
 
+      // Move track to new scroll element
       if (this.track) {
         this.track.remove();
-        newScrollElement.style.position = 'relative';
         newScrollElement.appendChild(this.track);
       }
 
@@ -343,7 +397,22 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
     }
 
     this.updateDimensionCache();
+    this.updateHeaderFooterDimensions();
+
+    // Update header/footer transforms immediately with new dimensions
+    this.updateHeaderFooter();
     this.scheduleUpdate();
+  }
+
+  /**
+   * Update header/footer height cache after resize.
+   * Only updates dimensions; does not reset scroll state or apply transforms.
+   * The scroll handler will naturally update transforms on next scroll.
+   */
+  private updateHeaderFooterDimensions(): void {
+    if (this.headerElement) {
+      this.headerHeight = this.headerElement.offsetHeight;
+    }
   }
 
   /**
@@ -362,30 +431,23 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
    * Update cached dimensions. Called on resize and initialization.
    */
   private updateDimensionCache(): void {
-    if (!this.scrollElement) return;
+    if (!this.scrollElement || !this.track) return;
     this.cachedScrollHeight = this.scrollElement.scrollHeight;
     this.cachedClientHeight = this.scrollElement.clientHeight;
     this.cachedScrollWidth = this.scrollElement.scrollWidth;
     this.cachedClientWidth = this.scrollElement.clientWidth;
 
-    // Offset by scroll element's padding to position at bounding box edge
+    // Set padding offset as CSS variable for indicator positioning
     const scrollStyle = globalThis.getComputedStyle(this.scrollElement);
-    const offsetRight = Number.parseFloat(scrollStyle.paddingRight) || 0;
-    const offsetBottom = Number.parseFloat(scrollStyle.paddingBottom) || 0;
-
-    if (this.verticalIndicator) {
-      this.verticalIndicator.style.setProperty('--si-offset-right', `${offsetRight}px`);
-      this.verticalIndicator.style.setProperty('--si-offset-bottom', `${offsetBottom}px`);
-    }
-    if (this.horizontalIndicator) {
-      this.horizontalIndicator.style.setProperty('--si-offset-right', `${offsetRight}px`);
-      this.horizontalIndicator.style.setProperty('--si-offset-bottom', `${offsetBottom}px`);
-    }
+    const paddingRight = Number.parseFloat(scrollStyle.paddingRight) || 0;
+    const paddingBottom = Number.parseFloat(scrollStyle.paddingBottom) || 0;
+    this.track.style.setProperty('--si-offset-right', `${paddingRight}px`);
+    this.track.style.setProperty('--si-offset-bottom', `${paddingBottom}px`);
   }
 
   /**
    * Update indicator dimensions.
-   * Sticky positioning handles keeping it at the bottom of viewport.
+   * Track handles positioning via sticky; indicators sized via CSS variables.
    */
   private updateIndicator(): void {
     if (this.destroyed) return;
@@ -444,6 +506,157 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
     } else {
       this.horizontalIndicator.style.setProperty('--si-width', `${indicatorWidth}px`);
       this.horizontalIndicator.style.opacity = '1';
+    }
+  }
+
+  /**
+   * Find header and footer elements within the scroll container.
+   */
+  private findHeaderFooter(): void {
+    this.headerElement = this.scrollElement.querySelector('header');
+    this.footerElement = this.scrollElement.querySelector('footer');
+
+    if (this.headerElement) {
+      this.headerHeight = this.headerElement.offsetHeight;
+    }
+  }
+
+  /**
+   * Initialize header/footer visibility state based on initial scroll position.
+   */
+  private initHeaderFooterState(): void {
+    const scrollTop = this.scrollElement.scrollTop;
+    this.lastScrollTop = scrollTop;
+    this.lastDirectionChangeScrollTop = scrollTop;
+    this.headerMagicVisible = false;
+
+    // Apply initial transforms
+    this.updateHeaderFooter();
+  }
+
+  /**
+   * Update header/footer visibility based on scroll position.
+   * Header: proportionally tracks near top, magic show/hide in middle (scroll direction)
+   * Footer: always proportionally tracks based on distance from bottom
+   */
+  private updateHeaderFooter(): void {
+    const scrollTop = this.scrollElement.scrollTop;
+    const maxScroll = this.cachedScrollHeight - this.cachedClientHeight;
+
+    // Clamp scrollTop to valid range to handle overscroll/bounce
+    const clampedScrollTop = Math.max(0, Math.min(scrollTop, maxScroll));
+
+    // Track direction changes and require threshold before triggering magic
+    const movingUp = clampedScrollTop < this.lastScrollTop;
+    const movingDown = clampedScrollTop > this.lastScrollTop;
+
+    // Update direction change tracking when direction reverses
+    if ((movingUp && this.lastScrollTop > this.lastDirectionChangeScrollTop) ||
+        (movingDown && this.lastScrollTop < this.lastDirectionChangeScrollTop)) {
+      this.lastDirectionChangeScrollTop = this.lastScrollTop;
+    }
+
+    // Only trigger magic after scrolling threshold distance in new direction
+    // Also ignore when at boundaries (prevents false triggers from bounce)
+    const atTop = scrollTop <= 0;
+    const atBottom = scrollTop >= maxScroll;
+    const distanceSinceDirectionChange = Math.abs(clampedScrollTop - this.lastDirectionChangeScrollTop);
+    const thresholdMet = distanceSinceDirectionChange >= this.SCROLL_THRESHOLD;
+    const scrollingUp = !atTop && !atBottom && movingUp && thresholdMet;
+    const scrollingDown = !atTop && !atBottom && movingDown && thresholdMet;
+
+    // Header logic: proportional near top, magic in middle
+    if (this.headerElement) {
+      if (this.headerMagicVisible) {
+        // Header is magic-visible (showing via scroll-up) - keep at translateY(0)
+        if (scrollingDown) {
+          // Hide with transition when scrolling down
+          this.headerElement.style.transition = '';
+          this.headerElement.style.transform = `translateY(-${this.headerHeight}px)`;
+          this.headerMagicVisible = false;
+          this.startHeaderAnimation();
+        } else if (clampedScrollTop === 0) {
+          // Reached top - seamlessly hand off to proportional mode (both are at 0)
+          this.headerMagicVisible = false;
+          this.lastDirectionChangeScrollTop = 0;
+        }
+        // Otherwise just stay visible at translateY(0) - no changes needed
+      } else {
+        // Header is not magic-visible
+        if (clampedScrollTop <= this.headerHeight) {
+          // Proportional zone - track 1:1 with scroll
+          if (!this.headerAnimating) {
+            this.headerElement.style.transition = 'none';
+            this.headerElement.style.transform = `translateY(${-clampedScrollTop}px)`;
+          }
+          this.lastDirectionChangeScrollTop = clampedScrollTop;
+        } else {
+          // Middle zone
+          if (scrollingUp && !this.headerAnimating) {
+            // Show header with transition
+            this.headerElement.style.transition = '';
+            this.headerElement.style.transform = 'translateY(0)';
+            this.headerMagicVisible = true;
+            this.startHeaderAnimation();
+          } else if (!this.headerAnimating) {
+            // Enforce hidden position (catches fast scrolling)
+            this.headerElement.style.transition = 'none';
+            this.headerElement.style.transform = `translateY(-${this.headerHeight}px)`;
+          }
+        }
+      }
+    }
+
+    // Footer horizontal tracking: stay aligned with horizontal scroll
+    if (this.footerElement) {
+      const scrollLeft = this.scrollElement.scrollLeft;
+      this.footerElement.style.left = `${scrollLeft}px`;
+    }
+
+    this.lastScrollTop = clampedScrollTop;
+  }
+
+  /**
+   * Schedule a check after scrolling stops to correct header position if needed.
+   * Debounced - resets on each scroll event.
+   */
+  private scheduleScrollEndCheck(): void {
+    if (this.scrollEndTimeout) {
+      clearTimeout(this.scrollEndTimeout);
+    }
+    this.scrollEndTimeout = setTimeout(() => {
+      this.correctHeaderPosition();
+    }, 150);
+  }
+
+  /**
+   * Start header animation timer to prevent interruption during CSS transition.
+   */
+  private startHeaderAnimation(): void {
+    this.headerAnimating = true;
+    if (this.animationTimeout) {
+      clearTimeout(this.animationTimeout);
+    }
+    this.animationTimeout = setTimeout(() => {
+      this.headerAnimating = false;
+    }, this.ANIMATION_DURATION);
+  }
+
+  /**
+   * Correct header position after fast scrolling leaves it in an intermediate state.
+   * If header should be hidden but isn't fully hidden, animate it closed.
+   */
+  private correctHeaderPosition(): void {
+    if (!this.headerElement) return;
+
+    const scrollTop = this.scrollElement.scrollTop;
+    const maxScroll = this.cachedScrollHeight - this.cachedClientHeight;
+    const clampedScrollTop = Math.max(0, Math.min(scrollTop, maxScroll));
+
+    // If we're past the header zone and header isn't magic-visible, ensure it's fully hidden
+    if (clampedScrollTop > this.headerHeight && !this.headerMagicVisible) {
+      this.headerElement.style.transition = '';
+      this.headerElement.style.transform = `translateY(-${this.headerHeight}px)`;
     }
   }
 }

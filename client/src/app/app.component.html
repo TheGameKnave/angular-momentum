@@ -1,8 +1,8 @@
 <ng-container *transloco="let t">
-  <div class="main">
+  <div class="main" appScrollIndicator>
     <header>
       <div class="breadcrumbs">
-        Momentum 
+        Momentum
         @if(breadcrumb){ | {{ breadcrumb }}}
       </div>
       <div class="header-actions">
@@ -21,7 +21,7 @@
         }
       </div>
     </header>
-  
+
     <div class="content">
       <router-outlet></router-outlet>
     </div>
