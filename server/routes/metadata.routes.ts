@@ -48,10 +48,10 @@ router.get('/docs', (req: Request, res: Response) => {
 # Hybrid API Documentation
 
 This application uses a **hybrid GraphQL + REST architecture**:
-- **GraphQL** (\`/graphql\`) for complex queries with nested data
+- **GraphQL** (\`/gql\`) for complex queries with nested data
 - **REST** (\`/api\`) for simple CRUD operations
 
-## GraphQL Endpoint: \`/graphql\`
+## GraphQL Endpoint: \`/gql\`
 
 **Use for complex queries and mutations:**
 
