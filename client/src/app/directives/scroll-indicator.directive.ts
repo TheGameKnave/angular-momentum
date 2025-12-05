@@ -8,6 +8,16 @@ import {
 } from '@angular/core';
 
 /**
+ * Scroll state for header/footer updates.
+ */
+interface ScrollState {
+  movingUp: boolean;
+  movingDown: boolean;
+  scrollingUp: boolean;
+  scrollingDown: boolean;
+}
+
+/**
  * Directive that adds a scroll indicator to scrollable elements.
  * Walks up the DOM to find the actual scrolling ancestor.
  * Indicator shows remaining scroll content, shrinking as you scroll down.
@@ -537,83 +547,133 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
   /**
    * Update header/footer visibility based on scroll position.
    * Header: proportionally tracks near top, magic show/hide in middle (scroll direction)
-   * Footer: always proportionally tracks based on distance from bottom
+   * Footer: tracks horizontal scroll position
    */
   private updateHeaderFooter(): void {
     const scrollTop = this.scrollElement.scrollTop;
     const maxScroll = this.cachedScrollHeight - this.cachedClientHeight;
-
-    // Clamp scrollTop to valid range to handle overscroll/bounce
     const clampedScrollTop = Math.max(0, Math.min(scrollTop, maxScroll));
 
-    // Track direction changes and require threshold before triggering magic
+    const scrollState = this.computeScrollState(scrollTop, maxScroll, clampedScrollTop);
+    this.updateDirectionTracking(scrollState);
+
+    if (this.headerElement) {
+      this.updateHeaderForMagicVisible(clampedScrollTop, scrollState);
+      this.updateHeaderForNonMagicVisible(clampedScrollTop, scrollState);
+    }
+
+    if (this.footerElement) {
+      this.footerElement.style.left = `${this.scrollElement.scrollLeft}px`;
+    }
+
+    this.lastScrollTop = clampedScrollTop;
+  }
+
+  /**
+   * Compute scroll direction and threshold state.
+   */
+  private computeScrollState(scrollTop: number, maxScroll: number, clampedScrollTop: number): ScrollState {
     const movingUp = clampedScrollTop < this.lastScrollTop;
     const movingDown = clampedScrollTop > this.lastScrollTop;
 
-    // Update direction change tracking when direction reverses
-    if ((movingUp && this.lastScrollTop > this.lastDirectionChangeScrollTop) ||
-        (movingDown && this.lastScrollTop < this.lastDirectionChangeScrollTop)) {
-      this.lastDirectionChangeScrollTop = this.lastScrollTop;
-    }
-
-    // Only trigger magic after scrolling threshold distance in new direction
-    // Also ignore when at boundaries (prevents false triggers from bounce)
     const atTop = scrollTop <= 0;
     const atBottom = scrollTop >= maxScroll;
     const distanceSinceDirectionChange = Math.abs(clampedScrollTop - this.lastDirectionChangeScrollTop);
     const thresholdMet = distanceSinceDirectionChange >= this.SCROLL_THRESHOLD;
-    const scrollingUp = !atTop && !atBottom && movingUp && thresholdMet;
-    const scrollingDown = !atTop && !atBottom && movingDown && thresholdMet;
 
-    // Header logic: proportional near top, magic in middle
-    if (this.headerElement) {
-      if (this.headerMagicVisible) {
-        // Header is magic-visible (showing via scroll-up) - keep at translateY(0)
-        if (scrollingDown) {
-          // Hide with transition when scrolling down
-          this.headerElement.style.transition = '';
-          this.headerElement.style.transform = `translateY(-${this.headerHeight}px)`;
-          this.headerMagicVisible = false;
-          this.startHeaderAnimation();
-        } else if (clampedScrollTop === 0) {
-          // Reached top - seamlessly hand off to proportional mode (both are at 0)
-          this.headerMagicVisible = false;
-          this.lastDirectionChangeScrollTop = 0;
-        }
-        // Otherwise just stay visible at translateY(0) - no changes needed
-      } else {
-        // Header is not magic-visible
-        if (clampedScrollTop <= this.headerHeight) {
-          // Proportional zone - track 1:1 with scroll
-          if (!this.headerAnimating) {
-            this.headerElement.style.transition = 'none';
-            this.headerElement.style.transform = `translateY(${-clampedScrollTop}px)`;
-          }
-          this.lastDirectionChangeScrollTop = clampedScrollTop;
-        } else {
-          // Middle zone
-          if (scrollingUp && !this.headerAnimating) {
-            // Show header with transition
-            this.headerElement.style.transition = '';
-            this.headerElement.style.transform = 'translateY(0)';
-            this.headerMagicVisible = true;
-            this.startHeaderAnimation();
-          } else if (!this.headerAnimating) {
-            // Enforce hidden position (catches fast scrolling)
-            this.headerElement.style.transition = 'none';
-            this.headerElement.style.transform = `translateY(-${this.headerHeight}px)`;
-          }
-        }
-      }
+    return {
+      movingUp,
+      movingDown,
+      scrollingUp: !atTop && !atBottom && movingUp && thresholdMet,
+      scrollingDown: !atTop && !atBottom && movingDown && thresholdMet,
+    };
+  }
+
+  /**
+   * Update direction change tracking when scroll direction reverses.
+   */
+  private updateDirectionTracking(state: ScrollState): void {
+    const directionReversedUp = state.movingUp && this.lastScrollTop > this.lastDirectionChangeScrollTop;
+    const directionReversedDown = state.movingDown && this.lastScrollTop < this.lastDirectionChangeScrollTop;
+
+    if (directionReversedUp || directionReversedDown) {
+      this.lastDirectionChangeScrollTop = this.lastScrollTop;
     }
+  }
 
-    // Footer horizontal tracking: stay aligned with horizontal scroll
-    if (this.footerElement) {
-      const scrollLeft = this.scrollElement.scrollLeft;
-      this.footerElement.style.left = `${scrollLeft}px`;
+  /**
+   * Handle header when it's magic-visible.
+   */
+  private updateHeaderForMagicVisible(clampedScrollTop: number, state: ScrollState): void {
+    if (!this.headerMagicVisible) return;
+
+    if (state.scrollingDown) {
+      this.hideMagicVisibleHeader();
+    } else if (clampedScrollTop === 0) {
+      this.transitionMagicToProportional();
     }
+  }
 
-    this.lastScrollTop = clampedScrollTop;
+  /**
+   * Handle header when it's not magic-visible.
+   */
+  private updateHeaderForNonMagicVisible(clampedScrollTop: number, state: ScrollState): void {
+    if (this.headerMagicVisible) return;
+
+    if (clampedScrollTop <= this.headerHeight) {
+      this.applyProportionalHeaderTransform(clampedScrollTop);
+    } else if (state.scrollingUp && !this.headerAnimating) {
+      this.showHeaderWithMagic();
+    } else if (!this.headerAnimating) {
+      this.enforceHeaderHidden();
+    }
+  }
+
+  /**
+   * Hide header that was magic-visible with animation.
+   */
+  private hideMagicVisibleHeader(): void {
+    this.headerElement!.style.transition = '';
+    this.headerElement!.style.transform = `translateY(-${this.headerHeight}px)`;
+    this.headerMagicVisible = false;
+    this.startHeaderAnimation();
+  }
+
+  /**
+   * Transition from magic-visible to proportional mode when reaching top.
+   */
+  private transitionMagicToProportional(): void {
+    this.headerMagicVisible = false;
+    this.lastDirectionChangeScrollTop = 0;
+  }
+
+  /**
+   * Apply proportional header transform in the near-top zone.
+   */
+  private applyProportionalHeaderTransform(clampedScrollTop: number): void {
+    if (!this.headerAnimating) {
+      this.headerElement!.style.transition = 'none';
+      this.headerElement!.style.transform = `translateY(${-clampedScrollTop}px)`;
+    }
+    this.lastDirectionChangeScrollTop = clampedScrollTop;
+  }
+
+  /**
+   * Show header with magic animation when scrolling up in middle zone.
+   */
+  private showHeaderWithMagic(): void {
+    this.headerElement!.style.transition = '';
+    this.headerElement!.style.transform = 'translateY(0)';
+    this.headerMagicVisible = true;
+    this.startHeaderAnimation();
+  }
+
+  /**
+   * Enforce header hidden position (catches fast scrolling).
+   */
+  private enforceHeaderHidden(): void {
+    this.headerElement!.style.transition = 'none';
+    this.headerElement!.style.transform = `translateY(-${this.headerHeight}px)`;
   }
 
   /**
