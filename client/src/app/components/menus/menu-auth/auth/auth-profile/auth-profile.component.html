@@ -47,14 +47,13 @@
 
   <!-- Actions -->
   <div class="profile-actions">
-    <button
-      pButton
-      severity="danger"
-      (click)="onLogout()"
-      class="w-full"
-    >
-      <i class="pi pi-sign-out"></i> {{ t('auth.Logout') }}
-    </button>
+    <p-button
+      [label]="t('auth.Logout')"
+      severity="secondary"
+      icon="pi pi-sign-out"
+      (onClick)="onLogout()"
+      styleClass="w-full"
+    />
   </div>
 
   <!-- Auto-close progress bar -->

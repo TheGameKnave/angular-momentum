@@ -22,6 +22,7 @@ import { NotificationCenterComponent } from './components/menus/notification-cen
 import { MenuAuthComponent } from './components/menus/menu-auth/menu-auth.component';
 import { CookieBannerComponent } from './components/privacy/cookie-banner/cookie-banner.component';
 import { SCREEN_SIZES } from './constants/ui.constants';
+import { ScrollIndicatorDirective } from './directives/scroll-indicator.directive';
 
 /**
  * Root component of the Angular Momentum application.
@@ -44,6 +45,7 @@ import { SCREEN_SIZES } from './constants/ui.constants';
     NotificationCenterComponent,
     MenuAuthComponent,
     CookieBannerComponent,
+    ScrollIndicatorDirective,
   ],
 })
 export class AppComponent implements OnInit {
@@ -104,6 +106,14 @@ export class AppComponent implements OnInit {
           }
         });
         this.bodyClasses();
+
+        // Scroll to top on navigation (Angular's scrollPositionRestoration targets window, not custom scroll containers)
+        if (this.isBrowser) {
+          const mainElement = document.querySelector('.main');
+          if (mainElement) {
+            mainElement.scrollTop = 0;
+          }
+        }
       }
     });
   }

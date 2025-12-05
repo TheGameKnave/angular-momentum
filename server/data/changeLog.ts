@@ -4,6 +4,14 @@
  */
 export const changeLog = [  
   {
+    version: "20.0.2",
+    date: "2025-12-05",
+    description: "Scrolling",
+    changes: [
+      "Scroll headers and footers + horizontal",
+    ]
+  },
+  {
     version: "20.0.1",
     date: "2025-12-04",
     description: "Scroll indicators, etc.",

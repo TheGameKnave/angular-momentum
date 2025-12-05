@@ -13,9 +13,8 @@ module.exports = {
   },
   // Use /gql instead of /graphql to avoid collision with /graphql-api route
   '/gql': {
-    target: 'http://localhost:4201/graphql',
+    target: 'http://localhost:4201',
     secure: false,
-    changeOrigin: true,
-    pathRewrite: { '^/gql': '' }
+    changeOrigin: true
   }
 };

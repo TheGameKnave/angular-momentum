@@ -125,6 +125,31 @@ describe('AppComponent', () => {
       expect(component.breadcrumb).toBe('');
       expect(component.routePath).toBe('some-random-route');
     });
+
+    it('should scroll main element to top on navigation', () => {
+      // Create a .main element with scrollTop > 0
+      const mainElement = document.createElement('div');
+      mainElement.className = 'main';
+      mainElement.style.height = '100px';
+      mainElement.style.overflow = 'auto';
+      mainElement.innerHTML = '<div style="height: 500px;"></div>';
+      document.body.appendChild(mainElement);
+
+      // Set scroll position
+      mainElement.scrollTop = 200;
+
+      slugPipe.transform.and.callFake((name: string) => {
+        return name.toLowerCase().replace(/\s+/g, '-');
+      });
+
+      const navEvent = new NavigationEnd(1, '/features', '/features');
+      routerEvents$.next(navEvent);
+
+      expect(mainElement.scrollTop).toBe(0);
+
+      // Cleanup
+      document.body.removeChild(mainElement);
+    });
   });
 
   describe('bodyClasses', () => {

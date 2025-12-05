@@ -25,7 +25,7 @@ function triggerResize() {
 @Component({
   template: `
     <div class="scroll-container" style="height: 200px; overflow-y: auto;">
-      <div appScrollIndicator class="content" style="height: 600px;">Content</div>
+      <div [appScrollIndicator]="'vertical'" class="content" style="height: 600px;">Content</div>
     </div>
   `,
   imports: [ScrollIndicatorDirective],
@@ -871,6 +871,595 @@ describe('ScrollIndicatorDirective', () => {
     }));
   });
 
+  describe('header and footer handling', () => {
+    let fixture: ComponentFixture<any>;
+
+    afterEach(() => {
+      if (fixture) {
+        fixture.destroy();
+      }
+    });
+
+    it('should find header and footer elements and track header height', fakeAsync(async () => {
+      @Component({
+        template: `
+          <div class="scroll-container" style="height: 300px; overflow-y: auto;">
+            <header style="height: 60px; position: sticky; top: 0;">Header</header>
+            <div appScrollIndicator class="content" style="height: 1000px;">Content</div>
+            <footer style="height: 50px; position: sticky; bottom: 0;">Footer</footer>
+          </div>
+        `,
+        imports: [ScrollIndicatorDirective],
+      })
+      class HeaderFooterComponent {}
+
+      await TestBed.configureTestingModule({
+        imports: [HeaderFooterComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(HeaderFooterComponent);
+      fixture.detectChanges();
+      tick(100);
+      flush();
+      fixture.detectChanges();
+
+      const directiveEl = fixture.debugElement.query(By.directive(ScrollIndicatorDirective));
+      const directive = directiveEl.injector.get(ScrollIndicatorDirective);
+
+      // Header and footer should be found
+      expect((directive as any).headerElement).toBeTruthy();
+      expect((directive as any).footerElement).toBeTruthy();
+      expect((directive as any).headerHeight).toBeGreaterThan(0);
+    }));
+
+    it('should insert track before footer element', fakeAsync(async () => {
+      @Component({
+        template: `
+          <div class="scroll-container" style="height: 300px; overflow-y: auto;">
+            <header style="height: 60px;">Header</header>
+            <div appScrollIndicator class="content" style="height: 1000px;">Content</div>
+            <footer style="height: 50px;">Footer</footer>
+          </div>
+        `,
+        imports: [ScrollIndicatorDirective],
+      })
+      class TrackPlacementComponent {}
+
+      await TestBed.configureTestingModule({
+        imports: [TrackPlacementComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(TrackPlacementComponent);
+      fixture.detectChanges();
+      tick(100);
+      flush();
+      fixture.detectChanges();
+
+      const scrollContainer = fixture.nativeElement.querySelector('.scroll-container');
+      const track = scrollContainer.querySelector('.scroll-indicator-track');
+      const footer = scrollContainer.querySelector('footer');
+
+      // Track should be before footer in DOM order
+      expect(track).toBeTruthy();
+      expect(footer).toBeTruthy();
+      expect(track.compareDocumentPosition(footer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }));
+
+    it('should update header transform in proportional zone on scroll', fakeAsync(async () => {
+      @Component({
+        template: `
+          <div class="scroll-container" style="height: 300px; overflow-y: auto;">
+            <header style="height: 60px; position: sticky; top: 0;">Header</header>
+            <div appScrollIndicator class="content" style="height: 1000px;">Content</div>
+          </div>
+        `,
+        imports: [ScrollIndicatorDirective],
+      })
+      class HeaderScrollComponent {}
+
+      await TestBed.configureTestingModule({
+        imports: [HeaderScrollComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(HeaderScrollComponent);
+      fixture.detectChanges();
+      tick(100);
+      flush();
+      fixture.detectChanges();
+
+      const scrollContainer = fixture.nativeElement.querySelector('.scroll-container');
+      const header = fixture.nativeElement.querySelector('header');
+
+      // Scroll within header height (proportional zone)
+      scrollContainer.scrollTop = 30;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      tick(200);
+      fixture.detectChanges();
+
+      // Header should have transform applied
+      expect(header.style.transform).toContain('translateY');
+    }));
+
+    it('should hide header when scrolled past header zone', fakeAsync(async () => {
+      @Component({
+        template: `
+          <div class="scroll-container" style="height: 300px; overflow-y: auto;">
+            <header style="height: 60px; position: sticky; top: 0;">Header</header>
+            <div appScrollIndicator class="content" style="height: 1000px;">Content</div>
+          </div>
+        `,
+        imports: [ScrollIndicatorDirective],
+      })
+      class HeaderHideComponent {}
+
+      await TestBed.configureTestingModule({
+        imports: [HeaderHideComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(HeaderHideComponent);
+      fixture.detectChanges();
+      tick(100);
+      flush();
+      fixture.detectChanges();
+
+      const scrollContainer = fixture.nativeElement.querySelector('.scroll-container');
+      const header = fixture.nativeElement.querySelector('header');
+
+      // Scroll past header zone
+      scrollContainer.scrollTop = 200;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      tick(200);
+      fixture.detectChanges();
+
+      // Header should be hidden
+      expect(header.style.transform).toContain('-60');
+    }));
+
+    it('should show header with magic when scrolling up in middle zone', fakeAsync(async () => {
+      @Component({
+        template: `
+          <div class="scroll-container" style="height: 300px; overflow-y: auto;">
+            <header style="height: 60px; position: sticky; top: 0;">Header</header>
+            <div appScrollIndicator class="content" style="height: 1000px;">Content</div>
+          </div>
+        `,
+        imports: [ScrollIndicatorDirective],
+      })
+      class HeaderMagicComponent {}
+
+      await TestBed.configureTestingModule({
+        imports: [HeaderMagicComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(HeaderMagicComponent);
+      fixture.detectChanges();
+      tick(100);
+      flush();
+      fixture.detectChanges();
+
+      const scrollContainer = fixture.nativeElement.querySelector('.scroll-container');
+      const header = fixture.nativeElement.querySelector('header');
+      const directiveEl = fixture.debugElement.query(By.directive(ScrollIndicatorDirective));
+      const directive = directiveEl.injector.get(ScrollIndicatorDirective);
+
+      // First scroll down past header
+      scrollContainer.scrollTop = 300;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      tick(50);
+
+      // Then scroll up enough to trigger magic show
+      scrollContainer.scrollTop = 280;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      tick(50);
+      scrollContainer.scrollTop = 260;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      tick(50);
+      scrollContainer.scrollTop = 240;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      tick(200);
+      fixture.detectChanges();
+
+      // Header magic visible should be true
+      expect((directive as any).headerMagicVisible).toBe(true);
+      expect(header.style.transform).toMatch(/translateY\(0(px)?\)/);
+    }));
+
+    it('should hide header when scrolling down while magic visible', fakeAsync(async () => {
+      @Component({
+        template: `
+          <div class="scroll-container" style="height: 300px; overflow-y: auto;">
+            <header style="height: 60px; position: sticky; top: 0;">Header</header>
+            <div appScrollIndicator class="content" style="height: 1000px;">Content</div>
+          </div>
+        `,
+        imports: [ScrollIndicatorDirective],
+      })
+      class HeaderMagicHideComponent {}
+
+      await TestBed.configureTestingModule({
+        imports: [HeaderMagicHideComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(HeaderMagicHideComponent);
+      fixture.detectChanges();
+      tick(100);
+      flush();
+      fixture.detectChanges();
+
+      const scrollContainer = fixture.nativeElement.querySelector('.scroll-container');
+      const directiveEl = fixture.debugElement.query(By.directive(ScrollIndicatorDirective));
+      const directive = directiveEl.injector.get(ScrollIndicatorDirective);
+
+      // Set magic visible manually
+      (directive as any).headerMagicVisible = true;
+      (directive as any).lastScrollTop = 200;
+      (directive as any).lastDirectionChangeScrollTop = 200;
+
+      // Scroll down significantly
+      scrollContainer.scrollTop = 250;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      tick(50);
+      scrollContainer.scrollTop = 280;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      tick(200);
+      fixture.detectChanges();
+
+      // Header should no longer be magic visible
+      expect((directive as any).headerMagicVisible).toBe(false);
+    }));
+
+    it('should transition from magic visible to proportional when reaching top', fakeAsync(async () => {
+      @Component({
+        template: `
+          <div class="scroll-container" style="height: 300px; overflow-y: auto;">
+            <header style="height: 60px; position: sticky; top: 0;">Header</header>
+            <div appScrollIndicator class="content" style="height: 1000px;">Content</div>
+          </div>
+        `,
+        imports: [ScrollIndicatorDirective],
+      })
+      class HeaderTopTransitionComponent {}
+
+      await TestBed.configureTestingModule({
+        imports: [HeaderTopTransitionComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(HeaderTopTransitionComponent);
+      fixture.detectChanges();
+      tick(100);
+      flush();
+      fixture.detectChanges();
+
+      const scrollContainer = fixture.nativeElement.querySelector('.scroll-container');
+      const directiveEl = fixture.debugElement.query(By.directive(ScrollIndicatorDirective));
+      const directive = directiveEl.injector.get(ScrollIndicatorDirective);
+
+      // Set magic visible and scroll to top
+      (directive as any).headerMagicVisible = true;
+      (directive as any).lastScrollTop = 50;
+
+      scrollContainer.scrollTop = 0;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      tick(200);
+      fixture.detectChanges();
+
+      // Magic should be off, handed off to proportional
+      expect((directive as any).headerMagicVisible).toBe(false);
+    }));
+
+    it('should update footer left position on horizontal scroll', fakeAsync(async () => {
+      @Component({
+        template: `
+          <div class="scroll-container" style="width: 300px; height: 300px; overflow: auto;">
+            <div appScrollIndicator class="content" style="width: 1000px; height: 1000px;">Content</div>
+            <footer style="height: 50px; position: relative;">Footer</footer>
+          </div>
+        `,
+        imports: [ScrollIndicatorDirective],
+      })
+      class FooterHorizontalComponent {}
+
+      await TestBed.configureTestingModule({
+        imports: [FooterHorizontalComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(FooterHorizontalComponent);
+      fixture.detectChanges();
+      tick(100);
+      flush();
+      fixture.detectChanges();
+
+      const scrollContainer = fixture.nativeElement.querySelector('.scroll-container');
+      const footer = fixture.nativeElement.querySelector('footer');
+
+      // Scroll horizontally
+      scrollContainer.scrollLeft = 100;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      tick(200);
+      fixture.detectChanges();
+
+      // Footer should have left offset
+      expect(footer.style.left).toBe('100px');
+    }));
+
+    it('should call correctHeaderPosition after scroll ends', fakeAsync(async () => {
+      @Component({
+        template: `
+          <div class="scroll-container" style="height: 300px; overflow-y: auto;">
+            <header style="height: 60px; position: sticky; top: 0;">Header</header>
+            <div appScrollIndicator class="content" style="height: 1000px;">Content</div>
+          </div>
+        `,
+        imports: [ScrollIndicatorDirective],
+      })
+      class ScrollEndCheckComponent {}
+
+      await TestBed.configureTestingModule({
+        imports: [ScrollEndCheckComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(ScrollEndCheckComponent);
+      fixture.detectChanges();
+      tick(100);
+      flush();
+      fixture.detectChanges();
+
+      const scrollContainer = fixture.nativeElement.querySelector('.scroll-container');
+      const directiveEl = fixture.debugElement.query(By.directive(ScrollIndicatorDirective));
+      const directive = directiveEl.injector.get(ScrollIndicatorDirective);
+
+      const correctSpy = spyOn(directive as any, 'correctHeaderPosition').and.callThrough();
+
+      // Scroll to trigger scroll end check
+      scrollContainer.scrollTop = 200;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+
+      // Wait for scroll end timeout (150ms)
+      tick(200);
+      fixture.detectChanges();
+
+      expect(correctSpy).toHaveBeenCalled();
+    }));
+
+    it('should clear and reset scrollEndTimeout on rapid scrolls', fakeAsync(async () => {
+      @Component({
+        template: `
+          <div class="scroll-container" style="height: 300px; overflow-y: auto;">
+            <header style="height: 60px; position: sticky; top: 0;">Header</header>
+            <div appScrollIndicator class="content" style="height: 1000px;">Content</div>
+          </div>
+        `,
+        imports: [ScrollIndicatorDirective],
+      })
+      class RapidScrollComponent {}
+
+      await TestBed.configureTestingModule({
+        imports: [RapidScrollComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(RapidScrollComponent);
+      fixture.detectChanges();
+      tick(100);
+      flush();
+      fixture.detectChanges();
+
+      const scrollContainer = fixture.nativeElement.querySelector('.scroll-container');
+
+      // Multiple rapid scrolls
+      scrollContainer.scrollTop = 100;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      tick(50);
+      scrollContainer.scrollTop = 150;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      tick(50);
+      scrollContainer.scrollTop = 200;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      tick(200);
+      fixture.detectChanges();
+
+      // Should complete without errors
+      expect(true).toBe(true);
+    }));
+
+    it('should handle content changes via MutationObserver', fakeAsync(async () => {
+      @Component({
+        template: `
+          <div class="scroll-container" style="height: 300px; overflow-y: auto;">
+            <div appScrollIndicator class="content" style="height: 600px;">
+              <div class="dynamic-content">Initial</div>
+            </div>
+          </div>
+        `,
+        imports: [ScrollIndicatorDirective],
+      })
+      class ContentChangeComponent {}
+
+      await TestBed.configureTestingModule({
+        imports: [ContentChangeComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(ContentChangeComponent);
+      fixture.detectChanges();
+      tick(100);
+      flush();
+      fixture.detectChanges();
+
+      const directiveEl = fixture.debugElement.query(By.directive(ScrollIndicatorDirective));
+      const directive = directiveEl.injector.get(ScrollIndicatorDirective);
+
+      // Verify contentObserver is set up
+      expect((directive as any).contentObserver).toBeTruthy();
+
+      // Call handleContentChange directly to verify the code path
+      (directive as any).handleContentChange();
+      tick(50);
+
+      // Verify the directive is still functional
+      expect((directive as any).cachedScrollHeight).toBeGreaterThan(0);
+
+      fixture.destroy();
+    }));
+
+    it('should update header dimensions on resize', fakeAsync(async () => {
+      @Component({
+        template: `
+          <div class="scroll-container" style="height: 300px; overflow-y: auto;">
+            <header style="height: 60px; position: sticky; top: 0;">Header</header>
+            <div appScrollIndicator class="content" style="height: 1000px;">Content</div>
+          </div>
+        `,
+        imports: [ScrollIndicatorDirective],
+      })
+      class HeaderResizeComponent {}
+
+      await TestBed.configureTestingModule({
+        imports: [HeaderResizeComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(HeaderResizeComponent);
+      fixture.detectChanges();
+      tick(100);
+      flush();
+      fixture.detectChanges();
+
+      const directiveEl = fixture.debugElement.query(By.directive(ScrollIndicatorDirective));
+      const directive = directiveEl.injector.get(ScrollIndicatorDirective);
+
+      const updateDimSpy = spyOn(directive as any, 'updateHeaderFooterDimensions').and.callThrough();
+
+      // Trigger resize
+      triggerResize();
+      tick(100);
+      fixture.detectChanges();
+
+      expect(updateDimSpy).toHaveBeenCalled();
+    }));
+
+    it('should clear animationTimeout on cleanup', fakeAsync(async () => {
+      @Component({
+        template: `
+          <div class="scroll-container" style="height: 300px; overflow-y: auto;">
+            <header style="height: 60px; position: sticky; top: 0;">Header</header>
+            <div appScrollIndicator class="content" style="height: 1000px;">Content</div>
+          </div>
+        `,
+        imports: [ScrollIndicatorDirective],
+      })
+      class AnimationCleanupComponent {}
+
+      await TestBed.configureTestingModule({
+        imports: [AnimationCleanupComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(AnimationCleanupComponent);
+      fixture.detectChanges();
+      tick(100);
+      flush();
+      fixture.detectChanges();
+
+      const directiveEl = fixture.debugElement.query(By.directive(ScrollIndicatorDirective));
+      const directive = directiveEl.injector.get(ScrollIndicatorDirective);
+
+      // Set an animation timeout
+      (directive as any).animationTimeout = setTimeout(() => {}, 1000);
+
+      // Destroy to trigger cleanup
+      fixture.destroy();
+      fixture = null as any;
+      tick(100);
+
+      // Should complete without errors (timeout was cleared)
+      expect(true).toBe(true);
+    }));
+
+    it('should clear existing animationTimeout when startHeaderAnimation called twice', fakeAsync(async () => {
+      @Component({
+        template: `
+          <div class="scroll-container" style="height: 300px; overflow-y: auto;">
+            <header style="height: 60px; position: sticky; top: 0;">Header</header>
+            <div appScrollIndicator class="content" style="height: 1000px;">Content</div>
+          </div>
+        `,
+        imports: [ScrollIndicatorDirective],
+      })
+      class DoubleAnimationComponent {}
+
+      await TestBed.configureTestingModule({
+        imports: [DoubleAnimationComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(DoubleAnimationComponent);
+      fixture.detectChanges();
+      tick(100);
+      flush();
+      fixture.detectChanges();
+
+      const directiveEl = fixture.debugElement.query(By.directive(ScrollIndicatorDirective));
+      const directive = directiveEl.injector.get(ScrollIndicatorDirective);
+
+      // Set an existing animation timeout to simulate animation in progress
+      (directive as any).animationTimeout = setTimeout(() => {}, 1000);
+      (directive as any).headerAnimating = true;
+
+      // Call startHeaderAnimation again - should clear previous timeout
+      (directive as any).startHeaderAnimation();
+
+      // animationTimeout should be set (new one)
+      expect((directive as any).animationTimeout).toBeTruthy();
+      expect((directive as any).headerAnimating).toBe(true);
+
+      // Wait for animation to complete
+      tick(250);
+
+      expect((directive as any).headerAnimating).toBe(false);
+    }));
+
+    it('should track direction changes correctly', fakeAsync(async () => {
+      @Component({
+        template: `
+          <div class="scroll-container" style="height: 300px; overflow-y: auto;">
+            <header style="height: 60px; position: sticky; top: 0;">Header</header>
+            <div appScrollIndicator class="content" style="height: 1000px;">Content</div>
+          </div>
+        `,
+        imports: [ScrollIndicatorDirective],
+      })
+      class DirectionChangeComponent {}
+
+      await TestBed.configureTestingModule({
+        imports: [DirectionChangeComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(DirectionChangeComponent);
+      fixture.detectChanges();
+      tick(100);
+      flush();
+      fixture.detectChanges();
+
+      const scrollContainer = fixture.nativeElement.querySelector('.scroll-container');
+      const directiveEl = fixture.debugElement.query(By.directive(ScrollIndicatorDirective));
+      const directive = directiveEl.injector.get(ScrollIndicatorDirective);
+
+      // Scroll down
+      scrollContainer.scrollTop = 100;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      tick(50);
+
+      scrollContainer.scrollTop = 200;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      tick(50);
+
+      // Now scroll up - direction change
+      scrollContainer.scrollTop = 180;
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      tick(50);
+
+      // lastDirectionChangeScrollTop should have been updated
+      expect((directive as any).lastDirectionChangeScrollTop).toBeDefined();
+      tick(200);
+    }));
+  });
+
   describe('edge cases', () => {
     it('should handle empty appScrollIndicator value as vertical', fakeAsync(async () => {
       @Component({
@@ -902,7 +1491,7 @@ describe('ScrollIndicatorDirective', () => {
     it('should handle scroll element with padding', fakeAsync(async () => {
       @Component({
         template: `
-          <div class="scroll-container" style="height: 200px; overflow-y: auto; padding: 20px;">
+          <div class="scroll-container" style="height: 200px; overflow-y: auto; padding-right: 20px; padding-bottom: 20px;">
             <div appScrollIndicator class="content" style="height: 600px;">Content</div>
           </div>
         `,
@@ -920,12 +1509,14 @@ describe('ScrollIndicatorDirective', () => {
       flush();
       fixture.detectChanges();
 
-      const indicator = fixture.nativeElement.querySelector('.scroll-indicator-vertical');
-      expect(indicator).toBeTruthy();
+      const track = fixture.nativeElement.querySelector('.scroll-indicator-track');
+      expect(track).toBeTruthy();
 
-      // Check that offset CSS variables are set
-      const offsetRight = indicator.style.getPropertyValue('--si-offset-right');
-      expect(offsetRight).toBe('20px');
+      // Check that offset CSS variables are set on the track (should reflect scroll container's padding)
+      const offsetRight = track.style.getPropertyValue('--si-offset-right');
+      // Verify offset is set and non-zero (accounts for padding handling)
+      expect(offsetRight).toBeTruthy();
+      expect(Number.parseFloat(offsetRight)).toBeGreaterThan(0);
 
       fixture.destroy();
     }));

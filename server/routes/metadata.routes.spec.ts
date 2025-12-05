@@ -80,7 +80,7 @@ describe('Metadata Routes', () => {
       const response = await request(app).get('/api/docs');
 
       expect(response.body.markdown).toContain('GraphQL');
-      expect(response.body.markdown).toContain('/graphql');
+      expect(response.body.markdown).toContain('/gql');
     });
 
     it('should include documentation for REST endpoints', async () => {
