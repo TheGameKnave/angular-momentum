@@ -85,7 +85,7 @@ describe('AuthService', () => {
     });
 
     mockTranslocoService = jasmine.createSpyObj('TranslocoService', ['getActiveLang']);
-    mockTranslocoService.getActiveLang.and.returnValue('en');
+    mockTranslocoService.getActiveLang.and.returnValue('en-US');
 
     // Mock global fetch
     spyOn(window, 'fetch');
@@ -314,7 +314,7 @@ describe('AuthService', () => {
           data: {
             username: null,
             turnstile_token: null,
-            language: 'en'
+            language: 'en-US'
           }
         }
       });

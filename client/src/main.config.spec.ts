@@ -53,7 +53,7 @@ describe('Main Config Providers', () => {
     expect(translocoService).toBeTruthy();
     const config = translocoService.config;
     expect(config.availableLangs).toEqual([...SUPPORTED_LANGUAGES]);
-    expect(config.defaultLang).toBe('en');
+    expect(config.defaultLang).toBe('en-US');
     expect(config.reRenderOnLangChange).toBeTrue();
     expect(config.prodMode).toBe(!isDevMode());
   });
@@ -65,7 +65,7 @@ describe('Main Config Providers', () => {
 
   it('should provide TranslocoPersistLang with correct configuration', () => {
     const getLangFnMock: GetLangParams = {
-      cachedLang: 'en',
+      cachedLang: 'en-US',
       browserLang: 'es',
       cultureLang: 'fr',
       defaultLang: 'de',
@@ -76,7 +76,7 @@ describe('Main Config Providers', () => {
 
     // Case 1: cachedLang is defined
     let lang = getLangFn(getLangFnMock);
-    expect(lang).toBe('en');
+    expect(lang).toBe('en-US');
 
     // Case 2: cachedLang is null, browserLang is defined
     lang = getLangFn({ ...getLangFnMock, cachedLang: null });

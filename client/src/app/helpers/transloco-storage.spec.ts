@@ -19,11 +19,11 @@ describe('transloco-storage', () => {
 
     describe('getItem', () => {
       it('should return language from cookie', () => {
-        document.cookie = 'lang=en; path=/';
+        document.cookie = 'lang=en-US; path=/';
 
         const result = CookieStorage.getItem('lang');
 
-        expect(result).toBe('en');
+        expect(result).toBe('en-US');
       });
 
       it('should return null when cookie is not found', () => {
@@ -61,7 +61,7 @@ describe('transloco-storage', () => {
 
     describe('setItem', () => {
       it('should set language cookie with correct attributes', () => {
-        CookieStorage.setItem('lang', 'en');
+        CookieStorage.setItem('lang', 'en-US');
 
         expect(document.cookie).toContain('lang=en');
       });

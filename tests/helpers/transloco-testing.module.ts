@@ -4,7 +4,8 @@ import { SUPPORTED_LANGUAGES } from '../../client/src/app/constants/app.constant
 
 // TODO find a way to programmatically import languages from SUPPORTED_LANGUAGES
 // (may not be possible with TranslocoTestingModule or with the variable pattern below)
-import en from '../../client/src/assets/i18n/en.json';
+import enUS from '../../client/src/assets/i18n/en-US.json';
+import enGB from '../../client/src/assets/i18n/en-GB.json';
 import es from '../../client/src/assets/i18n/es.json';
 import de from '../../client/src/assets/i18n/de.json';
 import fr from '../../client/src/assets/i18n/fr.json';
@@ -30,7 +31,8 @@ const LANGUAGE_PATHS = generateLanguagePaths(SUPPORTED_LANGUAGES);
 export function getTranslocoModule(options: TranslocoTestingOptions = {}) {
   const module = TranslocoTestingModule.forRoot({
     langs: {
-      en,
+      'en-US': enUS,
+      'en-GB': enGB,
       es,
       de,
       fr,
@@ -39,7 +41,7 @@ export function getTranslocoModule(options: TranslocoTestingOptions = {}) {
     },
     translocoConfig: {
       availableLangs: [...SUPPORTED_LANGUAGES],
-      defaultLang: 'en',
+      defaultLang: 'en-US',
     },
     preloadLangs: true,
     ...options

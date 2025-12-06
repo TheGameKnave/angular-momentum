@@ -35,7 +35,7 @@ describe('NotificationService', () => {
       }
       return key;
     });
-    translocoServiceSpy.getActiveLang.and.returnValue('en');
+    translocoServiceSpy.getActiveLang.and.returnValue('en-US');
 
     // Mock localStorage
     const store: { [key: string]: string } = {};
@@ -292,7 +292,8 @@ describe('NotificationService', () => {
       spyOn<any>(service, 'checkPermission').and.returnValue(Promise.resolve(false));
 
       const localizedTitle = {
-        en: 'Welcome!',
+        'en-US': 'Welcome!',
+        'en-GB': 'Welcome!',
         de: 'Willkommen!',
         fr: 'Bienvenue !',
         es: '¡Bienvenido!',
@@ -300,7 +301,8 @@ describe('NotificationService', () => {
         'zh-TW': '歡迎！'
       };
       const localizedBody = {
-        en: 'Hello world',
+        'en-US': 'Hello world',
+        'en-GB': 'Hello world',
         de: 'Hallo Welt',
         fr: 'Bonjour le monde',
         es: 'Hola mundo',
@@ -723,15 +725,15 @@ describe('NotificationService', () => {
   describe('Localized notification handling', () => {
     it('should handle incoming localized notifications and store all language variants', fakeAsync(() => {
       const mockLocalizedTitle = {
-        en: 'Welcome!', de: 'Willkommen!', fr: 'Bienvenue !', es: '¡Bienvenido!', 'zh-CN': '欢迎！', 'zh-TW': '歡迎！'
+        'en-US': 'Welcome!', 'en-GB': 'Welcome!', de: 'Willkommen!', fr: 'Bienvenue !', es: '¡Bienvenido!', 'zh-CN': '欢迎！', 'zh-TW': '歡迎！'
       };
       const mockLocalizedBody = {
-        en: 'Hello world', de: 'Hallo Welt', fr: 'Bonjour le monde', es: 'Hola mundo', 'zh-CN': '你好世界', 'zh-TW': '你好世界'
+        'en-US': 'Hello world', 'en-GB': 'Hello world', de: 'Hallo Welt', fr: 'Bonjour le monde', es: 'Hola mundo', 'zh-CN': '你好世界', 'zh-TW': '你好世界'
       };
       const mockLocalizedPayload = {
         title: mockLocalizedTitle,
         body: mockLocalizedBody,
-        label: { en: 'Welcome', de: 'Willkommen', fr: 'Bienvenue', es: 'Bienvenida', 'zh-CN': '欢迎', 'zh-TW': '歡迎' },
+        label: { 'en-US': 'Welcome', 'en-GB': 'Welcome', de: 'Willkommen', fr: 'Bienvenue', es: 'Bienvenida', 'zh-CN': '欢迎', 'zh-TW': '歡迎' },
       };
 
       socketServiceSpy.listen.and.callFake((event) => {
@@ -741,7 +743,7 @@ describe('NotificationService', () => {
         return of() as any;
       });
       const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
-      translocoServiceSpy.getActiveLang.and.returnValue('en');
+      translocoServiceSpy.getActiveLang.and.returnValue('en-US');
 
       service = TestBed.inject(NotificationService);
       tick();
@@ -758,9 +760,9 @@ describe('NotificationService', () => {
 
     it('should use German translation when locale is de', fakeAsync(() => {
       const mockLocalizedPayload = {
-        title: { en: 'Welcome!', de: 'Willkommen!' },
-        body: { en: 'Hello world', de: 'Hallo Welt' },
-        label: { en: 'Welcome', de: 'Willkommen' }
+        title: { 'en-US': 'Welcome!', 'en-GB': 'Welcome!', de: 'Willkommen!' },
+        body: { 'en-US': 'Hello world', 'en-GB': 'Hello world', de: 'Hallo Welt' },
+        label: { 'en-US': 'Welcome', 'en-GB': 'Welcome', de: 'Willkommen' }
       };
 
       socketServiceSpy.listen.and.callFake((event) => {
@@ -782,9 +784,9 @@ describe('NotificationService', () => {
 
     it('should fall back to English when locale is not available', fakeAsync(() => {
       const mockLocalizedPayload = {
-        title: { en: 'Welcome!' },
-        body: { en: 'Hello world' },
-        label: { en: 'Welcome' }
+        title: { 'en-US': 'Welcome!', 'en-GB': 'Welcome!' },
+        body: { 'en-US': 'Hello world', 'en-GB': 'Hello world' },
+        label: { 'en-US': 'Welcome', 'en-GB': 'Welcome' }
       };
 
       socketServiceSpy.listen.and.callFake((event) => {
@@ -830,9 +832,9 @@ describe('NotificationService', () => {
 
     it('should handle localized notifications with params', fakeAsync(() => {
       const mockLocalizedPayload = {
-        title: { en: 'Maintenance' },
-        body: { en: 'Server maintenance at {time}' },
-        label: { en: 'Maintenance' },
+        title: { 'en-US': 'Maintenance', 'en-GB': 'Maintenance' },
+        body: { 'en-US': 'Server maintenance at {time}', 'en-GB': 'Server maintenance at {time}' },
+        label: { 'en-US': 'Maintenance', 'en-GB': 'Maintenance' },
         params: { time: '2024-01-01T00:00:00.000Z' }
       };
 
@@ -843,7 +845,7 @@ describe('NotificationService', () => {
         return of() as any;
       });
       const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
-      translocoServiceSpy.getActiveLang.and.returnValue('en');
+      translocoServiceSpy.getActiveLang.and.returnValue('en-US');
 
       service = TestBed.inject(NotificationService);
       tick();
@@ -857,9 +859,9 @@ describe('NotificationService', () => {
 
     it('should handle localized notifications without params', fakeAsync(() => {
       const mockLocalizedPayload = {
-        title: { en: 'Simple notification' },
-        body: { en: 'No params here' },
-        label: { en: 'Info' }
+        title: { 'en-US': 'Simple notification', 'en-GB': 'Simple notification' },
+        body: { 'en-US': 'No params here', 'en-GB': 'No params here' },
+        label: { 'en-US': 'Info', 'en-GB': 'Info' }
         // No params
       };
 
@@ -870,7 +872,7 @@ describe('NotificationService', () => {
         return of() as any;
       });
       const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
-      translocoServiceSpy.getActiveLang.and.returnValue('en');
+      translocoServiceSpy.getActiveLang.and.returnValue('en-US');
 
       service = TestBed.inject(NotificationService);
       tick();

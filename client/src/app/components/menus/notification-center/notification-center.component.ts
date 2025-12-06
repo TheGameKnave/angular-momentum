@@ -142,6 +142,6 @@ export class NotificationCenterComponent {
   private getLocalizedString(strings: LocalizedStrings): string {
     const locale = this.translocoService.getActiveLang();
     // istanbul ignore next: LocalizedStrings type requires all languages, fallbacks are defensive
-    return strings[locale as keyof LocalizedStrings] ?? strings['en'] ?? '';
+    return strings[locale as keyof LocalizedStrings] ?? strings['en-US'] ?? '';
   }
 }

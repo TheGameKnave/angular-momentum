@@ -118,7 +118,7 @@ describe('NotificationCenterComponent', () => {
         title: 'Fallback Title',
         body: 'Body',
         localizedTitle: {
-          en: 'Welcome!',
+          'en-US': 'Welcome!', 'en-GB': 'Welcome!',
           de: 'Willkommen!',
           fr: 'Bienvenue !',
           es: '¡Bienvenido!',
@@ -188,7 +188,7 @@ describe('NotificationCenterComponent', () => {
         title: 'Fallback Title',
         body: 'Body',
         localizedTitle: {
-          en: 'Localized Welcome!',
+          'en-US': 'Localized Welcome!', 'en-GB': 'Localized Welcome!',
           de: 'Lokalisiertes Willkommen!',
           fr: 'Bienvenue localisée !',
           es: '¡Bienvenido localizado!',
@@ -212,7 +212,7 @@ describe('NotificationCenterComponent', () => {
         title: 'Fallback Title',
         body: 'Body',
         localizedTitle: {
-          en: 'Hello {name}!',
+          'en-US': 'Hello {name}!', 'en-GB': 'Hello {name}!',
           de: 'Hallo {name}!',
           fr: 'Bonjour {name} !',
           es: '¡Hola {name}!',
@@ -238,7 +238,7 @@ describe('NotificationCenterComponent', () => {
         title: 'Title',
         body: 'Fallback Body',
         localizedBody: {
-          en: 'Thanks for trying!',
+          'en-US': 'Thanks for trying!', 'en-GB': 'Thanks for trying!',
           de: 'Danke fürs Ausprobieren!',
           fr: 'Merci d\'essayer !',
           es: '¡Gracias por probar!',
@@ -308,7 +308,7 @@ describe('NotificationCenterComponent', () => {
         title: 'Title',
         body: 'Fallback Body',
         localizedBody: {
-          en: 'Localized body text!',
+          'en-US': 'Localized body text!', 'en-GB': 'Localized body text!',
           de: 'Lokalisierter Text!',
           fr: 'Texte localisé !',
           es: '¡Texto localizado!',
@@ -332,7 +332,7 @@ describe('NotificationCenterComponent', () => {
         title: 'Title',
         body: 'Fallback Body',
         localizedBody: {
-          en: 'Maintenance at {time}',
+          'en-US': 'Maintenance at {time}', 'en-GB': 'Maintenance at {time}',
           de: 'Wartung um {time}',
           fr: 'Maintenance à {time}',
           es: 'Mantenimiento a las {time}',

@@ -6,7 +6,8 @@
 /* istanbul ignore file: types and constants only, no executable code */
 
 export const SUPPORTED_LANGUAGES = [
-  'en',
+  'en-US',
+  'en-GB',
   'de',
   'fr',
   'es',

@@ -28,7 +28,7 @@ describe('TranslocoHttpLoader', () => {
 
   it('should make an HTTP GET request to the correct URL based on the provided language', () => {
     const mockTranslation = { key: 'value' }; // Mock translation data
-    const lang = 'en';
+    const lang = 'en-US';
 
     loader.getTranslation(lang).subscribe((translation) => {
       expect(translation).toEqual(mockTranslation);
@@ -41,7 +41,7 @@ describe('TranslocoHttpLoader', () => {
   });
 
   it('should return fallback {} when backend is not available (status 0)', () => {
-    const lang = 'en';
+    const lang = 'en-US';
   
     loader.getTranslation(lang).subscribe({
       next: (translation) => {
@@ -60,7 +60,7 @@ describe('TranslocoHttpLoader', () => {
   });
   
   it('should return fallback {} on any error', () => {
-    const lang = 'en';
+    const lang = 'en-US';
     const mockError = { message: 'Not found' };
 
     loader.getTranslation(lang).subscribe({
@@ -80,7 +80,7 @@ describe('TranslocoHttpLoader', () => {
   });
 
   it('should return the correct flag for a language without a locale', () => {
-    const ln = 'en';
+    const ln = 'de';
     const expectedFlag = Object.keys(LANGUAGES[ln].locales)[0].split('-')[1].toLowerCase();
     expect(loader.getCountry(ln)).toEqual(expectedFlag);
   });
@@ -92,7 +92,7 @@ describe('TranslocoHttpLoader', () => {
   });
 
   it('should return the correct native name for a language without a locale', () => {
-    const ln = 'en';
+    const ln = 'de';
     const expectedNativeName = LANGUAGES[ln].nativeName;
     expect(loader.getNativeName(ln)).toEqual(expectedNativeName);
   });

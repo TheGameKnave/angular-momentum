@@ -156,7 +156,7 @@ export class NotificationService {
    * @returns The string for the current locale or English fallback
    */
   private getLocalizedString(strings: Record<string, string>, locale: string): string {
-    return strings[locale] ?? strings['en'] ?? '';
+    return strings[locale] ?? strings['en-US'] ?? '';
   }
 
   /**
