@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-dotenv.config({ debug: false });
+dotenv.config({ debug: false, quiet: true });
 
 /**
  * Configuration interface for environment variables

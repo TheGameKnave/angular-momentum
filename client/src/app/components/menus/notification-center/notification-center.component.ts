@@ -7,7 +7,7 @@ import { AnchorMenuComponent } from '../anchor-menu/anchor-menu.component';
 import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
 import { TIME_CONSTANTS } from '@app/constants/ui.constants';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { Notification } from '@app/models/data.model';
+import { LocalizedStrings, Notification } from '@app/models/data.model';
 
 /**
  * Notification center component that displays a notification center overlay.
@@ -95,12 +95,18 @@ export class NotificationCenterComponent {
 
   /**
    * Gets the translated title for a notification.
-   * Uses the titleKey if available for dynamic translation on language change,
-   * otherwise falls back to the pre-translated title.
+   * Priority: localizedTitle (server-sent) > titleKey (legacy) > pre-translated title.
    * @param notification - The notification to get the title for
    * @returns The translated title string
    */
   getTitle(notification: Notification): string {
+    // Server-sent localized notifications: pick current locale
+    if (notification.localizedTitle) {
+      const text = this.getLocalizedString(notification.localizedTitle);
+      // Apply ICU formatting if there are params
+      return notification.params ? this.translocoService.translate(text, notification.params) : text;
+    }
+    // Legacy key-based translations
     if (notification.titleKey) {
       return this.translocoService.translate(notification.titleKey, notification.params || {});
     }
@@ -109,15 +115,33 @@ export class NotificationCenterComponent {
 
   /**
    * Gets the translated body for a notification.
-   * Uses the bodyKey if available for dynamic translation on language change,
-   * otherwise falls back to the pre-translated body.
+   * Priority: localizedBody (server-sent) > bodyKey (legacy) > pre-translated body.
    * @param notification - The notification to get the body for
    * @returns The translated body string
    */
   getBody(notification: Notification): string {
+    // Server-sent localized notifications: pick current locale
+    if (notification.localizedBody) {
+      const text = this.getLocalizedString(notification.localizedBody);
+      // Apply ICU formatting if there are params
+      return notification.params ? this.translocoService.translate(text, notification.params) : text;
+    }
+    // Legacy key-based translations
     if (notification.bodyKey) {
       return this.translocoService.translate(notification.bodyKey, notification.params || {});
     }
     return notification.body;
+  }
+
+  /**
+   * Get the string for the current locale from a localized strings object.
+   * Falls back to English if the current locale is not available.
+   * @param strings - Object with language codes as keys and translations as values
+   * @returns The string for the current locale or English fallback
+   */
+  private getLocalizedString(strings: LocalizedStrings): string {
+    const locale = this.translocoService.getActiveLang();
+    // istanbul ignore next: LocalizedStrings type requires all languages, fallbacks are defensive
+    return strings[locale as keyof LocalizedStrings] ?? strings['en'] ?? '';
   }
 }

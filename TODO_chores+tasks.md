@@ -1,6 +1,5 @@
 # TODO chores/tasks
 
-tree-shake for unused assets, other optimizations
 notifications need to be sent in all languages.
 are components dumb enough?
 preload resources to avoid flickering

@@ -112,6 +112,29 @@ describe('NotificationCenterComponent', () => {
   });
 
   describe('getTitle', () => {
+    it('should return localized title when localizedTitle is present', () => {
+      const notification = {
+        id: '1',
+        title: 'Fallback Title',
+        body: 'Body',
+        localizedTitle: {
+          en: 'Welcome!',
+          de: 'Willkommen!',
+          fr: 'Bienvenue !',
+          es: '¡Bienvenido!',
+          'zh-CN': '欢迎！',
+          'zh-TW': '歡迎！'
+        },
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getTitle(notification);
+
+      // Should pick English (default lang in tests)
+      expect(result).toBe('Welcome!');
+    });
+
     it('should return translated title when titleKey is present', () => {
       const notification = {
         id: '1',
@@ -158,9 +181,80 @@ describe('NotificationCenterComponent', () => {
 
       expect(result).toBe('Welcome!');
     });
+
+    it('should prioritize localizedTitle over titleKey', () => {
+      const notification = {
+        id: '1',
+        title: 'Fallback Title',
+        body: 'Body',
+        localizedTitle: {
+          en: 'Localized Welcome!',
+          de: 'Lokalisiertes Willkommen!',
+          fr: 'Bienvenue localisée !',
+          es: '¡Bienvenido localizado!',
+          'zh-CN': '本地化欢迎！',
+          'zh-TW': '本地化歡迎！'
+        },
+        titleKey: 'notification.Welcome!',
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getTitle(notification);
+
+      // localizedTitle should take priority
+      expect(result).toBe('Localized Welcome!');
+    });
+
+    it('should apply ICU formatting when localizedTitle has params', () => {
+      const notification = {
+        id: '1',
+        title: 'Fallback Title',
+        body: 'Body',
+        localizedTitle: {
+          en: 'Hello {name}!',
+          de: 'Hallo {name}!',
+          fr: 'Bonjour {name} !',
+          es: '¡Hola {name}!',
+          'zh-CN': '你好 {name}！',
+          'zh-TW': '你好 {name}！'
+        },
+        params: { name: 'World' },
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getTitle(notification);
+
+      // TranslocoService.translate is called with the localized text and params
+      expect(result).toBe('Hello {name}!');
+    });
   });
 
   describe('getBody', () => {
+    it('should return localized body when localizedBody is present', () => {
+      const notification = {
+        id: '1',
+        title: 'Title',
+        body: 'Fallback Body',
+        localizedBody: {
+          en: 'Thanks for trying!',
+          de: 'Danke fürs Ausprobieren!',
+          fr: 'Merci d\'essayer !',
+          es: '¡Gracias por probar!',
+          'zh-CN': '感谢您的试用！',
+          'zh-TW': '感謝您的試用！'
+        },
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getBody(notification);
+
+      // Should pick English (default lang in tests)
+      expect(result).toBe('Thanks for trying!');
+    });
+
     it('should return translated body when bodyKey is present', () => {
       const notification = {
         id: '1',
@@ -206,6 +300,54 @@ describe('NotificationCenterComponent', () => {
       const result = component.getBody(notification);
 
       expect(result).toBe('Thanks for trying Angular Momentum—your modern Angular starter kit!');
+    });
+
+    it('should prioritize localizedBody over bodyKey', () => {
+      const notification = {
+        id: '1',
+        title: 'Title',
+        body: 'Fallback Body',
+        localizedBody: {
+          en: 'Localized body text!',
+          de: 'Lokalisierter Text!',
+          fr: 'Texte localisé !',
+          es: '¡Texto localizado!',
+          'zh-CN': '本地化文本！',
+          'zh-TW': '本地化文本！'
+        },
+        bodyKey: 'notification.Thanks for trying Angular Momentum—your modern Angular starter kit!',
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getBody(notification);
+
+      // localizedBody should take priority
+      expect(result).toBe('Localized body text!');
+    });
+
+    it('should apply ICU formatting when localizedBody has params', () => {
+      const notification = {
+        id: '1',
+        title: 'Title',
+        body: 'Fallback Body',
+        localizedBody: {
+          en: 'Maintenance at {time}',
+          de: 'Wartung um {time}',
+          fr: 'Maintenance à {time}',
+          es: 'Mantenimiento a las {time}',
+          'zh-CN': '维护时间 {time}',
+          'zh-TW': '維護時間 {time}'
+        },
+        params: { time: '10:00 PM' },
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getBody(notification);
+
+      // TranslocoService.translate is called with the localized text and params
+      expect(result).toBe('Maintenance at {time}');
     });
   });
 });

@@ -1,6 +1,10 @@
 import { Type } from "@angular/core";
 import { ComponentName } from "@app/helpers/component-list";
 import { ArbitraryFeatureName } from "@app/constants/translations.constants";
+// Import for local use
+import type { LocalizedStrings } from "@shared/languages";
+// Re-export for consumers (direct export...from satisfies linter)
+export type { LocalizedStrings } from "@shared/languages";
 
 export type ArbitraryFeatures = Record<ArbitraryFeatureName, boolean>;
 export type ComponentFlags = Record<ComponentName, boolean>;
@@ -87,20 +91,27 @@ export interface Installer {
  * Represents a notification in the application's notification system.
  * Stores notification metadata and tracking information.
  *
- * For translatable notifications (e.g., from WebSocket broadcasts):
+ * For server-sent localized notifications:
+ * - localizedTitle/localizedBody store all language variants
+ * - title/body store the initially translated text for native OS notifications
+ * - On display, current locale is picked from localizedTitle/localizedBody
+ *
+ * For key-based notifications (legacy):
  * - titleKey/bodyKey store the translation keys for dynamic translation on display
  * - title/body store the translated text for native OS notifications
  * - params stores translation parameters (e.g., {time: '10:00 PM'})
  *
  * For non-translatable notifications (e.g., user-generated):
  * - title/body contain the final display text
- * - titleKey/bodyKey are undefined
+ * - titleKey/bodyKey and localizedTitle/localizedBody are undefined
  *
  * @property id - Unique identifier for the notification
  * @property title - Notification heading (translated text for native notifications)
  * @property body - Main notification message (translated text for native notifications)
- * @property titleKey - Optional translation key for title (for in-app display)
- * @property bodyKey - Optional translation key for body (for in-app display)
+ * @property titleKey - Optional translation key for title (legacy key-based translations)
+ * @property bodyKey - Optional translation key for body (legacy key-based translations)
+ * @property localizedTitle - Optional all-language title variants (server-sent notifications)
+ * @property localizedBody - Optional all-language body variants (server-sent notifications)
  * @property params - Optional translation parameters for parameterized messages
  * @property icon - Optional icon URL or class name
  * @property data - Optional arbitrary data associated with the notification
@@ -113,6 +124,8 @@ export interface Notification {
   body: string;
   titleKey?: string;
   bodyKey?: string;
+  localizedTitle?: LocalizedStrings;
+  localizedBody?: LocalizedStrings;
   params?: Record<string, unknown>;
   icon?: string;
   data?: unknown;
@@ -126,8 +139,10 @@ export interface Notification {
  *
  * @property title - Notification title (translated text for display)
  * @property body - Notification message body (translated text for display)
- * @property titleKey - Original translation key for title (for re-translation on language change)
- * @property bodyKey - Original translation key for body (for re-translation on language change)
+ * @property titleKey - Original translation key for title (legacy key-based translations)
+ * @property bodyKey - Original translation key for body (legacy key-based translations)
+ * @property localizedTitle - All-language title variants (server-sent notifications)
+ * @property localizedBody - All-language body variants (server-sent notifications)
  * @property icon - URL or path to notification icon
  * @property tag - Identifier for grouping related notifications
  * @property requireInteraction - Whether notification stays visible until user interacts
@@ -140,6 +155,8 @@ export interface NotificationOptions {
   body: string;
   titleKey?: string;
   bodyKey?: string;
+  localizedTitle?: LocalizedStrings;
+  localizedBody?: LocalizedStrings;
   icon?: string;
   tag?: string;
   requireInteraction?: boolean;
@@ -167,28 +184,14 @@ export interface SendNotificationResponse {
 }
 
 /**
- * Template for predefined notification messages.
- * Includes both translation keys (for server-side broadcasts) and
- * translated text (for client-side display and local notifications).
+ * Minimal notification reference for server-side localized notifications.
+ * All display content is derived from NOTIFICATION_KEY_MAP using the ID.
  *
- * @property titleKey - i18n translation key for the title (used by server)
- * @property bodyKey - i18n translation key for the body (used by server)
- * @property title - Localized title text ready for display
- * @property body - Localized body text ready for display
- * @property icon - Icon class name or URL
- * @property label - Category label for the notification type
- * @property severity - Visual severity level for UI styling
- * @property params - Dynamic values for parameterized messages (e.g., timestamps, usernames)
+ * @property id - Server-side notification ID (maps to server/data/notifications.ts)
+ * @property params - Optional dynamic values for parameterized messages (e.g., {time})
  */
 export interface PredefinedNotification {
-  titleKey?: string; // Translation key for title (for server broadcasts)
-  bodyKey?: string; // Translation key for body (for server broadcasts)
-  title: string; // Translated title (for display and local notifications)
-  body: string; // Translated body (for display and local notifications)
-  icon: string;
-  label: string;
-  severity: 'success' | 'info' | 'warn' | 'secondary';
-  // Translation parameters (for parameterized messages like timestamps)
+  id: string;
   params?: Record<string, unknown>;
 }
 
@@ -201,6 +204,28 @@ export interface PredefinedNotification {
  * - 'default': Permission has not been requested or determined yet
  */
 export type TauriPermission = 'granted' | 'denied' | 'default';
+
+// LocalizedStrings is re-exported from @shared/languages at top of file
+
+/**
+ * Server-sent notification payload with all language variants.
+ * Client picks the correct language based on active locale.
+ *
+ * @property title - Localized title strings for all languages
+ * @property body - Localized body strings for all languages
+ * @property label - Localized label strings for all languages
+ * @property params - Optional ICU MessageFormat parameters (e.g., {time})
+ * @property icon - Optional icon class (e.g., 'pi pi-sparkles')
+ * @property tag - Optional tag to group or replace notifications
+ */
+export interface LocalizedNotificationPayload {
+  title: LocalizedStrings;
+  body: LocalizedStrings;
+  label: LocalizedStrings;
+  params?: Record<string, unknown>;
+  icon?: string;
+  tag?: string;
+}
 
 /**
  * Configuration options for Tauri desktop notifications.

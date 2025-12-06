@@ -3,8 +3,9 @@ import { buildSchema } from 'graphql';
 import express from 'express';
 import { readFeatureFlags, writeFeatureFlags } from './lowDBService'; // Import LowDB function
 import { changeLog } from '../data/changeLog';
-import { broadcastNotification, sendNotificationToUser } from './notificationService';
+import { broadcastNotification, sendNotificationToUser, broadcastLocalizedNotification, sendLocalizedNotificationToUser } from './notificationService';
 import { NotificationPayload } from '../models/data.model';
+import { NOTIFICATIONS } from '../data/notifications';
 import { UsernameService } from './usernameService';
 import config from '../config/environment';
 
@@ -28,6 +29,8 @@ const schema = buildSchema(`
     updateFeatureFlag(key: String!, value: Boolean!): FeatureFlag
     sendNotification(title: String!, body: String!, icon: String, data: String): NotificationResult
     sendNotificationToSocket(socketId: String!, title: String!, body: String!, icon: String, data: String): NotificationResult
+    sendLocalizedNotification(notificationId: String!, params: String): NotificationResult
+    sendLocalizedNotificationToSocket(socketId: String!, notificationId: String!, params: String): NotificationResult
     createUsername(userId: String!, username: String!): UsernameCreationResult
   }
 
@@ -161,6 +164,46 @@ const root = (io: any) => ({
   },
 
   /**
+   * Broadcasts a localized push notification to all connected clients.
+   * Sends all language variants so clients can display in their locale.
+   * @param notificationId - Notification ID from server/data/notifications.ts
+   * @param params - Optional JSON string with ICU MessageFormat params
+   * @returns Result object with success status and message
+   */
+  sendLocalizedNotification: ({ notificationId, params }: { notificationId: string; params?: string }) => {
+    try {
+      if (!(notificationId in NOTIFICATIONS)) {
+        return { success: false, message: `Unknown notification ID: ${notificationId}` };
+      }
+      const parsedParams = params ? JSON.parse(params) : undefined;
+      broadcastLocalizedNotification(io, notificationId, parsedParams);
+      return { success: true, message: 'Localized notification sent to all clients' };
+    } catch (error) {
+      return { success: false, message: `Error: ${error}` };
+    }
+  },
+
+  /**
+   * Sends a localized push notification to a specific connected client.
+   * @param socketId - Target socket ID
+   * @param notificationId - Notification ID from server/data/notifications.ts
+   * @param params - Optional JSON string with ICU MessageFormat params
+   * @returns Result object with success status and message
+   */
+  sendLocalizedNotificationToSocket: ({ socketId, notificationId, params }: { socketId: string; notificationId: string; params?: string }) => {
+    try {
+      if (!(notificationId in NOTIFICATIONS)) {
+        return { success: false, message: `Unknown notification ID: ${notificationId}` };
+      }
+      const parsedParams = params ? JSON.parse(params) : undefined;
+      sendLocalizedNotificationToUser(io, socketId, notificationId, parsedParams);
+      return { success: true, message: `Localized notification sent to socket ${socketId}` };
+    } catch (error) {
+      return { success: false, message: `Error: ${error}` };
+    }
+  },
+
+  /**
    * Returns the current API version.
    * @returns API version number
    */
@@ -201,6 +244,8 @@ const root = (io: any) => ({
       * \`updateFeatureFlag(key: String!, value: Boolean!)\`: Updates the status of a feature flag.
       * \`sendNotification(title: String!, body: String!, icon: String, data: String)\`: Broadcasts a push notification to all connected clients via WebSocket.
       * \`sendNotificationToSocket(socketId: String!, title: String!, body: String!, icon: String, data: String)\`: Sends a push notification to a specific socket/user via WebSocket.
+      * \`sendLocalizedNotification(notificationId: String!, params: String)\`: Broadcasts a localized notification (all languages) to all clients. Supports ICU params.
+      * \`sendLocalizedNotificationToSocket(socketId: String!, notificationId: String!, params: String)\`: Sends a localized notification to a specific socket.
       * \`createUsername(userId: String!, username: String!)\`: Creates a new username for a user.
 
       ## Authentication

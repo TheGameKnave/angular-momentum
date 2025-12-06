@@ -4,7 +4,8 @@ import { Server } from 'socket.io'; // Import the socket.io server type
 import { graphqlMiddleware } from './graphqlService';
 import { readFeatureFlags, writeFeatureFlags } from './lowDBService';
 import { changeLog } from '../data/changeLog';
-import { broadcastNotification, sendNotificationToUser } from './notificationService';
+import { broadcastNotification, sendNotificationToUser, broadcastLocalizedNotification, sendLocalizedNotificationToUser } from './notificationService';
+import { NOTIFICATIONS } from '../data/notifications';
 
 // Mock the lowDBService functions
 jest.mock('./lowDBService', () => ({
@@ -16,6 +17,8 @@ jest.mock('./lowDBService', () => ({
 jest.mock('./notificationService', () => ({
   broadcastNotification: jest.fn(),
   sendNotificationToUser: jest.fn(),
+  broadcastLocalizedNotification: jest.fn(),
+  sendLocalizedNotificationToUser: jest.fn(),
 }));
 
 describe('GraphQL API', () => {
@@ -337,6 +340,210 @@ describe('GraphQL API', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data.sendNotificationToSocket).toEqual({
+        success: false,
+        message: 'Error: Error: Socket send failed'
+      });
+    });
+
+    it('should send a localized broadcast notification successfully', async () => {
+      const mutation = `
+        mutation {
+          sendLocalizedNotification(
+            notificationId: "welcome"
+          ) {
+            success
+            message
+          }
+        }
+      `;
+
+      const response = await request(app)
+        .post('/api')
+        .send({ query: mutation });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.sendLocalizedNotification).toEqual({
+        success: true,
+        message: 'Localized notification sent to all clients'
+      });
+      expect(broadcastLocalizedNotification).toHaveBeenCalledWith(io, 'welcome', undefined);
+    });
+
+    it('should send a localized broadcast notification with params', async () => {
+      const mutation = `
+        mutation {
+          sendLocalizedNotification(
+            notificationId: "maintenance",
+            params: "{\\"time\\":\\"2025-01-07T00:00:00.000Z\\"}"
+          ) {
+            success
+            message
+          }
+        }
+      `;
+
+      const response = await request(app)
+        .post('/api')
+        .send({ query: mutation });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.sendLocalizedNotification).toEqual({
+        success: true,
+        message: 'Localized notification sent to all clients'
+      });
+      expect(broadcastLocalizedNotification).toHaveBeenCalledWith(io, 'maintenance', { time: '2025-01-07T00:00:00.000Z' });
+    });
+
+    it('should return error for unknown notification ID', async () => {
+      const mutation = `
+        mutation {
+          sendLocalizedNotification(
+            notificationId: "unknown_notification"
+          ) {
+            success
+            message
+          }
+        }
+      `;
+
+      const response = await request(app)
+        .post('/api')
+        .send({ query: mutation });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.sendLocalizedNotification).toEqual({
+        success: false,
+        message: 'Unknown notification ID: unknown_notification'
+      });
+      expect(broadcastLocalizedNotification).not.toHaveBeenCalled();
+    });
+
+    it('should handle localized broadcast notification errors', async () => {
+      (broadcastLocalizedNotification as jest.Mock).mockImplementation(() => {
+        throw new Error('Broadcast failed');
+      });
+
+      const mutation = `
+        mutation {
+          sendLocalizedNotification(
+            notificationId: "welcome"
+          ) {
+            success
+            message
+          }
+        }
+      `;
+
+      const response = await request(app)
+        .post('/api')
+        .send({ query: mutation });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.sendLocalizedNotification).toEqual({
+        success: false,
+        message: 'Error: Error: Broadcast failed'
+      });
+    });
+
+    it('should send a localized notification to specific socket successfully', async () => {
+      const mutation = `
+        mutation {
+          sendLocalizedNotificationToSocket(
+            socketId: "socket-123",
+            notificationId: "feature_update"
+          ) {
+            success
+            message
+          }
+        }
+      `;
+
+      const response = await request(app)
+        .post('/api')
+        .send({ query: mutation });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.sendLocalizedNotificationToSocket).toEqual({
+        success: true,
+        message: 'Localized notification sent to socket socket-123'
+      });
+      expect(sendLocalizedNotificationToUser).toHaveBeenCalledWith(io, 'socket-123', 'feature_update', undefined);
+    });
+
+    it('should send a localized notification to socket with params', async () => {
+      const mutation = `
+        mutation {
+          sendLocalizedNotificationToSocket(
+            socketId: "socket-456",
+            notificationId: "maintenance",
+            params: "{\\"time\\":\\"2025-01-07T22:00:00.000Z\\"}"
+          ) {
+            success
+            message
+          }
+        }
+      `;
+
+      const response = await request(app)
+        .post('/api')
+        .send({ query: mutation });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.sendLocalizedNotificationToSocket).toEqual({
+        success: true,
+        message: 'Localized notification sent to socket socket-456'
+      });
+      expect(sendLocalizedNotificationToUser).toHaveBeenCalledWith(io, 'socket-456', 'maintenance', { time: '2025-01-07T22:00:00.000Z' });
+    });
+
+    it('should return error for unknown notification ID in socket notification', async () => {
+      const mutation = `
+        mutation {
+          sendLocalizedNotificationToSocket(
+            socketId: "socket-789",
+            notificationId: "invalid_id"
+          ) {
+            success
+            message
+          }
+        }
+      `;
+
+      const response = await request(app)
+        .post('/api')
+        .send({ query: mutation });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.sendLocalizedNotificationToSocket).toEqual({
+        success: false,
+        message: 'Unknown notification ID: invalid_id'
+      });
+      expect(sendLocalizedNotificationToUser).not.toHaveBeenCalled();
+    });
+
+    it('should handle localized socket notification errors', async () => {
+      (sendLocalizedNotificationToUser as jest.Mock).mockImplementation(() => {
+        throw new Error('Socket send failed');
+      });
+
+      const mutation = `
+        mutation {
+          sendLocalizedNotificationToSocket(
+            socketId: "socket-789",
+            notificationId: "welcome"
+          ) {
+            success
+            message
+          }
+        }
+      `;
+
+      const response = await request(app)
+        .post('/api')
+        .send({ query: mutation });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.sendLocalizedNotificationToSocket).toEqual({
         success: false,
         message: 'Error: Error: Socket send failed'
       });

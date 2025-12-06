@@ -52,7 +52,7 @@ describe('Main Config Providers', () => {
     const translocoService = TestBed.inject(TranslocoService);
     expect(translocoService).toBeTruthy();
     const config = translocoService.config;
-    expect(config.availableLangs).toEqual(SUPPORTED_LANGUAGES);
+    expect(config.availableLangs).toEqual([...SUPPORTED_LANGUAGES]);
     expect(config.defaultLang).toBe('en');
     expect(config.reRenderOnLangChange).toBeTrue();
     expect(config.prodMode).toBe(!isDevMode());

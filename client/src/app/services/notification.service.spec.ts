@@ -19,7 +19,7 @@ describe('NotificationService', () => {
     // Create spies
     logServiceSpy = jasmine.createSpyObj('LogService', ['log']);
     socketServiceSpy = jasmine.createSpyObj('SocketIoService', ['listen']);
-    translocoServiceSpy = jasmine.createSpyObj('TranslocoService', ['translate']);
+    translocoServiceSpy = jasmine.createSpyObj('TranslocoService', ['translate', 'getActiveLang']);
     userSettingsServiceSpy = jasmine.createSpyObj('UserSettingsService', ['loadSettings'], {
       timezone: signal('UTC'),
       settings: signal({ timezone: 'UTC' })
@@ -35,6 +35,7 @@ describe('NotificationService', () => {
       }
       return key;
     });
+    translocoServiceSpy.getActiveLang.and.returnValue('en');
 
     // Mock localStorage
     const store: { [key: string]: string } = {};
@@ -286,6 +287,43 @@ describe('NotificationService', () => {
       expect(notification.params).toEqual({ name: 'Test User' });
     });
 
+    it('should store localized strings for re-translation on language change', async () => {
+      service = TestBed.inject(NotificationService);
+      spyOn<any>(service, 'checkPermission').and.returnValue(Promise.resolve(false));
+
+      const localizedTitle = {
+        en: 'Welcome!',
+        de: 'Willkommen!',
+        fr: 'Bienvenue !',
+        es: '¡Bienvenido!',
+        'zh-CN': '欢迎！',
+        'zh-TW': '歡迎！'
+      };
+      const localizedBody = {
+        en: 'Hello world',
+        de: 'Hallo Welt',
+        fr: 'Bonjour le monde',
+        es: 'Hola mundo',
+        'zh-CN': '你好世界',
+        'zh-TW': '你好世界'
+      };
+
+      const options: NotificationOptions = {
+        title: 'Welcome!',
+        body: 'Hello world',
+        localizedTitle,
+        localizedBody,
+        params: { time: '10:00 PM' }
+      };
+
+      await service.show(options);
+
+      const notification = service.notifications()[0];
+      expect(notification.localizedTitle).toEqual(localizedTitle);
+      expect(notification.localizedBody).toEqual(localizedBody);
+      expect(notification.params).toEqual({ time: '10:00 PM' });
+    });
+
     it('should return notification ID', async () => {
       service = TestBed.inject(NotificationService);
       spyOn<any>(service, 'checkPermission').and.returnValue(Promise.resolve(false));
@@ -471,7 +509,13 @@ describe('NotificationService', () => {
         icon: '/icon.png'
       };
 
-      socketServiceSpy.listen.and.returnValue(of(mockNotification));
+      // Return different observables based on event type
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'notification') {
+          return of(mockNotification) as any;
+        }
+        return of() as any; // Empty observable for other events
+      });
       const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
 
       service = TestBed.inject(NotificationService);
@@ -497,7 +541,12 @@ describe('NotificationService', () => {
         }
       };
 
-      socketServiceSpy.listen.and.returnValue(of(mockNotification));
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'notification') {
+          return of(mockNotification) as any;
+        }
+        return of() as any;
+      });
       spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
 
       service = TestBed.inject(NotificationService);
@@ -516,7 +565,12 @@ describe('NotificationService', () => {
         data: 'string-data'
       };
 
-      socketServiceSpy.listen.and.returnValue(of(mockNotification));
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'notification') {
+          return of(mockNotification) as any;
+        }
+        return of() as any;
+      });
       spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
 
       service = TestBed.inject(NotificationService);
@@ -537,7 +591,12 @@ describe('NotificationService', () => {
         }
       };
 
-      socketServiceSpy.listen.and.returnValue(of(mockNotification));
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'notification') {
+          return of(mockNotification) as any;
+        }
+        return of() as any;
+      });
       spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
 
       service = TestBed.inject(NotificationService);
@@ -579,7 +638,12 @@ describe('NotificationService', () => {
         }
       };
 
-      socketServiceSpy.listen.and.returnValue(of(mockNotification));
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'notification') {
+          return of(mockNotification) as any;
+        }
+        return of() as any;
+      });
       spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
 
       service = TestBed.inject(NotificationService);
@@ -617,7 +681,12 @@ describe('NotificationService', () => {
         }
       };
 
-      socketServiceSpy.listen.and.returnValue(of(mockNotification));
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'notification') {
+          return of(mockNotification) as any;
+        }
+        return of() as any;
+      });
       spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
 
       service = TestBed.inject(NotificationService);
@@ -649,5 +718,182 @@ describe('NotificationService', () => {
         data: { type: 'test' }
       });
     });
+  });
+
+  describe('Localized notification handling', () => {
+    it('should handle incoming localized notifications and store all language variants', fakeAsync(() => {
+      const mockLocalizedTitle = {
+        en: 'Welcome!', de: 'Willkommen!', fr: 'Bienvenue !', es: '¡Bienvenido!', 'zh-CN': '欢迎！', 'zh-TW': '歡迎！'
+      };
+      const mockLocalizedBody = {
+        en: 'Hello world', de: 'Hallo Welt', fr: 'Bonjour le monde', es: 'Hola mundo', 'zh-CN': '你好世界', 'zh-TW': '你好世界'
+      };
+      const mockLocalizedPayload = {
+        title: mockLocalizedTitle,
+        body: mockLocalizedBody,
+        label: { en: 'Welcome', de: 'Willkommen', fr: 'Bienvenue', es: 'Bienvenida', 'zh-CN': '欢迎', 'zh-TW': '歡迎' },
+      };
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return of(mockLocalizedPayload) as any;
+        }
+        return of() as any;
+      });
+      const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+      translocoServiceSpy.getActiveLang.and.returnValue('en');
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      expect(logServiceSpy.log).toHaveBeenCalledWith('Received localized notification from WebSocket', mockLocalizedPayload);
+      const showCallArg = showSpy.calls.mostRecent().args[0];
+      expect(showCallArg.title).toBe('Welcome!');
+      expect(showCallArg.body).toBe('Hello world');
+      expect(showCallArg.icon).toBeUndefined();
+      // Verify all language variants are stored for re-translation on language change
+      expect(showCallArg.localizedTitle).toEqual(mockLocalizedTitle);
+      expect(showCallArg.localizedBody).toEqual(mockLocalizedBody);
+    }));
+
+    it('should use German translation when locale is de', fakeAsync(() => {
+      const mockLocalizedPayload = {
+        title: { en: 'Welcome!', de: 'Willkommen!' },
+        body: { en: 'Hello world', de: 'Hallo Welt' },
+        label: { en: 'Welcome', de: 'Willkommen' }
+      };
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return of(mockLocalizedPayload) as any;
+        }
+        return of() as any;
+      });
+      const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+      translocoServiceSpy.getActiveLang.and.returnValue('de');
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      const showCallArg = showSpy.calls.mostRecent().args[0];
+      expect(showCallArg.title).toBe('Willkommen!');
+      expect(showCallArg.body).toBe('Hallo Welt');
+    }));
+
+    it('should fall back to English when locale is not available', fakeAsync(() => {
+      const mockLocalizedPayload = {
+        title: { en: 'Welcome!' },
+        body: { en: 'Hello world' },
+        label: { en: 'Welcome' }
+      };
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return of(mockLocalizedPayload) as any;
+        }
+        return of() as any;
+      });
+      const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+      translocoServiceSpy.getActiveLang.and.returnValue('fr'); // French not available
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      const showCallArg = showSpy.calls.mostRecent().args[0];
+      expect(showCallArg.title).toBe('Welcome!'); // Falls back to English
+      expect(showCallArg.body).toBe('Hello world');
+    }));
+
+    it('should fall back to empty string when neither locale nor English is available', fakeAsync(() => {
+      const mockLocalizedPayload = {
+        title: { de: 'Willkommen!' }, // Only German, no English
+        body: { de: 'Hallo Welt' },
+        label: { de: 'Willkommen' }
+      };
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return of(mockLocalizedPayload) as any;
+        }
+        return of() as any;
+      });
+      const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+      translocoServiceSpy.getActiveLang.and.returnValue('fr'); // French not available, English not available either
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      const showCallArg = showSpy.calls.mostRecent().args[0];
+      expect(showCallArg.title).toBe(''); // Falls back to empty string
+      expect(showCallArg.body).toBe('');
+    }));
+
+    it('should handle localized notifications with params', fakeAsync(() => {
+      const mockLocalizedPayload = {
+        title: { en: 'Maintenance' },
+        body: { en: 'Server maintenance at {time}' },
+        label: { en: 'Maintenance' },
+        params: { time: '2024-01-01T00:00:00.000Z' }
+      };
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return of(mockLocalizedPayload) as any;
+        }
+        return of() as any;
+      });
+      const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+      translocoServiceSpy.getActiveLang.and.returnValue('en');
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      // Verify translate was called with params
+      expect(translocoServiceSpy.translate).toHaveBeenCalledWith(
+        'Maintenance',
+        jasmine.objectContaining({ time: jasmine.any(String) })
+      );
+    }));
+
+    it('should handle localized notifications without params', fakeAsync(() => {
+      const mockLocalizedPayload = {
+        title: { en: 'Simple notification' },
+        body: { en: 'No params here' },
+        label: { en: 'Info' }
+        // No params
+      };
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return of(mockLocalizedPayload) as any;
+        }
+        return of() as any;
+      });
+      const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+      translocoServiceSpy.getActiveLang.and.returnValue('en');
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      const showCallArg = showSpy.calls.mostRecent().args[0];
+      expect(showCallArg.title).toBe('Simple notification');
+      expect(showCallArg.body).toBe('No params here');
+    }));
+
+    it('should log errors when localized notification subscription fails', fakeAsync(() => {
+      const testError = new Error('Connection failed');
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return throwError(() => testError) as any;
+        }
+        return of() as any;
+      });
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      expect(logServiceSpy.log).toHaveBeenCalledWith('Error receiving localized notification', testError);
+    }));
   });
 });

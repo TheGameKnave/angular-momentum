@@ -38,7 +38,7 @@ export function getTranslocoModule(options: TranslocoTestingOptions = {}) {
       'zh-TW': zhTW,
     },
     translocoConfig: {
-      availableLangs: SUPPORTED_LANGUAGES,
+      availableLangs: [...SUPPORTED_LANGUAGES],
       defaultLang: 'en',
     },
     preloadLangs: true,

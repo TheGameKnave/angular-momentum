@@ -39,25 +39,25 @@
         }
 
         <div class="notification-buttons">
-          @for (notification of predefinedNotifications; track notification.label) {
+          @for (notification of predefinedNotifications; track notification.id) {
             <div class="notification-test-card">
               <div class="notification-preview">
-                <strong>{{ notification.title }}</strong>
-                <p>{{ notification.body }}</p>
+                <strong>{{ getTitle(notification) }}</strong>
+                <p>{{ getBody(notification) }}</p>
               </div>
               <div class="notification-actions">
                 <p-button
                   [label]="t('page.Send Local')"
                   icon="pi pi-bell"
                   (onClick)="sendLocalNotification(notification)"
-                  [severity]="notification.severity"
+                  [severity]="getSeverity(notification)"
                   size="small"></p-button>
                 <p-button
                   [label]="t('page.Broadcast')"
                   icon="pi pi-megaphone"
                   (onClick)="sendServerNotification(notification)"
                   [loading]="loading()"
-                  [severity]="notification.severity"
+                  [severity]="getSeverity(notification)"
                   size="small"
                   [outlined]="true"
                   [disabled]="!authService.isAuthenticated()"></p-button>

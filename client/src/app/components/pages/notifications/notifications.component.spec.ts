@@ -6,6 +6,7 @@ import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { NOTIFICATION_IDS } from '@app/constants/translations.constants';
 
 describe('NotificationsComponent', () => {
   let component: NotificationsComponent;
@@ -60,17 +61,62 @@ describe('NotificationsComponent', () => {
       expect(notifications.length).toBe(4);
     });
 
-    it('should have all required properties for each notification', () => {
+    it('should have id property for each notification', () => {
       const notifications = component.predefinedNotifications;
       notifications.forEach(notification => {
-        expect(notification.titleKey).toBeDefined();
-        expect(notification.bodyKey).toBeDefined();
-        expect(notification.title).toBeDefined();
-        expect(notification.body).toBeDefined();
-        expect(notification.icon).toBeDefined();
-        expect(notification.label).toBeDefined();
-        expect(notification.severity).toBeDefined();
+        expect(notification.id).toBeDefined();
       });
+    });
+
+    it('should have correct notification IDs', () => {
+      const notifications = component.predefinedNotifications;
+      expect(notifications[0].id).toBe(NOTIFICATION_IDS.WELCOME);
+      expect(notifications[1].id).toBe(NOTIFICATION_IDS.FEATURE_UPDATE);
+      expect(notifications[2].id).toBe(NOTIFICATION_IDS.MAINTENANCE);
+      expect(notifications[3].id).toBe(NOTIFICATION_IDS.ACHIEVEMENT);
+    });
+
+    it('should have params for maintenance notification', () => {
+      const maintenanceNotification = component.predefinedNotifications[2];
+      expect(maintenanceNotification.params).toBeDefined();
+      expect(maintenanceNotification.params!['time']).toBeDefined();
+    });
+  });
+
+  describe('helper methods', () => {
+    it('should return translated title via getTitle', () => {
+      const notification = component.predefinedNotifications[0];
+      const title = component.getTitle(notification);
+      expect(title).toBeDefined();
+      expect(typeof title).toBe('string');
+    });
+
+    it('should return translated body via getBody', () => {
+      const notification = component.predefinedNotifications[0];
+      const body = component.getBody(notification);
+      expect(body).toBeDefined();
+      expect(typeof body).toBe('string');
+    });
+
+    it('should return translated body with params for maintenance', () => {
+      const notification = component.predefinedNotifications[2]; // maintenance
+      const body = component.getBody(notification);
+      expect(body).toBeDefined();
+      expect(typeof body).toBe('string');
+    });
+
+    it('should return translated label via getLabel', () => {
+      const notification = component.predefinedNotifications[0];
+      const label = component.getLabel(notification);
+      expect(label).toBeDefined();
+      expect(typeof label).toBe('string');
+    });
+
+    it('should return correct severity via getSeverity', () => {
+      expect(component.getSeverity(component.predefinedNotifications[0])).toBe('success');
+      expect(component.getSeverity(component.predefinedNotifications[1])).toBe('info');
+      expect(component.getSeverity(component.predefinedNotifications[2])).toBe('warn');
+      expect(component.getSeverity(component.predefinedNotifications[3])).toBe('secondary');
     });
   });
 
@@ -83,9 +129,9 @@ describe('NotificationsComponent', () => {
       await component.sendLocalNotification(notification);
 
       expect(notificationServiceSpy.show).toHaveBeenCalledWith({
-        title: notification.title,
-        body: notification.body,
-        icon: notification.icon
+        title: component.getTitle(notification),
+        body: component.getBody(notification),
+        icon: '/assets/icons/icon-192x192.png'
       });
       expect(component.localNotificationStatus()).toContain('✅');
     });
@@ -128,9 +174,9 @@ describe('NotificationsComponent', () => {
     it('should send notification via GraphQL mutation', async () => {
       const mockResponse = {
         data: {
-          sendNotification: {
+          sendLocalizedNotification: {
             success: true,
-            message: 'Notification sent successfully'
+            message: 'Localized notification sent to all clients'
           }
         }
       };
@@ -144,10 +190,10 @@ describe('NotificationsComponent', () => {
       expect(component.loading()).toBe(false);
     });
 
-    it('should send titleKey instead of translated title', async () => {
+    it('should send notification id in variables', async () => {
       const mockResponse = {
         data: {
-          sendNotification: {
+          sendLocalizedNotification: {
             success: true,
             message: 'Success'
           }
@@ -160,14 +206,13 @@ describe('NotificationsComponent', () => {
 
       const callArgs = httpClientSpy.post.calls.mostRecent().args;
       const variables = (callArgs[1] as any).variables;
-      expect(variables.title).toBe(notification.titleKey);
-      expect(variables.body).toBe(notification.bodyKey);
+      expect(variables.notificationId).toBe(notification.id);
     });
 
     it('should handle unsuccessful response', async () => {
       const mockResponse = {
         data: {
-          sendNotification: {
+          sendLocalizedNotification: {
             success: false,
             message: 'Failed to send'
           }
@@ -185,7 +230,7 @@ describe('NotificationsComponent', () => {
     it('should handle unsuccessful response with missing message', async () => {
       const mockResponse = {
         data: {
-          sendNotification: {
+          sendLocalizedNotification: {
             success: false
           }
         }
@@ -209,10 +254,10 @@ describe('NotificationsComponent', () => {
       expect(component.loading()).toBe(false);
     });
 
-    it('should include params in data for maintenance notification', async () => {
+    it('should include params for maintenance notification', async () => {
       const mockResponse = {
         data: {
-          sendNotification: {
+          sendLocalizedNotification: {
             success: true,
             message: 'Success'
           }
@@ -225,16 +270,15 @@ describe('NotificationsComponent', () => {
 
       const callArgs = httpClientSpy.post.calls.mostRecent().args;
       const variables = (callArgs[1] as any).variables;
-      expect(variables.data).toBeDefined();
-      const parsedData = JSON.parse(variables.data);
-      expect(parsedData.params).toBeDefined();
-      expect(parsedData.params['time']).toBeDefined();
+      expect(variables.params).toBeDefined();
+      const parsedParams = JSON.parse(variables.params);
+      expect(parsedParams['time']).toBeDefined();
     });
 
-    it('should not include data when no params present', async () => {
+    it('should not include params when no params present', async () => {
       const mockResponse = {
         data: {
-          sendNotification: {
+          sendLocalizedNotification: {
             success: true,
             message: 'Success'
           }
@@ -247,7 +291,7 @@ describe('NotificationsComponent', () => {
 
       const callArgs = httpClientSpy.post.calls.mostRecent().args;
       const variables = (callArgs[1] as any).variables;
-      expect(variables.data).toBeUndefined();
+      expect(variables.params).toBeUndefined();
     });
   });
 

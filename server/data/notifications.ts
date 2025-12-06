@@ -1,0 +1,127 @@
+/**
+ * Server-side notification translations.
+ * Each notification contains all language variants, sent to clients who pick their locale.
+ * Supports ICU MessageFormat placeholders like {time} for dynamic content.
+ */
+
+import { LocalizedStrings } from '../../shared/languages.js';
+
+export interface NotificationDefinition {
+  title: LocalizedStrings;
+  body: LocalizedStrings;
+  label: LocalizedStrings;
+  icon?: string;
+}
+
+/**
+ * Predefined notification templates with translations in all supported languages.
+ * Use createLocalizedNotification() to build payloads from these definitions.
+ */
+export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
+  welcome: {
+    title: {
+      'en': 'Welcome!',
+      'de': 'Willkommen!',
+      'fr': 'Bienvenue !',
+      'es': '¡Bienvenido!',
+      'zh-CN': '欢迎！',
+      'zh-TW': '歡迎！',
+    },
+    body: {
+      'en': 'Thanks for trying Angular Momentum—your modern Angular starter kit!',
+      'de': 'Danke, dass Sie Angular Momentum ausprobieren—Ihr modernes Angular-Starter-Kit!',
+      'fr': 'Merci d\u2019essayer Angular Momentum—votre kit de démarrage Angular moderne !',
+      'es': '¡Gracias por probar Angular Momentum, tu kit de inicio moderno para Angular!',
+      'zh-CN': '感谢您试用Angular Momentum—您的现代Angular入门套件！',
+      'zh-TW': '感謝您試用Angular Momentum—您的現代Angular入門套件！',
+    },
+    label: {
+      'en': 'Welcome Message',
+      'de': 'Willkommensnachricht',
+      'fr': 'Message de Bienvenue',
+      'es': 'Mensaje de Bienvenida',
+      'zh-CN': '欢迎消息',
+      'zh-TW': '歡迎訊息',
+    },
+  },
+  feature_update: {
+    title: {
+      'en': 'New Feature Available',
+      'de': 'Neue Funktion Verfügbar',
+      'fr': 'Nouvelle Fonctionnalité Disponible',
+      'es': 'Nueva Función Disponible',
+      'zh-CN': '新功能可用',
+      'zh-TW': '新功能可用',
+    },
+    body: {
+      'en': 'Check out the latest updates in the Features section!',
+      'de': 'Schauen Sie sich die neuesten Updates im Funktionsbereich an!',
+      'fr': 'Découvrez les dernières mises à jour dans la section Fonctionnalités !',
+      'es': '¡Consulta las últimas actualizaciones en la sección de Funciones!',
+      'zh-CN': '查看功能部分的最新更新！',
+      'zh-TW': '查看功能部分的最新更新！',
+    },
+    label: {
+      'en': 'Feature Update',
+      'de': 'Funktionsaktualisierung',
+      'fr': 'Mise à Jour de Fonctionnalité',
+      'es': 'Actualización de Función',
+      'zh-CN': '功能更新',
+      'zh-TW': '功能更新',
+    },
+  },
+  maintenance: {
+    title: {
+      'en': 'System Maintenance',
+      'de': 'Systemwartung',
+      'fr': 'Maintenance du Système',
+      'es': 'Mantenimiento del Sistema',
+      'zh-CN': '系统维护',
+      'zh-TW': '系統維護',
+    },
+    body: {
+      'en': 'Scheduled maintenance will occur tonight at {time}.',
+      'de': 'Die geplante Wartung findet heute Nacht um {time} statt.',
+      'fr': 'La maintenance programmée aura lieu ce soir à {time}.',
+      'es': 'El mantenimiento programado ocurrirá esta noche a las {time}.',
+      'zh-CN': '计划维护将于今晚{time}进行。',
+      'zh-TW': '計劃維護將於今晚{time}進行。',
+    },
+    label: {
+      'en': 'Maintenance Alert',
+      'de': 'Wartungshinweis',
+      'fr': 'Alerte de Maintenance',
+      'es': 'Alerta de Mantenimiento',
+      'zh-CN': '维护警报',
+      'zh-TW': '維護警報',
+    },
+  },
+  achievement: {
+    title: {
+      'en': 'Achievement Unlocked',
+      'de': 'Erfolg Freigeschaltet',
+      'fr': 'Succès Débloqué',
+      'es': 'Logro Desbloqueado',
+      'zh-CN': '成就解锁',
+      'zh-TW': '成就解鎖',
+    },
+    body: {
+      'en': 'You successfully tested the notification system!',
+      'de': 'Sie haben das Benachrichtigungssystem erfolgreich getestet!',
+      'fr': 'Vous avez testé avec succès le système de notifications !',
+      'es': '¡Probaste exitosamente el sistema de notificaciones!',
+      'zh-CN': '您成功测试了通知系统！',
+      'zh-TW': '您成功測試了通知系統！',
+    },
+    label: {
+      'en': 'Achievement',
+      'de': 'Erfolg',
+      'fr': 'Succès',
+      'es': 'Logro',
+      'zh-CN': '成就',
+      'zh-TW': '成就',
+    },
+  },
+} as const;
+
+export type NotificationId = keyof typeof NOTIFICATIONS;

@@ -30,7 +30,7 @@ export class MenuLanguageComponent {
   translocoLoader = inject(TranslocoHttpLoader);
 
   Object = Object;
-  supportedLanguages: string[] = SUPPORTED_LANGUAGES;
+  supportedLanguages: string[] = [...SUPPORTED_LANGUAGES];
   languages = LANGUAGES;
   classToLang: Record<string, string> = {};
 

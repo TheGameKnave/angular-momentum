@@ -127,35 +127,85 @@ export const FEATURE_FLAG_KEYS = [
 ];
 
 /**
- * Notification message translation keys.
- * Source of truth for notification messages used in NotificationMessages.
+ * Server-side notification IDs.
+ * These map to notification definitions in server/data/notifications.ts.
+ * Server sends all language variants; client picks the correct one.
+ */
+export const NOTIFICATION_IDS = {
+  WELCOME: 'welcome',
+  FEATURE_UPDATE: 'feature_update',
+  MAINTENANCE: 'maintenance',
+  ACHIEVEMENT: 'achievement',
+} as const;
+
+export type NotificationId = typeof NOTIFICATION_IDS[keyof typeof NOTIFICATION_IDS];
+
+/** Structure for notification key mappings */
+interface NotificationKeyEntry {
+  readonly titleKey: string;
+  readonly bodyKey: string;
+  readonly labelKey: string;
+  readonly severity: 'success' | 'info' | 'warn' | 'secondary';
+}
+
+/**
+ * Maps notification IDs to their i18n keys and UI metadata.
+ * Used for both local notifications (client-side display) and UI rendering.
+ * Server notifications only need the ID; client uses this map for display.
+ */
+export const NOTIFICATION_KEY_MAP: Record<NotificationId, NotificationKeyEntry> = {
+  welcome: {
+    titleKey: "notification.Welcome!",
+    bodyKey: "notification.Thanks for trying Angular Momentum—your modern Angular starter kit!",
+    labelKey: "notification.Welcome Message",
+    severity: 'success',
+  },
+  feature_update: {
+    titleKey: "notification.New Feature Available",
+    bodyKey: "notification.Check out the latest updates in the Features section!",
+    labelKey: "notification.Feature Update",
+    severity: 'info',
+  },
+  maintenance: {
+    titleKey: "notification.System Maintenance",
+    bodyKey: "notification.Scheduled maintenance will occur tonight at {time}.",
+    labelKey: "notification.Maintenance Alert",
+    severity: 'warn',
+  },
+  achievement: {
+    titleKey: "notification.Achievement Unlocked",
+    bodyKey: "notification.You successfully tested the notification system!",
+    labelKey: "notification.Achievement",
+    severity: 'secondary',
+  },
+} as const;
+
+/**
+ * Notification message translation keys (derived from NOTIFICATION_KEY_MAP).
+ * @deprecated Use NOTIFICATION_KEY_MAP directly for cleaner access.
  */
 export const NOTIFICATION_MESSAGES = {
-  // Welcome notification
-  WELCOME_TITLE: "notification.Welcome!",
-  WELCOME_BODY: "notification.Thanks for trying Angular Momentum—your modern Angular starter kit!",
-  WELCOME_LABEL: "notification.Welcome Message",
-
-  // Feature update notification
-  FEATURE_UPDATE_TITLE: "notification.New Feature Available",
-  FEATURE_UPDATE_BODY: "notification.Check out the latest updates in the Features section!",
-  FEATURE_UPDATE_LABEL: "notification.Feature Update",
-
-  // System maintenance notification
-  MAINTENANCE_TITLE: "notification.System Maintenance",
-  MAINTENANCE_BODY: "notification.Scheduled maintenance will occur tonight at {time}.",
-  MAINTENANCE_LABEL: "notification.Maintenance Alert",
-
-  // Achievement notification
-  ACHIEVEMENT_TITLE: "notification.Achievement Unlocked",
-  ACHIEVEMENT_BODY: "notification.You successfully tested the notification system!",
-  ACHIEVEMENT_LABEL: "notification.Achievement",
-} as const satisfies TranslationKeyRecord;
+  WELCOME_TITLE: NOTIFICATION_KEY_MAP.welcome.titleKey,
+  WELCOME_BODY: NOTIFICATION_KEY_MAP.welcome.bodyKey,
+  WELCOME_LABEL: NOTIFICATION_KEY_MAP.welcome.labelKey,
+  FEATURE_UPDATE_TITLE: NOTIFICATION_KEY_MAP.feature_update.titleKey,
+  FEATURE_UPDATE_BODY: NOTIFICATION_KEY_MAP.feature_update.bodyKey,
+  FEATURE_UPDATE_LABEL: NOTIFICATION_KEY_MAP.feature_update.labelKey,
+  MAINTENANCE_TITLE: NOTIFICATION_KEY_MAP.maintenance.titleKey,
+  MAINTENANCE_BODY: NOTIFICATION_KEY_MAP.maintenance.bodyKey,
+  MAINTENANCE_LABEL: NOTIFICATION_KEY_MAP.maintenance.labelKey,
+  ACHIEVEMENT_TITLE: NOTIFICATION_KEY_MAP.achievement.titleKey,
+  ACHIEVEMENT_BODY: NOTIFICATION_KEY_MAP.achievement.bodyKey,
+  ACHIEVEMENT_LABEL: NOTIFICATION_KEY_MAP.achievement.labelKey,
+} as const;
 
 /**
  * Notification message keys as array for validation.
+ * Derived from NOTIFICATION_KEY_MAP to avoid using deprecated NOTIFICATION_MESSAGES.
  */
-export const NOTIFICATION_KEYS = Object.values(NOTIFICATION_MESSAGES);
+export const NOTIFICATION_KEYS = Object.values(NOTIFICATION_KEY_MAP).flatMap(
+  entry => [entry.titleKey, entry.bodyKey, entry.labelKey]
+);
 
 /**
  * Change log translation keys.

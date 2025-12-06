@@ -76,7 +76,7 @@ export const appProviders = [
   isTestEnvironment ? [] : provideFeatureMonitor(), // Initialize feature monitoring at app startup
   provideTransloco({
     config: {
-      availableLangs: SUPPORTED_LANGUAGES,
+      availableLangs: [...SUPPORTED_LANGUAGES],
       defaultLang: 'en',
       reRenderOnLangChange: true,
       prodMode: !isDevMode(),
