@@ -10,7 +10,6 @@ import { NOTIFICATIONS, NotificationId } from '../data/notifications';
  */
 export function broadcastNotification(io: SocketIOServer, notification: NotificationPayload): void {
   io.emit('notification', notification);
-  // console.log('Notification broadcast to all clients:', notification.title);
 }
 
 /**
@@ -22,7 +21,6 @@ export function broadcastNotification(io: SocketIOServer, notification: Notifica
  */
 export function sendNotificationToUser(io: SocketIOServer, socketId: string, notification: NotificationPayload): void {
   io.to(socketId).emit('notification', notification);
-  // console.log(`Notification sent to socket ${socketId}:`, notification.title);
 }
 
 /**
@@ -35,7 +33,6 @@ export function sendNotificationToUser(io: SocketIOServer, socketId: string, not
  */
 export function sendNotificationToRoom(io: SocketIOServer, room: string, notification: NotificationPayload): void {
   io.to(room).emit('notification', notification);
-  // console.log(`Notification sent to room ${room}:`, notification.title);
 }
 
 /**
@@ -74,7 +71,6 @@ export function broadcastLocalizedNotification(
 ): void {
   const notification = createLocalizedNotification(notificationId, params);
   io.emit('localized-notification', notification);
-  // console.log('Localized notification broadcast to all clients:', notificationId);
 }
 
 /**
@@ -92,7 +88,6 @@ export function sendLocalizedNotificationToUser(
 ): void {
   const notification = createLocalizedNotification(notificationId, params);
   io.to(socketId).emit('localized-notification', notification);
-  // console.log(`Localized notification sent to socket ${socketId}:`, notificationId);
 }
 
 /**
@@ -110,5 +105,4 @@ export function sendLocalizedNotificationToRoom(
 ): void {
   const notification = createLocalizedNotification(notificationId, params);
   io.to(room).emit('localized-notification', notification);
-  // console.log(`Localized notification sent to room ${room}:`, notificationId);
 }

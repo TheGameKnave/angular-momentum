@@ -1,6 +1,9 @@
 echo "\nRunning translation validation\n\n"
 cd tests/translation && npx tsx translation-validation.ts
 
+echo "\nRunning notification validation\n\n"
+npx tsx notification-validation.ts
+
 echo "\nRunning translation key usage check\n\n"
 npx tsx translation-key-usage.ts
 

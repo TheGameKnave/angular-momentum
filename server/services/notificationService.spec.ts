@@ -13,7 +13,6 @@ import { NOTIFICATIONS } from '../data/notifications';
 
 describe('NotificationService', () => {
   let mockIo: jest.Mocked<SocketIOServer>;
-  let consoleLogSpy: jest.SpyInstance;
 
   beforeEach(() => {
     // Mock Socket.IO server
@@ -21,14 +20,10 @@ describe('NotificationService', () => {
       emit: jest.fn(),
       to: jest.fn().mockReturnThis(),
     } as any;
-
-    // Spy on console.log
-    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
-    consoleLogSpy.mockRestore();
   });
 
   describe('broadcastNotification', () => {
@@ -42,10 +37,6 @@ describe('NotificationService', () => {
       broadcastNotification(mockIo, notification);
 
       expect(mockIo.emit).toHaveBeenCalledWith('notification', notification);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        'Notification broadcast to all clients:',
-        'Test Notification'
-      );
     });
 
     it('should broadcast notification without icon', () => {
@@ -57,10 +48,6 @@ describe('NotificationService', () => {
       broadcastNotification(mockIo, notification);
 
       expect(mockIo.emit).toHaveBeenCalledWith('notification', notification);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        'Notification broadcast to all clients:',
-        'Simple Notification'
-      );
     });
 
     it('should broadcast notification with data payload', () => {
@@ -73,10 +60,6 @@ describe('NotificationService', () => {
       broadcastNotification(mockIo, notification);
 
       expect(mockIo.emit).toHaveBeenCalledWith('notification', notification);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        'Notification broadcast to all clients:',
-        'Data Notification'
-      );
     });
   });
 
@@ -93,10 +76,6 @@ describe('NotificationService', () => {
 
       expect(mockIo.to).toHaveBeenCalledWith(socketId);
       expect(mockIo.emit).toHaveBeenCalledWith('notification', notification);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        `Notification sent to socket ${socketId}:`,
-        'User Notification'
-      );
     });
 
     it('should send notification to user without icon', () => {
@@ -110,10 +89,6 @@ describe('NotificationService', () => {
 
       expect(mockIo.to).toHaveBeenCalledWith(socketId);
       expect(mockIo.emit).toHaveBeenCalledWith('notification', notification);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        `Notification sent to socket ${socketId}:`,
-        'Alert'
-      );
     });
 
     it('should send notification to user with data payload', () => {
@@ -128,10 +103,6 @@ describe('NotificationService', () => {
 
       expect(mockIo.to).toHaveBeenCalledWith(socketId);
       expect(mockIo.emit).toHaveBeenCalledWith('notification', notification);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        `Notification sent to socket ${socketId}:`,
-        'Parameterized Notification'
-      );
     });
   });
 
@@ -148,10 +119,6 @@ describe('NotificationService', () => {
 
       expect(mockIo.to).toHaveBeenCalledWith(room);
       expect(mockIo.emit).toHaveBeenCalledWith('notification', notification);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        `Notification sent to room ${room}:`,
-        'Room Notification'
-      );
     });
 
     it('should send notification to room without icon', () => {
@@ -165,10 +132,6 @@ describe('NotificationService', () => {
 
       expect(mockIo.to).toHaveBeenCalledWith(room);
       expect(mockIo.emit).toHaveBeenCalledWith('notification', notification);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        `Notification sent to room ${room}:`,
-        'General Announcement'
-      );
     });
 
     it('should send notification to room with data payload', () => {
@@ -183,10 +146,6 @@ describe('NotificationService', () => {
 
       expect(mockIo.to).toHaveBeenCalledWith(room);
       expect(mockIo.emit).toHaveBeenCalledWith('notification', notification);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        `Notification sent to room ${room}:`,
-        'System Maintenance'
-      );
     });
   });
 
@@ -233,10 +192,6 @@ describe('NotificationService', () => {
         icon: NOTIFICATIONS.welcome.icon,
         params: undefined,
       });
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        'Localized notification broadcast to all clients:',
-        'welcome'
-      );
     });
 
     it('should broadcast localized notification with params', () => {
@@ -250,10 +205,6 @@ describe('NotificationService', () => {
         icon: NOTIFICATIONS.maintenance.icon,
         params,
       });
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        'Localized notification broadcast to all clients:',
-        'maintenance'
-      );
     });
   });
 
@@ -270,10 +221,6 @@ describe('NotificationService', () => {
         icon: NOTIFICATIONS.feature_update.icon,
         params: undefined,
       });
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        `Localized notification sent to socket ${socketId}:`,
-        'feature_update'
-      );
     });
 
     it('should send localized notification to user with params', () => {
@@ -289,10 +236,6 @@ describe('NotificationService', () => {
         icon: NOTIFICATIONS.maintenance.icon,
         params,
       });
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        `Localized notification sent to socket ${socketId}:`,
-        'maintenance'
-      );
     });
   });
 
@@ -309,10 +252,6 @@ describe('NotificationService', () => {
         icon: NOTIFICATIONS.achievement.icon,
         params: undefined,
       });
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        `Localized notification sent to room ${room}:`,
-        'achievement'
-      );
     });
 
     it('should send localized notification to room with params', () => {
@@ -328,10 +267,6 @@ describe('NotificationService', () => {
         icon: NOTIFICATIONS.maintenance.icon,
         params,
       });
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        `Localized notification sent to room ${room}:`,
-        'maintenance'
-      );
     });
   });
 });

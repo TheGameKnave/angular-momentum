@@ -19,6 +19,7 @@
     "sonar": "sonar-scanner -Dsonar.token=$(grep SONAR_TOKEN server/.env | cut -d '=' -f 2)",
     "test": "./tests/test.sh",
     "test:translation": "cd tests/translation && npx tsx translation-validation.ts",
+    "test:notification": "cd tests/translation && npx tsx notification-validation.ts",
     "test:server": "cd server && npm test",
     "test:client": "cd client && npm test",
     "test:e2e": "cd tests/e2e && node clean_screenshots && node test_runner",

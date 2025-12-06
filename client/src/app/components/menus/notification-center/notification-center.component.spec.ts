@@ -3,6 +3,7 @@ import { NotificationCenterComponent } from './notification-center.component';
 import { NotificationService } from '../../../services/notification.service';
 import { signal } from '@angular/core';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
+import { LocalizedStrings } from '../../../models/data.model';
 
 describe('NotificationCenterComponent', () => {
   let component: NotificationCenterComponent;
@@ -117,14 +118,7 @@ describe('NotificationCenterComponent', () => {
         id: '1',
         title: 'Fallback Title',
         body: 'Body',
-        localizedTitle: {
-          'en-US': 'Welcome!', 'en-GB': 'Welcome!',
-          de: 'Willkommen!',
-          fr: 'Bienvenue !',
-          es: '¡Bienvenido!',
-          'zh-CN': '欢迎！',
-          'zh-TW': '歡迎！'
-        },
+        localizedTitle: { 'en-US': 'Welcome!', es: '¡Bienvenido!' } as LocalizedStrings,
         timestamp: new Date(),
         read: false
       };
@@ -187,14 +181,7 @@ describe('NotificationCenterComponent', () => {
         id: '1',
         title: 'Fallback Title',
         body: 'Body',
-        localizedTitle: {
-          'en-US': 'Localized Welcome!', 'en-GB': 'Localized Welcome!',
-          de: 'Lokalisiertes Willkommen!',
-          fr: 'Bienvenue localisée !',
-          es: '¡Bienvenido localizado!',
-          'zh-CN': '本地化欢迎！',
-          'zh-TW': '本地化歡迎！'
-        },
+        localizedTitle: { 'en-US': 'Localized Welcome!', es: '¡Bienvenido localizado!' } as LocalizedStrings,
         titleKey: 'notification.Welcome!',
         timestamp: new Date(),
         read: false
@@ -211,14 +198,7 @@ describe('NotificationCenterComponent', () => {
         id: '1',
         title: 'Fallback Title',
         body: 'Body',
-        localizedTitle: {
-          'en-US': 'Hello {name}!', 'en-GB': 'Hello {name}!',
-          de: 'Hallo {name}!',
-          fr: 'Bonjour {name} !',
-          es: '¡Hola {name}!',
-          'zh-CN': '你好 {name}！',
-          'zh-TW': '你好 {name}！'
-        },
+        localizedTitle: { 'en-US': 'Hello {name}!', es: '¡Hola {name}!' } as LocalizedStrings,
         params: { name: 'World' },
         timestamp: new Date(),
         read: false
@@ -237,14 +217,7 @@ describe('NotificationCenterComponent', () => {
         id: '1',
         title: 'Title',
         body: 'Fallback Body',
-        localizedBody: {
-          'en-US': 'Thanks for trying!', 'en-GB': 'Thanks for trying!',
-          de: 'Danke fürs Ausprobieren!',
-          fr: 'Merci d\'essayer !',
-          es: '¡Gracias por probar!',
-          'zh-CN': '感谢您的试用！',
-          'zh-TW': '感謝您的試用！'
-        },
+        localizedBody: { 'en-US': 'Thanks for trying!', es: '¡Gracias por probar!' } as LocalizedStrings,
         timestamp: new Date(),
         read: false
       };
@@ -307,14 +280,7 @@ describe('NotificationCenterComponent', () => {
         id: '1',
         title: 'Title',
         body: 'Fallback Body',
-        localizedBody: {
-          'en-US': 'Localized body text!', 'en-GB': 'Localized body text!',
-          de: 'Lokalisierter Text!',
-          fr: 'Texte localisé !',
-          es: '¡Texto localizado!',
-          'zh-CN': '本地化文本！',
-          'zh-TW': '本地化文本！'
-        },
+        localizedBody: { 'en-US': 'Localized body text!', es: '¡Texto localizado!' } as LocalizedStrings,
         bodyKey: 'notification.Thanks for trying Angular Momentum—your modern Angular starter kit!',
         timestamp: new Date(),
         read: false
@@ -331,14 +297,7 @@ describe('NotificationCenterComponent', () => {
         id: '1',
         title: 'Title',
         body: 'Fallback Body',
-        localizedBody: {
-          'en-US': 'Maintenance at {time}', 'en-GB': 'Maintenance at {time}',
-          de: 'Wartung um {time}',
-          fr: 'Maintenance à {time}',
-          es: 'Mantenimiento a las {time}',
-          'zh-CN': '维护时间 {time}',
-          'zh-TW': '維護時間 {time}'
-        },
+        localizedBody: { 'en-US': 'Maintenance at {time}', es: 'Mantenimiento a las {time}' } as LocalizedStrings,
         params: { time: '10:00 PM' },
         timestamp: new Date(),
         read: false

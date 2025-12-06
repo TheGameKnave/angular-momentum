@@ -32,7 +32,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
       'en-US': 'Thanks for trying Angular Momentum—your modern Angular starter kit!',
       'en-GB': 'Thanks for trying Angular Momentum—your modern Angular starter kit!',
       'de': 'Danke, dass Sie Angular Momentum ausprobieren—Ihr modernes Angular-Starter-Kit!',
-      'fr': 'Merci d\u2019essayer Angular Momentum—votre kit de démarrage Angular moderne !',
+      'fr': 'Merci d’essayer Angular Momentum—votre kit de démarrage Angular moderne !',
       'es': '¡Gracias por probar Angular Momentum, tu kit de inicio moderno para Angular!',
       'zh-CN': '感谢您试用Angular Momentum—您的现代Angular入门套件！',
       'zh-TW': '感謝您試用Angular Momentum—您的現代Angular入門套件！',

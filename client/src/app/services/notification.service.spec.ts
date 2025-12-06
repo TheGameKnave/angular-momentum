@@ -5,7 +5,7 @@ import { SocketIoService } from './socket.io.service';
 import { TranslocoService } from '@jsverse/transloco';
 import { UserSettingsService } from './user-settings.service';
 import { of, throwError } from 'rxjs';
-import { Notification, NotificationOptions } from '../models/data.model';
+import { Notification, NotificationOptions, LocalizedStrings } from '../models/data.model';
 import { signal } from '@angular/core';
 
 describe('NotificationService', () => {
@@ -291,24 +291,8 @@ describe('NotificationService', () => {
       service = TestBed.inject(NotificationService);
       spyOn<any>(service, 'checkPermission').and.returnValue(Promise.resolve(false));
 
-      const localizedTitle = {
-        'en-US': 'Welcome!',
-        'en-GB': 'Welcome!',
-        de: 'Willkommen!',
-        fr: 'Bienvenue !',
-        es: '¡Bienvenido!',
-        'zh-CN': '欢迎！',
-        'zh-TW': '歡迎！'
-      };
-      const localizedBody = {
-        'en-US': 'Hello world',
-        'en-GB': 'Hello world',
-        de: 'Hallo Welt',
-        fr: 'Bonjour le monde',
-        es: 'Hola mundo',
-        'zh-CN': '你好世界',
-        'zh-TW': '你好世界'
-      };
+      const localizedTitle = { 'en-US': 'Welcome!', es: '¡Bienvenido!' } as LocalizedStrings;
+      const localizedBody = { 'en-US': 'Hello world', es: 'Hola mundo' } as LocalizedStrings;
 
       const options: NotificationOptions = {
         title: 'Welcome!',
@@ -724,16 +708,12 @@ describe('NotificationService', () => {
 
   describe('Localized notification handling', () => {
     it('should handle incoming localized notifications and store all language variants', fakeAsync(() => {
-      const mockLocalizedTitle = {
-        'en-US': 'Welcome!', 'en-GB': 'Welcome!', de: 'Willkommen!', fr: 'Bienvenue !', es: '¡Bienvenido!', 'zh-CN': '欢迎！', 'zh-TW': '歡迎！'
-      };
-      const mockLocalizedBody = {
-        'en-US': 'Hello world', 'en-GB': 'Hello world', de: 'Hallo Welt', fr: 'Bonjour le monde', es: 'Hola mundo', 'zh-CN': '你好世界', 'zh-TW': '你好世界'
-      };
+      const mockLocalizedTitle = { 'en-US': 'Welcome!', es: '¡Bienvenido!' } as LocalizedStrings;
+      const mockLocalizedBody = { 'en-US': 'Hello world', es: 'Hola mundo' } as LocalizedStrings;
       const mockLocalizedPayload = {
         title: mockLocalizedTitle,
         body: mockLocalizedBody,
-        label: { 'en-US': 'Welcome', 'en-GB': 'Welcome', de: 'Willkommen', fr: 'Bienvenue', es: 'Bienvenida', 'zh-CN': '欢迎', 'zh-TW': '歡迎' },
+        label: { 'en-US': 'Welcome', es: 'Bienvenida' } as LocalizedStrings,
       };
 
       socketServiceSpy.listen.and.callFake((event) => {
