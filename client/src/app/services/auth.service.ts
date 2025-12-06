@@ -1,4 +1,4 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { createClient, SupabaseClient, User, Session, AuthError } from '@supabase/supabase-js';
 import { TranslocoService } from '@jsverse/transloco';
@@ -59,6 +59,11 @@ export interface LoginCredentials {
   providedIn: 'root'
 })
 export class AuthService {
+  private readonly platformService = inject(PlatformService);
+  private readonly logService = inject(LogService);
+  private readonly router = inject(Router);
+  private readonly translocoService = inject(TranslocoService);
+
   private supabase: SupabaseClient | null = null;
 
   /**
@@ -93,12 +98,7 @@ export class AuthService {
    */
   private returnUrl: string | null = null;
 
-  constructor(
-    private readonly platformService: PlatformService,
-    private readonly logService: LogService,
-    private readonly router: Router,
-    private readonly translocoService: TranslocoService,
-  ) {
+  constructor() {
     this.initializeSupabase();
   }
 

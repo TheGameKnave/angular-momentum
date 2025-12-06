@@ -4,6 +4,15 @@
  */
 export const changeLog = [  
   {
+    version: "21.0.0",
+    date: "2025-12-05",
+    description: "Angular 21",
+    changes: [
+      "ng21 upgrade",
+      "zoneless change detection",
+    ]
+  },
+  {
     version: "20.0.2",
     date: "2025-12-05",
     description: "Scrolling",

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ViewChild, AfterViewInit, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild, AfterViewInit, signal, computed, inject } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
@@ -47,6 +47,13 @@ import { LogService } from '@app/services/log.service';
   ],
 })
 export class MenuAuthComponent implements AfterViewInit {
+  protected readonly authService = inject(AuthService);
+  protected readonly authUiState = inject(AuthUiStateService);
+  private readonly userSettingsService = inject(UserSettingsService);
+  private readonly usernameService = inject(UsernameService);
+  private readonly router = inject(Router);
+  private readonly logService = inject(LogService);
+
   @ViewChild(AnchorMenuComponent) anchorMenu!: AnchorMenuComponent;
 
   /** Auto-close timer in seconds (0 = no timer) */
@@ -64,15 +71,6 @@ export class MenuAuthComponent implements AfterViewInit {
   readonly isProfileRoute = computed(() =>
     this.currentUrl()?.urlAfterRedirects === '/profile'
   );
-
-  constructor(
-    protected readonly authService: AuthService,
-    protected readonly authUiState: AuthUiStateService,
-    private readonly userSettingsService: UserSettingsService,
-    private readonly usernameService: UsernameService,
-    private readonly router: Router,
-    private readonly logService: LogService,
-  ) {}
 
   /**
    * After view init, check for returnUrl in auth service and auto-open menu

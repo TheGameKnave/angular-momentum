@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output, signal, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, signal, ViewChild, ElementRef, AfterViewInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
@@ -31,6 +31,9 @@ import { parseApiError } from '@app/helpers/api-error.helper';
   ],
 })
 export class AuthOtpComponent implements AfterViewInit {
+  private readonly authService = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
+
   @ViewChild('otpInput') otpInput?: ElementRef<HTMLInputElement>;
 
   // Input for email that needs verification
@@ -48,10 +51,7 @@ export class AuthOtpComponent implements AfterViewInit {
 
   otpForm: FormGroup;
 
-  constructor(
-    private readonly authService: AuthService,
-    private readonly fb: FormBuilder,
-  ) {
+  constructor() {
     this.otpForm = this.fb.group({
       otp: ['', [Validators.required, Validators.pattern(OTP_CONFIG.PATTERN)]],
     });

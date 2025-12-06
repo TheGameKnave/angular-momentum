@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { ENVIRONMENT } from 'src/environments/environment';
-import { ChangeDetectionStrategy, Component, DestroyRef,   OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, signal, inject } from '@angular/core';
 import { MarkdownComponent } from 'ngx-markdown';
 import { catchError, of, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -42,13 +42,11 @@ export interface GraphQLDocsResponse {
   ],
 })
 export class GraphqlApiComponent implements OnInit {
+  readonly http = inject(HttpClient);
+  private readonly destroyRef = inject(DestroyRef);
+
   readonly docs = signal<string>('');
   readonly error = signal<boolean>(false);
-
-  constructor(
-    readonly http: HttpClient,
-    private readonly destroyRef: DestroyRef,
-  ){}
 
   /**
    * Angular lifecycle hook called after component initialization.

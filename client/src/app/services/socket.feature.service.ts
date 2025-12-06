@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { SocketIoService } from '@app/services/socket.io.service';
 import { FeatureFlag } from '@app/models/data.model';
@@ -17,9 +17,8 @@ import { FeatureFlag } from '@app/models/data.model';
   providedIn: 'root',
 })
 export class SocketFeatureService {
-  constructor(
-    readonly socketIoService: SocketIoService,
-  ) {}
+  readonly socketIoService = inject(SocketIoService);
+
 
   /**
    * Subscribe to feature flag updates via WebSocket.

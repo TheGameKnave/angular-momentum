@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ENVIRONMENT } from 'src/environments/environment';
 import { firstValueFrom } from 'rxjs';
@@ -37,6 +37,9 @@ export interface UserSettings {
   providedIn: 'root'
 })
 export class UserSettingsService {
+  private readonly http = inject(HttpClient);
+  private readonly logService = inject(LogService);
+
   /**
    * Current user settings (null if not loaded or user not authenticated).
    */
@@ -46,11 +49,6 @@ export class UserSettingsService {
    * Loading state for async operations.
    */
   readonly loading = signal<boolean>(false);
-
-  constructor(
-    private readonly http: HttpClient,
-    private readonly logService: LogService,
-  ) {}
 
   /**
    * Detects the user's timezone from their browser.

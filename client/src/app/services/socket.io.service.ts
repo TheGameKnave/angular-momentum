@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Socket } from 'ngx-socket-io';
 import { Observable } from 'rxjs';
 
@@ -13,9 +13,8 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class SocketIoService {
-  constructor(
-    readonly socket: Socket,
-  ) {}
+  readonly socket = inject(Socket);
+
 
   /**
    * Listen to a WebSocket event.

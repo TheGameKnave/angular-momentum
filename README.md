@@ -3,19 +3,20 @@
 This repo is intended to allow spooling up Angular projects in a monorepo rapidly, with a minimum of configuration.
 
 ## Current features
-* Angular 20 (with Node 22.14)
+* Angular 21 w/ Zoneless change detection &  Node 22.14
+* Angular 20 (with)
 * Parallel server/client execution
 * Bare-bones api proxy to the back-end *
-* SASS boilerplate included
 * Frontend environment detection *
 * Auto-unsub from subscriptions
 * Heroku deployment
+* cookie consent banner *
 * Google Analytics
 * Service worker to persist app and manage versions *
 * Typescript with node for back-end
 * Client & Server unit testing via jasmine
 * Benchmark memory usage and response times (throttled for mobile) in tests
-* Internationalization (i18n) with Transloco
+* Internationalization (i18n) with Transloco *
 * IndexedDB for offline storage *
 * Documentation enforced via husky
 * e2e testing with TestCafe + snapshots
@@ -31,15 +32,14 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Tauri app signing and (desktop) auto-updating for distribution to Android, iOS, macOS, Windows, and Linux.
 * Automatic platform deploys via Github Actions
 * Supabase(?) user management (emails and password resetting, etc) *
-* cookie consent banner *
 * timezone detection AND user-setting *
-* Push notifications (WebSocket-based) for Web, PWA, and all Tauri platforms
+* Push notifications (WebSocket-based) for Web, PWA, and all Tauri platforms *
 
 (* indicates a feature that’s visible in the sample app)
 
 ## Future features
 * Server-side rendering
-* Angular 21, Vitest, Zoneless
+* SASS boilerplate
 * Lighthouse CI to mitigate performance slip
 
 ## License

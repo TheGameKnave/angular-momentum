@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject } from '@angular/core';
+
 import { NotificationService } from '../../../services/notification.service';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -22,14 +22,13 @@ import { Notification } from '@app/models/data.model';
 @Component({
   selector: 'app-notification-center',
   standalone: true,
-  imports: [CommonModule, ButtonModule, CardModule, AnchorMenuComponent, ScrollIndicatorDirective, TranslocoDirective],
+  imports: [ButtonModule, CardModule, AnchorMenuComponent, ScrollIndicatorDirective, TranslocoDirective],
   templateUrl: './notification-center.component.html'
 })
 export class NotificationCenterComponent {
-  constructor(
-    public readonly notificationService: NotificationService,
-    private readonly translocoService: TranslocoService,
-  ) {}
+  readonly notificationService = inject(NotificationService);
+  private readonly translocoService = inject(TranslocoService);
+
 
   /**
    * Marks a specific notification as read.

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, OnInit, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, OnInit, output, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
@@ -29,17 +29,15 @@ import { getUserInitials } from '@app/helpers/user.helper';
   ],
 })
 export class AuthProfileComponent implements OnInit {
+  protected readonly authService = inject(AuthService);
+  protected readonly usernameService = inject(UsernameService);
+
   // Input for auto-close timer (0 = no timer)
   readonly autoCloseSeconds = input<number>(0);
 
   // Output events for parent component
   readonly profileClick = output<void>();
   readonly logoutClick = output<void>();
-
-  constructor(
-    protected readonly authService: AuthService,
-    protected readonly usernameService: UsernameService,
-  ) {}
 
   /**
    * Load username if not already loaded (e.g., on page refresh with existing session).

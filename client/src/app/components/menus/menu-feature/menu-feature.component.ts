@@ -1,14 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  HostListener,
-  signal,
-  ElementRef,
-  AfterViewInit,
-  DestroyRef,
-  ViewChild,
-  OnInit
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, signal, ElementRef, AfterViewInit, DestroyRef, ViewChild, OnInit, inject } from '@angular/core';
 import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { filter } from 'rxjs';
 import { TranslocoDirective } from '@jsverse/transloco';
@@ -40,6 +30,13 @@ import { ConnectivityService } from '@app/services/connectivity.service';
   ],
 })
 export class MenuFeatureComponent implements OnInit, AfterViewInit {
+  protected featureFlagService = inject(FeatureFlagService);
+  protected readonly helpersService = inject(HelpersService);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly host = inject(ElementRef);
+  protected readonly connectivity = inject(ConnectivityService);
+
   @ViewChild('scrollArea') scrollArea?: ElementRef<HTMLElement>;
 
   @HostListener('window:resize')
@@ -49,15 +46,6 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
   }
 
   isMobile = signal(window.innerWidth < SCREEN_SIZES.sm);
-
-  constructor(
-    protected featureFlagService: FeatureFlagService,
-    protected readonly helpersService: HelpersService,
-    private readonly router: Router,
-    private readonly destroyRef: DestroyRef,
-    private readonly host: ElementRef,
-    protected readonly connectivity: ConnectivityService,
-  ) {}
 
   /**
    * Angular lifecycle hook called after component initialization.

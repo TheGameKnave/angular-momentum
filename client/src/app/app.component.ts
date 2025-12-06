@@ -49,6 +49,15 @@ import { ScrollIndicatorDirective } from './directives/scroll-indicator.directiv
   ],
 })
 export class AppComponent implements OnInit {
+  readonly updateService = inject(UpdateService);
+  readonly changeLogService = inject(ChangeLogService);
+  protected translocoLoader = inject(TranslocoHttpLoader);
+  protected featureFlagService = inject(FeatureFlagService);
+  private readonly slugPipe = inject(SlugPipe);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  protected readonly connectivity = inject(ConnectivityService);
+
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
@@ -77,17 +86,6 @@ export class AppComponent implements OnInit {
 
   // Reactive signal for screen size (used in template for responsive footer labels)
   readonly isNarrowScreen = signal(globalThis.window !== undefined && globalThis.window.innerWidth < SCREEN_SIZES.md);
-
-  constructor(
-    readonly updateService: UpdateService,
-    readonly changeLogService: ChangeLogService,
-    protected translocoLoader: TranslocoHttpLoader,
-    protected featureFlagService: FeatureFlagService,
-    private readonly slugPipe: SlugPipe,
-    private readonly router: Router,
-    private readonly destroyRef: DestroyRef,
-    protected readonly connectivity: ConnectivityService,
-  ){}
 
   /**
    * Angular lifecycle hook called after component initialization.

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { SUPPORTED_LANGUAGES } from '@app/constants/app.constants';
 import { LANGUAGES } from 'i18n-l10n-flags';
 import { NgClass } from '@angular/common';
@@ -26,15 +26,15 @@ import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.direc
   ],
 })
 export class MenuLanguageComponent {
+  translate = inject(TranslocoService);
+  translocoLoader = inject(TranslocoHttpLoader);
+
   Object = Object;
   supportedLanguages: string[] = SUPPORTED_LANGUAGES;
   languages = LANGUAGES;
   classToLang: Record<string, string> = {};
 
-  constructor(
-    public translate: TranslocoService,
-    public translocoLoader: TranslocoHttpLoader,
-  ){
+  constructor(){
     this.supportedLanguages.forEach(lang => this.classToLang[`i18n-${lang}`] = lang);
   }
 

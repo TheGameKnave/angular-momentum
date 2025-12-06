@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, OnInit, inject } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators, type ValidatorFn } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
@@ -58,6 +58,16 @@ import { getUserInitials } from '@app/helpers/user.helper';
   providers: [ConfirmationService],
 })
 export class ProfileComponent implements OnInit {
+  protected readonly authService = inject(AuthService);
+  protected readonly userSettingsService = inject(UserSettingsService);
+  protected readonly usernameService = inject(UsernameService);
+  protected readonly cookieConsentService = inject(CookieConsentService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly fb = inject(FormBuilder);
+  private readonly translocoService = inject(TranslocoService);
+  private readonly confirmationService = inject(ConfirmationService);
+
   // Password change panel state
   readonly passwordPanelExpanded = signal(false);
   readonly passwordLoading = signal(false);
@@ -115,17 +125,7 @@ export class ProfileComponent implements OnInit {
   passwordForm: FormGroup;
   emailForm: FormGroup;
 
-  constructor(
-    protected readonly authService: AuthService,
-    protected readonly userSettingsService: UserSettingsService,
-    protected readonly usernameService: UsernameService,
-    protected readonly cookieConsentService: CookieConsentService,
-    private readonly router: Router,
-    private readonly route: ActivatedRoute,
-    private readonly fb: FormBuilder,
-    private readonly translocoService: TranslocoService,
-    private readonly confirmationService: ConfirmationService,
-  ) {
+  constructor() {
     // Initialize form without current password (will be added conditionally)
     this.passwordForm = this.fb.group({
       newPassword: ['', [Validators.required, passwordComplexityValidator()]],

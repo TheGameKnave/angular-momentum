@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ViewContainerRef, TemplateRef, ViewChild, signal, input, output } from '@angular/core';
+import { Component, DestroyRef, ViewContainerRef, TemplateRef, ViewChild, signal, input, output, inject } from '@angular/core';
 import { Overlay, OverlayRef, OverlayModule } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -57,6 +57,11 @@ import { TranslocoService } from '@jsverse/transloco';
   ],
 })
 export class AnchorMenuComponent {
+  private readonly overlay = inject(Overlay);
+  private readonly viewContainerRef = inject(ViewContainerRef);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly translocoService = inject(TranslocoService);
+
   @ViewChild('menuTemplate') menuTemplate!: TemplateRef<unknown>;
 
   /**
@@ -105,12 +110,7 @@ export class AnchorMenuComponent {
 
   private overlayRef: OverlayRef | null = null;
 
-  constructor(
-    private readonly overlay: Overlay,
-    private readonly viewContainerRef: ViewContainerRef,
-    private readonly destroyRef: DestroyRef,
-    private readonly translocoService: TranslocoService,
-  ) {
+  constructor() {
     // Initialize translated aria labels
     this.ariaLabelOpen.set(this.translocoService.translate('a11y.Open menu'));
     this.ariaLabelClose.set(this.translocoService.translate('a11y.Close menu'));

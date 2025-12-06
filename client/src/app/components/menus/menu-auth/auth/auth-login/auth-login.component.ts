@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, output, signal, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
@@ -34,6 +34,9 @@ import { parseApiError } from '@app/helpers/api-error.helper';
   ],
 })
 export class AuthLoginComponent {
+  private readonly authService = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
+
   // Outputs for parent component
   readonly switchToReset = output<string>(); // Emit email/username for prefill
   readonly switchToSignup = output<void>();
@@ -46,10 +49,7 @@ export class AuthLoginComponent {
 
   loginForm: FormGroup;
 
-  constructor(
-    private readonly authService: AuthService,
-    private readonly fb: FormBuilder,
-  ) {
+  constructor() {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required]], // Accept email or username
       password: ['', [Validators.required, passwordComplexityValidator()]],

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router, UrlTree } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
@@ -22,10 +22,9 @@ import { AuthService } from '../services/auth.service';
   providedIn: 'root'
 })
 export class PublicGuard implements CanActivate {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly router: Router,
-  ) {}
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
 
   /**
    * Determines if a public route can be activated.

@@ -1,4 +1,4 @@
-import { DestroyRef, Injectable } from '@angular/core';
+import { DestroyRef, Injectable, inject } from '@angular/core';
 import { SwUpdate, VersionEvent } from '@angular/service-worker';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { interval, startWith } from 'rxjs';
@@ -27,13 +27,13 @@ import { UPDATE_CONFIG } from '@app/constants/service.constants';
  */
 @Injectable({ providedIn: 'root' })
 export class UpdateService {
+  private readonly updates = inject(SwUpdate);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly logService = inject(LogService);
+
   private confirming = false;
 
-  constructor(
-    private readonly updates: SwUpdate,
-    private readonly destroyRef: DestroyRef,
-    private readonly logService: LogService,
-  ) {
+  constructor() {
     this.init();
   }
 

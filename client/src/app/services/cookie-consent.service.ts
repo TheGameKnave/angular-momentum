@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { LogService } from './log.service';
 import { PlatformService } from './platform.service';
 
@@ -13,6 +13,9 @@ export type CookieConsentStatus = 'pending' | 'accepted' | 'declined';
   providedIn: 'root'
 })
 export class CookieConsentService {
+  private readonly logService = inject(LogService);
+  private readonly platformService = inject(PlatformService);
+
   private readonly CONSENT_KEY = 'cookie_consent_status';
   private readonly GA_ID = 'G-NZS60CFH48';
   private readonly HOTJAR_ID = 6475773;
@@ -21,10 +24,9 @@ export class CookieConsentService {
   // Consent state (initialized after CONSENT_KEY is defined)
   readonly consentStatus = signal<CookieConsentStatus>(this.loadConsentStatus());
 
-  constructor(
-    private readonly logService: LogService,
-    private readonly platformService: PlatformService,
-  ) {
+  constructor() {
+    const logService = this.logService;
+
     logService.log('Service initialized');
     logService.log('Initial consent status:', this.consentStatus());
     logService.log('localStorage value:', localStorage.getItem(this.CONSENT_KEY));

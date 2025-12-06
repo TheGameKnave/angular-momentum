@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ENVIRONMENT } from 'src/environments/environment';
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, signal, inject } from '@angular/core';
+
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
@@ -24,7 +24,6 @@ import { AuthService } from '@app/services/auth.service';
   templateUrl: './notifications.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CommonModule,
     CardModule,
     ButtonModule,
     MessageModule,
@@ -32,6 +31,11 @@ import { AuthService } from '@app/services/auth.service';
   ],
 })
 export class NotificationsComponent {
+  readonly http = inject(HttpClient);
+  readonly notificationService = inject(NotificationService);
+  private readonly translocoService = inject(TranslocoService);
+  protected readonly authService = inject(AuthService);
+
   localNotificationStatus = signal<string>('');
   serverNotificationStatus = signal<string>('');
   loading = signal(false);
@@ -88,13 +92,6 @@ export class NotificationsComponent {
       }
     ];
   }
-
-  constructor(
-    readonly http: HttpClient,
-    readonly notificationService: NotificationService,
-    private readonly translocoService: TranslocoService,
-    protected readonly authService: AuthService,
-  ) {}
 
   /**
    * Sends a local notification (client-side only).

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { CanActivate, Router, ActivatedRouteSnapshot } from '@angular/router';
 import { SlugPipe } from '@app/pipes/slug.pipe';
 import { HelpersService } from '@app/services/helpers.service';
@@ -22,12 +22,10 @@ import { HelpersService } from '@app/services/helpers.service';
   providedIn: 'root'
 })
 export class FeatureFlagGuard implements CanActivate {
+  private readonly router = inject(Router);
+  private readonly helpersService = inject(HelpersService);
+  private readonly slugPipe = inject(SlugPipe);
 
-  constructor(
-    private readonly router: Router,
-    private readonly helpersService: HelpersService,
-    private readonly slugPipe: SlugPipe,
-  ){}
 
   /**
    * Determines if a route can be activated based on feature flag configuration.

@@ -1,4 +1,4 @@
-import { computed, Injectable } from '@angular/core';
+import { computed, Injectable, inject } from '@angular/core';
 import { ENVIRONMENT } from 'src/environments/environment';
 import { FeatureFlagService } from './feature-flag.service';
 import { COMPONENT_LIST } from '@app/helpers/component-list';
@@ -15,9 +15,9 @@ import { COMPONENT_LIST } from '@app/helpers/component-list';
   providedIn: 'root',
 })
 export class HelpersService {
-  constructor(
-    private readonly featureFlagService: FeatureFlagService,
-  ) {
+  private readonly featureFlagService = inject(FeatureFlagService);
+
+  constructor() {
     // istanbul ignore next
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (globalThis.window && ENVIRONMENT.env !== 'production') (globalThis.window as any).helpersService = this;

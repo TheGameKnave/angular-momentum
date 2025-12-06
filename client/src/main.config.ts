@@ -1,4 +1,4 @@
-import { importProvidersFrom, isDevMode, SecurityContext } from '@angular/core';
+import { importProvidersFrom, isDevMode, provideZonelessChangeDetection, SecurityContext } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
@@ -8,7 +8,7 @@ import { provideTransloco, TRANSLOCO_MISSING_HANDLER, TranslocoMissingHandler } 
 import { provideTranslocoMessageformat } from '@jsverse/transloco-messageformat';
 import { GetLangParams, provideTranslocoPersistLang } from '@jsverse/transloco-persist-lang';
 import { provideTranslocoLocale } from '@jsverse/transloco-locale';
-import { MarkdownModule } from 'ngx-markdown';
+import { MarkdownModule, SANITIZE } from 'ngx-markdown';
 
 import { SUPPORTED_LANGUAGES } from '@app/constants/app.constants';
 import { provideFeatureFlag } from '@app/providers/feature-flag.provider';
@@ -19,7 +19,6 @@ import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { routes } from '@app/app.routing';
 import { SlugPipe } from '@app/pipes/slug.pipe';
 
-import { provideAnimations } from '@angular/platform-browser/animations';
 import { providePrimeNG } from 'primeng/config';
 import Lara from '@primeng/themes/lara';
 import { authInterceptor } from '@app/interceptors/auth.interceptor';
@@ -55,10 +54,11 @@ export class PrefixedMissingHandler implements TranslocoMissingHandler {
 }
 
 export const appProviders = [
+  provideZonelessChangeDetection(),
   SlugPipe,
   importProvidersFrom(
     BrowserModule,
-    MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),
+    MarkdownModule.forRoot({ sanitize: { provide: SANITIZE, useValue: SecurityContext.STYLE } }),
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerImmediately',
@@ -95,7 +95,6 @@ export const appProviders = [
     },
   }),
   provideTranslocoLocale(),
-  provideAnimations(),
   providePrimeNG({
     theme: {
       preset: Lara,

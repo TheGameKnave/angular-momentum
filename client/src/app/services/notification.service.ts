@@ -1,4 +1,4 @@
-import { DestroyRef, Injectable, signal } from '@angular/core';
+import { DestroyRef, Injectable, signal, inject } from '@angular/core';
 import { sendNotification, isPermissionGranted, requestPermission } from '@tauri-apps/plugin-notification';
 import { TranslocoService } from '@jsverse/transloco';
 import { LogService } from './log.service';
@@ -27,18 +27,18 @@ import { NOTIFICATION_CONFIG } from '@app/constants/service.constants';
   providedIn: 'root'
 })
 export class NotificationService {
+  private readonly logService = inject(LogService);
+  private readonly socketService = inject(SocketIoService);
+  private readonly translocoService = inject(TranslocoService);
+  private readonly userSettingsService = inject(UserSettingsService);
+  private readonly destroyRef = inject(DestroyRef);
+
   permissionGranted = signal<boolean>(false);
   notifications = signal<Notification[]>([]);
   unreadCount = signal<number>(0);
   private readonly isTauri = '__TAURI__' in globalThis;
 
-  constructor(
-    private readonly logService: LogService,
-    private readonly socketService: SocketIoService,
-    private readonly translocoService: TranslocoService,
-    private readonly userSettingsService: UserSettingsService,
-    private readonly destroyRef: DestroyRef,
-  ) {
+  constructor() {
     this.loadNotificationsFromStorage();
     this.listenForWebSocketNotifications();
     this.initializePermissionSync();

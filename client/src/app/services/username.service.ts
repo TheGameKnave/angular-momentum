@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ENVIRONMENT } from 'src/environments/environment';
 import { firstValueFrom } from 'rxjs';
@@ -34,6 +34,8 @@ interface UsernameResponse {
   providedIn: 'root'
 })
 export class UsernameService {
+  private readonly http = inject(HttpClient);
+
   /**
    * Current username data (null if not set or not loaded).
    */
@@ -49,10 +51,6 @@ export class UsernameService {
    * Used to prompt user to choose a different username in their profile.
    */
   readonly creationFailed = signal<boolean>(false);
-
-  constructor(
-    private readonly http: HttpClient,
-  ) {}
 
   /**
    * Load the current user's username from the API.

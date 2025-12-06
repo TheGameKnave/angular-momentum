@@ -1,4 +1,4 @@
-import { DestroyRef, Injectable, signal } from '@angular/core';
+import { DestroyRef, Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ENVIRONMENT } from 'src/environments/environment';
 import { catchError, map, of, switchMap, timer, tap, merge, Subject } from 'rxjs';
@@ -33,6 +33,9 @@ export interface ChangeLogResponse {
  */
 @Injectable({ providedIn: 'root' })
 export class ChangeLogService {
+  private readonly http = inject(HttpClient);
+  private readonly destroyRef = inject(DestroyRef);
+
   readonly changes = signal<ChangeLogResponse[]>([]);
   readonly appVersion = signal<string>('');
   readonly appDiff = signal<{ impact: ChangeImpact; delta: number }>({
@@ -47,10 +50,7 @@ export class ChangeLogService {
     this.manualRefresh$,
   );
 
-  constructor(
-    private readonly http: HttpClient,
-    private readonly destroyRef: DestroyRef,
-  ) {
+  constructor() {
     // relaxed background auto-refresh
     this.refresh$
       .pipe(

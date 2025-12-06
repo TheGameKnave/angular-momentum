@@ -121,7 +121,7 @@ describe('AuthService', () => {
     it('should skip initialization on SSR', () => {
       mockPlatformService.isSSR.and.returnValue(true);
 
-      const ssrService = new (AuthService as any)(mockPlatformService, mockLogService, mockRouter);
+      const ssrService = TestBed.runInInjectionContext(() => new AuthService());
 
       expect(ssrService.loading()).toBe(false);
     });
@@ -132,7 +132,7 @@ describe('AuthService', () => {
 
       mockLogService.log.calls.reset();
 
-      const testService = new (AuthService as any)(mockPlatformService, mockLogService, mockRouter);
+      const testService = TestBed.runInInjectionContext(() => new AuthService());
 
       expect(testService.loading()).toBe(false);
       expect(mockLogService.log).toHaveBeenCalledWith('Supabase not configured');

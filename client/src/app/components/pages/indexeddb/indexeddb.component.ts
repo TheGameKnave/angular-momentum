@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { FeatureMonitorService } from '@app/services/feature-monitor.service';
@@ -30,13 +30,11 @@ import { INDEXEDDB_CONFIG } from '@app/constants/ui.constants';
 ],
 })
 export class IndexedDBComponent implements OnInit {
-  textAreaData = new FormControl('');
+  readonly destroyRef = inject(DestroyRef);
+  private readonly featureMonitorService = inject(FeatureMonitorService);
+  private readonly cd = inject(ChangeDetectorRef);
 
-  constructor(
-    readonly destroyRef: DestroyRef,
-    private readonly featureMonitorService: FeatureMonitorService,
-    private readonly cd: ChangeDetectorRef,
-  ){}
+  textAreaData = new FormControl('');
 
   /**
    * Angular lifecycle hook called after component initialization.
@@ -80,7 +78,6 @@ export class IndexedDBComponent implements OnInit {
    * if it doesn't already exist.
    */
   dbPromise = openDB(INDEXEDDB_CONFIG.DB_NAME, INDEXEDDB_CONFIG.DB_VERSION, {
-    // TODO figure out why this has inconsistent coverage
     // istanbul ignore next
     upgrade(db) {
       db.createObjectStore('keyval');
