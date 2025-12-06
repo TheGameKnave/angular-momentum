@@ -1,7 +1,4 @@
-TODO chores/tasks
-
-node + server package updates
-test file order to prevent building twice
+# TODO chores/tasks
 
 tree-shake for unused assets, other optimizations
 notifications need to be sent in all languages.

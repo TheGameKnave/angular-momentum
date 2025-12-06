@@ -5,7 +5,7 @@
   "repository": "https://github.com/TheGameKnave/angular-momentum",
   "private": true,
   "engines": {
-    "node": "22.14.0"
+    "node": "24.11.1"
   },
   "scripts": {
     "client": "cd client && NODE_ENV=development npm run start -- --configuration development",
@@ -33,7 +33,11 @@
     "./client",
     "./server"
   ],
+  "overrides": {
+    "@types/express-serve-static-core": "^5.1.0"
+  },
   "devDependencies": {
+    "@types/express-serve-static-core": "^5.1.0",
     "@formatjs/icu-messageformat-parser": "^2.11.4",
     "@jirutka/ajv-cli": "^6.0.0-beta.5",
     "ajv": "^8.17.1",

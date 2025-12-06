@@ -25,7 +25,7 @@ function setupStaticFileServing(app: express.Application, env: string) {
     const dirname = path.resolve(__dirname, '../client/dist/angular-momentum/browser');
     app.use(express.static(dirname, { maxAge: 3600000 }));
 
-    app.get('*', (req, res) => {
+    app.get('/{*splat}', (req, res) => {
       res.sendFile(path.join(dirname, 'index.html'));
     });
   }
@@ -79,8 +79,6 @@ export function setupApp(): express.Application {
     origin: ALLOWED_ORIGINS,
     credentials: true,
   }));
-  app.options('*', cors()); // Optional: preflight all routes
-
   app.set('trust proxy', 1);
   app.use(logger);
   app.use(express.json());

@@ -2,7 +2,7 @@
   "name": "angular-momentum",
   "private": true,
   "engines": {
-    "node": "22.14.0"
+    "node": "24.11.1"
   },
   "type": "module"
 }

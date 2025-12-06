@@ -90,7 +90,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22.14.0
+          node-version: 24.11.1
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@6d9817901c499d6b02debbb57edb38d33daa680b  # stable
@@ -146,7 +146,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22.14.0
+          node-version: 24.11.1
 
       - name: Setup Java
         uses: actions/setup-java@v4

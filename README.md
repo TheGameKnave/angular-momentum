@@ -3,7 +3,7 @@
 This repo is intended to allow spooling up Angular projects in a monorepo rapidly, with a minimum of configuration.
 
 ## Current features
-* Angular 21 w/ Zoneless change detection &  Node 22.14
+* Angular 21 w/ Zoneless change detection &  Node 24.11.1
 * Angular 20 (with)
 * Parallel server/client execution
 * Bare-bones api proxy to the back-end *
@@ -53,7 +53,7 @@ This project is licensed under the MIT License (see [LICENSE](https://github.com
 
 ### Node
 
-Install node `22.14.0` Recommended to install NVM to manage node versions.
+Install node `24.11.1` Recommended to install NVM to manage node versions.
 
 Install NPM 10.8.1 (should be bundled with node).
 
