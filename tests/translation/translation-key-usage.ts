@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { ALL_PROGRAMMATIC_KEYS } from '../../client/src/app/constants/translations.constants';
+import { ALL_PROGRAMMATIC_KEYS } from '../../client/src/app/constants/translations.constants.ts';
 
 /**
  * Validates that all translation keys used in the application

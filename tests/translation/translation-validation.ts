@@ -1,5 +1,5 @@
 import { exec } from 'child_process';
-import { SUPPORTED_LANGUAGES } from '../../client/src/app/constants/app.constants';
+import { SUPPORTED_LANGUAGES } from '../../client/src/app/constants/app.constants.ts';
 import * as path from 'path';
 import fs from 'fs';
 
