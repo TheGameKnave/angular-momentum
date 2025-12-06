@@ -13,6 +13,7 @@ export const SUPPORTED_LANGUAGES = [
   'es',
   'zh-CN',
   'zh-TW',
+  'sv-SE',
 ] as const;
 
 export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
