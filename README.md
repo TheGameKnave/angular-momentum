@@ -39,7 +39,6 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 
 ## Future features
 * Server-side rendering
-* SASS boilerplate
 * Lighthouse CI to mitigate performance slip
 
 ## License

@@ -1,6 +1,5 @@
 # TODO chores/tasks
 
-notifications need to be sent in all languages.
 are components dumb enough?
 preload resources to avoid flickering
 localstorage and indexeddb storage by user?
