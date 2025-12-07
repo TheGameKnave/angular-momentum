@@ -63,7 +63,7 @@ export const INSTALLERS: Record<'name' | 'icon' | 'url', string>[] = [
 export const PLATFORMS: { platform: string; regex: RegExp }[] = [
   { platform: 'Windows', regex: /Windows/i },
   { platform: 'Mac',     regex: /Mac/i },
-  { platform: 'Linux',   regex: /Linux/i },
   { platform: 'Android', regex: /Android/i },
+  { platform: 'Linux',   regex: /Linux/i },
   { platform: 'iOS',     regex: /iOS/i },
 ];

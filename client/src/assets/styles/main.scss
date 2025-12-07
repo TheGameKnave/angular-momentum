@@ -1566,7 +1566,9 @@ p-card.indexeddb {
   // Anchor menus become scrollable centered modals
   .cdk-overlay-pane:has(.anchor-menu-panel) {
     inset: 0 !important;
-    overflow-y: auto;
+    overflow-y: scroll; // 'scroll' instead of 'auto' helps iOS detect scrollable area
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     display: block;
     padding: 2rem 2.5vw;
     pointer-events: none;
@@ -1579,7 +1581,7 @@ p-card.indexeddb {
     left: auto !important;
     right: auto !important;
     bottom: auto !important;
-    transform: none;
+    transform: translateZ(0); // Force GPU layer for iOS scroll
     width: 100% !important;
     max-width: 95vw;
     max-height: none;
