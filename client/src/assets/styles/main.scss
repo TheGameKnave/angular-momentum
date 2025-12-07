@@ -441,7 +441,7 @@ p-panel {
 .main {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100dvh;
   overflow: auto;
   padding-left: 5rem;
 }
@@ -477,7 +477,9 @@ header {
 footer {
   position: relative;
   left: 0;
-  z-index: 100;
+  max-width: 100%;
+  overflow-x: auto;
+  z-index: 99;
   flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
@@ -737,7 +739,7 @@ app-anchor-menu {
     right: 0;
     border-width: 0 0 1px 1px;
     border-radius: 0 0 0 0.8rem;
-    max-height: 100vh;
+    max-height: 100dvh;
   }
 
   &.position-top-left {
@@ -745,7 +747,7 @@ app-anchor-menu {
     left: 0;
     border-width: 0 1px 1px 0;
     border-radius: 0 0 0.8rem 0;
-    max-height: 100vh;
+    max-height: 100dvh;
   }
 
   &.position-bottom-right {
@@ -753,7 +755,7 @@ app-anchor-menu {
     right: 0;
     border-width: 1px 0 0 1px;
     border-radius: 0.8rem 0 0 0;
-    max-height: 100vh;
+    max-height: 100dvh;
   }
 
   &.position-bottom-left {
@@ -761,7 +763,7 @@ app-anchor-menu {
     left: 0;
     border-width: 1px 1px 0 0;
     border-radius: 0 0.8rem 0 0;
-    max-height: 100vh;
+    max-height: 100dvh;
   }
 }
 
@@ -1488,7 +1490,7 @@ p-card.indexeddb {
   // Layout overrides
   .main {
     padding-left: 0;
-    height: calc(100vh - 4rem);
+    height: calc(100dvh - 4rem);
   }
   header, footer {
     border-left-width: 0;
