@@ -23,6 +23,7 @@ import { MenuAuthComponent } from './components/menus/menu-auth/menu-auth.compon
 import { CookieBannerComponent } from './components/privacy/cookie-banner/cookie-banner.component';
 import { SCREEN_SIZES } from './constants/ui.constants';
 import { ScrollIndicatorDirective } from './directives/scroll-indicator.directive';
+import { TooltipModule } from 'primeng/tooltip';
 
 /**
  * Root component of the Angular Momentum application.
@@ -46,6 +47,7 @@ import { ScrollIndicatorDirective } from './directives/scroll-indicator.directiv
     MenuAuthComponent,
     CookieBannerComponent,
     ScrollIndicatorDirective,
+    TooltipModule,
   ],
 })
 export class AppComponent implements OnInit {
@@ -65,6 +67,7 @@ export class AppComponent implements OnInit {
   onResize() {
     if (this.isBrowser) {
       this.isNarrowScreen.set(window.innerWidth < SCREEN_SIZES.md);
+      this.isXsScreen.set(window.innerWidth < SCREEN_SIZES.sm);
       this.bodyClasses();
     }
   }
@@ -84,8 +87,9 @@ export class AppComponent implements OnInit {
   readonly showEnvironment = () => this.featureFlagService.getFeature('Environment');
   readonly showLanguage = () => this.featureFlagService.getFeature('Language');
 
-  // Reactive signal for screen size (used in template for responsive footer labels)
+  // Reactive signals for screen size (used in template for responsive footer labels)
   readonly isNarrowScreen = signal(globalThis.window !== undefined && globalThis.window.innerWidth < SCREEN_SIZES.md);
+  readonly isXsScreen = signal(globalThis.window !== undefined && globalThis.window.innerWidth < SCREEN_SIZES.sm);
 
   /**
    * Angular lifecycle hook called after component initialization.
