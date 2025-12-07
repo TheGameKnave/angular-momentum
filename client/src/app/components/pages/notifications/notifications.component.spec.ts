@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { NotificationsComponent } from './notifications.component';
 import { NotificationService } from '@app/services/notification.service';
-import { HttpClient } from '@angular/common/http';
+import { GraphqlService, NotificationResult } from '@app/services/graphql.service';
 import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
@@ -12,7 +12,7 @@ describe('NotificationsComponent', () => {
   let component: NotificationsComponent;
   let fixture: ComponentFixture<NotificationsComponent>;
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
-  let httpClientSpy: jasmine.SpyObj<HttpClient>;
+  let graphqlServiceSpy: jasmine.SpyObj<GraphqlService>;
 
   beforeEach(waitForAsync(() => {
     notificationServiceSpy = jasmine.createSpyObj('NotificationService', [
@@ -21,7 +21,7 @@ describe('NotificationsComponent', () => {
       'show',
       'isSupported'
     ]);
-    httpClientSpy = jasmine.createSpyObj('HttpClient', ['post']);
+    graphqlServiceSpy = jasmine.createSpyObj('GraphqlService', ['sendLocalizedNotification']);
 
     // Create signal spies
     (notificationServiceSpy as any).permissionGranted = signal(false);
@@ -36,7 +36,7 @@ describe('NotificationsComponent', () => {
       providers: [
         provideNoopAnimations(),
         { provide: NotificationService, useValue: notificationServiceSpy },
-        { provide: HttpClient, useValue: httpClientSpy }
+        { provide: GraphqlService, useValue: graphqlServiceSpy }
       ]
     }).compileComponents();
 
@@ -171,54 +171,37 @@ describe('NotificationsComponent', () => {
   });
 
   describe('sendServerNotification', () => {
-    it('should send notification via GraphQL mutation', async () => {
-      const mockResponse = {
-        data: {
-          sendLocalizedNotification: {
-            success: true,
-            message: 'Localized notification sent to all clients'
-          }
-        }
+    it('should send notification via GraphQL service', async () => {
+      const mockResult: NotificationResult = {
+        success: true,
+        message: 'Localized notification sent to all clients'
       };
-      httpClientSpy.post.and.returnValue(of(mockResponse) as any);
+      graphqlServiceSpy.sendLocalizedNotification.and.returnValue(of(mockResult));
 
       const notification = component.predefinedNotifications[0];
       await component.sendServerNotification(notification);
 
-      expect(httpClientSpy.post).toHaveBeenCalled();
+      expect(graphqlServiceSpy.sendLocalizedNotification).toHaveBeenCalledWith(notification.id, undefined);
       expect(component.serverNotificationStatus()).toContain('✅');
       expect(component.loading()).toBe(false);
     });
 
-    it('should send notification id in variables', async () => {
-      const mockResponse = {
-        data: {
-          sendLocalizedNotification: {
-            success: true,
-            message: 'Success'
-          }
-        }
-      };
-      httpClientSpy.post.and.returnValue(of(mockResponse) as any);
+    it('should send notification id to GraphQL service', async () => {
+      const mockResult: NotificationResult = { success: true, message: 'Success' };
+      graphqlServiceSpy.sendLocalizedNotification.and.returnValue(of(mockResult));
 
       const notification = component.predefinedNotifications[0];
       await component.sendServerNotification(notification);
 
-      const callArgs = httpClientSpy.post.calls.mostRecent().args;
-      const variables = (callArgs[1] as any).variables;
-      expect(variables.notificationId).toBe(notification.id);
+      expect(graphqlServiceSpy.sendLocalizedNotification).toHaveBeenCalledWith(notification.id, undefined);
     });
 
     it('should handle unsuccessful response', async () => {
-      const mockResponse = {
-        data: {
-          sendLocalizedNotification: {
-            success: false,
-            message: 'Failed to send'
-          }
-        }
+      const mockResult: NotificationResult = {
+        success: false,
+        message: 'Failed to send'
       };
-      httpClientSpy.post.and.returnValue(of(mockResponse) as any);
+      graphqlServiceSpy.sendLocalizedNotification.and.returnValue(of(mockResult));
 
       const notification = component.predefinedNotifications[0];
       await component.sendServerNotification(notification);
@@ -227,25 +210,8 @@ describe('NotificationsComponent', () => {
       expect(component.serverNotificationStatus()).toContain('Failed to send');
     });
 
-    it('should handle unsuccessful response with missing message', async () => {
-      const mockResponse = {
-        data: {
-          sendLocalizedNotification: {
-            success: false
-          }
-        }
-      };
-      httpClientSpy.post.and.returnValue(of(mockResponse) as any);
-
-      const notification = component.predefinedNotifications[0];
-      await component.sendServerNotification(notification);
-
-      expect(component.serverNotificationStatus()).toContain('❌');
-      expect(component.serverNotificationStatus()).toContain('Unknown error');
-    });
-
-    it('should handle HTTP errors', async () => {
-      httpClientSpy.post.and.returnValue(throwError(() => new Error('Network error')));
+    it('should handle errors', async () => {
+      graphqlServiceSpy.sendLocalizedNotification.and.returnValue(throwError(() => new Error('Network error')));
 
       const notification = component.predefinedNotifications[0];
       await component.sendServerNotification(notification);
@@ -255,43 +221,26 @@ describe('NotificationsComponent', () => {
     });
 
     it('should include params for maintenance notification', async () => {
-      const mockResponse = {
-        data: {
-          sendLocalizedNotification: {
-            success: true,
-            message: 'Success'
-          }
-        }
-      };
-      httpClientSpy.post.and.returnValue(of(mockResponse) as any);
+      const mockResult: NotificationResult = { success: true, message: 'Success' };
+      graphqlServiceSpy.sendLocalizedNotification.and.returnValue(of(mockResult));
 
       const maintenanceNotification = component.predefinedNotifications[2]; // Maintenance notification has params
       await component.sendServerNotification(maintenanceNotification);
 
-      const callArgs = httpClientSpy.post.calls.mostRecent().args;
-      const variables = (callArgs[1] as any).variables;
-      expect(variables.params).toBeDefined();
-      const parsedParams = JSON.parse(variables.params);
-      expect(parsedParams['time']).toBeDefined();
+      expect(graphqlServiceSpy.sendLocalizedNotification).toHaveBeenCalledWith(
+        maintenanceNotification.id,
+        maintenanceNotification.params
+      );
     });
 
     it('should not include params when no params present', async () => {
-      const mockResponse = {
-        data: {
-          sendLocalizedNotification: {
-            success: true,
-            message: 'Success'
-          }
-        }
-      };
-      httpClientSpy.post.and.returnValue(of(mockResponse) as any);
+      const mockResult: NotificationResult = { success: true, message: 'Success' };
+      graphqlServiceSpy.sendLocalizedNotification.and.returnValue(of(mockResult));
 
       const welcomeNotification = component.predefinedNotifications[0]; // Welcome notification has no params
       await component.sendServerNotification(welcomeNotification);
 
-      const callArgs = httpClientSpy.post.calls.mostRecent().args;
-      const variables = (callArgs[1] as any).variables;
-      expect(variables.params).toBeUndefined();
+      expect(graphqlServiceSpy.sendLocalizedNotification).toHaveBeenCalledWith(welcomeNotification.id, undefined);
     });
   });
 

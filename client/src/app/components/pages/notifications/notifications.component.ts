@@ -1,5 +1,3 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { ENVIRONMENT } from 'src/environments/environment';
 import { ChangeDetectionStrategy, Component, signal, inject } from '@angular/core';
 
 import { CardModule } from 'primeng/card';
@@ -11,6 +9,7 @@ import { PredefinedNotification } from '@app/models/data.model';
 import { NOTIFICATION_IDS, NOTIFICATION_KEY_MAP, NotificationId } from '@app/constants/translations.constants';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '@app/services/auth.service';
+import { GraphqlService } from '@app/services/graphql.service';
 
 /**
  * Notifications component that demonstrates push notification capabilities.
@@ -31,7 +30,7 @@ import { AuthService } from '@app/services/auth.service';
   ],
 })
 export class NotificationsComponent {
-  readonly http = inject(HttpClient);
+  private readonly graphqlService = inject(GraphqlService);
   readonly notificationService = inject(NotificationService);
   private readonly translocoService = inject(TranslocoService);
   protected readonly authService = inject(AuthService);
@@ -132,34 +131,15 @@ export class NotificationsComponent {
     this.serverNotificationStatus.set('');
     this.loading.set(true);
 
-    const mutation = `
-      mutation SendLocalizedNotification($notificationId: String!, $params: String) {
-        sendLocalizedNotification(notificationId: $notificationId, params: $params) {
-          success
-          message
-        }
-      }
-    `;
-
     try {
-      const response = await firstValueFrom(this.http.post<{ data: { sendLocalizedNotification: { success: boolean; message: string } } }>(
-        ENVIRONMENT.baseUrl + '/gql',
-        {
-          query: mutation,
-          variables: {
-            notificationId: notification.id,
-            params: notification.params ? JSON.stringify(notification.params) : undefined
-          }
-        },
-        {
-          headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-        }
-      ));
+      const result = await firstValueFrom(
+        this.graphqlService.sendLocalizedNotification(notification.id, notification.params)
+      );
 
-      if (response?.data?.sendLocalizedNotification?.success) {
-        this.serverNotificationStatus.set(`✅ ${response.data.sendLocalizedNotification.message}`);
+      if (result.success) {
+        this.serverNotificationStatus.set(`✅ ${result.message}`);
       } else {
-        this.serverNotificationStatus.set(`❌ ${response?.data?.sendLocalizedNotification?.message || 'Unknown error'}`);
+        this.serverNotificationStatus.set(`❌ ${result.message}`);
       }
     } catch (error) {
       this.serverNotificationStatus.set(`❌ Error: ${error}`);
