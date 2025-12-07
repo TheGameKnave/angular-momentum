@@ -57,13 +57,17 @@ export const INSTALLERS: Record<'name' | 'icon' | 'url', string>[] = [
  * Used to identify the user's operating system from the user agent string.
  * Patterns are matched case-insensitively against the navigator.userAgent.
  *
+ * IMPORTANT: Order matters! More specific patterns must come before general ones.
+ * iOS/Android must be checked before Mac/Linux because mobile user agents often
+ * contain desktop OS names (e.g., iPhone says "like Mac OS X").
+ *
  * @property platform - Human-readable platform name
  * @property regex - Regular expression pattern to match in user agent string
  */
 export const PLATFORMS: { platform: string; regex: RegExp }[] = [
+  { platform: 'iOS',     regex: /iPhone|iPad|iPod/i },
+  { platform: 'Android', regex: /Android/i },
   { platform: 'Windows', regex: /Windows/i },
   { platform: 'Mac',     regex: /Mac/i },
-  { platform: 'Android', regex: /Android/i },
   { platform: 'Linux',   regex: /Linux/i },
-  { platform: 'iOS',     regex: /iOS/i },
 ];
