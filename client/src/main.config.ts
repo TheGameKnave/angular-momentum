@@ -6,7 +6,7 @@ import { provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@an
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 import { provideTransloco, TRANSLOCO_MISSING_HANDLER, TranslocoMissingHandler } from '@jsverse/transloco';
 import { provideTranslocoMessageformat } from '@jsverse/transloco-messageformat';
-import { GetLangParams, provideTranslocoPersistLang } from '@jsverse/transloco-persist-lang';
+import { provideTranslocoPersistLang } from '@jsverse/transloco-persist-lang';
 import { provideTranslocoLocale } from '@jsverse/transloco-locale';
 import { MarkdownModule, SANITIZE } from 'ngx-markdown';
 
@@ -23,16 +23,7 @@ import { providePrimeNG } from 'primeng/config';
 import Lara from '@primeng/themes/lara';
 import { authInterceptor } from '@app/interceptors/auth.interceptor';
 import { platformAwareStorageFactory } from '@app/helpers/transloco-storage';
-
-
-/**
- * Get the active language based on priority: cached > browser > culture > default.
- * @param params - Language parameters from Transloco
- * @returns Selected language code
- */
-export function getLangFn({ cachedLang, browserLang, cultureLang, defaultLang }: GetLangParams) {
-  return cachedLang ?? browserLang ?? (cultureLang || defaultLang);
-}
+import { getLangFn } from '@app/helpers/language.helper';
 
 export const isTestEnvironment = ENVIRONMENT.env === 'testing'; // TODO figure out how to mock this in test environment without putting it in the code!!
 
