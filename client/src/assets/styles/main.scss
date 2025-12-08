@@ -402,6 +402,12 @@ ul {
   font-size: 1.4rem !important;
 }
 
+// Accessible focus indicator for buttons
+.p-button:focus-visible {
+  outline: 2px solid $focus-ring !important;
+  outline-offset: 2px;
+}
+
 .p-checkbox,
 .p-checkbox-box {
   width: 2rem !important;
@@ -552,6 +558,9 @@ app-menu-feature {
     white-space: nowrap;
     img {
       width: 3rem;
+      height: 3rem;
+      min-width: 3rem;
+      min-height: 3rem;
       display: inline-block;
       vertical-align: middle;
       -webkit-filter: grayscale(100%);
@@ -581,10 +590,7 @@ app-menu-feature {
       text-decoration: none;
     }
     img {
-      width: 2.6rem;
-      height: 2.6rem;
-      object-fit: contain;
-      flex-shrink: 0;
+      max-width: 2.6rem;
       display: block;
     }
   }
@@ -834,7 +840,7 @@ app-anchor-menu {
 
   ul {
     list-style-type: disc;
-    margin: 1rem 0;
+    margin: 1rem 0 0 2rem;
     li {
       font-size: 1.6rem !important;
     }

@@ -236,7 +236,10 @@
     "You are currently offline": "Vous êtes actuellement hors ligne"
   }
   ,"time": {
-    "{count}d ago": "il y a {count}j"
+    "{count}y ago": "il y a {count}an"
+    ,"{count}mo ago": "il y a {count}mo"
+    ,"{count}w ago": "il y a {count}sem"
+    ,"{count}d ago": "il y a {count}j"
     ,"{count}h ago": "il y a {count}h"
     ,"{count}m ago": "il y a {count}min"
     ,"Just now": "À l’instant"

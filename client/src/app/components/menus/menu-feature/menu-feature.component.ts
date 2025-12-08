@@ -5,7 +5,7 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { SlugPipe } from '@app/pipes/slug.pipe';
 import { FeatureFlagService } from '@app/services/feature-flag.service';
 import { HelpersService } from '@app/services/helpers.service';
-import { SCREEN_SIZES } from '@app/constants/ui.constants';
+import { SCREEN_SIZES, TOOLTIP_CONFIG } from '@app/constants/ui.constants';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConnectivityService } from '@app/services/connectivity.service';
@@ -49,6 +49,8 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
   }
 
   isMobile = signal(window.innerWidth < SCREEN_SIZES.sm);
+  tooltipShowDelay = TOOLTIP_CONFIG.SHOW_DELAY;
+  tooltipHideDelay = TOOLTIP_CONFIG.HIDE_DELAY;
 
   /**
    * Angular lifecycle hook called after component initialization.

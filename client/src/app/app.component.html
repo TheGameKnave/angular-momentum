@@ -31,7 +31,7 @@
         <app-menu-change-log />
       }
       @if (showEnvironment()) {
-        <h4 [pTooltip]="isXsScreen() ? t('menu.{environmentName} environment', { environmentName: t(isDevMode ? 'menu.Development' : 'menu.Production') }) : null" tooltipPosition="top">
+        <h4 [pTooltip]="isXsScreen() ? t('menu.{environmentName} environment', { environmentName: t(isDevMode ? 'menu.Development' : 'menu.Production') }) : null" tooltipPosition="top" [showDelay]="tooltipShowDelay" [hideDelay]="tooltipHideDelay">
           @if (isXsScreen()) {
             <i class="pi" [class.pi-code]="isDevMode" [class.pi-globe]="!isDevMode"></i>
           } @else if (isNarrowScreen()) {

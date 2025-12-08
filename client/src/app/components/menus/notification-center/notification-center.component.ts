@@ -5,7 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { AnchorMenuComponent } from '../anchor-menu/anchor-menu.component';
 import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
-import { TIME_CONSTANTS } from '@app/constants/ui.constants';
+import { RelativeTimePipe } from '@app/pipes/relative-time.pipe';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { LocalizedStrings, Notification } from '@app/models/data.model';
 
@@ -22,7 +22,7 @@ import { LocalizedStrings, Notification } from '@app/models/data.model';
 @Component({
   selector: 'app-notification-center',
   standalone: true,
-  imports: [ButtonModule, CardModule, AnchorMenuComponent, ScrollIndicatorDirective, TranslocoDirective],
+  imports: [ButtonModule, CardModule, AnchorMenuComponent, ScrollIndicatorDirective, TranslocoDirective, RelativeTimePipe],
   templateUrl: './notification-center.component.html'
 })
 export class NotificationCenterComponent {
@@ -72,25 +72,6 @@ export class NotificationCenterComponent {
    */
   async requestPermission() {
     await this.notificationService.requestPermission();
-  }
-
-  /**
-   * Formats a timestamp into a human-readable relative time string.
-   * @param timestamp - The timestamp to format
-   * @returns A human-readable relative time string
-   */
-  formatTime(timestamp: Date): string {
-    const now = new Date();
-    const diff = now.getTime() - new Date(timestamp).getTime();
-    const seconds = Math.floor(diff / TIME_CONSTANTS.SECONDS);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-
-    if (days > 0) return this.translocoService.translate('time.{count}d ago', { count: days });
-    if (hours > 0) return this.translocoService.translate('time.{count}h ago', { count: hours });
-    if (minutes > 0) return this.translocoService.translate('time.{count}m ago', { count: minutes });
-    return this.translocoService.translate('time.Just now');
   }
 
   /**

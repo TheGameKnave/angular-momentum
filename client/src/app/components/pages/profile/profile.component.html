@@ -65,6 +65,8 @@
                   pInputText
                   pTooltip="{{ passwordTooltip }}"
                   tooltipPosition="top"
+                  [showDelay]="tooltipShowDelay"
+                  [hideDelay]="tooltipHideDelay"
                   id="new-password"
                   name="newPassword"
                   formControlName="newPassword"
@@ -220,6 +222,8 @@
               pInputText
               pTooltip="{{ usernameTooltip }}"
               tooltipPosition="top"
+              [showDelay]="tooltipShowDelay"
+              [hideDelay]="tooltipHideDelay"
               id="username-input"
               type="text"
               [ngModel]="editedUsername()"

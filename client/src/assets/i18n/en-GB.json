@@ -236,7 +236,10 @@
     "You are currently offline": "You are currently offline"
   }
   ,"time": {
-    "{count}d ago": "{count}d ago"
+    "{count}y ago": "{count}y ago"
+    ,"{count}mo ago": "{count}mo ago"
+    ,"{count}w ago": "{count}w ago"
+    ,"{count}d ago": "{count}d ago"
     ,"{count}h ago": "{count}h ago"
     ,"{count}m ago": "{count}m ago"
     ,"Just now": "Just now"

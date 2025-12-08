@@ -236,7 +236,10 @@
     "You are currently offline": "Sie sind derzeit offline"
   }
   ,"time": {
-    "{count}d ago": "vor {count}T"
+    "{count}y ago": "vor {count}J"
+    ,"{count}mo ago": "vor {count}Mo"
+    ,"{count}w ago": "vor {count}Wo"
+    ,"{count}d ago": "vor {count}T"
     ,"{count}h ago": "vor {count}Std"
     ,"{count}m ago": "vor {count}Min"
     ,"Just now": "Gerade eben"

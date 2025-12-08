@@ -9,6 +9,8 @@
         [pTooltip]="showTooltip() ? t('page.Momentum') : null"
         tooltipPosition="bottom"
         [tooltipDisabled]="!showTooltip()"
+        [showDelay]="tooltipShowDelay"
+        [hideDelay]="tooltipHideDelay"
       >
         <img src="assets/icons/icon-72x72.png" [alt]="t('a11y.{name} Logo', { name: 'Angular' })" />
         @if (!isMobile()) { {{ t('page.Momentum') }} }
@@ -26,6 +28,8 @@
             [pTooltip]="showTooltip() ? t('nav.' + p.name) : null"
             tooltipPosition="top"
             [tooltipDisabled]="!showTooltip()"
+            [showDelay]="tooltipShowDelay"
+            [hideDelay]="tooltipHideDelay"
           >
             <i class="{{ p.icon }}"></i>
             @if (!isMobile()) { <span class="label">{{ t('nav.' + p.name) }}</span> }
@@ -44,6 +48,8 @@
         [pTooltip]="showTooltip() ? t('page.Support') : null"
         tooltipPosition="top"
         [tooltipDisabled]="!showTooltip()"
+        [showDelay]="tooltipShowDelay"
+        [hideDelay]="tooltipHideDelay"
       >
         <img src="assets/icons/kofi-logo.png" [alt]="t('a11y.{name} Logo', { name: 'Ko-fi' })" />
         @if (!isMobile()) { {{ t('page.Support') }} }

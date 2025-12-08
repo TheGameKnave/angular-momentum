@@ -147,6 +147,14 @@ export class AnchorMenuComponent {
       this.overlayRef.backdropClick().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.close();
       });
+
+      // Close on Escape key
+      // istanbul ignore next - integration tests are out of scope
+      this.overlayRef.keydownEvents().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+        if (event.key === 'Escape') {
+          this.close();
+        }
+      });
     }
 
     const portal = new TemplatePortal(

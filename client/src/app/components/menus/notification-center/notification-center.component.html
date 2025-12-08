@@ -50,7 +50,7 @@
             @for (notification of notificationService.notifications(); track notification.id) {
               <p-card
                 [styleClass]="'notification-item' + (!notification.read ? ' unread' : '')"
-                [attr.aria-label]="getTitle(notification) + '. ' + getBody(notification) + '. ' + formatTime(notification.timestamp) + '. ' + (notification.read ? t('a11y.Read') : t('a11y.Unread'))"
+                [attr.aria-label]="getTitle(notification) + '. ' + getBody(notification) + '. ' + (notification.timestamp | relativeTime) + '. ' + (notification.read ? t('a11y.Read') : t('a11y.Unread'))"
               >
                 <ng-template pTemplate="header">
                   <div class="notification-header">
@@ -60,7 +60,7 @@
                       }
                       <div class="notification-text">
                         <div class="notification-title">{{ getTitle(notification) }}</div>
-                        <div class="notification-time">{{ formatTime(notification.timestamp) }}</div>
+                        <div class="notification-time">{{ notification.timestamp | relativeTime }}</div>
                       </div>
                     </div>
                     <p-button

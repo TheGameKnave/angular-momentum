@@ -6,6 +6,7 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 import { AnchorMenuComponent } from '../anchor-menu/anchor-menu.component';
 import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
+import { MenuCloseDirective } from '@app/directives/menu-close.directive';
 
 /**
  * Menu language component that provides a language selection overlay.
@@ -23,6 +24,7 @@ import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.direc
     NgClass,
     AnchorMenuComponent,
     ScrollIndicatorDirective,
+    MenuCloseDirective,
   ],
 })
 export class MenuLanguageComponent {
@@ -42,7 +44,7 @@ export class MenuLanguageComponent {
    * Event handler for language selection.
    * Triggered by click or Enter key press on a language option. Identifies the selected
    * language from the element's CSS classes and sets it as the active language.
-   * The menu closes automatically via the anchor-menu backdrop.
+   * The menu closes automatically via the appMenuClose directive.
    * @param event - The DOM event (click or keydown)
    */
   onI18n(event: Event): void {

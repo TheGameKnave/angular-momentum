@@ -268,9 +268,12 @@ export const ENVIRONMENT_KEYS = [
 
 /**
  * Relative time formatting translation keys.
- * Used in notification-center for time display.
+ * Used by RelativeTimePipe for time display.
  */
 export const TIME_KEYS = [
+  "time.{count}y ago",
+  "time.{count}mo ago",
+  "time.{count}w ago",
   "time.{count}d ago",
   "time.{count}h ago",
   "time.{count}m ago",

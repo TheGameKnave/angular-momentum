@@ -46,6 +46,26 @@ function findFiles(dir: string, pattern: RegExp, fileList: string[] = []): strin
  * Handles keys containing apostrophes by matching quote types properly.
  * Filters out dynamic/partial keys (e.g., 'nav.' from 'nav.' + p.name).
  */
+/**
+ * Check if a key looks like a partial namespace prefix (e.g., 'nav.', 'menu.')
+ * rather than a complete key that ends with a period (e.g., a full sentence).
+ * Partial keys are short, lowercase namespace prefixes used in dynamic concatenation.
+ */
+function isPartialNamespaceKey(key: string): boolean {
+  if (!key.endsWith('.')) return false;
+  // Partial namespace keys are short (typically < 20 chars) and look like "namespace."
+  // Full sentence keys ending in period are longer and contain spaces
+  const hasSpaces = key.includes(' ');
+  const isShort = key.length < 20;
+  return !hasSpaces && isShort;
+}
+
+/**
+ * Extracts translation keys from template content.
+ * Matches both single and double quoted t('key') and t("key") patterns.
+ * @param content - The template file content to extract keys from
+ * @returns Array of translation keys found in the template
+ */
 function extractTemplateKeys(content: string): string[] {
   const keys: string[] = [];
   let match: RegExpExecArray | null;
@@ -55,8 +75,8 @@ function extractTemplateKeys(content: string): string[] {
   const singleQuoteRegex = /(?<![a-zA-Z])t\('([^']+)'(?!\s*\+)/g;
   while ((match = singleQuoteRegex.exec(content)) !== null) {
     const key = match[1];
-    // Skip partial keys that end with a dot (from dynamic concatenation)
-    if (!key.endsWith('.')) {
+    // Skip partial namespace keys (e.g., 'nav.' from dynamic concatenation)
+    if (!isPartialNamespaceKey(key)) {
       keys.push(key);
     }
   }
@@ -65,8 +85,8 @@ function extractTemplateKeys(content: string): string[] {
   const doubleQuoteRegex = /(?<![a-zA-Z])t\("([^"]+)"(?!\s*\+)/g;
   while ((match = doubleQuoteRegex.exec(content)) !== null) {
     const key = match[1];
-    // Skip partial keys that end with a dot (from dynamic concatenation)
-    if (!key.endsWith('.')) {
+    // Skip partial namespace keys (e.g., 'nav.' from dynamic concatenation)
+    if (!isPartialNamespaceKey(key)) {
       keys.push(key);
     }
   }

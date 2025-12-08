@@ -22,6 +22,7 @@ import { CookieConsentService } from '@app/services/cookie-consent.service';
 import { DatePipe } from '@angular/common';
 import { passwordComplexityValidator, PASSWORD_REQUIREMENT_KEYS, USERNAME_REQUIREMENT_KEYS } from '@app/helpers/validation';
 import { getUserInitials } from '@app/helpers/user.helper';
+import { TOOLTIP_CONFIG } from '@app/constants/ui.constants';
 
 /**
  * User profile component displaying authenticated user information.
@@ -121,6 +122,8 @@ export class ProfileComponent implements OnInit {
   // Tooltip content for form fields (translated)
   passwordTooltip = '';
   usernameTooltip = '';
+  tooltipShowDelay = TOOLTIP_CONFIG.SHOW_DELAY;
+  tooltipHideDelay = TOOLTIP_CONFIG.HIDE_DELAY;
 
   passwordForm: FormGroup;
   emailForm: FormGroup;

@@ -6,6 +6,8 @@
       pInputText
       pTooltip="{{ emailTooltip }}"
       tooltipPosition="top"
+      [showDelay]="tooltipShowDelay"
+      [hideDelay]="tooltipHideDelay"
       id="signup-email"
       name="email"
       formControlName="email"
@@ -35,6 +37,8 @@
       pInputText
       pTooltip="{{ usernameTooltip }}"
       tooltipPosition="top"
+      [showDelay]="tooltipShowDelay"
+      [hideDelay]="tooltipHideDelay"
       id="signup-username"
       name="username"
       formControlName="username"
@@ -56,6 +60,8 @@
         pInputText
         pTooltip="{{ passwordTooltip }}"
         tooltipPosition="top"
+        [showDelay]="tooltipShowDelay"
+        [hideDelay]="tooltipHideDelay"
         id="signup-password"
         name="password"
         formControlName="password"

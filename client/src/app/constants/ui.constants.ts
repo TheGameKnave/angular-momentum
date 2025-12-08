@@ -65,3 +65,14 @@ export const TIME_CONSTANTS = {
   WEEKS: 7 * 24 * 60 * 60 * 1000,
   YEARS: 365 * 24 * 60 * 60 * 1000,
 } as const;
+
+/**
+ * Tooltip configuration for PrimeNG tooltips.
+ * Provides consistent delay settings across the application.
+ */
+export const TOOLTIP_CONFIG = {
+  /** Delay in ms before showing tooltip (prevents eager popups) */
+  SHOW_DELAY: 1000,
+  /** Delay in ms before hiding tooltip */
+  HIDE_DELAY: 200,
+} as const;

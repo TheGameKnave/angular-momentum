@@ -236,7 +236,10 @@
     "You are currently offline": "Yuoo ere-a coorrentlee ooffline-a. Bork!"
   }
   ,"time": {
-    "{count}d ago": "{count}d egu"
+    "{count}y ago": "{count}y egu"
+    ,"{count}mo ago": "{count}mo egu"
+    ,"{count}w ago": "{count}w egu"
+    ,"{count}d ago": "{count}d egu"
     ,"{count}h ago": "{count}h egu"
     ,"{count}m ago": "{count}m egu"
     ,"Just now": "Joost noo! Bork bork bork!"

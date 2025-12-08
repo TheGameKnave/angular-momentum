@@ -23,6 +23,7 @@
           <li [class]="'i18n-' + ln">
             <a
               href="javascript:void(0)"
+              appMenuClose
               [ngClass]="{'selected': ln === translate.getActiveLang()}"
               (click)="onI18n($event)"
               (keydown.enter)="onI18n($event)"

@@ -34,7 +34,7 @@
         >
           {{ semverMessage() }}
         </h4>
-        @if( !isTauri() ) { <p>{{ t("menu.If it doesn't update momentarily, please try to clear your cache and refresh your browser.")}}</p> }
+        @if( !isTauri() ) { <p>{{ t('menu.If it doesn’t update momentarily, please try to clear your cache and refresh your browser.')}}</p> }
         @else { <p [innerHTML]="linkMessage()"></p> }
       }
     </div>
@@ -42,8 +42,8 @@
     <div menu-body appScrollIndicator class="menu-change-log-body">
       @for (change of changeLog.changes(); track change.version) {
         <p-card>
-          <h5>{{ change.version }}</h5>
-          <p>{{ change.description }}, {{ change.date }}</p>
+          <h5>{{ change.version }} @ {{ change.date }}</h5>
+          <p>{{ change.description }}</p>
           <ul>
             @for (item of change.changes; track item) {
               <li>{{ item }}</li>

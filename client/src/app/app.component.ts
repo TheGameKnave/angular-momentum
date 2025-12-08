@@ -21,7 +21,7 @@ import { ChangeLogService } from './services/change-log.service';
 import { NotificationCenterComponent } from './components/menus/notification-center/notification-center.component';
 import { MenuAuthComponent } from './components/menus/menu-auth/menu-auth.component';
 import { CookieBannerComponent } from './components/privacy/cookie-banner/cookie-banner.component';
-import { SCREEN_SIZES } from './constants/ui.constants';
+import { SCREEN_SIZES, TOOLTIP_CONFIG } from './constants/ui.constants';
 import { ScrollIndicatorDirective } from './directives/scroll-indicator.directive';
 import { TooltipModule } from 'primeng/tooltip';
 
@@ -74,6 +74,8 @@ export class AppComponent implements OnInit {
   // istanbul ignore next - SSR fallback branch can't be tested in browser context
   window: Window | undefined = globalThis.window;
   SCREEN_SIZES = SCREEN_SIZES;
+  tooltipShowDelay = TOOLTIP_CONFIG.SHOW_DELAY;
+  tooltipHideDelay = TOOLTIP_CONFIG.HIDE_DELAY;
   isDevMode = isDevMode();
   appDiff = this.changeLogService.appDiff;
   routePath = '';

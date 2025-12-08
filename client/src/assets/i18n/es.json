@@ -236,7 +236,10 @@
     "You are currently offline": "Actualmente estás desconectado"
   }
   ,"time": {
-    "{count}d ago": "hace {count}d"
+    "{count}y ago": "hace {count}a"
+    ,"{count}mo ago": "hace {count}me"
+    ,"{count}w ago": "hace {count}sem"
+    ,"{count}d ago": "hace {count}d"
     ,"{count}h ago": "hace {count}h"
     ,"{count}m ago": "hace {count}m"
     ,"Just now": "Justo ahora"

@@ -83,35 +83,6 @@ describe('NotificationCenterComponent', () => {
     });
   });
 
-  describe('formatTime', () => {
-    it('should return "Just now" for timestamps less than a minute old', () => {
-      const now = new Date();
-      const result = component.formatTime(now);
-      expect(result).toBe('Just now');
-    });
-
-    it('should return minutes for timestamps less than an hour old', () => {
-      const now = new Date();
-      const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
-      const result = component.formatTime(fiveMinutesAgo);
-      expect(result).toBe('5m ago');
-    });
-
-    it('should return hours for timestamps less than a day old', () => {
-      const now = new Date();
-      const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
-      const result = component.formatTime(twoHoursAgo);
-      expect(result).toBe('2h ago');
-    });
-
-    it('should return days for timestamps more than a day old', () => {
-      const now = new Date();
-      const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
-      const result = component.formatTime(threeDaysAgo);
-      expect(result).toBe('3d ago');
-    });
-  });
-
   describe('getTitle', () => {
     it('should return localized title when localizedTitle is present', () => {
       const notification = {

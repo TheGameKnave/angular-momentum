@@ -236,7 +236,10 @@
     "You are currently offline": "您目前處於離線狀態"
   }
   ,"time": {
-    "{count}d ago": "{count}天前"
+    "{count}y ago": "{count}年前"
+    ,"{count}mo ago": "{count}個月前"
+    ,"{count}w ago": "{count}週前"
+    ,"{count}d ago": "{count}天前"
     ,"{count}h ago": "{count}小時前"
     ,"{count}m ago": "{count}分鐘前"
     ,"Just now": "剛剛"

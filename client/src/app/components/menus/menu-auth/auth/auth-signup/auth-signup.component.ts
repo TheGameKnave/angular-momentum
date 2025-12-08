@@ -22,6 +22,7 @@ import {
   EMAIL_REQUIREMENT_KEYS
 } from '@app/helpers/validation';
 import { parseApiError } from '@app/helpers/api-error.helper';
+import { TOOLTIP_CONFIG } from '@app/constants/ui.constants';
 
 /**
  * Signup form component for new user registration.
@@ -75,6 +76,8 @@ export class AuthSignupComponent {
   usernameTooltip = '';
   passwordTooltip = '';
   emailTooltip = '';
+  tooltipShowDelay = TOOLTIP_CONFIG.SHOW_DELAY;
+  tooltipHideDelay = TOOLTIP_CONFIG.HIDE_DELAY;
 
   signupForm: FormGroup;
 
