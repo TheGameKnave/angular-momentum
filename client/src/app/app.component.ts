@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, HostListener, inject, isDevMode, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, HostListener, inject, isDevMode, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 
@@ -22,6 +22,7 @@ import { NotificationCenterComponent } from './components/menus/notification-cen
 import { MenuAuthComponent } from './components/menus/menu-auth/menu-auth.component';
 import { CookieBannerComponent } from './components/privacy/cookie-banner/cookie-banner.component';
 import { SCREEN_SIZES, TOOLTIP_CONFIG } from './constants/ui.constants';
+import { ResourcePreloadService } from './services/resource-preload.service';
 import { ScrollIndicatorDirective } from './directives/scroll-indicator.directive';
 import { TooltipModule } from 'primeng/tooltip';
 
@@ -62,6 +63,15 @@ export class AppComponent implements OnInit {
 
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
+  private readonly resourcePreload = inject(ResourcePreloadService);
+
+  constructor() {
+    // Preload resources (flags, etc.) after first render to avoid blocking startup
+    // istanbul ignore next - afterNextRender doesn't execute in unit tests
+    afterNextRender(() => {
+      this.resourcePreload.preloadAll();
+    });
+  }
 
   @HostListener('window:resize')
   onResize() {

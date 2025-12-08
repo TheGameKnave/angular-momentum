@@ -38,7 +38,7 @@ describe('ChangeLogService', () => {
 
     service.refresh();
 
-    const req = httpMock.expectOne('http://localhost:4200/api/changelog');
+    const req = httpMock.expectOne((request) => request.url.endsWith('/api/changelog'));
     req.flush(mockResponse);
     tick();
 
@@ -55,7 +55,7 @@ describe('ChangeLogService', () => {
 
     service.refresh();
 
-    const req = httpMock.expectOne('http://localhost:4200/api/changelog');
+    const req = httpMock.expectOne((request) => request.url.endsWith('/api/changelog'));
     req.flush(mockResponse);
     tick();
 
@@ -70,7 +70,7 @@ describe('ChangeLogService', () => {
 
     service.refresh();
 
-    const req = httpMock.expectOne('http://localhost:4200/api/changelog');
+    const req = httpMock.expectOne((request) => request.url.endsWith('/api/changelog'));
     req.flush(mockResponse);
     tick();
 
@@ -83,7 +83,7 @@ describe('ChangeLogService', () => {
 
     service.refresh();
 
-    const req = httpMock.expectOne('http://localhost:4200/api/changelog');
+    const req = httpMock.expectOne((request) => request.url.endsWith('/api/changelog'));
     req.error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
     tick();
 

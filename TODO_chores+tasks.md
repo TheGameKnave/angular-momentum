@@ -1,6 +1,5 @@
 # TODO chores/tasks
 
-preload resources to avoid flickering
 localstorage and indexeddb storage by user?
 light/dark theming approach
 public vs private/auth api

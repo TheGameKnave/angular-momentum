@@ -46,7 +46,7 @@ describe('FeatureFlagService', () => {
       expect(flags).toEqual(jasmine.objectContaining(expectedFlags));
     });
 
-    const req = httpMock.expectOne('http://localhost:4200/api/feature-flags');
+    const req = httpMock.expectOne((request) => request.url.endsWith('/api/feature-flags'));
     expect(req.request.method).toBe('GET');
     req.flush(restResponse);
   });
@@ -59,7 +59,7 @@ describe('FeatureFlagService', () => {
     service.setFeature(feature, value);
     tick();
 
-    const req = httpMock.expectOne('http://localhost:4200/api/feature-flags/Environment');
+    const req = httpMock.expectOne((request) => request.url.endsWith('/api/feature-flags/Environment'));
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual({ value });
 
@@ -91,7 +91,7 @@ describe('FeatureFlagService', () => {
       expect(Object.keys(flags).length).toBe(0);  // fallback empty object
     });
 
-    const req = httpMock.expectOne('http://localhost:4200/api/feature-flags');
+    const req = httpMock.expectOne((request) => request.url.endsWith('/api/feature-flags'));
     req.error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
 
     expect(console.error).toHaveBeenCalledWith('Error getting feature flags:', jasmine.any(HttpErrorResponse));

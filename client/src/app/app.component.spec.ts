@@ -11,6 +11,7 @@ import { Socket } from 'ngx-socket-io';
 import { Subject } from 'rxjs';
 import { signal } from '@angular/core';
 import { ConnectivityService } from './services/connectivity.service';
+import { ResourcePreloadService } from './services/resource-preload.service';
 import { SCREEN_SIZES } from './constants/ui.constants';
 
 class MockConnectivityService {
@@ -55,6 +56,7 @@ describe('AppComponent', () => {
         { provide: Router, useValue: router },
         { provide: Socket, useValue: socketSpy },
         { provide: ConnectivityService, useClass: MockConnectivityService },
+        { provide: ResourcePreloadService, useValue: jasmine.createSpyObj('ResourcePreloadService', ['preloadAll']) },
       ],
     }).compileComponents();
 
