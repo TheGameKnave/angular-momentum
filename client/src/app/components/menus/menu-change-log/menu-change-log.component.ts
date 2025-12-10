@@ -63,9 +63,8 @@ export class MenuChangeLogComponent {
    * @returns A translated message with the webapp URL link
    */
   linkMessage = computed(() => {
-    return this.translate.translate(
-      CHANGE_LOG_MESSAGES.USE_WEBAPP,
-      { url: this.packageJson.siteUrl }
-    ).replace(/>a/g, '<a').replace(/>\/a/g, '</a');
+    const before = this.translate.translate(CHANGE_LOG_MESSAGES.USE_WEBAPP_BEFORE);
+    const after = this.translate.translate(CHANGE_LOG_MESSAGES.USE_WEBAPP_AFTER);
+    return `${before} <a href="${this.packageJson.siteUrl}" target="_blank">${this.packageJson.siteUrl}</a> ${after}`;
   });
 }

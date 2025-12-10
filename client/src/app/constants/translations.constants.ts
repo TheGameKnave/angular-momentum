@@ -214,7 +214,8 @@ export const NOTIFICATION_KEYS = Object.values(NOTIFICATION_KEY_MAP).flatMap(
 export const CHANGE_LOG_MESSAGES = {
   APP_OUT_OF_DATE: "menu.This app is {semver} out of date.",
   CLEAR_CACHE: "menu.If it doesn’t update momentarily, please try to clear your cache and refresh your browser.",
-  USE_WEBAPP: "menu.If you encounter problems, you can use the webapp until an app update is ready.",
+  USE_WEBAPP_BEFORE: "menu.If you encounter problems, use the web version at",
+  USE_WEBAPP_AFTER: "menu.until an app update is ready.",
 } as const satisfies TranslationKeyRecord;
 
 export const CHANGE_LOG_KEYS = Object.values(CHANGE_LOG_MESSAGES);
@@ -271,12 +272,12 @@ export const ENVIRONMENT_KEYS = [
  * Used by RelativeTimePipe for time display.
  */
 export const TIME_KEYS = [
-  "time.{count}y ago",
-  "time.{count}mo ago",
-  "time.{count}w ago",
-  "time.{count}d ago",
-  "time.{count}h ago",
-  "time.{count}m ago",
+  "time.years ago",
+  "time.months ago",
+  "time.weeks ago",
+  "time.days ago",
+  "time.hours ago",
+  "time.minutes ago",
   "time.Just now",
 ] as const;
 
@@ -318,10 +319,10 @@ export const PRIVACY_KEYS = [
  * because the regex extraction may not pick them up properly from templates.
  */
 export const AUTH_TEMPLATE_KEYS = [
-  "auth.We’ve sent a 6-digit verification code to:",
-  "auth.Didn’t receive the code? Check your spam folder, whitelist support@angularmomentum.app, or try logging in if you already have an account.",
   "auth.Bot check failed. This may be due to network issues or security restrictions. Please reload the page…",
-  "menu.If it doesn’t update momentarily, please try to clear your cache and refresh your browser.",
+  "auth.If this persists,",
+  "auth.contact support",
+  "auth.for help.",
 ] as const;
 
 /**

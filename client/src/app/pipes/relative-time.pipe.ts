@@ -7,12 +7,12 @@ import { TIME_CONSTANTS } from '@app/constants/ui.constants';
  *
  * Uses transloco for i18n support with the following translation keys:
  * - `time.Just now` - for times less than 1 minute ago
- * - `time.{count}m ago` - for minutes
- * - `time.{count}h ago` - for hours
- * - `time.{count}d ago` - for days
- * - `time.{count}w ago` - for weeks
- * - `time.{count}mo ago` - for months
- * - `time.{count}y ago` - for years
+ * - `time.minutes ago` - for minutes
+ * - `time.hours ago` - for hours
+ * - `time.days ago` - for days
+ * - `time.weeks ago` - for weeks
+ * - `time.months ago` - for months
+ * - `time.years ago` - for years
  *
  * @example
  * ```html
@@ -54,23 +54,23 @@ export class RelativeTimePipe implements PipeTransform {
     const months = Math.floor(days / 30);
     const years = Math.floor(days / 365);
 
-    if (years > 0) {
-      return this.translocoService.translate('time.{count}y ago', { count: years });
+    if (years > 1) {
+      return this.translocoService.translate('time.years ago', { count: years });
     }
-    if (months > 0) {
-      return this.translocoService.translate('time.{count}mo ago', { count: months });
+    if (months > 1) {
+      return this.translocoService.translate('time.months ago', { count: months });
     }
-    if (weeks > 0) {
-      return this.translocoService.translate('time.{count}w ago', { count: weeks });
+    if (weeks > 1) {
+      return this.translocoService.translate('time.weeks ago', { count: weeks });
     }
-    if (days > 0) {
-      return this.translocoService.translate('time.{count}d ago', { count: days });
+    if (days > 1) {
+      return this.translocoService.translate('time.days ago', { count: days });
     }
-    if (hours > 0) {
-      return this.translocoService.translate('time.{count}h ago', { count: hours });
+    if (hours > 1) {
+      return this.translocoService.translate('time.hours ago', { count: hours });
     }
     if (minutes > 0) {
-      return this.translocoService.translate('time.{count}m ago', { count: minutes });
+      return this.translocoService.translate('time.minutes ago', { count: minutes });
     }
     return this.translocoService.translate('time.Just now');
   }

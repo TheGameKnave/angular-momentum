@@ -157,9 +157,13 @@
           "type": "string",
           "description": "Change log: Instruction for web users to refresh"
         },
-        "If you encounter problems, you can use the webapp until an app update is ready.": {
+        "If you encounter problems, use the web version at": {
           "type": "string",
-          "description": "Change log: Instruction for desktop app users"
+          "description": "Change log: Desktop app fallback message prefix (before URL)"
+        },
+        "until an app update is ready.": {
+          "type": "string",
+          "description": "Change log: Desktop app fallback message suffix (after URL)"
         },
         "{environmentName} environment": {
           "type": "string",
@@ -182,7 +186,8 @@
         "minor version(s)",
         "major version(s)",
         "If it doesn’t update momentarily, please try to clear your cache and refresh your browser.",
-        "If you encounter problems, you can use the webapp until an app update is ready.",
+        "If you encounter problems, use the web version at",
+        "until an app update is ready.",
         "{environmentName} environment",
         "Development",
         "Production"
@@ -479,6 +484,18 @@
           "type": "string",
           "description": "Auth: Turnstile CAPTCHA failure message"
         },
+        "If this persists,": {
+          "type": "string",
+          "description": "Auth: Contact support message prefix"
+        },
+        "contact support": {
+          "type": "string",
+          "description": "Auth: Contact support link text"
+        },
+        "for help.": {
+          "type": "string",
+          "description": "Auth: Contact support message suffix"
+        },
         "Try Again": {
           "type": "string",
           "description": "Auth: Retry button after failure"
@@ -594,6 +611,9 @@
         "Passwords do not match",
         "Create Account",
         "Bot check failed. This may be due to network issues or security restrictions. Please reload the page…",
+        "If this persists,",
+        "contact support",
+        "for help.",
         "Try Again",
         "We’ve sent a 6-digit verification code to:",
         "Verification Code",
@@ -1145,42 +1165,42 @@
     "time": {
       "type": "object",
       "properties": {
-        "{count}y ago": {
+        "years ago": {
           "type": "string",
-          "description": "Relative time: Years ago (e.g., '2y ago')"
+          "description": "Relative time: Years ago (e.g., '2 years ago')"
         },
-        "{count}mo ago": {
+        "months ago": {
           "type": "string",
-          "description": "Relative time: Months ago (e.g., '3mo ago')"
+          "description": "Relative time: Months ago (e.g., '3 months ago')"
         },
-        "{count}w ago": {
+        "weeks ago": {
           "type": "string",
-          "description": "Relative time: Weeks ago (e.g., '2w ago')"
+          "description": "Relative time: Weeks ago (e.g., '2 weeks ago')"
         },
-        "{count}d ago": {
+        "days ago": {
           "type": "string",
-          "description": "Relative time: Days ago (e.g., '3d ago')"
+          "description": "Relative time: Days ago (e.g., '3 days ago')"
         },
-        "{count}h ago": {
+        "hours ago": {
           "type": "string",
-          "description": "Relative time: Hours ago (e.g., '2h ago')"
+          "description": "Relative time: Hours ago (e.g., '2 hours ago')"
         },
-        "{count}m ago": {
+        "minutes ago": {
           "type": "string",
-          "description": "Relative time: Minutes ago (e.g., '5m ago')"
+          "description": "Relative time: Minutes ago (e.g., '5 minutes ago')"
         },
         "Just now": {
           "type": "string",
-          "description": "Relative time: Less than a minute ago"
+          "description": "Relative time: > 1 minute ago (e.g., 'Just now')"
         }
       },
       "required": [
-        "{count}y ago",
-        "{count}mo ago",
-        "{count}w ago",
-        "{count}d ago",
-        "{count}h ago",
-        "{count}m ago",
+        "years ago",
+        "months ago",
+        "weeks ago",
+        "days ago",
+        "hours ago",
+        "minutes ago",
         "Just now"
       ],
       "additionalProperties": false
