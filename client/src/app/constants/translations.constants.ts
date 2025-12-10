@@ -342,7 +342,7 @@ export const PAGE_CONTENT_KEYS = [
 export const PROFILE_PAGE_KEYS = [
   "auth.If an account with that information exists, a password reset email has been sent.",
   "profile.Permanently delete your account and all associated data. This action cannot be undone.",
-  "profile.We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.",
+  "privacy.We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.",
   "profile.A verification link will be sent to your new email address. You must click the link to complete the change.",
   "profile.Verification email sent! Please check your new email address and click the confirmation link.",
 ] as const;

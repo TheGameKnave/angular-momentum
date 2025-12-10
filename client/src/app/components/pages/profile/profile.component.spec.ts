@@ -3,7 +3,6 @@ import { ProfileComponent } from './profile.component';
 import { AuthService } from '@app/services/auth.service';
 import { UserSettingsService } from '@app/services/user-settings.service';
 import { UsernameService } from '@app/services/username.service';
-import { CookieConsentService } from '@app/services/cookie-consent.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ConfirmationService } from 'primeng/api';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
@@ -17,7 +16,6 @@ describe('ProfileComponent', () => {
   let mockAuthService: jasmine.SpyObj<AuthService>;
   let mockUserSettingsService: jasmine.SpyObj<UserSettingsService>;
   let mockUsernameService: jasmine.SpyObj<UsernameService>;
-  let mockCookieConsentService: jasmine.SpyObj<CookieConsentService>;
   let mockRouter: jasmine.SpyObj<Router>;
   let mockConfirmationService: jasmine.SpyObj<ConfirmationService>;
 
@@ -55,11 +53,6 @@ describe('ProfileComponent', () => {
     mockUsernameService.updateUsername.and.returnValue(Promise.resolve(null));
     mockUsernameService.deleteUsername.and.returnValue(Promise.resolve(true));
 
-    mockCookieConsentService = jasmine.createSpyObj('CookieConsentService',
-      ['acceptCookies', 'declineCookies', 'resetConsent'],
-      { consentStatus: consentStatusSignal }
-    );
-
     mockRouter = jasmine.createSpyObj('Router', ['navigate', 'getCurrentNavigation']);
     mockRouter.navigate.and.returnValue(Promise.resolve(true));
     mockRouter.getCurrentNavigation.and.returnValue(null);
@@ -75,7 +68,6 @@ describe('ProfileComponent', () => {
         { provide: AuthService, useValue: mockAuthService },
         { provide: UserSettingsService, useValue: mockUserSettingsService },
         { provide: UsernameService, useValue: mockUsernameService },
-        { provide: CookieConsentService, useValue: mockCookieConsentService },
         { provide: Router, useValue: mockRouter },
         { provide: ActivatedRoute, useValue: { snapshot: { params: {} } } },
         { provide: ConfirmationService, useValue: mockConfirmationService },
@@ -123,16 +115,6 @@ describe('ProfileComponent', () => {
     (mockAuthService.currentUser as any).set({ email: '', id: '123' });
     const initials = component.getUserInitials();
     expect(initials).toBe('?');
-  });
-
-  it('should handle cookie consent accept', () => {
-    component.onAcceptCookies();
-    expect(mockCookieConsentService.acceptCookies).toHaveBeenCalled();
-  });
-
-  it('should handle cookie consent decline', () => {
-    component.onDeclineCookies();
-    expect(mockCookieConsentService.declineCookies).toHaveBeenCalled();
   });
 
   it('should call export data service when onExportData is called', async () => {
@@ -496,13 +478,6 @@ describe('ProfileComponent', () => {
       await component.onExportData();
 
       expect(mockAuthService.exportUserData).toHaveBeenCalled();
-    });
-  });
-
-  describe('onResetCookieConsent', () => {
-    it('should reset cookie consent', () => {
-      component.onResetCookieConsent();
-      expect(mockCookieConsentService.resetConsent).toHaveBeenCalled();
     });
   });
 

@@ -18,7 +18,6 @@ import { ConfirmationService } from 'primeng/api';
 import { AuthService } from '@app/services/auth.service';
 import { UserSettingsService } from '@app/services/user-settings.service';
 import { UsernameService } from '@app/services/username.service';
-import { CookieConsentService } from '@app/services/cookie-consent.service';
 import { DatePipe } from '@angular/common';
 import { passwordComplexityValidator, PASSWORD_REQUIREMENT_KEYS, USERNAME_REQUIREMENT_KEYS } from '@app/helpers/validation';
 import { getUserInitials } from '@app/helpers/user.helper';
@@ -62,7 +61,6 @@ export class ProfileComponent implements OnInit {
   protected readonly authService = inject(AuthService);
   protected readonly userSettingsService = inject(UserSettingsService);
   protected readonly usernameService = inject(UsernameService);
-  protected readonly cookieConsentService = inject(CookieConsentService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
@@ -467,27 +465,6 @@ export class ProfileComponent implements OnInit {
         rejectVisible: false,
       });
     }
-  }
-
-  /**
-   * Handle cookie consent accept
-   */
-  onAcceptCookies(): void {
-    this.cookieConsentService.acceptCookies();
-  }
-
-  /**
-   * Handle cookie consent decline
-   */
-  onDeclineCookies(): void {
-    this.cookieConsentService.declineCookies();
-  }
-
-  /**
-   * Reset cookie consent (for testing or changing preference)
-   */
-  onResetCookieConsent(): void {
-    this.cookieConsentService.resetConsent();
   }
 
   /**

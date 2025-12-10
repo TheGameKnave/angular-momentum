@@ -861,26 +861,6 @@
           "type": "string",
           "description": "Profile: Account deletion button"
         },
-        "Cookies": {
-          "type": "string",
-          "description": "Profile: Cookie settings section header"
-        },
-        "Analytics cookies enabled": {
-          "type": "string",
-          "description": "Profile: Cookie consent status (enabled)"
-        },
-        "Analytics cookies disabled": {
-          "type": "string",
-          "description": "Profile: Cookie consent status (disabled)"
-        },
-        "Cookie preference not set": {
-          "type": "string",
-          "description": "Profile: Cookie consent status (not yet chosen)"
-        },
-        "We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.": {
-          "type": "string",
-          "description": "Profile: Cookie consent explanation"
-        },
         "Change Email Address": {
           "type": "string",
           "description": "Profile: Email change section header"
@@ -932,11 +912,6 @@
         "Permanently delete your account and all associated data. This action cannot be undone.",
         "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.",
         "Delete Account",
-        "Cookies",
-        "Analytics cookies enabled",
-        "Analytics cookies disabled",
-        "Cookie preference not set",
-        "We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.",
         "Change Email Address",
         "New Email Address",
         "Enter your new email address",
@@ -1106,6 +1081,30 @@
         "Bot Protection": {
           "type": "string",
           "description": "Privacy: Cloudflare Turnstile service category label"
+        },
+        "Cookie Preferences": {
+          "type": "string",
+          "description": "Privacy: Cookie preferences section header"
+        },
+        "We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.": {
+          "type": "string",
+          "description": "Privacy: Cookie consent explanation"
+        },
+        "Current status": {
+          "type": "string",
+          "description": "Privacy: Cookie status label"
+        },
+        "Analytics cookies enabled": {
+          "type": "string",
+          "description": "Privacy: Cookie consent status (enabled)"
+        },
+        "Analytics cookies disabled": {
+          "type": "string",
+          "description": "Privacy: Cookie consent status (disabled)"
+        },
+        "Cookie preference not set": {
+          "type": "string",
+          "description": "Privacy: Cookie consent status (not yet chosen)"
         }
       },
       "required": [
@@ -1125,7 +1124,13 @@
         "Authentication & Database",
         "Usage Analytics",
         "Behavior Analytics",
-        "Bot Protection"
+        "Bot Protection",
+        "Cookie Preferences",
+        "We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.",
+        "Current status",
+        "Analytics cookies enabled",
+        "Analytics cookies disabled",
+        "Cookie preference not set"
       ],
       "additionalProperties": false
     },
