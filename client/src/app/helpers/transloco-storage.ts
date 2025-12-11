@@ -1,5 +1,6 @@
 import { inject } from '@angular/core';
 import { PlatformService } from '../services/platform.service';
+import { UserStorageService } from '../services/user-storage.service';
 import { TIME_CONSTANTS } from '@app/constants/ui.constants';
 
 /**
@@ -97,18 +98,25 @@ export class NoOpStorage {
 
 /**
  * Dual storage that uses both localStorage and cookies (web only).
- * localStorage is primary, cookies are for SSR compatibility.
+ * localStorage is primary (with user-scoped keys), cookies are for SSR compatibility.
+ *
+ * User-scoped storage:
+ * - localStorage uses prefixed keys (e.g., 'user_abc123_lang' or 'anonymous_lang')
+ * - Cookies remain unprefixed for SSR compatibility (server can't know user scope)
  */
 export class DualStorage {
+  constructor(private readonly userStorageService: UserStorageService) {}
+
   /**
-   * Get item from localStorage with cookie fallback.
-   * @param key - Storage key
+   * Get item from localStorage (user-scoped) with cookie fallback.
+   * @param key - Base storage key (will be prefixed for localStorage)
    * @returns Stored value or null
    */
   getItem(key: string): string | null {
-    // Try localStorage first
+    // Try user-scoped localStorage first
     try {
-      const value = localStorage.getItem(key);
+      const prefixedKey = this.userStorageService.prefixKey(key);
+      const value = localStorage.getItem(prefixedKey);
       if (value) {
         return value;
       }
@@ -116,33 +124,36 @@ export class DualStorage {
       // Fall back to cookie
     }
 
-    // Fall back to cookie
+    // Fall back to cookie (unprefixed, for SSR compatibility)
     return CookieStorage.getItem(key);
   }
 
   /**
-   * Set item in both localStorage and cookie.
-   * @param key - Storage key
+   * Set item in both localStorage (user-scoped) and cookie.
+   * @param key - Base storage key (will be prefixed for localStorage)
    * @param value - Value to store
    */
   setItem(key: string, value: string): void {
-    // Set in both localStorage and cookie
+    // Set in user-scoped localStorage
     try {
-      localStorage.setItem(key, value);
+      const prefixedKey = this.userStorageService.prefixKey(key);
+      localStorage.setItem(prefixedKey, value);
     } catch {
       // Ignore localStorage errors
     }
 
+    // Also set in cookie (unprefixed, for SSR)
     CookieStorage.setItem(key, value);
   }
 
   /**
-   * Remove item from both localStorage and cookie.
-   * @param key - Storage key
+   * Remove item from both localStorage (user-scoped) and cookie.
+   * @param key - Base storage key (will be prefixed for localStorage)
    */
   removeItem(key: string): void {
     try {
-      localStorage.removeItem(key);
+      const prefixedKey = this.userStorageService.prefixKey(key);
+      localStorage.removeItem(prefixedKey);
     } catch {
       // Ignore localStorage errors
     }
@@ -152,27 +163,77 @@ export class DualStorage {
 }
 
 /**
+ * User-scoped localStorage wrapper for Tauri platform.
+ * Prefixes all keys with user scope.
+ */
+export class UserScopedLocalStorage {
+  constructor(private readonly userStorageService: UserStorageService) {}
+
+  /**
+   * Get item from user-scoped localStorage.
+   * @param key - The storage key (will be prefixed with user scope)
+   * @returns The stored value or null if not found
+   */
+  getItem(key: string): string | null {
+    try {
+      const prefixedKey = this.userStorageService.prefixKey(key);
+      return localStorage.getItem(prefixedKey);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Set item in user-scoped localStorage.
+   * @param key - The storage key (will be prefixed with user scope)
+   * @param value - The value to store
+   */
+  setItem(key: string, value: string): void {
+    try {
+      const prefixedKey = this.userStorageService.prefixKey(key);
+      localStorage.setItem(prefixedKey, value);
+    } catch {
+      // Ignore errors
+    }
+  }
+
+  /**
+   * Remove item from user-scoped localStorage.
+   * @param key - The storage key (will be prefixed with user scope)
+   */
+  removeItem(key: string): void {
+    try {
+      const prefixedKey = this.userStorageService.prefixKey(key);
+      localStorage.removeItem(prefixedKey);
+    } catch {
+      // Ignore errors
+    }
+  }
+}
+
+/**
  * Factory function for creating platform-aware storage.
  *
  * Returns appropriate storage implementation based on platform:
- * - Web: DualStorage (localStorage + cookies for SSR compatibility)
- * - Tauri: localStorage only
+ * - Web: DualStorage (user-scoped localStorage + cookies for SSR compatibility)
+ * - Tauri: UserScopedLocalStorage (user-scoped localStorage only)
  * - SSR: NoOpStorage (prevents crashes)
  *
  * @returns Storage implementation
  */
 export function platformAwareStorageFactory() {
   const platformService = inject(PlatformService);
+  const userStorageService = inject(UserStorageService);
 
   if (platformService.isSSR()) {
     return new NoOpStorage();
   }
 
   if (platformService.isTauri()) {
-    // Tauri: Use localStorage only
-    return localStorage;
+    // Tauri: Use user-scoped localStorage only
+    return new UserScopedLocalStorage(userStorageService);
   }
 
-  // Web: Use dual storage (localStorage + cookies)
-  return new DualStorage();
+  // Web: Use dual storage (user-scoped localStorage + cookies)
+  return new DualStorage(userStorageService);
 }

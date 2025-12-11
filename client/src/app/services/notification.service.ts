@@ -4,9 +4,13 @@ import { TranslocoService } from '@jsverse/transloco';
 import { LogService } from './log.service';
 import { SocketIoService } from './socket.io.service';
 import { UserSettingsService } from './user-settings.service';
+import { UserStorageService } from './user-storage.service';
 import { Notification, NotificationOptions, LocalizedNotificationPayload } from '../models/data.model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NOTIFICATION_CONFIG } from '@app/constants/service.constants';
+
+/** Base key for notification storage (will be prefixed with user scope) */
+const NOTIFICATIONS_STORAGE_KEY = 'app_notifications';
 
 /**
  * Service for managing notifications across web and Tauri platforms.
@@ -31,6 +35,7 @@ export class NotificationService {
   private readonly socketService = inject(SocketIoService);
   private readonly translocoService = inject(TranslocoService);
   private readonly userSettingsService = inject(UserSettingsService);
+  private readonly userStorageService = inject(UserStorageService);
   private readonly destroyRef = inject(DestroyRef);
 
   permissionGranted = signal<boolean>(false);
@@ -488,15 +493,16 @@ export class NotificationService {
   }
 
   /**
-   * Save notifications to localStorage.
+   * Save notifications to localStorage using user-scoped key.
    * Limits storage to the most recent notifications to prevent excessive storage usage.
    */
   private saveNotificationsToStorage(): void {
     try {
+      const storageKey = this.userStorageService.prefixKey(NOTIFICATIONS_STORAGE_KEY);
       const notifications = this.notifications();
       // Keep only last N notifications
       const toSave = notifications.slice(0, NOTIFICATION_CONFIG.MAX_STORED_NOTIFICATIONS);
-      localStorage.setItem('app_notifications', JSON.stringify(toSave));
+      localStorage.setItem(storageKey, JSON.stringify(toSave));
     } catch (error) {
       // istanbul ignore next - localStorage error handling
       this.logService.log('Error saving notifications to storage', error);
@@ -504,12 +510,13 @@ export class NotificationService {
   }
 
   /**
-   * Load notifications from localStorage on service initialization.
+   * Load notifications from localStorage using user-scoped key.
    * Converts timestamp strings back to Date objects.
    */
   private loadNotificationsFromStorage(): void {
     try {
-      const stored = localStorage.getItem('app_notifications');
+      const storageKey = this.userStorageService.prefixKey(NOTIFICATIONS_STORAGE_KEY);
+      const stored = localStorage.getItem(storageKey);
       if (stored) {
         const notifications = JSON.parse(stored) as Notification[];
         // Convert timestamp strings back to Date objects
@@ -523,6 +530,16 @@ export class NotificationService {
       // istanbul ignore next - localStorage error handling
       this.logService.log('Error loading notifications from storage', error);
     }
+  }
+
+  /**
+   * Reload notifications from storage.
+   * Called after user login/logout to switch to the appropriate user-scoped storage.
+   */
+  reloadFromStorage(): void {
+    this.notifications.set([]);
+    this.unreadCount.set(0);
+    this.loadNotificationsFromStorage();
   }
 
   /**

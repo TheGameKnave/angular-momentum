@@ -4,6 +4,7 @@ import { LogService } from './log.service';
 import { SocketIoService } from './socket.io.service';
 import { TranslocoService } from '@jsverse/transloco';
 import { UserSettingsService } from './user-settings.service';
+import { UserStorageService } from './user-storage.service';
 import { of, throwError } from 'rxjs';
 import { Notification, NotificationOptions, LocalizedStrings } from '../models/data.model';
 import { signal } from '@angular/core';
@@ -14,6 +15,7 @@ describe('NotificationService', () => {
   let socketServiceSpy: jasmine.SpyObj<SocketIoService>;
   let translocoServiceSpy: jasmine.SpyObj<TranslocoService>;
   let userSettingsServiceSpy: jasmine.SpyObj<UserSettingsService>;
+  let userStorageServiceSpy: jasmine.SpyObj<UserStorageService>;
 
   beforeEach(() => {
     // Create spies
@@ -24,6 +26,8 @@ describe('NotificationService', () => {
       timezone: signal('UTC'),
       settings: signal({ timezone: 'UTC' })
     });
+    userStorageServiceSpy = jasmine.createSpyObj('UserStorageService', ['prefixKey']);
+    userStorageServiceSpy.prefixKey.and.callFake((key: string) => `anonymous_${key}`);
 
     // Mock socket service to return observable
     socketServiceSpy.listen.and.returnValue(of());
@@ -53,7 +57,8 @@ describe('NotificationService', () => {
         { provide: LogService, useValue: logServiceSpy },
         { provide: SocketIoService, useValue: socketServiceSpy },
         { provide: TranslocoService, useValue: translocoServiceSpy },
-        { provide: UserSettingsService, useValue: userSettingsServiceSpy }
+        { provide: UserSettingsService, useValue: userSettingsServiceSpy },
+        { provide: UserStorageService, useValue: userStorageServiceSpy }
       ]
     });
 
@@ -123,7 +128,7 @@ describe('NotificationService', () => {
           read: false
         }
       ];
-      localStorage.setItem('app_notifications', JSON.stringify(mockNotifications));
+      localStorage.setItem('anonymous_app_notifications', JSON.stringify(mockNotifications));
 
       service = TestBed.inject(NotificationService);
 
@@ -440,7 +445,7 @@ describe('NotificationService', () => {
       service.notifications.set([notification]);
       service['saveNotificationsToStorage']();
 
-      const stored = localStorage.getItem('app_notifications');
+      const stored = localStorage.getItem('anonymous_app_notifications');
       expect(stored).toBeTruthy();
       const parsed = JSON.parse(stored!);
       expect(parsed.length).toBe(1);
@@ -463,7 +468,7 @@ describe('NotificationService', () => {
       service.notifications.set(notifications);
       service['saveNotificationsToStorage']();
 
-      const stored = localStorage.getItem('app_notifications');
+      const stored = localStorage.getItem('anonymous_app_notifications');
       const parsed = JSON.parse(stored!);
       expect(parsed.length).toBe(100);
     });
@@ -479,7 +484,7 @@ describe('NotificationService', () => {
           read: false
         }
       ];
-      localStorage.setItem('app_notifications', JSON.stringify(mockNotifications));
+      localStorage.setItem('anonymous_app_notifications', JSON.stringify(mockNotifications));
 
       service = TestBed.inject(NotificationService);
 
@@ -877,5 +882,29 @@ describe('NotificationService', () => {
 
       expect(logServiceSpy.log).toHaveBeenCalledWith('Error receiving localized notification', testError);
     }));
+  });
+
+  describe('reloadFromStorage', () => {
+    it('should reset notifications and reload from storage', () => {
+      service = TestBed.inject(NotificationService);
+
+      // Add some notifications first
+      const notification: Notification = {
+        id: 'test-123',
+        title: 'Test',
+        body: 'Test body',
+        timestamp: new Date(),
+        read: false
+      };
+      service.notifications.set([notification]);
+      service.unreadCount.set(1);
+
+      // Reload from storage (which is empty in test)
+      service.reloadFromStorage();
+
+      // Should be reset and then reloaded (empty in this test since localStorage mock is empty)
+      expect(service.notifications()).toEqual([]);
+      expect(service.unreadCount()).toBe(0);
+    });
   });
 });
