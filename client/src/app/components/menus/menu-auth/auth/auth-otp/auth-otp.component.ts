@@ -39,6 +39,9 @@ export class AuthOtpComponent implements AfterViewInit {
   // Input for email that needs verification
   readonly email = input.required<string>();
 
+  // Input for pre-auth callback (e.g., storage promotion)
+  readonly beforeAuthUpdate = input<((userId: string) => Promise<void>) | undefined>();
+
   // Outputs for parent component
   readonly backToSignup = output<void>();
   readonly switchToLogin = output<void>();
@@ -117,8 +120,12 @@ export class AuthOtpComponent implements AfterViewInit {
 
     const { otp } = this.otpForm.value;
     const email = this.email();
+    const callback = this.beforeAuthUpdate();
 
-    const result = await this.authService.verifyOtp(email, otp);
+    // Use callback variant if provided (for storage promotion before auth signals update)
+    const result = callback
+      ? await this.authService.verifyOtpWithCallback(email, otp, callback)
+      : await this.authService.verifyOtp(email, otp);
 
     this.loading.set(false);
 

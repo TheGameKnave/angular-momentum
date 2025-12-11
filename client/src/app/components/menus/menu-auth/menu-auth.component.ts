@@ -7,6 +7,8 @@ import { AuthService } from '@app/services/auth.service';
 import { AuthUiStateService } from '@app/services/auth-ui-state.service';
 import { UserSettingsService } from '@app/services/user-settings.service';
 import { UsernameService } from '@app/services/username.service';
+import { StoragePromotionService } from '@app/services/storage-promotion.service';
+import { NotificationService } from '@app/services/notification.service';
 import { AuthGuard } from '@app/guards/auth.guard';
 import { AnchorMenuComponent } from '@app/components/menus/anchor-menu/anchor-menu.component';
 import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
@@ -51,10 +53,21 @@ export class MenuAuthComponent implements AfterViewInit {
   protected readonly authUiState = inject(AuthUiStateService);
   private readonly userSettingsService = inject(UserSettingsService);
   private readonly usernameService = inject(UsernameService);
+  private readonly storagePromotionService = inject(StoragePromotionService);
+  private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
   private readonly logService = inject(LogService);
 
   @ViewChild(AnchorMenuComponent) anchorMenu!: AnchorMenuComponent;
+
+  /**
+   * Callback for storage promotion that runs before auth signals update.
+   * Passed to child auth components to ensure data is ready before components react.
+   */
+  readonly storagePromotionCallback = async (userId: string): Promise<void> => {
+    await this.storagePromotionService.promoteAnonymousToUser(userId);
+    this.logService.log('Storage promoted to user');
+  };
 
   /** Auto-close timer in seconds (0 = no timer) */
   readonly autoCloseTimer = signal<number>(AUTO_CLOSE_TIMERS.NONE);
@@ -91,10 +104,14 @@ export class MenuAuthComponent implements AfterViewInit {
   }
 
   /**
-   * Handle login success - initialize user settings and close menu
-   * User stays on current page (no navigation)
+   * Handle login success - initialize user settings, and close menu.
+   * Storage promotion already happened via beforeSession callback.
+   * User stays on current page (no navigation).
    */
   async onLoginSuccess(): Promise<void> {
+    // Reload notifications from user-scoped storage (promotion already done)
+    this.notificationService.reloadFromStorage();
+
     // Initialize user settings (load or create with detected timezone)
     await this.userSettingsService.initialize();
 
@@ -117,10 +134,14 @@ export class MenuAuthComponent implements AfterViewInit {
   }
 
   /**
-   * Handle OTP verification success - initialize user settings, create username, and close menu
+   * Handle OTP verification success - initialize user settings, create username, and close menu.
+   * Storage promotion already happened via beforeAuthUpdate callback.
    */
   async onVerifySuccess(): Promise<void> {
     this.logService.log('OTP verification success - starting initialization');
+
+    // Reload notifications from user-scoped storage (promotion already done)
+    this.notificationService.reloadFromStorage();
 
     // Initialize user settings (load or create with detected timezone)
     await this.userSettingsService.initialize();
@@ -208,6 +229,9 @@ export class MenuAuthComponent implements AfterViewInit {
     const requiresAuth = this.isCurrentRouteAuthGuarded();
 
     await this.authService.logout();
+
+    // Reload notifications from anonymous storage (will be empty or have anonymous notifications)
+    this.notificationService.reloadFromStorage();
 
     // Only redirect if on an auth-guarded route
     if (requiresAuth) {

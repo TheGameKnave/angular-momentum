@@ -58,6 +58,7 @@
           <!-- OTP Verification -->
           <app-auth-otp
             [email]="authUiState.pendingEmail()!"
+            [beforeAuthUpdate]="storagePromotionCallback"
             (backToSignup)="onBackToSignup()"
             (switchToLogin)="setMode('login')"
             (verifySuccess)="onVerifySuccess()"
@@ -81,6 +82,7 @@
         } @else {
           <!-- Login (default) -->
           <app-auth-login
+            [beforeSession]="storagePromotionCallback"
             (switchToReset)="onSwitchToReset($event)"
             (switchToSignup)="setMode('signup')"
             (loginSuccess)="onLoginSuccess()"

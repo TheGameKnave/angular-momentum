@@ -13,6 +13,7 @@ describe('AuthOtpComponent', () => {
   beforeEach(async () => {
     mockAuthService = jasmine.createSpyObj('AuthService', [
       'verifyOtp',
+      'verifyOtpWithCallback',
       'resendOtp'
     ], {
       currentUser: signal(null),
@@ -23,6 +24,7 @@ describe('AuthOtpComponent', () => {
 
     // Set default return values
     mockAuthService.verifyOtp.and.returnValue(Promise.resolve({ user: null, session: null, error: null } as any));
+    mockAuthService.verifyOtpWithCallback.and.returnValue(Promise.resolve({ user: null, session: null, error: null } as any));
     mockAuthService.resendOtp.and.returnValue(Promise.resolve({ error: null } as any));
 
     await TestBed.configureTestingModule({
@@ -393,6 +395,27 @@ describe('AuthOtpComponent', () => {
       await component.onResendOtp();
 
       expect(mockAuthService.resendOtp).toHaveBeenCalledWith('test@example.com');
+    });
+  });
+
+  describe('beforeAuthUpdate callback', () => {
+    it('should use verifyOtpWithCallback when beforeAuthUpdate is provided', async () => {
+      const mockCallback = jasmine.createSpy('beforeAuthUpdate').and.returnValue(Promise.resolve());
+      fixture.componentRef.setInput('beforeAuthUpdate', mockCallback);
+      fixture.detectChanges();
+
+      const mockResult: AuthResult = {
+        user: { id: '123', email: 'test@example.com' } as any,
+        session: {} as any,
+        error: null
+      };
+      mockAuthService.verifyOtpWithCallback.and.returnValue(Promise.resolve(mockResult));
+
+      component.otpForm.patchValue({ otp: '123456' });
+      await component.onVerifyOtp();
+
+      expect(mockAuthService.verifyOtpWithCallback).toHaveBeenCalledWith('test@example.com', '123456', mockCallback);
+      expect(mockAuthService.verifyOtp).not.toHaveBeenCalled();
     });
   });
 });

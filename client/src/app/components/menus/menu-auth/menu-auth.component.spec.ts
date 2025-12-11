@@ -7,6 +7,8 @@ import { AuthService } from '@app/services/auth.service';
 import { AuthUiStateService } from '@app/services/auth-ui-state.service';
 import { UserSettingsService } from '@app/services/user-settings.service';
 import { UsernameService } from '@app/services/username.service';
+import { StoragePromotionService } from '@app/services/storage-promotion.service';
+import { NotificationService } from '@app/services/notification.service';
 import { AuthGuard } from '@app/guards/auth.guard';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 
@@ -17,6 +19,8 @@ describe('MenuAuthComponent', () => {
   let mockAuthUiState: jasmine.SpyObj<AuthUiStateService>;
   let mockUserSettingsService: jasmine.SpyObj<UserSettingsService>;
   let mockUsernameService: jasmine.SpyObj<UsernameService>;
+  let mockStoragePromotionService: jasmine.SpyObj<StoragePromotionService>;
+  let mockNotificationService: jasmine.SpyObj<NotificationService>;
   let mockRouter: jasmine.SpyObj<Router>;
   let routerEventsSubject: Subject<any>;
 
@@ -59,6 +63,15 @@ describe('MenuAuthComponent', () => {
       'clear'
     ]);
 
+    mockStoragePromotionService = jasmine.createSpyObj('StoragePromotionService', [
+      'promoteAnonymousToUser'
+    ]);
+    mockStoragePromotionService.promoteAnonymousToUser.and.returnValue(Promise.resolve());
+
+    mockNotificationService = jasmine.createSpyObj('NotificationService', [
+      'reloadFromStorage'
+    ]);
+
     mockRouter = jasmine.createSpyObj('Router', ['navigate'], {
       events: routerEventsSubject.asObservable(),
       url: '/test',
@@ -87,6 +100,8 @@ describe('MenuAuthComponent', () => {
         { provide: AuthUiStateService, useValue: mockAuthUiState },
         { provide: UserSettingsService, useValue: mockUserSettingsService },
         { provide: UsernameService, useValue: mockUsernameService },
+        { provide: StoragePromotionService, useValue: mockStoragePromotionService },
+        { provide: NotificationService, useValue: mockNotificationService },
         { provide: Router, useValue: mockRouter },
       ]
     }).compileComponents();
@@ -333,6 +348,16 @@ describe('MenuAuthComponent', () => {
     it('should reset auth UI state', () => {
       component.onMenuClosed();
       expect(mockAuthUiState.reset).toHaveBeenCalled();
+    });
+  });
+
+  describe('storagePromotionCallback', () => {
+    it('should promote anonymous storage to user', async () => {
+      const userId = 'test-user-id';
+
+      await component.storagePromotionCallback(userId);
+
+      expect(mockStoragePromotionService.promoteAnonymousToUser).toHaveBeenCalledWith(userId);
     });
   });
 });

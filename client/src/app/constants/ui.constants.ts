@@ -76,3 +76,12 @@ export const TOOLTIP_CONFIG = {
   /** Delay in ms before hiding tooltip */
   HIDE_DELAY: 200,
 } as const;
+
+/**
+ * Known localStorage keys that should be promoted between user scopes.
+ * These are the base keys (without prefix).
+ */
+export const PROMOTABLE_LOCALSTORAGE_KEYS = [
+  'app_notifications',
+  'lang',
+] as const;
