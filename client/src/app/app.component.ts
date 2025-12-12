@@ -3,6 +3,9 @@ import { isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 
 import { UpdateService } from '@app/services/update.service';
+import { UpdateDialogService } from '@app/services/update-dialog.service';
+import { DataMigrationService } from '@app/services/data-migration.service';
+import { DialogConfirmComponent } from '@app/components/dialogs/dialog-confirm/dialog-confirm.component';
 
 import { TranslocoDirective } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
@@ -16,6 +19,7 @@ import { SlugPipe } from './pipes/slug.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { COMPONENT_LIST } from './helpers/component-list';
 import { ConnectivityService } from './services/connectivity.service';
+import { LogService } from './services/log.service';
 import { MenuChangeLogComponent } from './components/menus/menu-change-log/menu-change-log.component';
 import { ChangeLogService } from './services/change-log.service';
 import { NotificationCenterComponent } from './components/menus/notification-center/notification-center.component';
@@ -25,6 +29,8 @@ import { SCREEN_SIZES, TOOLTIP_CONFIG } from './constants/ui.constants';
 import { ResourcePreloadService } from './services/resource-preload.service';
 import { ScrollIndicatorDirective } from './directives/scroll-indicator.directive';
 import { TooltipModule } from 'primeng/tooltip';
+import { ToastModule } from 'primeng/toast';
+import { DialogUpdateComponent } from './components/dialogs/dialog-update/dialog-update.component';
 
 /**
  * Root component of the Angular Momentum application.
@@ -49,17 +55,23 @@ import { TooltipModule } from 'primeng/tooltip';
     CookieBannerComponent,
     ScrollIndicatorDirective,
     TooltipModule,
+    ToastModule,
+    DialogConfirmComponent,
+    DialogUpdateComponent,
   ],
 })
 export class AppComponent implements OnInit {
   readonly updateService = inject(UpdateService);
   readonly changeLogService = inject(ChangeLogService);
+  private readonly updateDialogService = inject(UpdateDialogService);
+  private readonly dataMigrationService = inject(DataMigrationService);
   protected translocoLoader = inject(TranslocoHttpLoader);
   protected featureFlagService = inject(FeatureFlagService);
   private readonly slugPipe = inject(SlugPipe);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly connectivity = inject(ConnectivityService);
+  private readonly logService = inject(LogService);
 
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
@@ -70,6 +82,10 @@ export class AppComponent implements OnInit {
     // istanbul ignore next - afterNextRender doesn't execute in unit tests
     afterNextRender(() => {
       this.resourcePreload.preloadAll();
+
+      // Run data migrations after view is ready (so p-toast is mounted)
+      // This runs on all platforms: web, Tauri desktop, and mobile
+      this.dataMigrationService.runMigrations();
     });
   }
 
@@ -81,6 +97,38 @@ export class AppComponent implements OnInit {
       this.bodyClasses();
     }
   }
+
+  /**
+   * Dev-only keyboard shortcuts for testing dialogs.
+   * Ctrl+Shift+U: Update dialog
+   */
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    if (!this.isDevMode || !event.ctrlKey || !event.shiftKey) return;
+
+    if (event.key === 'U') {
+      event.preventDefault();
+      this.triggerDevUpdateDialog();
+    }
+  }
+
+  /**
+   * Triggers the update dialog for development testing.
+   * Spoofs an older version to show changelog entries between versions.
+   */
+  private triggerDevUpdateDialog(): void {
+    this.logService.log('[Dev] Triggering update dialog (Ctrl+Shift+U)...');
+
+    // Spoof an older version to show all changelog entries
+    this.changeLogService.devVersionOverride.set('0.0.0');
+
+    this.updateDialogService.show().then(confirmed => {
+      // istanbul ignore next - promise callback for dev tool, covered by triggering the dialog
+      this.logService.log('[Dev] Update dialog result:', confirmed ? 'confirmed' : 'dismissed');
+      this.changeLogService.devVersionOverride.set(null);
+    });
+  }
+
   // istanbul ignore next - SSR fallback branch can't be tested in browser context
   window: Window | undefined = globalThis.window;
   SCREEN_SIZES = SCREEN_SIZES;
@@ -110,6 +158,7 @@ export class AppComponent implements OnInit {
    */
   ngOnInit() {
     this.connectivity.start();
+
     // there might be a better way to detect the current component for the breadcrumbs...
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd){

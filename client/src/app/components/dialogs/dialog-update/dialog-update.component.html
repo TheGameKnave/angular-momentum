@@ -1,0 +1,86 @@
+<ng-template #dialogTemplate>
+  <div *transloco="let t" class="dialog-update-panel">
+    <!-- Header -->
+    <div class="dialog-update-header">
+      <h2>
+        {{ t('update.New Version Available') }}: <span class="strikethrough">{{ currentVersion() }}</span> → {{ latestVersion() }}
+      </h2>
+      @if (!isRequiredUpdate()) {
+        <button
+          type="button"
+          class="dialog-update-close"
+          (click)="onLater()"
+          [attr.aria-label]="t('update.Later')"
+        >
+          <i class="pi pi-times"></i>
+        </button>
+      }
+    </div>
+
+    <!-- Content -->
+    <div appScrollIndicator class="dialog-update-content">
+      <!-- Update type message -->
+      @if (appDiff().impact !== 'patch') {
+        <p class="update-warning">
+          <i class="pi pi-exclamation-triangle"></i>
+          @if (appDiff().impact === 'major') {
+            {{ t('update.This is a major update and requires restart') }}
+          } @else {
+            {{ t('update.This is a minor update and requires restart') }}
+          }
+        </p>
+      } @else {
+        <p class="muted">
+          {{ t('update.This is a small change—you can update later if desired.') }}
+        </p>
+      }
+
+      <!-- Changelog accordion - shows all versions between current and latest -->
+      @if (changelogEntries().length > 0) {
+        <p-accordion>
+          @for (changelog of changelogEntries(); track changelog.version) {
+            <p-accordion-panel [value]="changelog.version">
+              <p-accordion-header>
+                <span class="accordion-header-content">
+                  <i class="pi pi-tag"></i>
+                  {{ changelog.version }} · {{ changelog.description }} @ {{ changelog.date }}
+                </span>
+              </p-accordion-header>
+              <p-accordion-content>
+                <div>
+                  @if (changelog.changes.length > 0) {
+                    <ul class="bulleted">
+                      @for (change of changelog.changes; track change) {
+                        <li>{{ change }}</li>
+                      }
+                    </ul>
+                  }
+                </div>
+              </p-accordion-content>
+            </p-accordion-panel>
+          }
+        </p-accordion>
+      }
+    </div>
+
+    <!-- Footer buttons -->
+    <div class="dialog-update-footer">
+      <!-- Later button (only for patches) -->
+      @if (!isRequiredUpdate()) {
+        <p-button
+          [label]="t('update.Later')"
+          severity="secondary"
+          [text]="true"
+          (onClick)="onLater()"
+        />
+      }
+
+      <!-- Update button -->
+      <p-button
+        [label]="t('update.Update Now')"
+        icon="pi pi-refresh"
+        (onClick)="onUpdate()"
+      />
+    </div>
+  </div>
+</ng-template>

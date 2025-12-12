@@ -34,7 +34,7 @@ export const changeLog = [
   {
     version: "20.0.0",
     date: "2025-11-28",
-    description: "gigantic: menu anchors, privacy/cookies, AUTH",
+    description: "gigantic: AUTH etc.",
     changes: [
       "Menu anchor consolidation",
       "Privacy policy center",

@@ -342,10 +342,22 @@ export const PAGE_CONTENT_KEYS = [
 export const PROFILE_PAGE_KEYS = [
   "auth.If an account with that information exists, a password reset email has been sent.",
   "profile.Permanently delete your account and all associated data. This action cannot be undone.",
+  "profile.Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.",
   "privacy.We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.",
   "profile.A verification link will be sent to your new email address. You must click the link to complete the change.",
   "profile.Verification email sent! Please check your new email address and click the confirmation link.",
 ] as const;
+
+/**
+ * Dialog default label translation keys.
+ * Used as fallbacks in DialogConfirmComponent when options don't specify labels.
+ */
+export const DIALOG_DEFAULT_LABELS = {
+  OK: 'OK',
+  CANCEL: 'Cancel',
+} as const;
+
+export const DIALOG_LABEL_KEYS = Object.values(DIALOG_DEFAULT_LABELS);
 
 /**
  * All programmatically-used translation keys combined.
@@ -368,6 +380,7 @@ export const ALL_PROGRAMMATIC_KEYS = [
   ...AUTH_TEMPLATE_KEYS,
   ...PAGE_CONTENT_KEYS,
   ...PROFILE_PAGE_KEYS,
+  ...DIALOG_LABEL_KEYS,
 ] as const;
 
 export type AuthErrorKey = typeof AUTH_ERROR_KEYS[number];

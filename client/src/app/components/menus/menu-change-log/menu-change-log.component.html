@@ -35,16 +35,28 @@
           {{ semverMessage() }}
         </h4>
         @if( !isTauri() ) { <p>{{ t('menu.If it doesn’t update momentarily, please try to clear your cache and refresh your browser.')}}</p> }
-        @else { <p [innerHTML]="linkMessage()"></p> }
+        @else {
+          <p>
+            {{ t('menu.If you encounter problems, use the web version at') }}
+            <a
+              [href]="packageJson.siteUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              (keydown.enter)="$event.stopPropagation()"
+            >{{ packageJson.siteUrl }}</a>{{ t('menu.until an app update is ready.') }}
+          </p>
+        }
       }
     </div>
 
     <div menu-body appScrollIndicator class="menu-change-log-body">
       @for (change of changeLog.changes(); track change.version) {
         <p-card>
-          <h5>{{ change.version }} @ {{ change.date }}</h5>
-          <p>{{ change.description }}</p>
-          <ul>
+          <h4>
+            {{ change.version }} · {{ change.description }} 
+          </h4>
+          <p>@ {{ change.date }}</p>
+          <ul class="bulleted">
             @for (item of change.changes; track item) {
               <li>{{ item }}</li>
             }

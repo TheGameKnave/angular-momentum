@@ -43,6 +43,9 @@ export class ChangeLogService {
     delta: 0,
   });
 
+  /** Dev-only override for current version (used for testing update dialog) */
+  readonly devVersionOverride = signal<string | null>(null);
+
   private readonly manualRefresh$ = new Subject<void>();
   private readonly refreshIntervalMs = CHANGELOG_CONFIG.REFRESH_INTERVAL_MS;
   private readonly refresh$ = merge(
@@ -97,11 +100,12 @@ export class ChangeLogService {
 
   /**
    * Get current application version from package.json.
+   * In dev mode, can be overridden via devVersionOverride signal.
    * @returns Current version string (e.g., '1.2.3')
    */
   // istanbul ignore next // smh my damn head
-  public getCurrentVersion() {
-    return packageJson.version;
+  public getCurrentVersion(): string {
+    return this.devVersionOverride() ?? packageJson.version;
   }
   /**
    * Calculate semantic version difference between current and latest versions.
