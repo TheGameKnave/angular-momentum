@@ -11,6 +11,8 @@ import { isTauri } from '@tauri-apps/api/core';
 import { ENVIRONMENT } from 'src/environments/environment';
 import { LogService } from './log.service';
 import { UPDATE_CONFIG } from '@app/constants/service.constants';
+import { UpdateDialogService } from './update-dialog.service';
+import { ChangeLogService } from './change-log.service';
 
 /**
  * Service for managing application updates across web and Tauri platforms.
@@ -30,6 +32,8 @@ export class UpdateService {
   private readonly updates = inject(SwUpdate);
   private readonly destroyRef = inject(DestroyRef);
   private readonly logService = inject(LogService);
+  private readonly updateDialogService = inject(UpdateDialogService);
+  private readonly changeLogService = inject(ChangeLogService);
 
   private confirming = false;
 
@@ -46,7 +50,7 @@ export class UpdateService {
     if (!['production', 'staging', 'local'].includes(ENVIRONMENT.env)) return;
 
     // Listen for Angular Service Worker version events
-    // istanbul ignore next because jasmine is awful
+    // istanbul ignore next - SwUpdate observable subscription requires real service worker context
     this.updates.versionUpdates
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(event => this.handleSwEvent(event));
@@ -69,7 +73,7 @@ export class UpdateService {
    * Automatically activates updates if available.
    */
   private checkServiceWorkerUpdate(): void {
-    // istanbul ignore next because jasmine is awful
+    // istanbul ignore next - Tauri platform detection, isTauri() always returns false in unit tests
     if (isTauri()) return;
     this.updates.checkForUpdate().then(available => {
       if (available) {
@@ -89,13 +93,23 @@ export class UpdateService {
   /**
    * Handle Angular Service Worker version events.
    * Prompts user to reload when a new version is ready.
+   * Refreshes changelog to get canonical version info.
+   *
+   * Note: Data migrations are handled separately on app startup,
+   * independent of the update process.
    *
    * @param event - Service Worker version event
    */
   private async handleSwEvent(event: VersionEvent): Promise<void> {
     if (event.type === 'VERSION_READY' && !this.confirming) {
       this.confirming = true;
-      const confirmed = await this.confirmUser('A new version is available. Reload now?');
+
+      // Refresh changelog to get canonical new version from API
+      // This ensures appDiff reflects the actual new version, not cached data
+      this.changeLogService.refresh();
+
+      // Show update dialog
+      const confirmed = await this.updateDialogService.show();
 
       this.confirming = false;
       if (confirmed) {
@@ -113,7 +127,7 @@ export class UpdateService {
    * Only runs on Tauri platforms (not web).
    * Prompts user to download and install if update is available.
    */
-  // istanbul ignore next
+  // istanbul ignore next - Tauri API, requires real Tauri runtime
   private async checkTauriUpdate(): Promise<void> {
     if (!isTauri()) return;
 
@@ -161,7 +175,7 @@ export class UpdateService {
 
         await this.relaunchApp();
       } catch (err) {
-        // istanbul ignore next
+        // istanbul ignore next - Tauri update error path, requires real Tauri runtime
         console.error('Failed to install Tauri update:', err);
       }
     }
@@ -175,7 +189,7 @@ export class UpdateService {
    * Reload the current page.
    * Wrapper method to allow spying in tests.
    */
-  // istanbul ignore next
+  // istanbul ignore next - browser reload, integration test scope
   protected reloadPage(): void {
     globalThis.location.reload();
   }
@@ -188,7 +202,7 @@ export class UpdateService {
    * @param message - Confirmation message to display
    * @returns Promise resolving to true if user confirmed, false otherwise
    */
-  // istanbul ignore next
+  // istanbul ignore next - Tauri/browser dialog, integration test scope
   protected async confirmUser(message: string): Promise<boolean> {
     try {
       if (isTauri()) {
@@ -210,7 +224,7 @@ export class UpdateService {
    * Relaunch the Tauri application.
    * Wrapper method to allow spying in tests.
    */
-  // istanbul ignore next
+  // istanbul ignore next - Tauri API, requires real Tauri runtime
   protected async relaunchApp(): Promise<void> {
     await relaunch();
   }
