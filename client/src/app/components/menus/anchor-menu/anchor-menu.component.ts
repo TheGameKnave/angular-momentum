@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ViewContainerRef, TemplateRef, ViewChild, signal, input, output } from '@angular/core';
+import { Component, DestroyRef, ViewContainerRef, TemplateRef, ViewChild, signal, input, output, inject } from '@angular/core';
 import { Overlay, OverlayRef, OverlayModule } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -57,6 +57,11 @@ import { TranslocoService } from '@jsverse/transloco';
   ],
 })
 export class AnchorMenuComponent {
+  private readonly overlay = inject(Overlay);
+  private readonly viewContainerRef = inject(ViewContainerRef);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly translocoService = inject(TranslocoService);
+
   @ViewChild('menuTemplate') menuTemplate!: TemplateRef<unknown>;
 
   /**
@@ -105,12 +110,7 @@ export class AnchorMenuComponent {
 
   private overlayRef: OverlayRef | null = null;
 
-  constructor(
-    private readonly overlay: Overlay,
-    private readonly viewContainerRef: ViewContainerRef,
-    private readonly destroyRef: DestroyRef,
-    private readonly translocoService: TranslocoService,
-  ) {
+  constructor() {
     // Initialize translated aria labels
     this.ariaLabelOpen.set(this.translocoService.translate('a11y.Open menu'));
     this.ariaLabelClose.set(this.translocoService.translate('a11y.Close menu'));
@@ -138,7 +138,7 @@ export class AnchorMenuComponent {
         positionStrategy,
         hasBackdrop: true,
         backdropClass: 'app-overlay-backdrop',
-        scrollStrategy: this.overlay.scrollStrategies.block(),
+        scrollStrategy: this.overlay.scrollStrategies.noop(),
         panelClass: 'anchor-menu-overlay-panel'
       });
 
@@ -146,6 +146,14 @@ export class AnchorMenuComponent {
       // istanbul ignore next - integration tests are out of scope
       this.overlayRef.backdropClick().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.close();
+      });
+
+      // Close on Escape key
+      // istanbul ignore next - integration tests are out of scope
+      this.overlayRef.keydownEvents().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+        if (event.key === 'Escape') {
+          this.close();
+        }
       });
     }
 

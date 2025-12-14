@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, OnInit, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, OnInit, output, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
@@ -34,6 +34,11 @@ import { AuthError } from '@supabase/supabase-js';
   ],
 })
 export class AuthResetComponent implements OnInit {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
+  private readonly translocoService = inject(TranslocoService);
+
   // Input for pre-filling email from login form
   readonly prefillEmail = input<string>('');
 
@@ -50,12 +55,7 @@ export class AuthResetComponent implements OnInit {
 
   resetForm: FormGroup;
 
-  constructor(
-    private readonly authService: AuthService,
-    private readonly router: Router,
-    private readonly fb: FormBuilder,
-    private readonly translocoService: TranslocoService,
-  ) {
+  constructor() {
     this.resetForm = this.fb.group({
       email: ['', [Validators.required, emailValidator(), emailTypoValidator()]],
       otpCode: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]],

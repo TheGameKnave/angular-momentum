@@ -85,7 +85,7 @@ describe('AuthService', () => {
     });
 
     mockTranslocoService = jasmine.createSpyObj('TranslocoService', ['getActiveLang']);
-    mockTranslocoService.getActiveLang.and.returnValue('en');
+    mockTranslocoService.getActiveLang.and.returnValue('en-US');
 
     // Mock global fetch
     spyOn(window, 'fetch');
@@ -121,7 +121,7 @@ describe('AuthService', () => {
     it('should skip initialization on SSR', () => {
       mockPlatformService.isSSR.and.returnValue(true);
 
-      const ssrService = new (AuthService as any)(mockPlatformService, mockLogService, mockRouter);
+      const ssrService = TestBed.runInInjectionContext(() => new AuthService());
 
       expect(ssrService.loading()).toBe(false);
     });
@@ -132,7 +132,7 @@ describe('AuthService', () => {
 
       mockLogService.log.calls.reset();
 
-      const testService = new (AuthService as any)(mockPlatformService, mockLogService, mockRouter);
+      const testService = TestBed.runInInjectionContext(() => new AuthService());
 
       expect(testService.loading()).toBe(false);
       expect(mockLogService.log).toHaveBeenCalledWith('Supabase not configured');
@@ -290,6 +290,33 @@ describe('AuthService', () => {
 
       expect(result.error?.message).toBe('error.Authentication service not initialized');
     });
+
+    it('should call beforeSession callback before setting session', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const mockSession = createMockSession(mockUser);
+      const beforeSessionSpy = jasmine.createSpy('beforeSession').and.returnValue(Promise.resolve());
+
+      (window.fetch as jasmine.Spy).and.returnValue(
+        Promise.resolve(new Response(JSON.stringify({
+          success: true,
+          user: mockUser,
+          session: mockSession
+        }), { status: 200 }))
+      );
+
+      mockSupabaseAuth.setSession.and.returnValue(Promise.resolve({ data: {}, error: null }));
+
+      const credentials: LoginCredentials = {
+        email: 'test@example.com',
+        password: 'password123'
+      };
+
+      const result = await service.login(credentials, beforeSessionSpy);
+
+      expect(beforeSessionSpy).toHaveBeenCalledWith('test-user-id');
+      expect(result.user).toEqual(mockUser);
+      expect(result.error).toBeNull();
+    });
   });
 
   describe('signUp', () => {
@@ -314,7 +341,7 @@ describe('AuthService', () => {
           data: {
             username: null,
             turnstile_token: null,
-            language: 'en'
+            language: 'en-US'
           }
         }
       });
@@ -470,6 +497,70 @@ describe('AuthService', () => {
       expect(result.session).toBeNull();
       expect(result.error?.message).toBe('error.Verification failed');
       expect(result.error?.status).toBe(500);
+    });
+  });
+
+  describe('verifyOtpWithCallback', () => {
+    it('should verify OTP and call callback before updating signals', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const mockSession = createMockSession(mockUser);
+      const beforeAuthUpdateSpy = jasmine.createSpy('beforeAuthUpdate').and.returnValue(Promise.resolve());
+
+      mockSupabaseAuth.verifyOtp.and.returnValue(
+        Promise.resolve({
+          data: { user: mockUser, session: mockSession },
+          error: null
+        })
+      );
+
+      const result = await service.verifyOtpWithCallback('test@example.com', '123456', beforeAuthUpdateSpy);
+
+      expect(beforeAuthUpdateSpy).toHaveBeenCalledWith('test-user-id');
+      expect(result.user).toEqual(mockUser);
+      expect(result.session).toEqual(mockSession);
+      expect(result.error).toBeNull();
+      expect(service.currentUser()).toEqual(mockUser);
+      expect(service.currentSession()).toEqual(mockSession);
+    });
+
+    it('should return error when Supabase not initialized', async () => {
+      (service as any).supabase = null;
+      const beforeAuthUpdateSpy = jasmine.createSpy('beforeAuthUpdate');
+
+      const result = await service.verifyOtpWithCallback('test@example.com', '123456', beforeAuthUpdateSpy);
+
+      expect(result.error?.message).toBe('error.Authentication service not initialized');
+      expect(beforeAuthUpdateSpy).not.toHaveBeenCalled();
+    });
+
+    it('should handle OTP verification error and reset defer flag', async () => {
+      const mockError: AuthError = {
+        message: 'Invalid OTP',
+        status: 400
+      } as AuthError;
+      const beforeAuthUpdateSpy = jasmine.createSpy('beforeAuthUpdate');
+
+      mockSupabaseAuth.verifyOtp.and.returnValue(
+        Promise.resolve({ data: { user: null, session: null }, error: mockError })
+      );
+
+      const result = await service.verifyOtpWithCallback('test@example.com', '000000', beforeAuthUpdateSpy);
+
+      expect(result.error).toEqual(mockError);
+      expect(beforeAuthUpdateSpy).not.toHaveBeenCalled();
+      // Verify defer flag is reset (internal state - signals should work normally after)
+      expect((service as any).deferAuthStateUpdates).toBe(false);
+    });
+
+    it('should handle exception and reset defer flag', async () => {
+      const beforeAuthUpdateSpy = jasmine.createSpy('beforeAuthUpdate');
+      mockSupabaseAuth.verifyOtp.and.throwError('Network error');
+
+      const result = await service.verifyOtpWithCallback('test@example.com', '123456', beforeAuthUpdateSpy);
+
+      expect(result.error?.message).toBe('error.Verification failed');
+      expect(beforeAuthUpdateSpy).not.toHaveBeenCalled();
+      expect((service as any).deferAuthStateUpdates).toBe(false);
     });
   });
 

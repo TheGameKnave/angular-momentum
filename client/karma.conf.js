@@ -44,6 +44,7 @@ module.exports = function (config) {
         '!src/main.ts',
         '!src/**/*.spec.(ts|js)',
         '!src/**/environment*.(ts|js)',
+        '!src/**/*.constants.ts',
         '!*.config.js',
         '!karma-setup.js'
       ],

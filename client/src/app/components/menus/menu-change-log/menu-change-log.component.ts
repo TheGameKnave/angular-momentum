@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 import packageJson from 'src/../package.json';
@@ -29,18 +29,15 @@ import { SEMVER_MESSAGE_MAP, CHANGE_LOG_MESSAGES } from '@app/constants/translat
   ],
 })
 export class MenuChangeLogComponent {
+  readonly translate = inject(TranslocoService);
+  readonly translocoLoader = inject(TranslocoHttpLoader);
+  readonly changeLogService = inject(ChangeLogService);
+
   isTauri = isTauri;
   changeLog = this.changeLogService;
   Object = Object;
   packageJson = packageJson;
   classToLang: Record<string, string> = {};
-
-  constructor(
-    public readonly translate: TranslocoService,
-    public readonly translocoLoader: TranslocoHttpLoader,
-    public readonly changeLogService: ChangeLogService,
-  ){
-  }
 
   /**
    * Computed signal that generates a localized message about version differences.
@@ -66,9 +63,8 @@ export class MenuChangeLogComponent {
    * @returns A translated message with the webapp URL link
    */
   linkMessage = computed(() => {
-    return this.translate.translate(
-      CHANGE_LOG_MESSAGES.USE_WEBAPP,
-      { url: this.packageJson.siteUrl }
-    ).replace(/>a/g, '<a').replace(/>\/a/g, '</a');
+    const before = this.translate.translate(CHANGE_LOG_MESSAGES.USE_WEBAPP_BEFORE);
+    const after = this.translate.translate(CHANGE_LOG_MESSAGES.USE_WEBAPP_AFTER);
+    return `${before} <a href="${this.packageJson.siteUrl}" target="_blank">${this.packageJson.siteUrl}</a> ${after}`;
   });
 }

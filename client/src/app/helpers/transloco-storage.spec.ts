@@ -3,9 +3,11 @@ import {
   CookieStorage,
   NoOpStorage,
   DualStorage,
+  UserScopedLocalStorage,
   platformAwareStorageFactory
 } from './transloco-storage';
 import { PlatformService } from '../services/platform.service';
+import { UserStorageService } from '../services/user-storage.service';
 
 describe('transloco-storage', () => {
   describe('CookieStorage', () => {
@@ -19,11 +21,11 @@ describe('transloco-storage', () => {
 
     describe('getItem', () => {
       it('should return language from cookie', () => {
-        document.cookie = 'lang=en; path=/';
+        document.cookie = 'lang=en-US; path=/';
 
         const result = CookieStorage.getItem('lang');
 
-        expect(result).toBe('en');
+        expect(result).toBe('en-US');
       });
 
       it('should return null when cookie is not found', () => {
@@ -61,7 +63,7 @@ describe('transloco-storage', () => {
 
     describe('setItem', () => {
       it('should set language cookie with correct attributes', () => {
-        CookieStorage.setItem('lang', 'en');
+        CookieStorage.setItem('lang', 'en-US');
 
         expect(document.cookie).toContain('lang=en');
       });
@@ -113,9 +115,14 @@ describe('transloco-storage', () => {
 
   describe('DualStorage', () => {
     let storage: DualStorage;
+    let mockUserStorageService: jasmine.SpyObj<UserStorageService>;
 
     beforeEach(() => {
-      storage = new DualStorage();
+      mockUserStorageService = jasmine.createSpyObj('UserStorageService', ['prefixKey']);
+      // By default, prefix with 'anonymous_'
+      mockUserStorageService.prefixKey.and.callFake((key: string) => `anonymous_${key}`);
+
+      storage = new DualStorage(mockUserStorageService);
 
       // Mock localStorage
       let store: { [key: string]: string } = {};
@@ -135,11 +142,12 @@ describe('transloco-storage', () => {
     });
 
     describe('getItem', () => {
-      it('should get value from localStorage if available', () => {
-        localStorage.setItem('testKey', 'localValue');
+      it('should get value from localStorage using prefixed key', () => {
+        localStorage.setItem('anonymous_testKey', 'localValue');
 
         const result = storage.getItem('testKey');
 
+        expect(mockUserStorageService.prefixKey).toHaveBeenCalledWith('testKey');
         expect(result).toBe('localValue');
       });
 
@@ -161,7 +169,7 @@ describe('transloco-storage', () => {
       });
 
       it('should prefer localStorage over cookie when both exist', () => {
-        localStorage.setItem('testKey', 'localValue');
+        localStorage.setItem('anonymous_testKey', 'localValue');
         document.cookie = 'lang=cookieValue; path=/';
 
         const result = storage.getItem('testKey');
@@ -180,10 +188,11 @@ describe('transloco-storage', () => {
     });
 
     describe('setItem', () => {
-      it('should set value in both localStorage and cookie', () => {
+      it('should set value in localStorage with prefixed key and cookie without prefix', () => {
         storage.setItem('testKey', 'testValue');
 
-        expect(localStorage.setItem).toHaveBeenCalledWith('testKey', 'testValue');
+        expect(mockUserStorageService.prefixKey).toHaveBeenCalledWith('testKey');
+        expect(localStorage.setItem).toHaveBeenCalledWith('anonymous_testKey', 'testValue');
         expect(document.cookie).toContain('lang=testValue');
       });
 
@@ -197,13 +206,14 @@ describe('transloco-storage', () => {
     });
 
     describe('removeItem', () => {
-      it('should remove value from both localStorage and cookie', () => {
-        localStorage.setItem('testKey', 'testValue');
+      it('should remove value from localStorage with prefixed key and cookie', () => {
+        localStorage.setItem('anonymous_testKey', 'testValue');
         document.cookie = 'lang=testValue; path=/';
 
         storage.removeItem('testKey');
 
-        expect(localStorage.removeItem).toHaveBeenCalledWith('testKey');
+        expect(mockUserStorageService.prefixKey).toHaveBeenCalledWith('testKey');
+        expect(localStorage.removeItem).toHaveBeenCalledWith('anonymous_testKey');
       });
 
       it('should remove cookie even if localStorage throws error', () => {
@@ -215,8 +225,86 @@ describe('transloco-storage', () => {
     });
   });
 
+  describe('UserScopedLocalStorage', () => {
+    let storage: UserScopedLocalStorage;
+    let mockUserStorageService: jasmine.SpyObj<UserStorageService>;
+
+    beforeEach(() => {
+      mockUserStorageService = jasmine.createSpyObj('UserStorageService', ['prefixKey']);
+      mockUserStorageService.prefixKey.and.callFake((key: string) => `user_abc123_${key}`);
+
+      storage = new UserScopedLocalStorage(mockUserStorageService);
+
+      // Mock localStorage
+      let store: { [key: string]: string } = {};
+      spyOn(localStorage, 'getItem').and.callFake((key: string) => store[key] || null);
+      spyOn(localStorage, 'setItem').and.callFake((key: string, value: string) => {
+        store[key] = value;
+      });
+      spyOn(localStorage, 'removeItem').and.callFake((key: string) => {
+        delete store[key];
+      });
+    });
+
+    describe('getItem', () => {
+      it('should get value from localStorage using prefixed key', () => {
+        localStorage.setItem('user_abc123_lang', 'en-US');
+
+        const result = storage.getItem('lang');
+
+        expect(mockUserStorageService.prefixKey).toHaveBeenCalledWith('lang');
+        expect(result).toBe('en-US');
+      });
+
+      it('should return null if key does not exist', () => {
+        const result = storage.getItem('nonexistent');
+
+        expect(result).toBeNull();
+      });
+
+      it('should return null if localStorage throws error', () => {
+        (localStorage.getItem as jasmine.Spy).and.throwError('localStorage error');
+
+        const result = storage.getItem('lang');
+
+        expect(result).toBeNull();
+      });
+    });
+
+    describe('setItem', () => {
+      it('should set value in localStorage using prefixed key', () => {
+        storage.setItem('lang', 'fr');
+
+        expect(mockUserStorageService.prefixKey).toHaveBeenCalledWith('lang');
+        expect(localStorage.setItem).toHaveBeenCalledWith('user_abc123_lang', 'fr');
+      });
+
+      it('should not throw if localStorage throws error', () => {
+        (localStorage.setItem as jasmine.Spy).and.throwError('localStorage error');
+
+        expect(() => storage.setItem('lang', 'fr')).not.toThrow();
+      });
+    });
+
+    describe('removeItem', () => {
+      it('should remove value from localStorage using prefixed key', () => {
+        storage.removeItem('lang');
+
+        expect(mockUserStorageService.prefixKey).toHaveBeenCalledWith('lang');
+        expect(localStorage.removeItem).toHaveBeenCalledWith('user_abc123_lang');
+      });
+
+      it('should not throw if localStorage throws error', () => {
+        (localStorage.removeItem as jasmine.Spy).and.throwError('localStorage error');
+
+        expect(() => storage.removeItem('lang')).not.toThrow();
+      });
+    });
+  });
+
   describe('platformAwareStorageFactory', () => {
     let mockPlatformService: jasmine.SpyObj<PlatformService>;
+    let mockUserStorageService: jasmine.SpyObj<UserStorageService>;
 
     beforeEach(() => {
       mockPlatformService = jasmine.createSpyObj('PlatformService', [
@@ -224,10 +312,12 @@ describe('transloco-storage', () => {
         'isTauri',
         'isWeb'
       ]);
+      mockUserStorageService = jasmine.createSpyObj('UserStorageService', ['prefixKey']);
 
       TestBed.configureTestingModule({
         providers: [
-          { provide: PlatformService, useValue: mockPlatformService }
+          { provide: PlatformService, useValue: mockPlatformService },
+          { provide: UserStorageService, useValue: mockUserStorageService }
         ]
       });
     });
@@ -240,13 +330,13 @@ describe('transloco-storage', () => {
       expect(result).toBeInstanceOf(NoOpStorage);
     });
 
-    it('should return localStorage for Tauri', () => {
+    it('should return UserScopedLocalStorage for Tauri', () => {
       mockPlatformService.isSSR.and.returnValue(false);
       mockPlatformService.isTauri.and.returnValue(true);
 
       const result = TestBed.runInInjectionContext(() => platformAwareStorageFactory());
 
-      expect(result).toBe(localStorage);
+      expect(result).toBeInstanceOf(UserScopedLocalStorage);
     });
 
     it('should return DualStorage for web', () => {

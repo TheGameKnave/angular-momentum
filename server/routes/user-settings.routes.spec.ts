@@ -754,6 +754,112 @@ describe('User Settings Routes', () => {
     });
   });
 
+  describe('DELETE /', () => {
+    it('should return 500 if Supabase is not configured', async () => {
+      const appWithoutSupabase = express();
+      appWithoutSupabase.use(express.json());
+      appWithoutSupabase.use('/api/user-settings', createUserSettingsRoutes(null));
+
+      const response = await request(appWithoutSupabase)
+        .delete('/api/user-settings')
+        .set('Authorization', 'Bearer token-123');
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({
+        error: 'Supabase not configured',
+      });
+    });
+
+    it('should return 401 if not authenticated', async () => {
+      const response = await request(app)
+        .delete('/api/user-settings');
+
+      expect(response.status).toBe(401);
+      expect(response.body).toEqual({
+        error: 'Unauthorized',
+      });
+    });
+
+    it('should delete user settings successfully', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      mockSupabase.from.mockReturnValue({
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({
+            error: null,
+          }),
+        }),
+      });
+
+      const response = await request(app)
+        .delete('/api/user-settings')
+        .set('Authorization', 'Bearer valid-token');
+
+      expect(response.status).toBe(204);
+    });
+
+    it('should return 500 if database delete fails', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      mockSupabase.from.mockReturnValue({
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({
+            error: { message: 'Delete failed' },
+          }),
+        }),
+      });
+
+      const response = await request(app)
+        .delete('/api/user-settings')
+        .set('Authorization', 'Bearer valid-token');
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ error: 'Delete failed' });
+    });
+
+    it('should handle exceptions during delete', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      mockSupabase.from.mockImplementation(() => {
+        throw new Error('Unexpected error');
+      });
+
+      const response = await request(app)
+        .delete('/api/user-settings')
+        .set('Authorization', 'Bearer valid-token');
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ error: 'Unexpected error' });
+    });
+
+    it('should handle non-Error throws in DELETE catch block', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      mockSupabase.from.mockImplementation(() => {
+        throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
+      });
+
+      const response = await request(app)
+        .delete('/api/user-settings')
+        .set('Authorization', 'Bearer valid-token');
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ error: 'Unknown error' });
+    });
+  });
+
   describe('Authentication helper', () => {
     it('should extract user ID from valid Bearer token', async () => {
       mockSupabase.auth.getUser.mockResolvedValue({

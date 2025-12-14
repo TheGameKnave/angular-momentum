@@ -38,7 +38,7 @@ describe('ChangeLogService', () => {
 
     service.refresh();
 
-    const req = httpMock.expectOne('http://localhost:4200/api/changelog');
+    const req = httpMock.expectOne((request) => request.url.endsWith('/api/changelog'));
     req.flush(mockResponse);
     tick();
 
@@ -55,7 +55,7 @@ describe('ChangeLogService', () => {
 
     service.refresh();
 
-    const req = httpMock.expectOne('http://localhost:4200/api/changelog');
+    const req = httpMock.expectOne((request) => request.url.endsWith('/api/changelog'));
     req.flush(mockResponse);
     tick();
 
@@ -70,7 +70,7 @@ describe('ChangeLogService', () => {
 
     service.refresh();
 
-    const req = httpMock.expectOne('http://localhost:4200/api/changelog');
+    const req = httpMock.expectOne((request) => request.url.endsWith('/api/changelog'));
     req.flush(mockResponse);
     tick();
 
@@ -78,12 +78,28 @@ describe('ChangeLogService', () => {
     expect(service.appDiff().delta).toBe(3);
   }));
 
+  it('should map none impact to patch when versions are equal', fakeAsync(() => {
+    const mockResponse: ChangeLogResponse[] = [
+      { version: '1.0.0', date: '2025-10-25', description: 'Current release', changes: ['Current'] },
+    ];
+
+    service.refresh();
+
+    const req = httpMock.expectOne((request) => request.url.endsWith('/api/changelog'));
+    req.flush(mockResponse);
+    tick();
+
+    // When versions are the same, semverDiff returns 'none' but service maps to 'patch'
+    expect(service.appDiff().impact).toBe('patch');
+    expect(service.appDiff().delta).toBe(0);
+  }));
+
   it('should handle HTTP errors gracefully', fakeAsync(() => {
     spyOn(console, 'error');
 
     service.refresh();
 
-    const req = httpMock.expectOne('http://localhost:4200/api/changelog');
+    const req = httpMock.expectOne((request) => request.url.endsWith('/api/changelog'));
     req.error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
     tick();
 

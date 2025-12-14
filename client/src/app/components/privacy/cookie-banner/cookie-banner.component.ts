@@ -1,4 +1,4 @@
-import { Component, computed } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
@@ -18,6 +18,9 @@ import { LogService } from '@app/services/log.service';
   templateUrl: './cookie-banner.component.html',
 })
 export class CookieBannerComponent {
+  private readonly cookieConsent = inject(CookieConsentService);
+  private readonly logService = inject(LogService);
+
   // Reactively show banner when consent is pending
   readonly showBanner = computed(() => {
     const status = this.cookieConsent.consentStatus();
@@ -25,11 +28,6 @@ export class CookieBannerComponent {
     this.logService.log(`Consent status:, ${status} | Show banner:, ${shouldShow}`);
     return shouldShow;
   });
-
-  constructor(
-    private readonly cookieConsent: CookieConsentService,
-    private readonly logService: LogService,
-  ) {}
 
   /**
    * Handle user accepting cookies.

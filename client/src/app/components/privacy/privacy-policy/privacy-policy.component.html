@@ -23,6 +23,47 @@
     </div>
   </p-card>
 
+  <!-- Cookie Preferences -->
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="p-6">
+        <h2 class="text-2xl font-bold">{{ t('privacy.Cookie Preferences') }}</h2>
+      </div>
+    </ng-template>
+
+    <div class="privacy-content">
+      <p class="mb-4">{{ t('privacy.We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.') }}</p>
+
+      <div class="flex items-center gap-4 mb-4">
+        <span class="font-medium">{{ t('privacy.Current status') }}:</span>
+        @if (cookieConsentService.consentStatus() === 'accepted') {
+          <span class="text-green-600">{{ t('privacy.Analytics cookies enabled') }}</span>
+        } @else if (cookieConsentService.consentStatus() === 'declined') {
+          <span class="text-gray-600">{{ t('privacy.Analytics cookies disabled') }}</span>
+        } @else {
+          <span class="text-yellow-600">{{ t('privacy.Cookie preference not set') }}</span>
+        }
+      </div>
+
+      <div class="flex gap-2">
+        <p-button
+          [label]="t('Accept')"
+          (onClick)="onAcceptCookies()"
+          severity="primary"
+          size="small"
+          [disabled]="cookieConsentService.consentStatus() === 'accepted'"
+        />
+        <p-button
+          [label]="t('Decline')"
+          (onClick)="onDeclineCookies()"
+          severity="secondary"
+          size="small"
+          [disabled]="cookieConsentService.consentStatus() === 'declined'"
+        />
+      </div>
+    </div>
+  </p-card>
+
   <!-- Third-Party Services -->
   <p-card>
     <ng-template pTemplate="header">

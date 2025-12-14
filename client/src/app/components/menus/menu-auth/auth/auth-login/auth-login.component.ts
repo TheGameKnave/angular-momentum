@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, output, signal, inject, input } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
@@ -34,6 +34,12 @@ import { parseApiError } from '@app/helpers/api-error.helper';
   ],
 })
 export class AuthLoginComponent {
+  private readonly authService = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
+
+  // Input for pre-session callback (e.g., storage promotion)
+  readonly beforeSession = input<((userId: string) => Promise<void>) | undefined>();
+
   // Outputs for parent component
   readonly switchToReset = output<string>(); // Emit email/username for prefill
   readonly switchToSignup = output<void>();
@@ -46,10 +52,7 @@ export class AuthLoginComponent {
 
   loginForm: FormGroup;
 
-  constructor(
-    private readonly authService: AuthService,
-    private readonly fb: FormBuilder,
-  ) {
+  constructor() {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required]], // Accept email or username
       password: ['', [Validators.required, passwordComplexityValidator()]],
@@ -68,7 +71,7 @@ export class AuthLoginComponent {
     this.errorMessage.set(null);
 
     const { email, password } = this.loginForm.value;
-    const result = await this.authService.login({ email, password });
+    const result = await this.authService.login({ email, password }, this.beforeSession());
 
     this.loading.set(false);
 

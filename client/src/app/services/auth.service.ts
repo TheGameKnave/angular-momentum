@@ -1,4 +1,4 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { createClient, SupabaseClient, User, Session, AuthError } from '@supabase/supabase-js';
 import { TranslocoService } from '@jsverse/transloco';
@@ -59,6 +59,11 @@ export interface LoginCredentials {
   providedIn: 'root'
 })
 export class AuthService {
+  private readonly platformService = inject(PlatformService);
+  private readonly logService = inject(LogService);
+  private readonly router = inject(Router);
+  private readonly translocoService = inject(TranslocoService);
+
   private supabase: SupabaseClient | null = null;
 
   /**
@@ -93,12 +98,13 @@ export class AuthService {
    */
   private returnUrl: string | null = null;
 
-  constructor(
-    private readonly platformService: PlatformService,
-    private readonly logService: LogService,
-    private readonly router: Router,
-    private readonly translocoService: TranslocoService,
-  ) {
+  /**
+   * When true, the main onAuthStateChange listener skips updating signals.
+   * Used by verifyOtpWithCallback to manually control when auth state applies.
+   */
+  private deferAuthStateUpdates = false;
+
+  constructor() {
     this.initializeSupabase();
   }
 
@@ -164,6 +170,13 @@ export class AuthService {
       // istanbul ignore next - Auth state callback registered in constructor; testing requires mocking Supabase SDK's internal event emitter
       this.supabase.auth.onAuthStateChange((event, session) => {
         this.logService.log(`Auth state changed: ${event}`, session?.user?.email);
+
+        // Skip updating signals when deferred (verifyOtpWithCallback manages this manually)
+        if (this.deferAuthStateUpdates) {
+          this.logService.log('Auth state updates deferred, skipping signal update');
+          return;
+        }
+
         this.currentSession.set(session);
         this.currentUser.set(session?.user ?? null);
 
@@ -285,12 +298,15 @@ export class AuthService {
    * 1. Send identifier (email OR username) + password to server
    * 2. Server handles username → email lookup securely (not exposed to client)
    * 3. Server authenticates with Supabase
-   * 4. Client receives session and sets it in Supabase client
+   * 4. Run optional beforeSession callback (e.g., storage promotion)
+   * 5. Client receives session and sets it in Supabase client
    *
    * @param credentials - Login credentials (email or username + password)
+   * @param beforeSession - Optional callback that runs after auth succeeds but before session is set.
+   *                        Use this for storage promotion so data is ready before auth signals update.
    * @returns Authentication result
    */
-  async login(credentials: LoginCredentials): Promise<AuthResult> {
+  async login(credentials: LoginCredentials, beforeSession?: (userId: string) => Promise<void>): Promise<AuthResult> {
     if (!this.supabase) {
       return {
         user: null,
@@ -325,7 +341,12 @@ export class AuthService {
         };
       }
 
-      // Set session in Supabase client
+      // Run pre-session callback (e.g., storage promotion) before auth signals update
+      if (beforeSession && result.user?.id) {
+        await beforeSession(result.user.id);
+      }
+
+      // Set session in Supabase client (this triggers onAuthStateChange)
       await this.supabase.auth.setSession({
         access_token: result.session.access_token,
         refresh_token: result.session.refresh_token
@@ -417,6 +438,10 @@ export class AuthService {
   /**
    * Verify email OTP code after signup.
    *
+   * NOTE: Unlike login(), we cannot easily run a beforeSession callback here because
+   * Supabase's verifyOtp automatically sets the session. For signup flows that need
+   * to run code before auth signals update, use verifyOtpWithCallback() instead.
+   *
    * @param email - User email
    * @param token - 6-digit OTP code from email
    * @returns Authentication result with session if successful
@@ -445,6 +470,71 @@ export class AuthService {
       this.logService.log('OTP verification successful', data.user?.email);
       return { user: data.user, session: data.session, error: null };
     } catch (error) {
+      this.logService.log('OTP verification exception', error);
+      return {
+        user: null,
+        session: null,
+        error: { message: 'error.Verification failed', status: 500 } as AuthError
+      };
+    }
+  }
+
+  /**
+   * Verify email OTP with a callback that runs before auth signals update.
+   *
+   * This defers the auth state signal updates until after the callback completes.
+   * Use this for signup flows that need storage promotion before components react.
+   *
+   * @param email - User email
+   * @param token - 6-digit OTP code from email
+   * @param beforeAuthUpdate - Callback that runs after OTP succeeds but before signals update
+   * @returns Authentication result with session if successful
+   */
+  async verifyOtpWithCallback(
+    email: string,
+    token: string,
+    beforeAuthUpdate: (userId: string) => Promise<void>
+  ): Promise<AuthResult> {
+    if (!this.supabase) {
+      return {
+        user: null,
+        session: null,
+        error: { message: 'error.Authentication service not initialized', status: 500 } as AuthError
+      };
+    }
+
+    // Defer auth state updates during this flow
+    this.deferAuthStateUpdates = true;
+
+    try {
+      const { data, error } = await this.supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email'
+      });
+
+      if (error) {
+        this.deferAuthStateUpdates = false;
+        this.logService.log('OTP verification error', error);
+        return { user: null, session: null, error };
+      }
+
+      // Run the callback before applying auth state
+      if (data.user?.id) {
+        this.logService.log('Running pre-auth callback for user', data.user.id);
+        await beforeAuthUpdate(data.user.id);
+      }
+
+      // Now apply the auth state
+      this.deferAuthStateUpdates = false;
+      this.logService.log('Applying deferred auth state');
+      this.currentSession.set(data.session);
+      this.currentUser.set(data.user);
+
+      this.logService.log('OTP verification successful', data.user?.email);
+      return { user: data.user, session: data.session, error: null };
+    } catch (error) {
+      this.deferAuthStateUpdates = false;
       this.logService.log('OTP verification exception', error);
       return {
         user: null,

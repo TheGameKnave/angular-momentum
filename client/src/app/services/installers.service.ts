@@ -1,4 +1,4 @@
-import { computed, Injectable, Signal } from '@angular/core';
+import { computed, Injectable, Signal, inject } from '@angular/core';
 import { INSTALLERS, PLATFORMS } from '@app/constants/app.constants';
 import { Installer } from '@app/models/data.model';
 import { ChangeLogService } from './change-log.service';
@@ -19,12 +19,10 @@ import { ChangeLogService } from './change-log.service';
   providedIn: 'root'
 })
 export class InstallersService {
+  private readonly changeLogService = inject(ChangeLogService);
+
   private _cachedInstallers: Installer[] | null = null;
   private _cachedVersion: string | null = null;
-
-  constructor(
-    private readonly changeLogService: ChangeLogService,
-  ) { }
 
   /**
    * Determine the user's platform from user agent string.

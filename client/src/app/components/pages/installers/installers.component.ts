@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { Installer } from '@app/models/data.model';
 import { ConnectivityService } from '@app/services/connectivity.service';
 import { InstallersService } from '@app/services/installers.service';
@@ -29,13 +29,11 @@ import { ChangeLogService } from '@app/services/change-log.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InstallersComponent implements OnInit {
-  currentPlatform!: Installer;
+  protected readonly changeLogService = inject(ChangeLogService);
+  protected readonly installersService = inject(InstallersService);
+  protected readonly connectivity = inject(ConnectivityService);
 
-  constructor(
-    protected readonly changeLogService: ChangeLogService,
-    protected readonly installersService: InstallersService,
-    protected readonly connectivity: ConnectivityService,
-  ) {}
+  currentPlatform!: Installer;
 
   /**
    * Angular lifecycle hook called after component initialization.

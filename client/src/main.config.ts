@@ -1,4 +1,4 @@
-import { importProvidersFrom, isDevMode, SecurityContext } from '@angular/core';
+import { importProvidersFrom, isDevMode, provideZonelessChangeDetection, SecurityContext } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
@@ -6,9 +6,9 @@ import { provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@an
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 import { provideTransloco, TRANSLOCO_MISSING_HANDLER, TranslocoMissingHandler } from '@jsverse/transloco';
 import { provideTranslocoMessageformat } from '@jsverse/transloco-messageformat';
-import { GetLangParams, provideTranslocoPersistLang } from '@jsverse/transloco-persist-lang';
+import { provideTranslocoPersistLang } from '@jsverse/transloco-persist-lang';
 import { provideTranslocoLocale } from '@jsverse/transloco-locale';
-import { MarkdownModule } from 'ngx-markdown';
+import { MarkdownModule, SANITIZE } from 'ngx-markdown';
 
 import { SUPPORTED_LANGUAGES } from '@app/constants/app.constants';
 import { provideFeatureFlag } from '@app/providers/feature-flag.provider';
@@ -19,21 +19,12 @@ import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { routes } from '@app/app.routing';
 import { SlugPipe } from '@app/pipes/slug.pipe';
 
-import { provideAnimations } from '@angular/platform-browser/animations';
 import { providePrimeNG } from 'primeng/config';
+import { MessageService } from 'primeng/api';
 import Lara from '@primeng/themes/lara';
 import { authInterceptor } from '@app/interceptors/auth.interceptor';
 import { platformAwareStorageFactory } from '@app/helpers/transloco-storage';
-
-
-/**
- * Get the active language based on priority: cached > browser > culture > default.
- * @param params - Language parameters from Transloco
- * @returns Selected language code
- */
-export function getLangFn({ cachedLang, browserLang, cultureLang, defaultLang }: GetLangParams) {
-  return cachedLang ?? browserLang ?? (cultureLang || defaultLang);
-}
+import { getLangFn } from '@app/helpers/language.helper';
 
 export const isTestEnvironment = ENVIRONMENT.env === 'testing'; // TODO figure out how to mock this in test environment without putting it in the code!!
 
@@ -55,10 +46,11 @@ export class PrefixedMissingHandler implements TranslocoMissingHandler {
 }
 
 export const appProviders = [
+  provideZonelessChangeDetection(),
   SlugPipe,
   importProvidersFrom(
     BrowserModule,
-    MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),
+    MarkdownModule.forRoot({ sanitize: { provide: SANITIZE, useValue: SecurityContext.STYLE } }),
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerImmediately',
@@ -70,14 +62,14 @@ export const appProviders = [
     withInterceptorsFromDi()
   ),
   provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
-  // istanbul ignore next
+  // istanbul ignore next - conditional provider, isTestEnvironment is always true in unit tests
   isTestEnvironment ? [] : provideFeatureFlag(), // TODO figure out how to mock this in test environment without putting it in the code!!
-  // istanbul ignore next
+  // istanbul ignore next - conditional provider, isTestEnvironment is always true in unit tests
   isTestEnvironment ? [] : provideFeatureMonitor(), // Initialize feature monitoring at app startup
   provideTransloco({
     config: {
-      availableLangs: SUPPORTED_LANGUAGES,
-      defaultLang: 'en',
+      availableLangs: [...SUPPORTED_LANGUAGES],
+      defaultLang: 'en-US',
       reRenderOnLangChange: true,
       prodMode: !isDevMode(),
     },
@@ -95,7 +87,6 @@ export const appProviders = [
     },
   }),
   provideTranslocoLocale(),
-  provideAnimations(),
   providePrimeNG({
     theme: {
       preset: Lara,
@@ -106,4 +97,5 @@ export const appProviders = [
     },
     ripple: true,
   }),
+  MessageService,
 ];

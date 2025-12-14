@@ -79,9 +79,16 @@ describe('MenuChangeLogComponent', () => {
     }
   });
 
-  it('should return correct linkMessage', async () => {
-    await setup('patch', 1);
-    const message = component.linkMessage();
-    expect(message).toContain('https://example.com');
+  describe('linkMessage', () => {
+    it('should generate a link message with site URL', async () => {
+      await setup('patch', 1);
+
+      const msg = component.linkMessage();
+
+      expect(msg).toContain('https://example.com');
+      expect(msg).toContain('<a href="https://example.com"');
+      expect(msg).toContain('target="_blank"');
+    });
   });
+
 });

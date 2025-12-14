@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { ALL_PROGRAMMATIC_KEYS } from '../../client/src/app/constants/translations.constants';
+import { ALL_PROGRAMMATIC_KEYS } from '../../client/src/app/constants/translations.constants.js';
 
 /**
  * Validates that all translation keys used in the application
@@ -46,6 +46,26 @@ function findFiles(dir: string, pattern: RegExp, fileList: string[] = []): strin
  * Handles keys containing apostrophes by matching quote types properly.
  * Filters out dynamic/partial keys (e.g., 'nav.' from 'nav.' + p.name).
  */
+/**
+ * Check if a key looks like a partial namespace prefix (e.g., 'nav.', 'menu.')
+ * rather than a complete key that ends with a period (e.g., a full sentence).
+ * Partial keys are short, lowercase namespace prefixes used in dynamic concatenation.
+ */
+function isPartialNamespaceKey(key: string): boolean {
+  if (!key.endsWith('.')) return false;
+  // Partial namespace keys are short (typically < 20 chars) and look like "namespace."
+  // Full sentence keys ending in period are longer and contain spaces
+  const hasSpaces = key.includes(' ');
+  const isShort = key.length < 20;
+  return !hasSpaces && isShort;
+}
+
+/**
+ * Extracts translation keys from template content.
+ * Matches both single and double quoted t('key') and t("key") patterns.
+ * @param content - The template file content to extract keys from
+ * @returns Array of translation keys found in the template
+ */
 function extractTemplateKeys(content: string): string[] {
   const keys: string[] = [];
   let match: RegExpExecArray | null;
@@ -55,8 +75,8 @@ function extractTemplateKeys(content: string): string[] {
   const singleQuoteRegex = /(?<![a-zA-Z])t\('([^']+)'(?!\s*\+)/g;
   while ((match = singleQuoteRegex.exec(content)) !== null) {
     const key = match[1];
-    // Skip partial keys that end with a dot (from dynamic concatenation)
-    if (!key.endsWith('.')) {
+    // Skip partial namespace keys (e.g., 'nav.' from dynamic concatenation)
+    if (!isPartialNamespaceKey(key)) {
       keys.push(key);
     }
   }
@@ -65,8 +85,8 @@ function extractTemplateKeys(content: string): string[] {
   const doubleQuoteRegex = /(?<![a-zA-Z])t\("([^"]+)"(?!\s*\+)/g;
   while ((match = doubleQuoteRegex.exec(content)) !== null) {
     const key = match[1];
-    // Skip partial keys that end with a dot (from dynamic concatenation)
-    if (!key.endsWith('.')) {
+    // Skip partial namespace keys (e.g., 'nav.' from dynamic concatenation)
+    if (!isPartialNamespaceKey(key)) {
       keys.push(key);
     }
   }
@@ -75,8 +95,37 @@ function extractTemplateKeys(content: string): string[] {
 }
 
 /**
+ * Load translation namespaces from the schema file.
+ * This ensures the validator stays in sync with the schema.
+ * @returns Array of namespace prefixes (e.g., ['auth', 'error', 'menu', ...])
+ */
+function loadTranslationNamespaces(): string[] {
+  const schemaPath = path.join(__dirname, 'translation.schema.json');
+  const schemaContent = fs.readFileSync(schemaPath, 'utf-8');
+  const schema = JSON.parse(schemaContent);
+
+  // Extract keys that are objects (namespaces) vs simple strings (root-level keys)
+  const namespaces: string[] = [];
+  for (const [key, value] of Object.entries(schema.properties || {})) {
+    if (typeof value === 'object' && (value as any).type === 'object') {
+      namespaces.push(key);
+    }
+  }
+
+  return namespaces;
+}
+
+/**
+ * Translation key namespace prefixes derived from schema.
+ * Any string starting with these followed by a dot is likely a translation key.
+ */
+const TRANSLATION_NAMESPACES = loadTranslationNamespaces();
+
+/**
  * Extract translation keys from TypeScript content (services and components).
- * Handles keys containing apostrophes by matching quote types properly.
+ * Scans for:
+ * 1. Explicit translate/selectTranslate calls
+ * 2. Any string literal that looks like a translation key (namespace.text pattern)
  */
 function extractTsKeys(content: string): string[] {
   const keys: string[] = [];
@@ -104,6 +153,24 @@ function extractTsKeys(content: string): string[] {
   const selectTranslateDoubleRegex = /\.selectTranslate\(\s*"([^"]+)"/g;
   while ((match = selectTranslateDoubleRegex.exec(content)) !== null) {
     keys.push(match[1]);
+  }
+
+  // Match ANY string literal that looks like a translation key (namespace.text)
+  // This catches keys passed to services like confirmDialogService.show({ message: 'auth.foo' })
+  const namespacePattern = TRANSLATION_NAMESPACES.join('|');
+
+  // Double-quoted strings with namespace prefix
+  const nsDoubleRegex = new RegExp(`"((?:${namespacePattern})\\.[^"]+)"`, 'g');
+  while ((match = nsDoubleRegex.exec(content)) !== null) {
+    keys.push(match[1]);
+  }
+
+  // Single-quoted strings with namespace prefix (handles escaped apostrophes)
+  const nsSingleRegex = new RegExp(`'((?:${namespacePattern})\\.[^']*(?:\\\\'[^']*)*)'`, 'g');
+  while ((match = nsSingleRegex.exec(content)) !== null) {
+    // Unescape any escaped apostrophes to get the actual key
+    const key = match[1].replace(/\\'/g, "'");
+    keys.push(key);
   }
 
   return keys;

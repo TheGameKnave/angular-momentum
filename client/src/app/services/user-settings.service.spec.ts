@@ -328,6 +328,51 @@ describe('UserSettingsService', () => {
     });
   });
 
+  describe('deleteSettings', () => {
+    it('should delete settings successfully', async () => {
+      service.settings.set({ id: '123', timezone: 'America/New_York' });
+
+      const deletePromise = service.deleteSettings();
+      expect(service.loading()).toBe(true);
+
+      const req = httpMock.expectOne(`${ENVIRONMENT.baseUrl}/api/user-settings`);
+      expect(req.request.method).toBe('DELETE');
+      req.flush({});
+
+      await deletePromise;
+
+      expect(service.settings()).toBeNull();
+      expect(service.loading()).toBe(false);
+      expect(mockLogService.log).toHaveBeenCalledWith('Settings deleted');
+    });
+
+    it('should handle 404 error gracefully', async () => {
+      const deletePromise = service.deleteSettings();
+
+      const req = httpMock.expectOne(`${ENVIRONMENT.baseUrl}/api/user-settings`);
+      req.error(new ProgressEvent('error'), { status: 404, statusText: 'Not Found' });
+
+      await deletePromise;
+
+      expect(service.settings()).toBeNull();
+      expect(service.loading()).toBe(false);
+      // Should not log error for 404
+      expect(mockLogService.log).not.toHaveBeenCalledWith('Error deleting settings', jasmine.anything());
+    });
+
+    it('should throw and log non-404 errors', async () => {
+      const deletePromise = service.deleteSettings();
+
+      const req = httpMock.expectOne(`${ENVIRONMENT.baseUrl}/api/user-settings`);
+      req.error(new ProgressEvent('error'), { status: 500, statusText: 'Server Error' });
+
+      await expectAsync(deletePromise).toBeRejected();
+
+      expect(service.loading()).toBe(false);
+      expect(mockLogService.log).toHaveBeenCalledWith('Error deleting settings', jasmine.anything());
+    });
+  });
+
   describe('initial state', () => {
     it('should have null settings initially', () => {
       expect(service.settings()).toBeNull();

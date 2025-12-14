@@ -33,6 +33,9 @@ export const OVERLAY_CONFIG = {
 /**
  * IndexedDB configuration for browser-based persistent storage.
  * Defines database parameters and auto-save behavior for offline data persistence.
+ *
+ * Note: DB_VERSION is now derived from INDEXEDDB_SCHEMA_MIGRATIONS in
+ * migrations/indexeddb-schema.ts to keep version and migrations in sync.
  */
 export const INDEXEDDB_CONFIG = {
   /**
@@ -40,11 +43,6 @@ export const INDEXEDDB_CONFIG = {
    * Used to identify the application's database in the browser.
    */
   DB_NAME: 'momentum',
-  /**
-   * Database version number.
-   * Increment this when schema changes are needed to trigger database upgrades.
-   */
-  DB_VERSION: 1,
   /**
    * Debounce time for auto-save operations in milliseconds.
    * Prevents excessive writes by waiting for user to finish typing.
@@ -65,3 +63,23 @@ export const TIME_CONSTANTS = {
   WEEKS: 7 * 24 * 60 * 60 * 1000,
   YEARS: 365 * 24 * 60 * 60 * 1000,
 } as const;
+
+/**
+ * Tooltip configuration for PrimeNG tooltips.
+ * Provides consistent delay settings across the application.
+ */
+export const TOOLTIP_CONFIG = {
+  /** Delay in ms before showing tooltip (prevents eager popups) */
+  SHOW_DELAY: 1000,
+  /** Delay in ms before hiding tooltip */
+  HIDE_DELAY: 200,
+} as const;
+
+/**
+ * Known localStorage key names that should be promoted between user scopes.
+ * These are the base key names (without prefix).
+ */
+export const PROMOTABLE_LOCALSTORAGE_NAMES = [
+  'app_notifications',
+  'lang',
+] as const;

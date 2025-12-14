@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, output, signal, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, output, signal, ViewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
@@ -22,6 +22,7 @@ import {
   EMAIL_REQUIREMENT_KEYS
 } from '@app/helpers/validation';
 import { parseApiError } from '@app/helpers/api-error.helper';
+import { TOOLTIP_CONFIG } from '@app/constants/ui.constants';
 
 /**
  * Signup form component for new user registration.
@@ -50,6 +51,10 @@ import { parseApiError } from '@app/helpers/api-error.helper';
   ],
 })
 export class AuthSignupComponent {
+  private readonly authService = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
+  private readonly translocoService = inject(TranslocoService);
+
   // Outputs for parent component
   readonly switchToLogin = output<void>();
   readonly signupSuccess = output<{ email: string; username?: string }>(); // Emits email and username for OTP verification
@@ -71,14 +76,12 @@ export class AuthSignupComponent {
   usernameTooltip = '';
   passwordTooltip = '';
   emailTooltip = '';
+  tooltipShowDelay = TOOLTIP_CONFIG.SHOW_DELAY;
+  tooltipHideDelay = TOOLTIP_CONFIG.HIDE_DELAY;
 
   signupForm: FormGroup;
 
-  constructor(
-    private readonly authService: AuthService,
-    private readonly fb: FormBuilder,
-    private readonly translocoService: TranslocoService,
-  ) {
+  constructor() {
     this.signupForm = this.fb.group({
       email: ['', [Validators.required, emailValidator(), emailTypoValidator()]],
       username: ['', [usernameValidator()]],

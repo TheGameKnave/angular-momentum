@@ -157,9 +157,13 @@
           "type": "string",
           "description": "Change log: Instruction for web users to refresh"
         },
-        "If you encounter problems, you can use the webapp until an app update is ready.": {
+        "If you encounter problems, use the web version at": {
           "type": "string",
-          "description": "Change log: Instruction for desktop app users"
+          "description": "Change log: Desktop app fallback message prefix (before URL)"
+        },
+        "until an app update is ready.": {
+          "type": "string",
+          "description": "Change log: Desktop app fallback message suffix (after URL)"
         },
         "{environmentName} environment": {
           "type": "string",
@@ -182,7 +186,8 @@
         "minor version(s)",
         "major version(s)",
         "If it doesn’t update momentarily, please try to clear your cache and refresh your browser.",
-        "If you encounter problems, you can use the webapp until an app update is ready.",
+        "If you encounter problems, use the web version at",
+        "until an app update is ready.",
         "{environmentName} environment",
         "Development",
         "Production"
@@ -479,6 +484,18 @@
           "type": "string",
           "description": "Auth: Turnstile CAPTCHA failure message"
         },
+        "If this persists,": {
+          "type": "string",
+          "description": "Auth: Contact support message prefix"
+        },
+        "contact support": {
+          "type": "string",
+          "description": "Auth: Contact support link text"
+        },
+        "for help.": {
+          "type": "string",
+          "description": "Auth: Contact support message suffix"
+        },
         "Try Again": {
           "type": "string",
           "description": "Auth: Retry button after failure"
@@ -570,6 +587,22 @@
         "Send Reset Code": {
           "type": "string",
           "description": "Auth: Password reset request button"
+        },
+        "Import Local Data": {
+          "type": "string",
+          "description": "Auth: Storage import dialog title"
+        },
+        "This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)": {
+          "type": "string",
+          "description": "Auth: Storage import dialog message"
+        },
+        "Import": {
+          "type": "string",
+          "description": "Auth: Storage import confirm button"
+        },
+        "Skip": {
+          "type": "string",
+          "description": "Auth: Storage import cancel button"
         }
       },
       "required": [
@@ -594,6 +627,9 @@
         "Passwords do not match",
         "Create Account",
         "Bot check failed. This may be due to network issues or security restrictions. Please reload the page…",
+        "If this persists,",
+        "contact support",
+        "for help.",
         "Try Again",
         "We’ve sent a 6-digit verification code to:",
         "Verification Code",
@@ -616,7 +652,11 @@
         "The username you selected was unavailable. You can set a new one in your user profile",
         "I confirm that I am 16 years of age or older",
         "I agree to the",
-        "Send Reset Code"
+        "Send Reset Code",
+        "Import Local Data",
+        "This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)",
+        "Import",
+        "Skip"
       ],
       "additionalProperties": false
     },
@@ -841,26 +881,6 @@
           "type": "string",
           "description": "Profile: Account deletion button"
         },
-        "Cookies": {
-          "type": "string",
-          "description": "Profile: Cookie settings section header"
-        },
-        "Analytics cookies enabled": {
-          "type": "string",
-          "description": "Profile: Cookie consent status (enabled)"
-        },
-        "Analytics cookies disabled": {
-          "type": "string",
-          "description": "Profile: Cookie consent status (disabled)"
-        },
-        "Cookie preference not set": {
-          "type": "string",
-          "description": "Profile: Cookie consent status (not yet chosen)"
-        },
-        "We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.": {
-          "type": "string",
-          "description": "Profile: Cookie consent explanation"
-        },
         "Change Email Address": {
           "type": "string",
           "description": "Profile: Email change section header"
@@ -888,6 +908,18 @@
         "Verification email sent! Please check your new email address and click the confirmation link.": {
           "type": "string",
           "description": "Profile: Email change confirmation message"
+        },
+        "Clear All Data": {
+          "type": "string",
+          "description": "Profile: Clear data section header"
+        },
+        "Clear Data": {
+          "type": "string",
+          "description": "Profile: Clear data button"
+        },
+        "Remove all stored preferences, notifications, and settings. Your account will remain active.": {
+          "type": "string",
+          "description": "Profile: Clear data description"
         }
       },
       "required": [
@@ -912,18 +944,16 @@
         "Permanently delete your account and all associated data. This action cannot be undone.",
         "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.",
         "Delete Account",
-        "Cookies",
-        "Analytics cookies enabled",
-        "Analytics cookies disabled",
-        "Cookie preference not set",
-        "We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.",
         "Change Email Address",
         "New Email Address",
         "Enter your new email address",
         "Please enter a valid email address",
         "A verification link will be sent to your new email address. You must click the link to complete the change.",
         "Update Email",
-        "Verification email sent! Please check your new email address and click the confirmation link."
+        "Verification email sent! Please check your new email address and click the confirmation link.",
+        "Clear All Data",
+        "Clear Data",
+        "Remove all stored preferences, notifications, and settings. Your account will remain active."
       ],
       "additionalProperties": false
     },
@@ -1086,6 +1116,30 @@
         "Bot Protection": {
           "type": "string",
           "description": "Privacy: Cloudflare Turnstile service category label"
+        },
+        "Cookie Preferences": {
+          "type": "string",
+          "description": "Privacy: Cookie preferences section header"
+        },
+        "We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.": {
+          "type": "string",
+          "description": "Privacy: Cookie consent explanation"
+        },
+        "Current status": {
+          "type": "string",
+          "description": "Privacy: Cookie status label"
+        },
+        "Analytics cookies enabled": {
+          "type": "string",
+          "description": "Privacy: Cookie consent status (enabled)"
+        },
+        "Analytics cookies disabled": {
+          "type": "string",
+          "description": "Privacy: Cookie consent status (disabled)"
+        },
+        "Cookie preference not set": {
+          "type": "string",
+          "description": "Privacy: Cookie consent status (not yet chosen)"
         }
       },
       "required": [
@@ -1105,17 +1159,15 @@
         "Authentication & Database",
         "Usage Analytics",
         "Behavior Analytics",
-        "Bot Protection"
+        "Bot Protection",
+        "Cookie Preferences",
+        "We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.",
+        "Current status",
+        "Analytics cookies enabled",
+        "Analytics cookies disabled",
+        "Cookie preference not set"
       ],
       "additionalProperties": false
-    },
-    "Delete": {
-      "type": "string",
-      "description": "Common: Delete action button"
-    },
-    "Error": {
-      "type": "string",
-      "description": "Common: Error dialog header"
     },
     "OK": {
       "type": "string",
@@ -1145,28 +1197,109 @@
     "time": {
       "type": "object",
       "properties": {
-        "{count}d ago": {
+        "years ago": {
           "type": "string",
-          "description": "Relative time: Days ago (e.g., ‘3d ago’)"
+          "description": "Relative time: Years ago (e.g., '2 years ago')"
         },
-        "{count}h ago": {
+        "months ago": {
           "type": "string",
-          "description": "Relative time: Hours ago (e.g., ‘2h ago’)"
+          "description": "Relative time: Months ago (e.g., '3 months ago')"
         },
-        "{count}m ago": {
+        "weeks ago": {
           "type": "string",
-          "description": "Relative time: Minutes ago (e.g., ‘5m ago’)"
+          "description": "Relative time: Weeks ago (e.g., '2 weeks ago')"
+        },
+        "days ago": {
+          "type": "string",
+          "description": "Relative time: Days ago (e.g., '3 days ago')"
+        },
+        "hours ago": {
+          "type": "string",
+          "description": "Relative time: Hours ago (e.g., '2 hours ago')"
+        },
+        "minutes ago": {
+          "type": "string",
+          "description": "Relative time: Minutes ago (e.g., '5 minutes ago')"
         },
         "Just now": {
           "type": "string",
-          "description": "Relative time: Less than a minute ago"
+          "description": "Relative time: > 1 minute ago (e.g., 'Just now')"
         }
       },
       "required": [
-        "{count}d ago",
-        "{count}h ago",
-        "{count}m ago",
+        "years ago",
+        "months ago",
+        "weeks ago",
+        "days ago",
+        "hours ago",
+        "minutes ago",
         "Just now"
+      ],
+      "additionalProperties": false
+    },
+    "migration": {
+      "type": "object",
+      "properties": {
+        "Your data has been updated to a new format.": {
+          "type": "string",
+          "description": "Migration: Toast notification summary after automatic migration"
+        },
+        "The previous data is available to download from your profile page.": {
+          "type": "string",
+          "description": "Migration: Toast notification detail for authenticated users"
+        },
+        "Export Previous Data": {
+          "type": "string",
+          "description": "Migration: Profile panel header and button for pre-migration backup"
+        },
+        "Download a backup of your data from before the last update.": {
+          "type": "string",
+          "description": "Migration: Profile panel description"
+        }
+      },
+      "required": [
+        "Your data has been updated to a new format.",
+        "The previous data is available to download from your profile page.",
+        "Export Previous Data",
+        "Download a backup of your data from before the last update."
+      ],
+      "additionalProperties": false
+    },
+    "update": {
+      "type": "object",
+      "properties": {
+        "New Version Available": {
+          "type": "string",
+          "description": "Update dialog: Header title"
+        },
+        "This is a major update and requires restart": {
+          "type": "string",
+          "description": "Update dialog: Major update warning"
+        },
+        "This is a minor update and requires restart": {
+          "type": "string",
+          "description": "Update dialog: Minor update warning"
+        },
+        "This is a small change—you can update later if desired.": {
+          "type": "string",
+          "description": "Update dialog: Patch update info"
+        },
+        "Update Now": {
+          "type": "string",
+          "description": "Update dialog: Confirm button"
+        },
+        "Later": {
+          "type": "string",
+          "description": "Update dialog: Dismiss button"
+        }
+      },
+      "required": [
+        "New Version Available",
+        "This is a major update and requires restart",
+        "This is a minor update and requires restart",
+        "This is a small change—you can update later if desired.",
+        "Update Now",
+        "Later"
       ],
       "additionalProperties": false
     }
@@ -1194,14 +1327,14 @@
     "a11y",
     "Save",
     "privacy",
-    "Delete",
-    "Error",
     "OK",
     "Accept",
     "Decline",
     "connectivity",
     "time",
-    "feature"
+    "feature",
+    "migration",
+    "update"
   ],
   "additionalProperties": false
 }

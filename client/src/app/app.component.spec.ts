@@ -11,7 +11,12 @@ import { Socket } from 'ngx-socket-io';
 import { Subject } from 'rxjs';
 import { signal } from '@angular/core';
 import { ConnectivityService } from './services/connectivity.service';
+import { ResourcePreloadService } from './services/resource-preload.service';
 import { SCREEN_SIZES } from './constants/ui.constants';
+import { ChangeLogService } from './services/change-log.service';
+import { UpdateDialogService } from './services/update-dialog.service';
+import { DataMigrationService } from './services/data-migration.service';
+import { MessageService } from 'primeng/api';
 
 class MockConnectivityService {
   showOffline = signal(false);
@@ -55,6 +60,8 @@ describe('AppComponent', () => {
         { provide: Router, useValue: router },
         { provide: Socket, useValue: socketSpy },
         { provide: ConnectivityService, useClass: MockConnectivityService },
+        { provide: ResourcePreloadService, useValue: jasmine.createSpyObj('ResourcePreloadService', ['preloadAll']) },
+        MessageService,
       ],
     }).compileComponents();
 
@@ -239,6 +246,72 @@ describe('AppComponent', () => {
       spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md - 1);
       component.onResize();
       expect(component.isNarrowScreen()).toBeTrue();
+    });
+  });
+
+  describe('onKeyDown dev shortcuts', () => {
+    let changeLogService: ChangeLogService;
+    let updateDialogService: UpdateDialogService;
+    let dataMigrationService: DataMigrationService;
+
+    beforeEach(() => {
+      changeLogService = TestBed.inject(ChangeLogService);
+      updateDialogService = TestBed.inject(UpdateDialogService);
+      dataMigrationService = TestBed.inject(DataMigrationService);
+    });
+
+    it('should ignore non-dev mode', () => {
+      component.isDevMode = false;
+      const event = new KeyboardEvent('keydown', { key: 'U', ctrlKey: true, shiftKey: true });
+      spyOn(event, 'preventDefault');
+
+      component.onKeyDown(event);
+
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('should ignore without ctrl key', () => {
+      component.isDevMode = true;
+      const event = new KeyboardEvent('keydown', { key: 'U', ctrlKey: false, shiftKey: true });
+      spyOn(event, 'preventDefault');
+
+      component.onKeyDown(event);
+
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('should ignore without shift key', () => {
+      component.isDevMode = true;
+      const event = new KeyboardEvent('keydown', { key: 'U', ctrlKey: true, shiftKey: false });
+      spyOn(event, 'preventDefault');
+
+      component.onKeyDown(event);
+
+      expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('should trigger update dialog on Ctrl+Shift+U', () => {
+      component.isDevMode = true;
+      const event = new KeyboardEvent('keydown', { key: 'U', ctrlKey: true, shiftKey: true });
+      spyOn(event, 'preventDefault');
+      spyOn(updateDialogService, 'show').and.returnValue(Promise.resolve(false));
+      spyOn(console, 'log');
+
+      component.onKeyDown(event);
+
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(changeLogService.devVersionOverride()).toBe('0.0.0');
+      expect(updateDialogService.show).toHaveBeenCalled();
+    });
+
+    it('should ignore other keys', () => {
+      component.isDevMode = true;
+      const event = new KeyboardEvent('keydown', { key: 'X', ctrlKey: true, shiftKey: true });
+      spyOn(event, 'preventDefault');
+
+      component.onKeyDown(event);
+
+      expect(event.preventDefault).not.toHaveBeenCalled();
     });
   });
 });

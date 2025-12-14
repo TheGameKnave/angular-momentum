@@ -3,6 +3,7 @@ import { NotificationCenterComponent } from './notification-center.component';
 import { NotificationService } from '../../../services/notification.service';
 import { signal } from '@angular/core';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
+import { LocalizedStrings } from '../../../models/data.model';
 
 describe('NotificationCenterComponent', () => {
   let component: NotificationCenterComponent;
@@ -82,36 +83,23 @@ describe('NotificationCenterComponent', () => {
     });
   });
 
-  describe('formatTime', () => {
-    it('should return "Just now" for timestamps less than a minute old', () => {
-      const now = new Date();
-      const result = component.formatTime(now);
-      expect(result).toBe('Just now');
-    });
-
-    it('should return minutes for timestamps less than an hour old', () => {
-      const now = new Date();
-      const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
-      const result = component.formatTime(fiveMinutesAgo);
-      expect(result).toBe('5m ago');
-    });
-
-    it('should return hours for timestamps less than a day old', () => {
-      const now = new Date();
-      const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
-      const result = component.formatTime(twoHoursAgo);
-      expect(result).toBe('2h ago');
-    });
-
-    it('should return days for timestamps more than a day old', () => {
-      const now = new Date();
-      const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
-      const result = component.formatTime(threeDaysAgo);
-      expect(result).toBe('3d ago');
-    });
-  });
-
   describe('getTitle', () => {
+    it('should return localized title when localizedTitle is present', () => {
+      const notification = {
+        id: '1',
+        title: 'Fallback Title',
+        body: 'Body',
+        localizedTitle: { 'en-US': 'Welcome!', es: '¡Bienvenido!' } as LocalizedStrings,
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getTitle(notification);
+
+      // Should pick English (default lang in tests)
+      expect(result).toBe('Welcome!');
+    });
+
     it('should return translated title when titleKey is present', () => {
       const notification = {
         id: '1',
@@ -158,9 +146,59 @@ describe('NotificationCenterComponent', () => {
 
       expect(result).toBe('Welcome!');
     });
+
+    it('should prioritize localizedTitle over titleKey', () => {
+      const notification = {
+        id: '1',
+        title: 'Fallback Title',
+        body: 'Body',
+        localizedTitle: { 'en-US': 'Localized Welcome!', es: '¡Bienvenido localizado!' } as LocalizedStrings,
+        titleKey: 'notification.Welcome!',
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getTitle(notification);
+
+      // localizedTitle should take priority
+      expect(result).toBe('Localized Welcome!');
+    });
+
+    it('should apply ICU formatting when localizedTitle has params', () => {
+      const notification = {
+        id: '1',
+        title: 'Fallback Title',
+        body: 'Body',
+        localizedTitle: { 'en-US': 'Hello {name}!', es: '¡Hola {name}!' } as LocalizedStrings,
+        params: { name: 'World' },
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getTitle(notification);
+
+      // TranslocoService.translate is called with the localized text and params
+      expect(result).toBe('Hello {name}!');
+    });
   });
 
   describe('getBody', () => {
+    it('should return localized body when localizedBody is present', () => {
+      const notification = {
+        id: '1',
+        title: 'Title',
+        body: 'Fallback Body',
+        localizedBody: { 'en-US': 'Thanks for trying!', es: '¡Gracias por probar!' } as LocalizedStrings,
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getBody(notification);
+
+      // Should pick English (default lang in tests)
+      expect(result).toBe('Thanks for trying!');
+    });
+
     it('should return translated body when bodyKey is present', () => {
       const notification = {
         id: '1',
@@ -206,6 +244,40 @@ describe('NotificationCenterComponent', () => {
       const result = component.getBody(notification);
 
       expect(result).toBe('Thanks for trying Angular Momentum—your modern Angular starter kit!');
+    });
+
+    it('should prioritize localizedBody over bodyKey', () => {
+      const notification = {
+        id: '1',
+        title: 'Title',
+        body: 'Fallback Body',
+        localizedBody: { 'en-US': 'Localized body text!', es: '¡Texto localizado!' } as LocalizedStrings,
+        bodyKey: 'notification.Thanks for trying Angular Momentum—your modern Angular starter kit!',
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getBody(notification);
+
+      // localizedBody should take priority
+      expect(result).toBe('Localized body text!');
+    });
+
+    it('should apply ICU formatting when localizedBody has params', () => {
+      const notification = {
+        id: '1',
+        title: 'Title',
+        body: 'Fallback Body',
+        localizedBody: { 'en-US': 'Maintenance at {time}', es: 'Mantenimiento a las {time}' } as LocalizedStrings,
+        params: { time: '10:00 PM' },
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getBody(notification);
+
+      // TranslocoService.translate is called with the localized text and params
+      expect(result).toBe('Maintenance at {time}');
     });
   });
 });

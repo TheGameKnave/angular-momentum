@@ -1,21 +1,11 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  HostListener,
-  signal,
-  ElementRef,
-  AfterViewInit,
-  DestroyRef,
-  ViewChild,
-  OnInit
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, signal, ElementRef, AfterViewInit, DestroyRef, ViewChild, OnInit, inject } from '@angular/core';
 import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { filter } from 'rxjs';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { SlugPipe } from '@app/pipes/slug.pipe';
 import { FeatureFlagService } from '@app/services/feature-flag.service';
 import { HelpersService } from '@app/services/helpers.service';
-import { SCREEN_SIZES } from '@app/constants/ui.constants';
+import { SCREEN_SIZES, TOOLTIP_CONFIG } from '@app/constants/ui.constants';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConnectivityService } from '@app/services/connectivity.service';
@@ -40,7 +30,17 @@ import { ConnectivityService } from '@app/services/connectivity.service';
   ],
 })
 export class MenuFeatureComponent implements OnInit, AfterViewInit {
+  protected featureFlagService = inject(FeatureFlagService);
+  protected readonly helpersService = inject(HelpersService);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly host = inject(ElementRef);
+  protected readonly connectivity = inject(ConnectivityService);
+
   @ViewChild('scrollArea') scrollArea?: ElementRef<HTMLElement>;
+
+  /** Saved scroll position to prevent Android's scroll reset on navigation */
+  private savedScrollLeft = 0;
 
   @HostListener('window:resize')
   onResize() {
@@ -49,15 +49,8 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
   }
 
   isMobile = signal(window.innerWidth < SCREEN_SIZES.sm);
-
-  constructor(
-    protected featureFlagService: FeatureFlagService,
-    protected readonly helpersService: HelpersService,
-    private readonly router: Router,
-    private readonly destroyRef: DestroyRef,
-    private readonly host: ElementRef,
-    protected readonly connectivity: ConnectivityService,
-  ) {}
+  tooltipShowDelay = TOOLTIP_CONFIG.SHOW_DELAY;
+  tooltipHideDelay = TOOLTIP_CONFIG.HIDE_DELAY;
 
   /**
    * Angular lifecycle hook called after component initialization.
@@ -76,7 +69,20 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
     // Initial scroll to active route
     this.scrollToCenter();
 
-    // Scroll again after each navigation (e.g., route change)
+    // Save scroll position before navigation starts (prevents Android reset jump)
+    this.router.events
+      .pipe(
+        filter(e => e.type === 0), // NavigationStart
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        const container = this.scrollArea?.nativeElement;
+        if (container) {
+          this.savedScrollLeft = container.scrollLeft;
+        }
+      });
+
+    // Scroll to center after navigation completes
     this.router.events
       .pipe(
         filter(e => e instanceof NavigationEnd),
@@ -96,7 +102,8 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
   /**
    * Smoothly scrolls the selected menu item into horizontal center view.
    * Uses a retry mechanism with requestAnimationFrame to ensure the DOM is ready.
-   * On Chrome Mobile, uses immediate scrolling without animation to prevent visual jumps.
+   * On Android/Chrome Mobile, restores saved scroll position first to prevent the
+   * browser's scroll reset, then animates to the target.
    * On other platforms, uses smooth scrolling behavior. On desktop, resets scroll to left.
    * Fully zoneless and Chrome-safe (no setTimeout).
    */
@@ -120,11 +127,12 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
         : 0;
 
       if (this.isChromeMobile()) {
-        // Chrome Mobile behavior: prevent jump, no animation
+        // Android/Chrome Mobile: restore saved position immediately to prevent jump,
+        // then animate to target position
         requestAnimationFrame(() => {
+          container.scrollLeft = this.savedScrollLeft;
           requestAnimationFrame(() => {
-            container.getBoundingClientRect(); // force layout
-            container.scrollLeft = targetScrollLeft;  // set immediately
+            container.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
           });
         });
       } else {

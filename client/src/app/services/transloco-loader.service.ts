@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Translation, TranslocoLoader } from '@jsverse/transloco';
 import { catchError, Observable, of } from 'rxjs';
 import { LANGUAGES } from 'i18n-l10n-flags';
@@ -20,10 +20,9 @@ import { LANGUAGES } from 'i18n-l10n-flags';
   providedIn: 'root'
 })
 export class TranslocoHttpLoader implements TranslocoLoader {
+  readonly http = inject(HttpClient);
+
   languages = LANGUAGES;
-  constructor(
-    readonly http: HttpClient,
-  ) {}
 
   /**
    * Load translation file for a specific language.

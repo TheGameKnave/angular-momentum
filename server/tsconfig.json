@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "types": ["jest"],
+    "typeRoots": ["./node_modules/@types", "../node_modules/@types"],
     "outDir": "./build",
     "sourceMap": true,
     "esModuleInterop": true,

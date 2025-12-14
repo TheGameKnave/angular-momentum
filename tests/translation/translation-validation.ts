@@ -1,5 +1,5 @@
 import { exec } from 'child_process';
-import { SUPPORTED_LANGUAGES } from '../../client/src/app/constants/app.constants';
+import { SUPPORTED_LANGUAGES } from '../../shared/languages.js';
 import * as path from 'path';
 import fs from 'fs';
 
@@ -14,7 +14,7 @@ interface TypographicalIssue {
 
 const LAZY_TYPOGRAPHY: TypographicalIssue[] = [
   { pattern: /\.{3}/g, name: 'three dots', suggestion: '… (ellipsis U+2026)' },
-  { pattern: /(?<![{])'(?![}])/g, name: 'straight apostrophe', suggestion: '\u2019 (curly apostrophe U+2019)' },
+  { pattern: /(?<![{])'(?![}])/g, name: 'straight apostrophe', suggestion: '’ (curly apostrophe U+2019)' },
   // Exclude quotes in HTML attributes (preceded by = or following < until >)
   { pattern: /(?<![{=\\])"(?![}\s>])/g, name: 'straight double quote', suggestion: '\u201C or \u201D (curly quotes)' },
   { pattern: /(?<=\s)--(?=\s)/g, name: 'double hyphen', suggestion: '\u2014 (em dash for separation) or \u2013 (en dash for a range)' },

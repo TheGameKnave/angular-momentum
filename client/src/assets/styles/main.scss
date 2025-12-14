@@ -110,7 +110,7 @@ $progress-end: #059669 !default;
   }
 
   // Borders
-  app-menu-feature, .anchor-menu-panel, header, footer, .cookie-banner {
+  app-menu-feature, .anchor-menu-panel, .cdk-dialog-panel, header, footer, .cookie-banner {
     border-color: $mid-gray;
   }
   .p-tooltip .p-tooltip-text {
@@ -273,16 +273,11 @@ body {
   font: normal 1.2rem / 1.4 $text-font-stack;
   font-weight: 500;
   font-feature-settings: "lnum";
-
-  .main, app-menu-feature {
-    padding-bottom: env(safe-area-inset-bottom) !important;
-  }
-  .main {
-    padding-top: env(safe-area-inset-top) !important; // iOS safe area for Tauri builds
-  }
-  app-menu-feature {
-    top: env(safe-area-inset-top);
-  }
+  // Set safe area insets
+  padding-bottom: env(safe-area-inset-bottom) !important;
+  padding-top: env(safe-area-inset-top) !important;
+  padding-left: env(safe-area-inset-left) !important;
+  padding-right: env(safe-area-inset-right) !important;
 
   h1 {
     font-weight: 600;
@@ -304,6 +299,16 @@ body {
 
 .monospace {
   font-family: $code-font-stack;
+}
+
+pre {
+  overflow-x: auto;
+  white-space: pre;
+  max-width: 100%;
+}
+
+code {
+  word-break: break-word;
 }
 
 hr {
@@ -356,6 +361,15 @@ p a:hover {
   -webkit-filter: grayscale(100%);
   filter: grayscale(100%);
 }
+.strikethrough {
+  text-decoration: line-through;
+}
+.muted {
+  font-size: 1.4rem;
+  opacity: 0.7;
+
+  i { margin-right: 0.5rem; }
+}
 
 button {
   font-size: 2rem;
@@ -383,6 +397,10 @@ ul {
   list-style-type: none;
   margin: 0;
   padding: 0;
+  &.bulleted {
+    list-style-type: disc;
+    margin: 0.6em 0 0.6em 1em;
+  }
 }
 
 // ============================================================================
@@ -395,6 +413,12 @@ ul {
 .p-button,
 .p-button-label {
   font-size: 1.4rem !important;
+}
+
+// Accessible focus indicator for buttons
+.p-button:focus-visible {
+  outline: 2px solid $focus-ring !important;
+  outline-offset: 2px;
 }
 
 .p-checkbox,
@@ -415,6 +439,7 @@ p-panel {
   }
   .p-panel-content {
     display: flex;
+    flex-wrap: wrap;
     gap: 1rem;
   }
 }
@@ -434,6 +459,9 @@ p-panel {
   display: block !important;
 }
 
+// fix for prime accordion reserving too much space
+.p-accordioncontent-wrapper {overflow: hidden;}
+
 // ============================================================================
 // 6. LAYOUT (main, header, footer, content)
 // ============================================================================
@@ -441,7 +469,7 @@ p-panel {
 .main {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100dvh;
   overflow: auto;
   padding-left: 5rem;
 }
@@ -477,7 +505,9 @@ header {
 footer {
   position: relative;
   left: 0;
-  z-index: 100;
+  max-width: 100%;
+  overflow-x: auto;
+  z-index: 99;
   flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
@@ -518,12 +548,12 @@ footer {
 app-menu-feature {
   position: fixed;
   z-index: 100;
-  top: 0;
+  top: env(safe-area-inset-top);
+  left: env(safe-area-inset-left);
   bottom: 0;
   font-size: 1.6rem;
   overflow-y: auto;
   padding: 5.2rem 0.6rem 4.3rem;
-  left: 0;
   width: 5rem;
   transition: width 0.1s ease-in-out !important;
   border-right-width: 1px;
@@ -544,6 +574,9 @@ app-menu-feature {
     white-space: nowrap;
     img {
       width: 3rem;
+      height: 3rem;
+      min-width: 3rem;
+      min-height: 3rem;
       display: inline-block;
       vertical-align: middle;
       -webkit-filter: grayscale(100%);
@@ -573,10 +606,7 @@ app-menu-feature {
       text-decoration: none;
     }
     img {
-      width: 2.6rem;
-      height: 2.6rem;
-      object-fit: contain;
-      flex-shrink: 0;
+      max-width: 2.6rem;
       display: block;
     }
   }
@@ -737,7 +767,7 @@ app-anchor-menu {
     right: 0;
     border-width: 0 0 1px 1px;
     border-radius: 0 0 0 0.8rem;
-    max-height: 100vh;
+    max-height: 100dvh;
   }
 
   &.position-top-left {
@@ -745,7 +775,7 @@ app-anchor-menu {
     left: 0;
     border-width: 0 1px 1px 0;
     border-radius: 0 0 0.8rem 0;
-    max-height: 100vh;
+    max-height: 100dvh;
   }
 
   &.position-bottom-right {
@@ -753,7 +783,7 @@ app-anchor-menu {
     right: 0;
     border-width: 1px 0 0 1px;
     border-radius: 0.8rem 0 0 0;
-    max-height: 100vh;
+    max-height: 100dvh;
   }
 
   &.position-bottom-left {
@@ -761,9 +791,138 @@ app-anchor-menu {
     left: 0;
     border-width: 1px 1px 0 0;
     border-radius: 0 0.8rem 0 0;
-    max-height: 100vh;
+    max-height: 100dvh;
   }
 }
+
+// CDK Overlay Dialog (generic reusable dialog styles)
+.cdk-dialog-panel {
+  background-color: $backdrop;
+  border: 1px solid $mid-gray;
+  border-radius: 0.8rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(2px);
+  display: flex;
+  flex-direction: column;
+  max-width: 95vw;
+  max-height: 95vh;
+
+  // Size variants
+  &.size-sm { width: 30rem; }
+  &.size-md { width: 50rem; }
+  &.size-lg { width: 70rem; }
+}
+
+.cdk-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.6rem;
+  border-bottom: 1px solid $mid-gray;
+  flex-shrink: 0;
+}
+
+.cdk-dialog-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.cdk-dialog-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cdk-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 1.6rem;
+  border-top: 1px solid $mid-gray;
+  flex-shrink: 0;
+}
+
+// ----------------------------------------------------------------------------
+// 7.2.1 Dialog: Update
+// ----------------------------------------------------------------------------
+
+.dialog-update-panel {
+  @extend .cdk-dialog-panel;
+  @extend .size-md;
+}
+.dialog-update-header { @extend .cdk-dialog-header; }
+.dialog-update-close { @extend .cdk-dialog-close; }
+.dialog-update-content { @extend .cdk-dialog-content; }
+.dialog-update-footer { @extend .cdk-dialog-footer; }
+
+.update-warning {
+  i { margin-right: 0.5rem; }
+}
+
+.accordion-header-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+// ----------------------------------------------------------------------------
+// 7.2.2 Dialog: Migration
+// ----------------------------------------------------------------------------
+
+.dialog-migration-panel {
+  @extend .cdk-dialog-panel;
+}
+.dialog-migration-header { @extend .cdk-dialog-header; }
+.dialog-migration-content {
+  @extend .cdk-dialog-content;
+}
+.dialog-migration-footer { @extend .cdk-dialog-footer; }
+
+// ----------------------------------------------------------------------------
+// 7.2.3 Dialog: Clear Data
+// ----------------------------------------------------------------------------
+
+.dialog-clear-data-panel {
+  @extend .cdk-dialog-panel;
+  &.size-sm { width: 30rem; }
+}
+.dialog-clear-data-header {
+  @extend .cdk-dialog-header;
+  gap: 0.75rem;
+}
+.dialog-clear-data-content {
+  @extend .cdk-dialog-content;
+}
+.dialog-clear-data-footer { @extend .cdk-dialog-footer; }
+
+// ----------------------------------------------------------------------------
+// 7.2.4 Dialog: Generic Confirm
+// ----------------------------------------------------------------------------
+
+.dialog-confirm-panel {
+  @extend .cdk-dialog-panel;
+}
+.dialog-confirm-header {
+  @extend .cdk-dialog-header;
+  gap: 0.75rem;
+}
+.dialog-confirm-content {
+  @extend .cdk-dialog-content;
+}
+.dialog-confirm-footer { @extend .cdk-dialog-footer; }
 
 // ----------------------------------------------------------------------------
 // 7.3 Language Menu
@@ -825,8 +984,6 @@ app-anchor-menu {
   }
 
   ul {
-    list-style-type: disc;
-    margin: 1rem 0;
     li {
       font-size: 1.6rem !important;
     }
@@ -1371,7 +1528,7 @@ app-anchor-menu {
 
   .status-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
     gap: 1rem;
   }
 
@@ -1439,11 +1596,7 @@ app-anchor-menu {
   }
 
   ul {
-    list-style-type: disc;
-    padding-left: 2rem;
-
     li {
-      margin-bottom: 1rem;
       font-size: 1.4rem;
       line-height: 1.6;
     }
@@ -1488,7 +1641,7 @@ p-card.indexeddb {
   // Layout overrides
   .main {
     padding-left: 0;
-    height: calc(100vh - 4rem);
+    height: calc(100dvh - 4rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
   header, footer {
     border-left-width: 0;
@@ -1502,9 +1655,9 @@ p-card.indexeddb {
   // Feature menu becomes bottom bar
   app-menu-feature {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    bottom: env(safe-area-inset-bottom);
+    left: env(safe-area-inset-left);
+    right: env(safe-area-inset-right);
     top: auto;
     display: flex;
     flex-direction: row;
@@ -1567,7 +1720,7 @@ p-card.indexeddb {
     overflow-y: auto;
     display: block;
     padding: 2rem 2.5vw;
-    pointer-events: none;
+    pointer-events: auto; // iOS Safari requires pointer-events to allow touch scrolling
     width: 100%;
   }
 
@@ -1597,6 +1750,16 @@ p-card.indexeddb {
   p-card ul li, p-card.indexeddb {
     margin: 0.4rem 0;
     padding: 0;
+  }
+
+  // Notification test cards stack vertically on mobile
+  .notification-test-card {
+    flex-direction: column;
+    align-items: stretch;
+
+    .notification-actions {
+      justify-content: space-around;
+    }
   }
 }
 

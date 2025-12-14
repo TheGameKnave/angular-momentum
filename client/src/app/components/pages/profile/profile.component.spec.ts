@@ -3,9 +3,12 @@ import { ProfileComponent } from './profile.component';
 import { AuthService } from '@app/services/auth.service';
 import { UserSettingsService } from '@app/services/user-settings.service';
 import { UsernameService } from '@app/services/username.service';
-import { CookieConsentService } from '@app/services/cookie-consent.service';
+import { DataExportService } from '@app/services/data-export.service';
+import { DataMigrationService } from '@app/services/data-migration.service';
+import { IndexedDbService } from '@app/services/indexeddb.service';
+import { NotificationService } from '@app/services/notification.service';
+import { ConfirmDialogService } from '@app/services/confirm-dialog.service';
 import { Router, ActivatedRoute } from '@angular/router';
-import { ConfirmationService } from 'primeng/api';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -17,9 +20,12 @@ describe('ProfileComponent', () => {
   let mockAuthService: jasmine.SpyObj<AuthService>;
   let mockUserSettingsService: jasmine.SpyObj<UserSettingsService>;
   let mockUsernameService: jasmine.SpyObj<UsernameService>;
-  let mockCookieConsentService: jasmine.SpyObj<CookieConsentService>;
+  let mockDataExportService: jasmine.SpyObj<DataExportService>;
   let mockRouter: jasmine.SpyObj<Router>;
-  let mockConfirmationService: jasmine.SpyObj<ConfirmationService>;
+  let mockConfirmDialogService: jasmine.SpyObj<ConfirmDialogService>;
+  let mockIndexedDbService: jasmine.SpyObj<IndexedDbService>;
+  let mockNotificationService: jasmine.SpyObj<NotificationService>;
+  let mockDataMigrationService: jasmine.SpyObj<DataMigrationService>;
 
   beforeEach(async () => {
     const currentUserSignal = signal({ email: 'test@example.com', id: '123' });
@@ -28,24 +34,28 @@ describe('ProfileComponent', () => {
     const consentStatusSignal = signal<'accepted' | 'declined' | 'pending'>('pending');
 
     mockAuthService = jasmine.createSpyObj('AuthService',
-      ['logout', 'updatePassword', 'updateEmail', 'exportUserData', 'deleteAccount', 'isPasswordRecovery', 'login'],
+      ['logout', 'updatePassword', 'updateEmail', 'getToken', 'deleteAccount', 'isPasswordRecovery', 'login'],
       { currentUser: currentUserSignal }
     );
     mockAuthService.isPasswordRecovery.and.returnValue(false);
     mockAuthService.logout.and.returnValue(Promise.resolve());
     mockAuthService.updatePassword.and.returnValue(Promise.resolve({ error: null } as any));
     mockAuthService.updateEmail.and.returnValue(Promise.resolve({ error: null } as any));
-    mockAuthService.exportUserData.and.returnValue(Promise.resolve({ error: null } as any));
+    mockAuthService.getToken.and.returnValue(Promise.resolve('test-token'));
     mockAuthService.deleteAccount.and.returnValue(Promise.resolve({ error: null } as any));
     mockAuthService.login.and.returnValue(Promise.resolve({ error: null } as any));
 
+    mockDataExportService = jasmine.createSpyObj('DataExportService', ['exportUserData']);
+    mockDataExportService.exportUserData.and.returnValue(Promise.resolve());
+
     mockUserSettingsService = jasmine.createSpyObj('UserSettingsService',
-      ['initialize', 'clear', 'detectTimezone', 'updateTimezone'],
+      ['initialize', 'clear', 'detectTimezone', 'updateTimezone', 'deleteSettings'],
       { settings: settingsSignal }
     );
     mockUserSettingsService.initialize.and.returnValue(Promise.resolve());
     mockUserSettingsService.detectTimezone.and.returnValue('UTC');
     mockUserSettingsService.updateTimezone.and.returnValue(Promise.resolve(null));
+    mockUserSettingsService.deleteSettings.and.returnValue(Promise.resolve());
 
     mockUsernameService = jasmine.createSpyObj('UsernameService',
       ['loadUsername', 'updateUsername', 'deleteUsername', 'clear'],
@@ -55,16 +65,21 @@ describe('ProfileComponent', () => {
     mockUsernameService.updateUsername.and.returnValue(Promise.resolve(null));
     mockUsernameService.deleteUsername.and.returnValue(Promise.resolve(true));
 
-    mockCookieConsentService = jasmine.createSpyObj('CookieConsentService',
-      ['acceptCookies', 'declineCookies', 'resetConsent'],
-      { consentStatus: consentStatusSignal }
-    );
-
     mockRouter = jasmine.createSpyObj('Router', ['navigate', 'getCurrentNavigation']);
     mockRouter.navigate.and.returnValue(Promise.resolve(true));
     mockRouter.getCurrentNavigation.and.returnValue(null);
 
-    mockConfirmationService = jasmine.createSpyObj('ConfirmationService', ['confirm']);
+    mockConfirmDialogService = jasmine.createSpyObj('ConfirmDialogService', ['show', 'confirm', 'dismiss']);
+
+    mockIndexedDbService = jasmine.createSpyObj('IndexedDbService', ['clear']);
+    mockIndexedDbService.clear.and.returnValue(Promise.resolve());
+
+    mockNotificationService = jasmine.createSpyObj('NotificationService', ['clearAll']);
+
+    mockDataMigrationService = jasmine.createSpyObj('DataMigrationService', ['hasDataBackup', 'getDataBackup', 'deleteDataBackup']);
+    mockDataMigrationService.hasDataBackup.and.returnValue(Promise.resolve(false));
+    mockDataMigrationService.getDataBackup.and.returnValue(Promise.resolve(null));
+    mockDataMigrationService.deleteDataBackup.and.returnValue(Promise.resolve());
 
     await TestBed.configureTestingModule({
       imports: [
@@ -75,10 +90,13 @@ describe('ProfileComponent', () => {
         { provide: AuthService, useValue: mockAuthService },
         { provide: UserSettingsService, useValue: mockUserSettingsService },
         { provide: UsernameService, useValue: mockUsernameService },
-        { provide: CookieConsentService, useValue: mockCookieConsentService },
+        { provide: DataExportService, useValue: mockDataExportService },
         { provide: Router, useValue: mockRouter },
         { provide: ActivatedRoute, useValue: { snapshot: { params: {} } } },
-        { provide: ConfirmationService, useValue: mockConfirmationService },
+        { provide: ConfirmDialogService, useValue: mockConfirmDialogService },
+        { provide: IndexedDbService, useValue: mockIndexedDbService },
+        { provide: NotificationService, useValue: mockNotificationService },
+        { provide: DataMigrationService, useValue: mockDataMigrationService },
         provideHttpClient(),
         provideHttpClientTesting(),
       ]
@@ -125,19 +143,13 @@ describe('ProfileComponent', () => {
     expect(initials).toBe('?');
   });
 
-  it('should handle cookie consent accept', () => {
-    component.onAcceptCookies();
-    expect(mockCookieConsentService.acceptCookies).toHaveBeenCalled();
-  });
-
-  it('should handle cookie consent decline', () => {
-    component.onDeclineCookies();
-    expect(mockCookieConsentService.declineCookies).toHaveBeenCalled();
-  });
-
   it('should call export data service when onExportData is called', async () => {
     await component.onExportData();
-    expect(mockAuthService.exportUserData).toHaveBeenCalled();
+    expect(mockAuthService.getToken).toHaveBeenCalled();
+    expect(mockDataExportService.exportUserData).toHaveBeenCalledWith({
+      includeServerData: true,
+      accessToken: 'test-token',
+    });
   });
 
   it('should expand password panel when onPanelCollapsedChange is called with false', () => {
@@ -492,41 +504,231 @@ describe('ProfileComponent', () => {
   });
 
   describe('onExportData', () => {
-    it('should call exportUserData service', async () => {
+    it('should call exportUserData service with server data', async () => {
       await component.onExportData();
 
-      expect(mockAuthService.exportUserData).toHaveBeenCalled();
+      expect(mockAuthService.getToken).toHaveBeenCalled();
+      expect(mockDataExportService.exportUserData).toHaveBeenCalledWith({
+        includeServerData: true,
+        accessToken: 'test-token',
+      });
     });
-  });
 
-  describe('onResetCookieConsent', () => {
-    it('should reset cookie consent', () => {
-      component.onResetCookieConsent();
-      expect(mockCookieConsentService.resetConsent).toHaveBeenCalled();
+    it('should call exportUserData without server data when no token', async () => {
+      mockAuthService.getToken.and.returnValue(Promise.resolve(null));
+
+      await component.onExportData();
+
+      expect(mockDataExportService.exportUserData).toHaveBeenCalledWith({
+        includeServerData: false,
+        accessToken: undefined,
+      });
     });
   });
 
   describe('onDeleteAccount', () => {
-    it('should call deleteAccount method', () => {
-      // ConfirmationService is provided in component, so we can't easily test the dialog
-      // Just verify the method exists and can be called
-      expect(() => component.onDeleteAccount()).not.toThrow();
+    it('should show delete account dialog', () => {
+      component.onDeleteAccount();
+
+      expect(mockConfirmDialogService.show).toHaveBeenCalled();
     });
 
-    it('should invoke accept callback when user confirms', () => {
-      let acceptCallback: any;
+    it('should delete account and navigate on success', async () => {
+      let confirmCallback: () => Promise<void> = async () => {};
 
-      // Spy on the component's own confirmationService
-      spyOn(component['confirmationService'], 'confirm').and.callFake((config: any) => {
-        acceptCallback = config.accept;
-        return component['confirmationService'];
+      mockConfirmDialogService.show.and.callFake((options: { onConfirm: () => Promise<void> }) => {
+        confirmCallback = options.onConfirm;
       });
 
       component.onDeleteAccount();
+      await confirmCallback();
 
-      expect(acceptCallback).toBeDefined();
-      // Call the accept callback to cover the arrow function
-      acceptCallback();
+      expect(mockAuthService.deleteAccount).toHaveBeenCalled();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
+    });
+
+    it('should throw error when delete fails', async () => {
+      let confirmCallback: () => Promise<void> = async () => {};
+
+      mockConfirmDialogService.show.and.callFake((options: { onConfirm: () => Promise<void> }) => {
+        confirmCallback = options.onConfirm;
+      });
+
+      mockAuthService.deleteAccount.and.returnValue(Promise.resolve({
+        error: { message: 'Delete failed' } as any
+      }));
+
+      component.onDeleteAccount();
+
+      await expectAsync(confirmCallback()).toBeRejectedWithError('Delete failed');
+    });
+  });
+
+  describe('onClearAllData', () => {
+    it('should show clear data dialog', () => {
+      component.onClearAllData();
+
+      expect(mockConfirmDialogService.show).toHaveBeenCalled();
+    });
+
+    it('should clear all data on confirm', async () => {
+      let confirmCallback: () => Promise<void> = async () => {};
+
+      mockConfirmDialogService.show.and.callFake((options: { onConfirm: () => Promise<void> }) => {
+        confirmCallback = options.onConfirm;
+      });
+
+      component.onClearAllData();
+      await confirmCallback();
+
+      expect(mockIndexedDbService.clear).toHaveBeenCalled();
+      expect(mockNotificationService.clearAll).toHaveBeenCalled();
+      expect(mockUserSettingsService.deleteSettings).toHaveBeenCalled();
+    });
+
+    it('should reset timezone to detected timezone after clearing', async () => {
+      let confirmCallback: () => Promise<void> = async () => {};
+
+      mockConfirmDialogService.show.and.callFake((options: { onConfirm: () => Promise<void> }) => {
+        confirmCallback = options.onConfirm;
+      });
+      mockUserSettingsService.detectTimezone.and.returnValue('America/New_York');
+
+      component.onClearAllData();
+      await confirmCallback();
+
+      expect(component.selectedTimezone()).toBe('America/New_York');
+    });
+  });
+
+  describe('onExportData error handling', () => {
+    it('should set exportError when export fails', async () => {
+      mockDataExportService.exportUserData.and.returnValue(Promise.reject(new Error('Export failed')));
+
+      await component.onExportData();
+
+      expect(component.exportError()).toBe('Export failed');
+    });
+
+    it('should clear exportError before export', async () => {
+      component.exportError.set('Previous error');
+
+      await component.onExportData();
+
+      // Error should be cleared (and remain null if export succeeds)
+      expect(component.exportError()).toBeNull();
+    });
+  });
+
+  describe('data backup', () => {
+    it('should check for data backup on init', async () => {
+      await component.ngOnInit();
+
+      expect(mockDataMigrationService.hasDataBackup).toHaveBeenCalled();
+    });
+
+    it('should set hasDataBackup to true when backup exists', async () => {
+      mockDataMigrationService.hasDataBackup.and.returnValue(Promise.resolve(true));
+
+      await component.ngOnInit();
+
+      expect(component.hasDataBackup()).toBe(true);
+    });
+
+    it('should set hasDataBackup to false when no backup exists', async () => {
+      mockDataMigrationService.hasDataBackup.and.returnValue(Promise.resolve(false));
+
+      await component.ngOnInit();
+
+      expect(component.hasDataBackup()).toBe(false);
+    });
+  });
+
+  describe('onExportPreviousData', () => {
+    it('should download backup data when available', async () => {
+      const mockBackup = {
+        createdAt: '2025-01-01T00:00:00.000Z',
+        localStorageVersion: '20.0.0',
+        localStorageTargetVersion: '21.0.0',
+        indexedDbVersion: 1,
+        indexedDbTargetVersion: 2,
+        localStorage: { key1: 'value1' },
+        indexedDb: { key2: 'value2' },
+      };
+      mockDataMigrationService.getDataBackup.and.returnValue(Promise.resolve(mockBackup));
+
+      // Mock URL and document
+      const mockUrl = 'blob:test-url';
+      spyOn(URL, 'createObjectURL').and.returnValue(mockUrl);
+      spyOn(URL, 'revokeObjectURL');
+      const mockLink = jasmine.createSpyObj('a', ['click']);
+      spyOn(document, 'createElement').and.returnValue(mockLink);
+
+      await component.onExportPreviousData();
+
+      expect(mockDataMigrationService.getDataBackup).toHaveBeenCalled();
+      expect(URL.createObjectURL).toHaveBeenCalled();
+      expect(mockLink.click).toHaveBeenCalled();
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith(mockUrl);
+      expect(mockLink.download).toContain('angular-momentum-backup-ls20.0.0-to-21.0.0-idb1-to-2.json');
+    });
+
+    it('should use "initial" for null localStorageVersion in filename', async () => {
+      const mockBackup = {
+        createdAt: '2025-01-01T00:00:00.000Z',
+        localStorageVersion: null,
+        localStorageTargetVersion: '21.0.0',
+        indexedDbVersion: 0,
+        indexedDbTargetVersion: 2,
+        localStorage: {},
+        indexedDb: {},
+      };
+      mockDataMigrationService.getDataBackup.and.returnValue(Promise.resolve(mockBackup));
+
+      const mockUrl = 'blob:test-url';
+      spyOn(URL, 'createObjectURL').and.returnValue(mockUrl);
+      spyOn(URL, 'revokeObjectURL');
+      const mockLink = jasmine.createSpyObj('a', ['click']);
+      spyOn(document, 'createElement').and.returnValue(mockLink);
+
+      await component.onExportPreviousData();
+
+      expect(mockLink.download).toContain('angular-momentum-backup-lsinitial-to-21.0.0-idb0-to-2.json');
+    });
+
+    it('should not download when no backup exists', async () => {
+      mockDataMigrationService.getDataBackup.and.returnValue(Promise.resolve(null));
+
+      spyOn(URL, 'createObjectURL');
+
+      await component.onExportPreviousData();
+
+      expect(URL.createObjectURL).not.toHaveBeenCalled();
+    });
+
+    it('should set and clear backupLoading during export', async () => {
+      const mockBackup = {
+        createdAt: '2025-01-01T00:00:00.000Z',
+        localStorageVersion: '20.0.0',
+        localStorageTargetVersion: '21.0.0',
+        indexedDbVersion: 1,
+        indexedDbTargetVersion: 2,
+        localStorage: {},
+        indexedDb: {},
+      };
+      mockDataMigrationService.getDataBackup.and.returnValue(Promise.resolve(mockBackup));
+
+      spyOn(URL, 'createObjectURL').and.returnValue('blob:test');
+      spyOn(URL, 'revokeObjectURL');
+      const mockLink = jasmine.createSpyObj('a', ['click']);
+      spyOn(document, 'createElement').and.returnValue(mockLink);
+
+      expect(component.backupLoading()).toBe(false);
+
+      await component.onExportPreviousData();
+
+      expect(component.backupLoading()).toBe(false);
     });
   });
 });
+

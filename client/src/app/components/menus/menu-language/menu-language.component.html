@@ -1,4 +1,4 @@
-<app-anchor-menu position="right" width="20rem">
+<app-anchor-menu position="right" width="24rem">
   <!-- Trigger: Language Button -->
   <span
     menu-trigger
@@ -23,6 +23,7 @@
           <li [class]="'i18n-' + ln">
             <a
               href="javascript:void(0)"
+              appMenuClose
               [ngClass]="{'selected': ln === translate.getActiveLang()}"
               (click)="onI18n($event)"
               (keydown.enter)="onI18n($event)"

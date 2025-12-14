@@ -1,3 +1,6 @@
+// Re-export language constants from shared source of truth
+export { SUPPORTED_LANGUAGES, SupportedLanguage } from '@shared/languages';
+
 /**
  * Application metadata constants.
  * Centralized configuration for branding and legal information.
@@ -10,19 +13,6 @@ export const APP_METADATA = {
   /** Support email address */
   supportEmail: 'admin@gameknave.com',
 } as const;
-
-/**
- * List of supported language codes for internationalization.
- * These codes correspond to available translation files in the i18n system.
- */
-export const SUPPORTED_LANGUAGES: string[] = [
-  'en', // English
-  'de', // German
-  'fr', // French
-  'es', // Spanish
-  'zh-CN', // Chinese (Simplified)
-  'zh-TW', // Chinese (Traditional)
-];
 
 /**
  * Platform-specific installer configurations for Angular Momentum.
@@ -67,13 +57,17 @@ export const INSTALLERS: Record<'name' | 'icon' | 'url', string>[] = [
  * Used to identify the user's operating system from the user agent string.
  * Patterns are matched case-insensitively against the navigator.userAgent.
  *
+ * IMPORTANT: Order matters! More specific patterns must come before general ones.
+ * iOS/Android must be checked before Mac/Linux because mobile user agents often
+ * contain desktop OS names (e.g., iPhone says "like Mac OS X").
+ *
  * @property platform - Human-readable platform name
  * @property regex - Regular expression pattern to match in user agent string
  */
 export const PLATFORMS: { platform: string; regex: RegExp }[] = [
+  { platform: 'iOS',     regex: /iPhone|iPad|iPod/i },
+  { platform: 'Android', regex: /Android/i },
   { platform: 'Windows', regex: /Windows/i },
   { platform: 'Mac',     regex: /Mac/i },
   { platform: 'Linux',   regex: /Linux/i },
-  { platform: 'Android', regex: /Android/i },
-  { platform: 'iOS',     regex: /iOS/i },
 ];

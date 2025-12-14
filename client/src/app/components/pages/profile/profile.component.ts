@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, OnInit, inject } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators, type ValidatorFn } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
@@ -13,15 +13,19 @@ import { InputIconModule } from 'primeng/inputicon';
 import { MessageModule } from 'primeng/message';
 import { TooltipModule } from 'primeng/tooltip';
 import { SelectModule } from 'primeng/select';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmDialogService } from '@app/services/confirm-dialog.service';
+import { DialogConfirmComponent } from '@app/components/dialogs/dialog-confirm/dialog-confirm.component';
 import { AuthService } from '@app/services/auth.service';
 import { UserSettingsService } from '@app/services/user-settings.service';
 import { UsernameService } from '@app/services/username.service';
-import { CookieConsentService } from '@app/services/cookie-consent.service';
+import { DataExportService } from '@app/services/data-export.service';
+import { DataMigrationService } from '@app/services/data-migration.service';
+import { IndexedDbService } from '@app/services/indexeddb.service';
+import { NotificationService } from '@app/services/notification.service';
 import { DatePipe } from '@angular/common';
 import { passwordComplexityValidator, PASSWORD_REQUIREMENT_KEYS, USERNAME_REQUIREMENT_KEYS } from '@app/helpers/validation';
 import { getUserInitials } from '@app/helpers/user.helper';
+import { TOOLTIP_CONFIG } from '@app/constants/ui.constants';
 
 /**
  * User profile component displaying authenticated user information.
@@ -52,12 +56,24 @@ import { getUserInitials } from '@app/helpers/user.helper';
     MessageModule,
     TooltipModule,
     SelectModule,
-    ConfirmDialogModule,
+    DialogConfirmComponent,
     DatePipe,
   ],
-  providers: [ConfirmationService],
 })
 export class ProfileComponent implements OnInit {
+  protected readonly authService = inject(AuthService);
+  protected readonly userSettingsService = inject(UserSettingsService);
+  protected readonly usernameService = inject(UsernameService);
+  private readonly dataExportService = inject(DataExportService);
+  private readonly dataMigrationService = inject(DataMigrationService);
+  private readonly indexedDbService = inject(IndexedDbService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly fb = inject(FormBuilder);
+  private readonly translocoService = inject(TranslocoService);
+  private readonly confirmDialogService = inject(ConfirmDialogService);
+
   // Password change panel state
   readonly passwordPanelExpanded = signal(false);
   readonly passwordLoading = signal(false);
@@ -111,21 +127,13 @@ export class ProfileComponent implements OnInit {
   // Tooltip content for form fields (translated)
   passwordTooltip = '';
   usernameTooltip = '';
+  tooltipShowDelay = TOOLTIP_CONFIG.SHOW_DELAY;
+  tooltipHideDelay = TOOLTIP_CONFIG.HIDE_DELAY;
 
   passwordForm: FormGroup;
   emailForm: FormGroup;
 
-  constructor(
-    protected readonly authService: AuthService,
-    protected readonly userSettingsService: UserSettingsService,
-    protected readonly usernameService: UsernameService,
-    protected readonly cookieConsentService: CookieConsentService,
-    private readonly router: Router,
-    private readonly route: ActivatedRoute,
-    private readonly fb: FormBuilder,
-    private readonly translocoService: TranslocoService,
-    private readonly confirmationService: ConfirmationService,
-  ) {
+  constructor() {
     // Initialize form without current password (will be added conditionally)
     this.passwordForm = this.fb.group({
       newPassword: ['', [Validators.required, passwordComplexityValidator()]],
@@ -190,6 +198,17 @@ export class ProfileComponent implements OnInit {
 
     // Load username asynchronously
     this.loadUsernameAsync();
+
+    // Check for data backup availability
+    this.checkDataBackup();
+  }
+
+  /**
+   * Check if a pre-migration data backup exists.
+   */
+  private async checkDataBackup(): Promise<void> {
+    const hasBackup = await this.dataMigrationService.hasDataBackup();
+    this.hasDataBackup.set(hasBackup);
   }
 
   /**
@@ -449,77 +468,116 @@ export class ProfileComponent implements OnInit {
     }
   }
 
+  // Export error state (displayed inline)
+  readonly exportError = signal<string | null>(null);
+
+  // Previous data backup state
+  readonly hasDataBackup = signal(false);
+  readonly backupLoading = signal(false);
+
   /**
    * Export all user data (GDPR data portability)
+   * Includes local storage, IndexedDB, and server data.
    */
   async onExportData(): Promise<void> {
-    const { error } = await this.authService.exportUserData();
+    this.exportError.set(null);
+    try {
+      // Get access token for server data
+      const accessToken = await this.authService.getToken();
 
-    // istanbul ignore next
-    if (error) {
-      this.confirmationService.confirm({
-        header: this.translocoService.translate('Error'),
-        message: error.message,
-        acceptLabel: this.translocoService.translate('OK'),
-        rejectVisible: false,
+      await this.dataExportService.exportUserData({
+        includeServerData: !!accessToken,
+        accessToken: accessToken ?? undefined,
       });
+    } catch (error) {
+      // istanbul ignore next - error path requires DataExportService to throw, difficult to trigger in unit tests
+      this.exportError.set((error as Error).message);
     }
   }
 
   /**
-   * Handle cookie consent accept
+   * Export pre-migration data backup.
+   * Downloads the backup that was created before the last migration.
    */
-  onAcceptCookies(): void {
-    this.cookieConsentService.acceptCookies();
+  async onExportPreviousData(): Promise<void> {
+    this.backupLoading.set(true);
+    try {
+      const backup = await this.dataMigrationService.getDataBackup();
+      if (!backup) {
+        return;
+      }
+
+      // Create and download JSON file
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const lsFrom = backup.localStorageVersion ?? 'initial';
+      const lsTo = backup.localStorageTargetVersion;
+      const idbFrom = backup.indexedDbVersion;
+      const idbTo = backup.indexedDbTargetVersion;
+      link.download = `angular-momentum-backup-ls${lsFrom}-to-${lsTo}-idb${idbFrom}-to-${idbTo}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      this.backupLoading.set(false);
+    }
   }
 
   /**
-   * Handle cookie consent decline
+   * Clear all user data (browser storage + server settings).
+   * Shows a confirmation dialog first.
    */
-  onDeclineCookies(): void {
-    this.cookieConsentService.declineCookies();
-  }
-
-  /**
-   * Reset cookie consent (for testing or changing preference)
-   */
-  onResetCookieConsent(): void {
-    this.cookieConsentService.resetConsent();
-  }
-
-  /**
-   * Delete account with confirmation
-   */
-  onDeleteAccount(): void {
-    this.confirmationService.confirm({
-      header: this.translocoService.translate('profile.Delete Account'),
-      message: this.translocoService.translate('profile.Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.'),
+  onClearAllData(): void {
+    this.confirmDialogService.show({
+      title: 'profile.Clear All Data',
+      message: 'profile.Remove all stored preferences, notifications, and settings. Your account will remain active.',
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: this.translocoService.translate('Delete'),
-      rejectLabel: this.translocoService.translate('Cancel'),
-      acceptButtonStyleClass: 'p-button-danger',
-      accept: () => this.handleDeleteAccountConfirm(),
+      iconColor: 'var(--orange-500)',
+      confirmLabel: 'profile.Clear Data',
+      confirmIcon: 'pi pi-trash',
+      confirmSeverity: 'danger',
+      onConfirm: async () => {
+        // Clear IndexedDB data for current user
+        await this.indexedDbService.clear();
+
+        // Clear notification service local state
+        this.notificationService.clearAll();
+
+        // Delete user settings from server and clear local state
+        await this.userSettingsService.deleteSettings();
+
+        // Reset timezone UI to detected timezone (since saved preference was cleared)
+        this.selectedTimezone.set(this.userSettingsService.detectTimezone());
+      },
     });
   }
 
   /**
-   * Handle confirmed account deletion.
-   * Deletes the account and navigates to home on success.
+   * Delete account with confirmation.
+   * Uses CDK dialog for confirmation.
    */
-  // istanbul ignore next
-  private async handleDeleteAccountConfirm(): Promise<void> {
-    const { error } = await this.authService.deleteAccount();
+  onDeleteAccount(): void {
+    this.confirmDialogService.show({
+      title: 'profile.Delete Account',
+      message: 'profile.Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.',
+      icon: 'pi pi-exclamation-triangle',
+      iconColor: 'var(--red-500)',
+      confirmLabel: 'profile.Delete Account',
+      confirmIcon: 'pi pi-trash',
+      confirmSeverity: 'danger',
+      onConfirm: async () => {
+        const { error } = await this.authService.deleteAccount();
 
-    if (error) {
-      this.confirmationService.confirm({
-        header: this.translocoService.translate('Error'),
-        message: error.message,
-        acceptLabel: this.translocoService.translate('OK'),
-        rejectVisible: false,
-      });
-    } else {
-      // Navigate to home page after successful deletion
-      await this.router.navigate(['/']);
-    }
+        if (error) {
+          // Throw error to be displayed in the dialog
+          throw new Error(error.message);
+        }
+
+        // Navigate to home page after successful deletion
+        await this.router.navigate(['/']);
+      },
+    });
   }
 }
+

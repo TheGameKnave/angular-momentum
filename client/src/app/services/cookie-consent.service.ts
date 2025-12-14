@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { LogService } from './log.service';
 import { PlatformService } from './platform.service';
 
@@ -13,6 +13,9 @@ export type CookieConsentStatus = 'pending' | 'accepted' | 'declined';
   providedIn: 'root'
 })
 export class CookieConsentService {
+  private readonly logService = inject(LogService);
+  private readonly platformService = inject(PlatformService);
+
   private readonly CONSENT_KEY = 'cookie_consent_status';
   private readonly GA_ID = 'G-NZS60CFH48';
   private readonly HOTJAR_ID = 6475773;
@@ -21,10 +24,9 @@ export class CookieConsentService {
   // Consent state (initialized after CONSENT_KEY is defined)
   readonly consentStatus = signal<CookieConsentStatus>(this.loadConsentStatus());
 
-  constructor(
-    private readonly logService: LogService,
-    private readonly platformService: PlatformService,
-  ) {
+  constructor() {
+    const logService = this.logService;
+
     logService.log('Service initialized');
     logService.log('Initial consent status:', this.consentStatus());
     logService.log('localStorage value:', localStorage.getItem(this.CONSENT_KEY));
@@ -87,23 +89,23 @@ export class CookieConsentService {
       return;
     }
 
-    // istanbul ignore next
+    // istanbul ignore next - third-party analytics scripts, integration test scope
     this.loadGoogleAnalytics();
-    // istanbul ignore next
+    // istanbul ignore next - third-party analytics scripts, integration test scope
     this.loadHotjar();
   }
 
   /**
    * Load Google Analytics
    */
-  // istanbul ignore next
+  // istanbul ignore next - third-party script injection, integration test scope
   private loadGoogleAnalytics(): void {
     const gaScript = document.createElement('script');
     gaScript.async = true;
     gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${this.GA_ID}`;
     document.head.appendChild(gaScript);
 
-    // istanbul ignore next
+    // istanbul ignore next - async script onload callback
     gaScript.onload = () => {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       (globalThis as any).dataLayer = (globalThis as any).dataLayer || [];
@@ -124,7 +126,7 @@ export class CookieConsentService {
   /**
    * Load Hotjar
    */
-  // istanbul ignore next
+  // istanbul ignore next - third-party script injection, integration test scope
   private loadHotjar(): void {
     /* eslint-disable @typescript-eslint/no-explicit-any, prefer-rest-params */
     const win = globalThis as any;

@@ -127,35 +127,85 @@ export const FEATURE_FLAG_KEYS = [
 ];
 
 /**
- * Notification message translation keys.
- * Source of truth for notification messages used in NotificationMessages.
+ * Server-side notification IDs.
+ * These map to notification definitions in server/data/notifications.ts.
+ * Server sends all language variants; client picks the correct one.
+ */
+export const NOTIFICATION_IDS = {
+  WELCOME: 'welcome',
+  FEATURE_UPDATE: 'feature_update',
+  MAINTENANCE: 'maintenance',
+  ACHIEVEMENT: 'achievement',
+} as const;
+
+export type NotificationId = typeof NOTIFICATION_IDS[keyof typeof NOTIFICATION_IDS];
+
+/** Structure for notification key mappings */
+interface NotificationKeyEntry {
+  readonly titleKey: string;
+  readonly bodyKey: string;
+  readonly labelKey: string;
+  readonly severity: 'success' | 'info' | 'warn' | 'secondary';
+}
+
+/**
+ * Maps notification IDs to their i18n keys and UI metadata.
+ * Used for both local notifications (client-side display) and UI rendering.
+ * Server notifications only need the ID; client uses this map for display.
+ */
+export const NOTIFICATION_KEY_MAP: Record<NotificationId, NotificationKeyEntry> = {
+  welcome: {
+    titleKey: "notification.Welcome!",
+    bodyKey: "notification.Thanks for trying Angular Momentum—your modern Angular starter kit!",
+    labelKey: "notification.Welcome Message",
+    severity: 'success',
+  },
+  feature_update: {
+    titleKey: "notification.New Feature Available",
+    bodyKey: "notification.Check out the latest updates in the Features section!",
+    labelKey: "notification.Feature Update",
+    severity: 'info',
+  },
+  maintenance: {
+    titleKey: "notification.System Maintenance",
+    bodyKey: "notification.Scheduled maintenance will occur tonight at {time}.",
+    labelKey: "notification.Maintenance Alert",
+    severity: 'warn',
+  },
+  achievement: {
+    titleKey: "notification.Achievement Unlocked",
+    bodyKey: "notification.You successfully tested the notification system!",
+    labelKey: "notification.Achievement",
+    severity: 'secondary',
+  },
+} as const;
+
+/**
+ * Notification message translation keys (derived from NOTIFICATION_KEY_MAP).
+ * @deprecated Use NOTIFICATION_KEY_MAP directly for cleaner access.
  */
 export const NOTIFICATION_MESSAGES = {
-  // Welcome notification
-  WELCOME_TITLE: "notification.Welcome!",
-  WELCOME_BODY: "notification.Thanks for trying Angular Momentum—your modern Angular starter kit!",
-  WELCOME_LABEL: "notification.Welcome Message",
-
-  // Feature update notification
-  FEATURE_UPDATE_TITLE: "notification.New Feature Available",
-  FEATURE_UPDATE_BODY: "notification.Check out the latest updates in the Features section!",
-  FEATURE_UPDATE_LABEL: "notification.Feature Update",
-
-  // System maintenance notification
-  MAINTENANCE_TITLE: "notification.System Maintenance",
-  MAINTENANCE_BODY: "notification.Scheduled maintenance will occur tonight at {time}.",
-  MAINTENANCE_LABEL: "notification.Maintenance Alert",
-
-  // Achievement notification
-  ACHIEVEMENT_TITLE: "notification.Achievement Unlocked",
-  ACHIEVEMENT_BODY: "notification.You successfully tested the notification system!",
-  ACHIEVEMENT_LABEL: "notification.Achievement",
-} as const satisfies TranslationKeyRecord;
+  WELCOME_TITLE: NOTIFICATION_KEY_MAP.welcome.titleKey,
+  WELCOME_BODY: NOTIFICATION_KEY_MAP.welcome.bodyKey,
+  WELCOME_LABEL: NOTIFICATION_KEY_MAP.welcome.labelKey,
+  FEATURE_UPDATE_TITLE: NOTIFICATION_KEY_MAP.feature_update.titleKey,
+  FEATURE_UPDATE_BODY: NOTIFICATION_KEY_MAP.feature_update.bodyKey,
+  FEATURE_UPDATE_LABEL: NOTIFICATION_KEY_MAP.feature_update.labelKey,
+  MAINTENANCE_TITLE: NOTIFICATION_KEY_MAP.maintenance.titleKey,
+  MAINTENANCE_BODY: NOTIFICATION_KEY_MAP.maintenance.bodyKey,
+  MAINTENANCE_LABEL: NOTIFICATION_KEY_MAP.maintenance.labelKey,
+  ACHIEVEMENT_TITLE: NOTIFICATION_KEY_MAP.achievement.titleKey,
+  ACHIEVEMENT_BODY: NOTIFICATION_KEY_MAP.achievement.bodyKey,
+  ACHIEVEMENT_LABEL: NOTIFICATION_KEY_MAP.achievement.labelKey,
+} as const;
 
 /**
  * Notification message keys as array for validation.
+ * Derived from NOTIFICATION_KEY_MAP to avoid using deprecated NOTIFICATION_MESSAGES.
  */
-export const NOTIFICATION_KEYS = Object.values(NOTIFICATION_MESSAGES);
+export const NOTIFICATION_KEYS = Object.values(NOTIFICATION_KEY_MAP).flatMap(
+  entry => [entry.titleKey, entry.bodyKey, entry.labelKey]
+);
 
 /**
  * Change log translation keys.
@@ -164,7 +214,8 @@ export const NOTIFICATION_KEYS = Object.values(NOTIFICATION_MESSAGES);
 export const CHANGE_LOG_MESSAGES = {
   APP_OUT_OF_DATE: "menu.This app is {semver} out of date.",
   CLEAR_CACHE: "menu.If it doesn’t update momentarily, please try to clear your cache and refresh your browser.",
-  USE_WEBAPP: "menu.If you encounter problems, you can use the webapp until an app update is ready.",
+  USE_WEBAPP_BEFORE: "menu.If you encounter problems, use the web version at",
+  USE_WEBAPP_AFTER: "menu.until an app update is ready.",
 } as const satisfies TranslationKeyRecord;
 
 export const CHANGE_LOG_KEYS = Object.values(CHANGE_LOG_MESSAGES);
@@ -218,12 +269,15 @@ export const ENVIRONMENT_KEYS = [
 
 /**
  * Relative time formatting translation keys.
- * Used in notification-center for time display.
+ * Used by RelativeTimePipe for time display.
  */
 export const TIME_KEYS = [
-  "time.{count}d ago",
-  "time.{count}h ago",
-  "time.{count}m ago",
+  "time.years ago",
+  "time.months ago",
+  "time.weeks ago",
+  "time.days ago",
+  "time.hours ago",
+  "time.minutes ago",
   "time.Just now",
 ] as const;
 
@@ -265,10 +319,29 @@ export const PRIVACY_KEYS = [
  * because the regex extraction may not pick them up properly from templates.
  */
 export const AUTH_TEMPLATE_KEYS = [
-  "auth.We’ve sent a 6-digit verification code to:",
-  "auth.Didn’t receive the code? Check your spam folder, whitelist support@angularmomentum.app, or try logging in if you already have an account.",
   "auth.Bot check failed. This may be due to network issues or security restrictions. Please reload the page…",
-  "menu.If it doesn’t update momentarily, please try to clear your cache and refresh your browser.",
+  "auth.If this persists,",
+  "auth.contact support",
+  "auth.for help.",
+] as const;
+
+/**
+ * Storage import dialog keys.
+ * Used in menu-auth.component.ts when prompting to import anonymous data on login.
+ */
+export const STORAGE_IMPORT_KEYS = [
+  "auth.Import Local Data",
+  "auth.This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)",
+  "auth.Import",
+  "auth.Skip",
+] as const;
+
+/**
+ * Data migration keys.
+ * Used in data-migration.service.ts for migration status messages.
+ */
+export const MIGRATION_KEYS = [
+  "migration.Your data has been updated to a new format.",
 ] as const;
 
 /**
@@ -288,10 +361,22 @@ export const PAGE_CONTENT_KEYS = [
 export const PROFILE_PAGE_KEYS = [
   "auth.If an account with that information exists, a password reset email has been sent.",
   "profile.Permanently delete your account and all associated data. This action cannot be undone.",
-  "profile.We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.",
+  "profile.Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.",
+  "privacy.We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.",
   "profile.A verification link will be sent to your new email address. You must click the link to complete the change.",
   "profile.Verification email sent! Please check your new email address and click the confirmation link.",
 ] as const;
+
+/**
+ * Dialog default label translation keys.
+ * Used as fallbacks in DialogConfirmComponent when options don't specify labels.
+ */
+export const DIALOG_DEFAULT_LABELS = {
+  OK: 'OK',
+  CANCEL: 'Cancel',
+} as const;
+
+export const DIALOG_LABEL_KEYS = Object.values(DIALOG_DEFAULT_LABELS);
 
 /**
  * All programmatically-used translation keys combined.
@@ -312,8 +397,11 @@ export const ALL_PROGRAMMATIC_KEYS = [
   ...A11Y_KEYS,
   ...PRIVACY_KEYS,
   ...AUTH_TEMPLATE_KEYS,
+  ...STORAGE_IMPORT_KEYS,
+  ...MIGRATION_KEYS,
   ...PAGE_CONTENT_KEYS,
   ...PROFILE_PAGE_KEYS,
+  ...DIALOG_LABEL_KEYS,
 ] as const;
 
 export type AuthErrorKey = typeof AUTH_ERROR_KEYS[number];

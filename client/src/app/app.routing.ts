@@ -12,7 +12,7 @@ const slugPipe = new SlugPipe();
  * Lazy load the index component.
  * @returns Promise resolving to IndexComponent
  */
-// istanbul ignore next
+// istanbul ignore next - lazy load function, routing glue code
 async function loadIndexComponent() {
   return (await import('./components/pages/index/index.component')).IndexComponent;
 }
@@ -21,7 +21,7 @@ async function loadIndexComponent() {
  * Lazy load the profile component.
  * @returns Promise resolving to ProfileComponent
  */
-// istanbul ignore next
+// istanbul ignore next - lazy load function, routing glue code
 async function loadProfileComponent() {
   return (await import('./components/pages/profile/profile.component')).ProfileComponent;
 }
@@ -30,7 +30,7 @@ async function loadProfileComponent() {
  * Lazy load the privacy policy component.
  * @returns Promise resolving to PrivacyPolicyComponent
  */
-// istanbul ignore next
+// istanbul ignore next - lazy load function, routing glue code
 async function loadPrivacyPolicyComponent() {
   return (await import('./components/privacy/privacy-policy/privacy-policy.component')).PrivacyPolicyComponent;
 }

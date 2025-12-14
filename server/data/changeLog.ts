@@ -4,6 +4,24 @@
  */
 export const changeLog = [  
   {
+    version: "21.0.1",
+    date: "2025-12-13",
+    description: "translations, user data",
+    changes: [
+      "en-GB and swedish chef translation",
+      "promote anoonymous data to user storage on login",
+    ]
+  },
+  {
+    version: "21.0.0",
+    date: "2025-12-05",
+    description: "Angular 21",
+    changes: [
+      "ng21 upgrade",
+      "zoneless change detection",
+    ]
+  },
+  {
     version: "20.0.2",
     date: "2025-12-05",
     description: "Scrolling",
@@ -25,7 +43,7 @@ export const changeLog = [
   {
     version: "20.0.0",
     date: "2025-11-28",
-    description: "gigantic: menu anchors, privacy/cookies, AUTH",
+    description: "gigantic: AUTH etc.",
     changes: [
       "Menu anchor consolidation",
       "Privacy policy center",

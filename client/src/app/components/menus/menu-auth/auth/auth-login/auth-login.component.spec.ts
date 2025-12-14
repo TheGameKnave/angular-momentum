@@ -84,10 +84,10 @@ describe('AuthLoginComponent', () => {
 
       await component.onSubmit();
 
-      expect(mockAuthService.login).toHaveBeenCalledWith({
-        email: 'test@example.com',
-        password: 'ValidPassword123!'
-      });
+      expect(mockAuthService.login).toHaveBeenCalledWith(
+        { email: 'test@example.com', password: 'ValidPassword123!' },
+        undefined // beforeSession callback not provided in test
+      );
       expect(loginSuccessSpy).toHaveBeenCalled();
       expect(component.loading()).toBe(false);
       expect(component.errorMessage()).toBeNull();

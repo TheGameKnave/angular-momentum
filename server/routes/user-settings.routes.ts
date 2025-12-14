@@ -199,6 +199,25 @@ export function createUserSettingsRoutes(supabase: SupabaseClient | null): Route
     }
   });
 
+  /** DELETE /api/user-settings - Delete user settings */
+  router.delete('/', async (req: AuthenticatedRequest, res: Response) => {
+    const userId = getUserId(req, res);
+    // istanbul ignore next - defensive: getUserId handles auth failure
+    if (!userId) return;
+
+    try {
+      const { error } = await db
+        .from('user_settings')
+        .delete()
+        .eq('user_id', userId);
+
+      if (error) return errorResponse(res, 500, error.message);
+      res.status(204).send();
+    } catch (error: unknown) {
+      errorResponse(res, 500, getErrorMessage(error));
+    }
+  });
+
   return router;
 }
 

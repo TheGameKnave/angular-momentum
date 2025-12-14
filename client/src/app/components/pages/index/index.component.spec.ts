@@ -3,7 +3,7 @@ import { RouterModule } from '@angular/router';
 import { By } from '@angular/platform-browser';
 import { IndexComponent } from './index.component';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
-import { MarkdownModule } from 'ngx-markdown';
+import { MarkdownModule, SANITIZE } from 'ngx-markdown';
 import { SecurityContext } from '@angular/core';
 
 describe('IndexComponent', () => {
@@ -16,7 +16,7 @@ describe('IndexComponent', () => {
         IndexComponent,
         RouterModule.forRoot([]),
         getTranslocoModule(), // should return preloaded English translation
-        MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),
+        MarkdownModule.forRoot({ sanitize: { provide: SANITIZE, useValue: SecurityContext.STYLE } }),
       ]
     }).compileComponents();
 

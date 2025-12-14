@@ -4,8 +4,9 @@ import { LogService } from './log.service';
 import { SocketIoService } from './socket.io.service';
 import { TranslocoService } from '@jsverse/transloco';
 import { UserSettingsService } from './user-settings.service';
+import { UserStorageService } from './user-storage.service';
 import { of, throwError } from 'rxjs';
-import { Notification, NotificationOptions } from '../models/data.model';
+import { Notification, NotificationOptions, LocalizedStrings } from '../models/data.model';
 import { signal } from '@angular/core';
 
 describe('NotificationService', () => {
@@ -14,16 +15,19 @@ describe('NotificationService', () => {
   let socketServiceSpy: jasmine.SpyObj<SocketIoService>;
   let translocoServiceSpy: jasmine.SpyObj<TranslocoService>;
   let userSettingsServiceSpy: jasmine.SpyObj<UserSettingsService>;
+  let userStorageServiceSpy: jasmine.SpyObj<UserStorageService>;
 
   beforeEach(() => {
     // Create spies
     logServiceSpy = jasmine.createSpyObj('LogService', ['log']);
     socketServiceSpy = jasmine.createSpyObj('SocketIoService', ['listen']);
-    translocoServiceSpy = jasmine.createSpyObj('TranslocoService', ['translate']);
+    translocoServiceSpy = jasmine.createSpyObj('TranslocoService', ['translate', 'getActiveLang']);
     userSettingsServiceSpy = jasmine.createSpyObj('UserSettingsService', ['loadSettings'], {
       timezone: signal('UTC'),
       settings: signal({ timezone: 'UTC' })
     });
+    userStorageServiceSpy = jasmine.createSpyObj('UserStorageService', ['prefixKey']);
+    userStorageServiceSpy.prefixKey.and.callFake((key: string) => `anonymous_${key}`);
 
     // Mock socket service to return observable
     socketServiceSpy.listen.and.returnValue(of());
@@ -35,6 +39,7 @@ describe('NotificationService', () => {
       }
       return key;
     });
+    translocoServiceSpy.getActiveLang.and.returnValue('en-US');
 
     // Mock localStorage
     const store: { [key: string]: string } = {};
@@ -52,7 +57,8 @@ describe('NotificationService', () => {
         { provide: LogService, useValue: logServiceSpy },
         { provide: SocketIoService, useValue: socketServiceSpy },
         { provide: TranslocoService, useValue: translocoServiceSpy },
-        { provide: UserSettingsService, useValue: userSettingsServiceSpy }
+        { provide: UserSettingsService, useValue: userSettingsServiceSpy },
+        { provide: UserStorageService, useValue: userStorageServiceSpy }
       ]
     });
 
@@ -122,7 +128,7 @@ describe('NotificationService', () => {
           read: false
         }
       ];
-      localStorage.setItem('app_notifications', JSON.stringify(mockNotifications));
+      localStorage.setItem('anonymous_app_notifications', JSON.stringify(mockNotifications));
 
       service = TestBed.inject(NotificationService);
 
@@ -286,6 +292,29 @@ describe('NotificationService', () => {
       expect(notification.params).toEqual({ name: 'Test User' });
     });
 
+    it('should store localized strings for re-translation on language change', async () => {
+      service = TestBed.inject(NotificationService);
+      spyOn<any>(service, 'checkPermission').and.returnValue(Promise.resolve(false));
+
+      const localizedTitle = { 'en-US': 'Welcome!', es: '¡Bienvenido!' } as LocalizedStrings;
+      const localizedBody = { 'en-US': 'Hello world', es: 'Hola mundo' } as LocalizedStrings;
+
+      const options: NotificationOptions = {
+        title: 'Welcome!',
+        body: 'Hello world',
+        localizedTitle,
+        localizedBody,
+        params: { time: '10:00 PM' }
+      };
+
+      await service.show(options);
+
+      const notification = service.notifications()[0];
+      expect(notification.localizedTitle).toEqual(localizedTitle);
+      expect(notification.localizedBody).toEqual(localizedBody);
+      expect(notification.params).toEqual({ time: '10:00 PM' });
+    });
+
     it('should return notification ID', async () => {
       service = TestBed.inject(NotificationService);
       spyOn<any>(service, 'checkPermission').and.returnValue(Promise.resolve(false));
@@ -416,7 +445,7 @@ describe('NotificationService', () => {
       service.notifications.set([notification]);
       service['saveNotificationsToStorage']();
 
-      const stored = localStorage.getItem('app_notifications');
+      const stored = localStorage.getItem('anonymous_app_notifications');
       expect(stored).toBeTruthy();
       const parsed = JSON.parse(stored!);
       expect(parsed.length).toBe(1);
@@ -439,7 +468,7 @@ describe('NotificationService', () => {
       service.notifications.set(notifications);
       service['saveNotificationsToStorage']();
 
-      const stored = localStorage.getItem('app_notifications');
+      const stored = localStorage.getItem('anonymous_app_notifications');
       const parsed = JSON.parse(stored!);
       expect(parsed.length).toBe(100);
     });
@@ -455,7 +484,7 @@ describe('NotificationService', () => {
           read: false
         }
       ];
-      localStorage.setItem('app_notifications', JSON.stringify(mockNotifications));
+      localStorage.setItem('anonymous_app_notifications', JSON.stringify(mockNotifications));
 
       service = TestBed.inject(NotificationService);
 
@@ -471,7 +500,13 @@ describe('NotificationService', () => {
         icon: '/icon.png'
       };
 
-      socketServiceSpy.listen.and.returnValue(of(mockNotification));
+      // Return different observables based on event type
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'notification') {
+          return of(mockNotification) as any;
+        }
+        return of() as any; // Empty observable for other events
+      });
       const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
 
       service = TestBed.inject(NotificationService);
@@ -497,7 +532,12 @@ describe('NotificationService', () => {
         }
       };
 
-      socketServiceSpy.listen.and.returnValue(of(mockNotification));
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'notification') {
+          return of(mockNotification) as any;
+        }
+        return of() as any;
+      });
       spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
 
       service = TestBed.inject(NotificationService);
@@ -516,7 +556,12 @@ describe('NotificationService', () => {
         data: 'string-data'
       };
 
-      socketServiceSpy.listen.and.returnValue(of(mockNotification));
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'notification') {
+          return of(mockNotification) as any;
+        }
+        return of() as any;
+      });
       spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
 
       service = TestBed.inject(NotificationService);
@@ -537,7 +582,12 @@ describe('NotificationService', () => {
         }
       };
 
-      socketServiceSpy.listen.and.returnValue(of(mockNotification));
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'notification') {
+          return of(mockNotification) as any;
+        }
+        return of() as any;
+      });
       spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
 
       service = TestBed.inject(NotificationService);
@@ -579,7 +629,12 @@ describe('NotificationService', () => {
         }
       };
 
-      socketServiceSpy.listen.and.returnValue(of(mockNotification));
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'notification') {
+          return of(mockNotification) as any;
+        }
+        return of() as any;
+      });
       spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
 
       service = TestBed.inject(NotificationService);
@@ -617,7 +672,12 @@ describe('NotificationService', () => {
         }
       };
 
-      socketServiceSpy.listen.and.returnValue(of(mockNotification));
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'notification') {
+          return of(mockNotification) as any;
+        }
+        return of() as any;
+      });
       spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
 
       service = TestBed.inject(NotificationService);
@@ -648,6 +708,203 @@ describe('NotificationService', () => {
         icon: '/assets/icons/icon-192x192.png',
         data: { type: 'test' }
       });
+    });
+  });
+
+  describe('Localized notification handling', () => {
+    it('should handle incoming localized notifications and store all language variants', fakeAsync(() => {
+      const mockLocalizedTitle = { 'en-US': 'Welcome!', es: '¡Bienvenido!' } as LocalizedStrings;
+      const mockLocalizedBody = { 'en-US': 'Hello world', es: 'Hola mundo' } as LocalizedStrings;
+      const mockLocalizedPayload = {
+        title: mockLocalizedTitle,
+        body: mockLocalizedBody,
+        label: { 'en-US': 'Welcome', es: 'Bienvenida' } as LocalizedStrings,
+      };
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return of(mockLocalizedPayload) as any;
+        }
+        return of() as any;
+      });
+      const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+      translocoServiceSpy.getActiveLang.and.returnValue('en-US');
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      expect(logServiceSpy.log).toHaveBeenCalledWith('Received localized notification from WebSocket', mockLocalizedPayload);
+      const showCallArg = showSpy.calls.mostRecent().args[0];
+      expect(showCallArg.title).toBe('Welcome!');
+      expect(showCallArg.body).toBe('Hello world');
+      expect(showCallArg.icon).toBeUndefined();
+      // Verify all language variants are stored for re-translation on language change
+      expect(showCallArg.localizedTitle).toEqual(mockLocalizedTitle);
+      expect(showCallArg.localizedBody).toEqual(mockLocalizedBody);
+    }));
+
+    it('should use German translation when locale is de', fakeAsync(() => {
+      const mockLocalizedPayload = {
+        title: { 'en-US': 'Welcome!', 'en-GB': 'Welcome!', de: 'Willkommen!' },
+        body: { 'en-US': 'Hello world', 'en-GB': 'Hello world', de: 'Hallo Welt' },
+        label: { 'en-US': 'Welcome', 'en-GB': 'Welcome', de: 'Willkommen' }
+      };
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return of(mockLocalizedPayload) as any;
+        }
+        return of() as any;
+      });
+      const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+      translocoServiceSpy.getActiveLang.and.returnValue('de');
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      const showCallArg = showSpy.calls.mostRecent().args[0];
+      expect(showCallArg.title).toBe('Willkommen!');
+      expect(showCallArg.body).toBe('Hallo Welt');
+    }));
+
+    it('should fall back to English when locale is not available', fakeAsync(() => {
+      const mockLocalizedPayload = {
+        title: { 'en-US': 'Welcome!', 'en-GB': 'Welcome!' },
+        body: { 'en-US': 'Hello world', 'en-GB': 'Hello world' },
+        label: { 'en-US': 'Welcome', 'en-GB': 'Welcome' }
+      };
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return of(mockLocalizedPayload) as any;
+        }
+        return of() as any;
+      });
+      const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+      translocoServiceSpy.getActiveLang.and.returnValue('fr'); // French not available
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      const showCallArg = showSpy.calls.mostRecent().args[0];
+      expect(showCallArg.title).toBe('Welcome!'); // Falls back to English
+      expect(showCallArg.body).toBe('Hello world');
+    }));
+
+    it('should fall back to empty string when neither locale nor English is available', fakeAsync(() => {
+      const mockLocalizedPayload = {
+        title: { de: 'Willkommen!' }, // Only German, no English
+        body: { de: 'Hallo Welt' },
+        label: { de: 'Willkommen' }
+      };
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return of(mockLocalizedPayload) as any;
+        }
+        return of() as any;
+      });
+      const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+      translocoServiceSpy.getActiveLang.and.returnValue('fr'); // French not available, English not available either
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      const showCallArg = showSpy.calls.mostRecent().args[0];
+      expect(showCallArg.title).toBe(''); // Falls back to empty string
+      expect(showCallArg.body).toBe('');
+    }));
+
+    it('should handle localized notifications with params', fakeAsync(() => {
+      const mockLocalizedPayload = {
+        title: { 'en-US': 'Maintenance', 'en-GB': 'Maintenance' },
+        body: { 'en-US': 'Server maintenance at {time}', 'en-GB': 'Server maintenance at {time}' },
+        label: { 'en-US': 'Maintenance', 'en-GB': 'Maintenance' },
+        params: { time: '2024-01-01T00:00:00.000Z' }
+      };
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return of(mockLocalizedPayload) as any;
+        }
+        return of() as any;
+      });
+      const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+      translocoServiceSpy.getActiveLang.and.returnValue('en-US');
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      // Verify translate was called with params
+      expect(translocoServiceSpy.translate).toHaveBeenCalledWith(
+        'Maintenance',
+        jasmine.objectContaining({ time: jasmine.any(String) })
+      );
+    }));
+
+    it('should handle localized notifications without params', fakeAsync(() => {
+      const mockLocalizedPayload = {
+        title: { 'en-US': 'Simple notification', 'en-GB': 'Simple notification' },
+        body: { 'en-US': 'No params here', 'en-GB': 'No params here' },
+        label: { 'en-US': 'Info', 'en-GB': 'Info' }
+        // No params
+      };
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return of(mockLocalizedPayload) as any;
+        }
+        return of() as any;
+      });
+      const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+      translocoServiceSpy.getActiveLang.and.returnValue('en-US');
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      const showCallArg = showSpy.calls.mostRecent().args[0];
+      expect(showCallArg.title).toBe('Simple notification');
+      expect(showCallArg.body).toBe('No params here');
+    }));
+
+    it('should log errors when localized notification subscription fails', fakeAsync(() => {
+      const testError = new Error('Connection failed');
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return throwError(() => testError) as any;
+        }
+        return of() as any;
+      });
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      expect(logServiceSpy.log).toHaveBeenCalledWith('Error receiving localized notification', testError);
+    }));
+  });
+
+  describe('reloadFromStorage', () => {
+    it('should reset notifications and reload from storage', () => {
+      service = TestBed.inject(NotificationService);
+
+      // Add some notifications first
+      const notification: Notification = {
+        id: 'test-123',
+        title: 'Test',
+        body: 'Test body',
+        timestamp: new Date(),
+        read: false
+      };
+      service.notifications.set([notification]);
+      service.unreadCount.set(1);
+
+      // Reload from storage (which is empty in test)
+      service.reloadFromStorage();
+
+      // Should be reset and then reloaded (empty in this test since localStorage mock is empty)
+      expect(service.notifications()).toEqual([]);
+      expect(service.unreadCount()).toBe(0);
     });
   });
 });

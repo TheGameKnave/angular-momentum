@@ -1,8 +1,11 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, HostListener, inject, isDevMode, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, HostListener, inject, isDevMode, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 
 import { UpdateService } from '@app/services/update.service';
+import { UpdateDialogService } from '@app/services/update-dialog.service';
+import { DataMigrationService } from '@app/services/data-migration.service';
+import { DialogConfirmComponent } from '@app/components/dialogs/dialog-confirm/dialog-confirm.component';
 
 import { TranslocoDirective } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
@@ -16,13 +19,18 @@ import { SlugPipe } from './pipes/slug.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { COMPONENT_LIST } from './helpers/component-list';
 import { ConnectivityService } from './services/connectivity.service';
+import { LogService } from './services/log.service';
 import { MenuChangeLogComponent } from './components/menus/menu-change-log/menu-change-log.component';
 import { ChangeLogService } from './services/change-log.service';
 import { NotificationCenterComponent } from './components/menus/notification-center/notification-center.component';
 import { MenuAuthComponent } from './components/menus/menu-auth/menu-auth.component';
 import { CookieBannerComponent } from './components/privacy/cookie-banner/cookie-banner.component';
-import { SCREEN_SIZES } from './constants/ui.constants';
+import { SCREEN_SIZES, TOOLTIP_CONFIG } from './constants/ui.constants';
+import { ResourcePreloadService } from './services/resource-preload.service';
 import { ScrollIndicatorDirective } from './directives/scroll-indicator.directive';
+import { TooltipModule } from 'primeng/tooltip';
+import { ToastModule } from 'primeng/toast';
+import { DialogUpdateComponent } from './components/dialogs/dialog-update/dialog-update.component';
 
 /**
  * Root component of the Angular Momentum application.
@@ -46,22 +54,86 @@ import { ScrollIndicatorDirective } from './directives/scroll-indicator.directiv
     MenuAuthComponent,
     CookieBannerComponent,
     ScrollIndicatorDirective,
+    TooltipModule,
+    ToastModule,
+    DialogConfirmComponent,
+    DialogUpdateComponent,
   ],
 })
 export class AppComponent implements OnInit {
+  readonly updateService = inject(UpdateService);
+  readonly changeLogService = inject(ChangeLogService);
+  private readonly updateDialogService = inject(UpdateDialogService);
+  private readonly dataMigrationService = inject(DataMigrationService);
+  protected translocoLoader = inject(TranslocoHttpLoader);
+  protected featureFlagService = inject(FeatureFlagService);
+  private readonly slugPipe = inject(SlugPipe);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  protected readonly connectivity = inject(ConnectivityService);
+  private readonly logService = inject(LogService);
+
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
+  private readonly resourcePreload = inject(ResourcePreloadService);
+
+  constructor() {
+    // Preload resources (flags, etc.) after first render to avoid blocking startup
+    // istanbul ignore next - afterNextRender doesn't execute in unit tests
+    afterNextRender(() => {
+      this.resourcePreload.preloadAll();
+
+      // Run data migrations after view is ready (so p-toast is mounted)
+      // This runs on all platforms: web, Tauri desktop, and mobile
+      this.dataMigrationService.runMigrations();
+    });
+  }
 
   @HostListener('window:resize')
   onResize() {
     if (this.isBrowser) {
       this.isNarrowScreen.set(window.innerWidth < SCREEN_SIZES.md);
+      this.isXsScreen.set(window.innerWidth < SCREEN_SIZES.sm);
       this.bodyClasses();
     }
   }
+
+  /**
+   * Dev-only keyboard shortcuts for testing dialogs.
+   * Ctrl+Shift+U: Update dialog
+   */
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    if (!this.isDevMode || !event.ctrlKey || !event.shiftKey) return;
+
+    if (event.key === 'U') {
+      event.preventDefault();
+      this.triggerDevUpdateDialog();
+    }
+  }
+
+  /**
+   * Triggers the update dialog for development testing.
+   * Spoofs an older version to show changelog entries between versions.
+   */
+  private triggerDevUpdateDialog(): void {
+    this.logService.log('[Dev] Triggering update dialog (Ctrl+Shift+U)...');
+
+    // Spoof an older version to show all changelog entries
+    this.changeLogService.devVersionOverride.set('0.0.0');
+
+    this.updateDialogService.show().then(confirmed => {
+      // istanbul ignore next - promise callback for dev tool, covered by triggering the dialog
+      this.logService.log('[Dev] Update dialog result:', confirmed ? 'confirmed' : 'dismissed');
+      this.changeLogService.devVersionOverride.set(null);
+    });
+  }
+
   // istanbul ignore next - SSR fallback branch can't be tested in browser context
   window: Window | undefined = globalThis.window;
   SCREEN_SIZES = SCREEN_SIZES;
+  tooltipShowDelay = TOOLTIP_CONFIG.SHOW_DELAY;
+  tooltipHideDelay = TOOLTIP_CONFIG.HIDE_DELAY;
   isDevMode = isDevMode();
   appDiff = this.changeLogService.appDiff;
   routePath = '';
@@ -75,19 +147,9 @@ export class AppComponent implements OnInit {
   readonly showEnvironment = () => this.featureFlagService.getFeature('Environment');
   readonly showLanguage = () => this.featureFlagService.getFeature('Language');
 
-  // Reactive signal for screen size (used in template for responsive footer labels)
+  // Reactive signals for screen size (used in template for responsive footer labels)
   readonly isNarrowScreen = signal(globalThis.window !== undefined && globalThis.window.innerWidth < SCREEN_SIZES.md);
-
-  constructor(
-    readonly updateService: UpdateService,
-    readonly changeLogService: ChangeLogService,
-    protected translocoLoader: TranslocoHttpLoader,
-    protected featureFlagService: FeatureFlagService,
-    private readonly slugPipe: SlugPipe,
-    private readonly router: Router,
-    private readonly destroyRef: DestroyRef,
-    protected readonly connectivity: ConnectivityService,
-  ){}
+  readonly isXsScreen = signal(globalThis.window !== undefined && globalThis.window.innerWidth < SCREEN_SIZES.sm);
 
   /**
    * Angular lifecycle hook called after component initialization.
@@ -96,6 +158,7 @@ export class AppComponent implements OnInit {
    */
   ngOnInit() {
     this.connectivity.start();
+
     // there might be a better way to detect the current component for the breadcrumbs...
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd){

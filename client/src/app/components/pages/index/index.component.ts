@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, signal } from '@angular/core';
+
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { MarkdownModule } from 'ngx-markdown';
@@ -17,19 +17,16 @@ import { map, combineLatest } from 'rxjs';
   templateUrl: './index.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CommonModule,
     MarkdownModule,
     CardModule,
     TranslocoDirective,
   ],
 })
 export class IndexComponent implements OnInit {
-  indexText = signal<string>('');
+  readonly transloco = inject(TranslocoService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  constructor(
-    readonly transloco: TranslocoService,
-    private readonly destroyRef: DestroyRef,
-  ){}
+  indexText = signal<string>('');
 
   /**
    * Angular lifecycle hook called after component initialization.

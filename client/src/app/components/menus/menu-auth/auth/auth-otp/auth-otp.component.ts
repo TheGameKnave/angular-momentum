@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output, signal, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, signal, ViewChild, ElementRef, AfterViewInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
@@ -31,10 +31,16 @@ import { parseApiError } from '@app/helpers/api-error.helper';
   ],
 })
 export class AuthOtpComponent implements AfterViewInit {
+  private readonly authService = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
+
   @ViewChild('otpInput') otpInput?: ElementRef<HTMLInputElement>;
 
   // Input for email that needs verification
   readonly email = input.required<string>();
+
+  // Input for pre-auth callback (e.g., storage promotion)
+  readonly beforeAuthUpdate = input<((userId: string) => Promise<void>) | undefined>();
 
   // Outputs for parent component
   readonly backToSignup = output<void>();
@@ -48,10 +54,7 @@ export class AuthOtpComponent implements AfterViewInit {
 
   otpForm: FormGroup;
 
-  constructor(
-    private readonly authService: AuthService,
-    private readonly fb: FormBuilder,
-  ) {
+  constructor() {
     this.otpForm = this.fb.group({
       otp: ['', [Validators.required, Validators.pattern(OTP_CONFIG.PATTERN)]],
     });
@@ -117,8 +120,12 @@ export class AuthOtpComponent implements AfterViewInit {
 
     const { otp } = this.otpForm.value;
     const email = this.email();
+    const callback = this.beforeAuthUpdate();
 
-    const result = await this.authService.verifyOtp(email, otp);
+    // Use callback variant if provided (for storage promotion before auth signals update)
+    const result = callback
+      ? await this.authService.verifyOtpWithCallback(email, otp, callback)
+      : await this.authService.verifyOtp(email, otp);
 
     this.loading.set(false);
 

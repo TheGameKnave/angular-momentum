@@ -26,13 +26,13 @@ export type FeatureFlagKeys = keyof FeatureFlagResponse;
  */
 @Injectable({ providedIn: 'root' })
 export class FeatureFlagService {
+  protected readonly http = inject(HttpClient);
+  protected readonly socket = inject(Socket);
+
   features = signal<Partial<Record<FeatureFlagKeys, boolean>>>({});
   private readonly destroyRef = inject(DestroyRef);
 
-  constructor(
-    protected readonly http: HttpClient,
-    protected readonly socket: Socket
-  ) {
+  constructor() {
     // Listen for WebSocket updates
     this.socket.on('update-feature-flags', (update: FeatureFlagResponse) => {
       const newFeatures: ArbitraryFeatures = { ...this.features(), ...update };

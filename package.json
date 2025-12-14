@@ -1,11 +1,11 @@
 {
   "name": "angular-momentum",
-  "version": "20.0.2",
+  "version": "21.0.1",
   "siteUrl": "https://angularmomentum.app",
   "repository": "https://github.com/TheGameKnave/angular-momentum",
   "private": true,
   "engines": {
-    "node": "22.14.0"
+    "node": "24.11.1"
   },
   "scripts": {
     "client": "cd client && NODE_ENV=development npm run start -- --configuration development",
@@ -18,7 +18,8 @@
     "prod": "run-p client:prod server:prod",
     "sonar": "sonar-scanner -Dsonar.token=$(grep SONAR_TOKEN server/.env | cut -d '=' -f 2)",
     "test": "./tests/test.sh",
-    "test:translation": "cd tests/translation && ts-node translation-validation.ts",
+    "test:translation": "cd tests/translation && npx tsx translation-validation.ts",
+    "test:notification": "cd tests/translation && npx tsx notification-validation.ts",
     "test:server": "cd server && npm test",
     "test:client": "cd client && npm test",
     "test:e2e": "cd tests/e2e && node clean_screenshots && node test_runner",
@@ -33,7 +34,11 @@
     "./client",
     "./server"
   ],
+  "overrides": {
+    "@types/express-serve-static-core": "^5.1.0"
+  },
   "devDependencies": {
+    "@types/express-serve-static-core": "^5.1.0",
     "@formatjs/icu-messageformat-parser": "^2.11.4",
     "@jirutka/ajv-cli": "^6.0.0-beta.5",
     "ajv": "^8.17.1",
@@ -41,9 +46,6 @@
     "testcafe": "^3.6.2",
     "testcafe-angular-selectors": "^0.4.1",
     "testcafe-blink-diff": "^0.5.5",
-    "typescript": "^5.5.4"
-  },
-  "dependencies": {
-    "ts-node": "^11.0.0-beta.1"
+    "typescript": "~5.9.3"
   }
 }

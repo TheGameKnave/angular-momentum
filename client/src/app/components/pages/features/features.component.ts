@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, effect, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, OnInit, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective} from '@jsverse/transloco';
@@ -33,16 +33,16 @@ import { AuthService } from '@app/services/auth.service';
   ],
 })
 export class FeaturesComponent implements OnInit {
+  protected featureFlagService = inject(FeatureFlagService);
+  readonly destroyRef = inject(DestroyRef);
+  protected readonly connectivity = inject(ConnectivityService);
+  protected readonly authService = inject(AuthService);
+
   Object = Object;
   featureForm = new FormGroup<Record<string, FormControl>>({});
   featureKey = getFeatureTranslationKey;
 
-  constructor(
-    protected featureFlagService: FeatureFlagService,
-    readonly destroyRef: DestroyRef,
-    protected readonly connectivity: ConnectivityService,
-    protected readonly authService: AuthService,
-  ){
+  constructor(){
     // Keep form in sync with signal changes
     effect(() => {
       const features = this.featureFlagService.features();

@@ -1,12 +1,16 @@
-import { DestroyRef, Injectable, signal } from '@angular/core';
+import { DestroyRef, Injectable, signal, inject } from '@angular/core';
 import { sendNotification, isPermissionGranted, requestPermission } from '@tauri-apps/plugin-notification';
 import { TranslocoService } from '@jsverse/transloco';
 import { LogService } from './log.service';
 import { SocketIoService } from './socket.io.service';
 import { UserSettingsService } from './user-settings.service';
-import { Notification, NotificationOptions } from '../models/data.model';
+import { UserStorageService } from './user-storage.service';
+import { Notification, NotificationOptions, LocalizedNotificationPayload } from '../models/data.model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NOTIFICATION_CONFIG } from '@app/constants/service.constants';
+
+/** Base key for notification storage (will be prefixed with user scope) */
+const NOTIFICATIONS_STORAGE_KEY = 'app_notifications';
 
 /**
  * Service for managing notifications across web and Tauri platforms.
@@ -27,20 +31,22 @@ import { NOTIFICATION_CONFIG } from '@app/constants/service.constants';
   providedIn: 'root'
 })
 export class NotificationService {
+  private readonly logService = inject(LogService);
+  private readonly socketService = inject(SocketIoService);
+  private readonly translocoService = inject(TranslocoService);
+  private readonly userSettingsService = inject(UserSettingsService);
+  private readonly userStorageService = inject(UserStorageService);
+  private readonly destroyRef = inject(DestroyRef);
+
   permissionGranted = signal<boolean>(false);
   notifications = signal<Notification[]>([]);
   unreadCount = signal<number>(0);
   private readonly isTauri = '__TAURI__' in globalThis;
 
-  constructor(
-    private readonly logService: LogService,
-    private readonly socketService: SocketIoService,
-    private readonly translocoService: TranslocoService,
-    private readonly userSettingsService: UserSettingsService,
-    private readonly destroyRef: DestroyRef,
-  ) {
+  constructor() {
     this.loadNotificationsFromStorage();
     this.listenForWebSocketNotifications();
+    this.listenForLocalizedNotifications();
     this.initializePermissionSync();
   }
 
@@ -101,6 +107,61 @@ export class NotificationService {
         this.logService.log('Error receiving WebSocket notification', error);
       }
     });
+  }
+
+  /**
+   * Listen for localized notifications from WebSocket.
+   * Server sends all language variants; we store all of them and pick the correct one on display.
+   * This allows notifications to update when the user changes language.
+   * Falls back to English if the current locale is not available.
+   */
+  private listenForLocalizedNotifications(): void {
+    this.socketService.listen<LocalizedNotificationPayload>('localized-notification').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (payload) => {
+        this.logService.log('Received localized notification from WebSocket', payload);
+
+        const locale = this.translocoService.getActiveLang();
+        const title = this.getLocalizedString(payload.title, locale);
+        const body = this.getLocalizedString(payload.body, locale);
+
+        // Format timestamp params for the client's locale and timezone
+        let params = payload.params;
+        if (params && typeof params['time'] === 'string') {
+          params = { ...params, time: this.formatTimestampWithTimezone(params['time']) };
+        }
+
+        // Apply ICU formatting for native OS notifications (which can't re-translate)
+        const formattedTitle = params ? this.translocoService.translate(title, params) : title;
+        const formattedBody = params ? this.translocoService.translate(body, params) : body;
+
+        // Store all language variants so notifications update when language changes
+        const notificationOptions: NotificationOptions = {
+          title: formattedTitle,
+          body: formattedBody,
+          localizedTitle: payload.title,
+          localizedBody: payload.body,
+          icon: payload.icon,
+          tag: payload.tag,
+          params
+        };
+
+        this.show(notificationOptions);
+      },
+      error: (error: unknown) => {
+        this.logService.log('Error receiving localized notification', error);
+      }
+    });
+  }
+
+  /**
+   * Get the string for the current locale from a localized strings object.
+   * Falls back to English if the current locale is not available.
+   * @param strings - Object with language codes as keys and translations as values
+   * @param locale - Current locale code
+   * @returns The string for the current locale or English fallback
+   */
+  private getLocalizedString(strings: Record<string, string>, locale: string): string {
+    return strings[locale] ?? strings['en-US'] ?? '';
   }
 
   /**
@@ -198,14 +259,16 @@ export class NotificationService {
   async show(options: NotificationOptions): Promise<string> {
     const notificationId = this.generateId();
 
-    // Store notification in history with both translated text and original keys
-    // Keys allow re-translation on language change in the notification center
+    // Store notification in history with both translated text and localized variants
+    // Localized variants allow re-translation on language change in notification center
     const notification: Notification = {
       id: notificationId,
       title: options.title,
       body: options.body,
       titleKey: options.titleKey,
       bodyKey: options.bodyKey,
+      localizedTitle: options.localizedTitle,
+      localizedBody: options.localizedBody,
       params: options.params,
       icon: options.icon,
       data: options.data,
@@ -242,7 +305,7 @@ export class NotificationService {
     } catch (error) {
       this.logService.log('Error showing notification', error);
     }
-    // istanbul ignore next
+    // istanbul ignore next - return after try/catch always executes but coverage sees it as branch
     return notificationId;
   }
 
@@ -430,15 +493,16 @@ export class NotificationService {
   }
 
   /**
-   * Save notifications to localStorage.
+   * Save notifications to localStorage using user-scoped key.
    * Limits storage to the most recent notifications to prevent excessive storage usage.
    */
   private saveNotificationsToStorage(): void {
     try {
+      const storageKey = this.userStorageService.prefixKey(NOTIFICATIONS_STORAGE_KEY);
       const notifications = this.notifications();
       // Keep only last N notifications
       const toSave = notifications.slice(0, NOTIFICATION_CONFIG.MAX_STORED_NOTIFICATIONS);
-      localStorage.setItem('app_notifications', JSON.stringify(toSave));
+      localStorage.setItem(storageKey, JSON.stringify(toSave));
     } catch (error) {
       // istanbul ignore next - localStorage error handling
       this.logService.log('Error saving notifications to storage', error);
@@ -446,12 +510,13 @@ export class NotificationService {
   }
 
   /**
-   * Load notifications from localStorage on service initialization.
+   * Load notifications from localStorage using user-scoped key.
    * Converts timestamp strings back to Date objects.
    */
   private loadNotificationsFromStorage(): void {
     try {
-      const stored = localStorage.getItem('app_notifications');
+      const storageKey = this.userStorageService.prefixKey(NOTIFICATIONS_STORAGE_KEY);
+      const stored = localStorage.getItem(storageKey);
       if (stored) {
         const notifications = JSON.parse(stored) as Notification[];
         // Convert timestamp strings back to Date objects
@@ -465,6 +530,16 @@ export class NotificationService {
       // istanbul ignore next - localStorage error handling
       this.logService.log('Error loading notifications from storage', error);
     }
+  }
+
+  /**
+   * Reload notifications from storage.
+   * Called after user login/logout to switch to the appropriate user-scoped storage.
+   */
+  reloadFromStorage(): void {
+    this.notifications.set([]);
+    this.unreadCount.set(0);
+    this.loadNotificationsFromStorage();
   }
 
   /**

@@ -1,8 +1,17 @@
+echo "\nValidating migration versions\n\n"
+cd tests && npx tsx migration-version-check.ts
+
+echo "\nValidating istanbul ignore justifications\n\n"
+npx tsx istanbul-justification-check.ts
+
 echo "\nRunning translation validation\n\n"
-cd tests/translation && npx ts-node translation-validation.ts
+cd translation && npx tsx translation-validation.ts
+
+echo "\nRunning notification validation\n\n"
+npx tsx notification-validation.ts
 
 echo "\nRunning translation key usage check\n\n"
-npx ts-node translation-key-usage.ts
+npx tsx translation-key-usage.ts
 
 echo "\nBuilding the client\n\n"
 cd ../../client && npm run build

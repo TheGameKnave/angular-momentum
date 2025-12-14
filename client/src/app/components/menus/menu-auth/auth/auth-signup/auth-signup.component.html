@@ -6,6 +6,8 @@
       pInputText
       pTooltip="{{ emailTooltip }}"
       tooltipPosition="top"
+      [showDelay]="tooltipShowDelay"
+      [hideDelay]="tooltipHideDelay"
       id="signup-email"
       name="email"
       formControlName="email"
@@ -35,6 +37,8 @@
       pInputText
       pTooltip="{{ usernameTooltip }}"
       tooltipPosition="top"
+      [showDelay]="tooltipShowDelay"
+      [hideDelay]="tooltipHideDelay"
       id="signup-username"
       name="username"
       formControlName="username"
@@ -56,6 +60,8 @@
         pInputText
         pTooltip="{{ passwordTooltip }}"
         tooltipPosition="top"
+        [showDelay]="tooltipShowDelay"
+        [hideDelay]="tooltipHideDelay"
         id="signup-password"
         name="password"
         formControlName="password"
@@ -151,16 +157,23 @@
   @if (errorMessage()) {
     <div class="mb-4">
       <p-message severity="error" styleClass="w-full mb-2">
-        <span [innerHTML]="t(errorMessage()!)"></span>
+        <span>{{ t(errorMessage()!) }}</span>
       </p-message>
 
       @if (showRetry()) {
+        <p class="text-sm mt-2">
+          {{ t('auth.If this persists,') }}
+          <a
+            href="mailto:support@angularmomentum.app"
+            (keydown.enter)="$event.stopPropagation()"
+          >{{ t('auth.contact support') }}</a>{{ t('auth.for help.') }}
+        </p>
         <button
           pButton
           type="button"
           (click)="retryCaptcha()"
           severity="secondary"
-          class="w-full"
+          class="w-full mt-2"
         >{{t('auth.Try Again')}}</button>
       }
     </div>

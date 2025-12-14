@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { LogService } from './log.service';
 import { CONNECTIVITY_CONFIG } from '@app/constants/service.constants';
 
@@ -16,6 +16,8 @@ import { CONNECTIVITY_CONFIG } from '@app/constants/service.constants';
  */
 @Injectable({ providedIn: 'root' })
 export class ConnectivityService {
+  private readonly logService = inject(LogService);
+
   private readonly _isOnline = signal<boolean>(false);
   isOnline = this._isOnline.asReadonly();
 
@@ -42,9 +44,7 @@ export class ConnectivityService {
   private offlineTimer?: ReturnType<typeof setTimeout>;
   private verifyAbortController?: AbortController;
 
-  constructor(
-    private readonly logService: LogService
-  ) {
+  constructor() {
     window.addEventListener('online', () => {
       this._osOnline.set(true);
       this.logService.log('🔵 OS reports online — verifying...');
