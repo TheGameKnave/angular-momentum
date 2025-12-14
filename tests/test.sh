@@ -1,5 +1,11 @@
+echo "\nValidating migration versions\n\n"
+cd tests && npx tsx migration-version-check.ts
+
+echo "\nValidating istanbul ignore justifications\n\n"
+npx tsx istanbul-justification-check.ts
+
 echo "\nRunning translation validation\n\n"
-cd tests/translation && npx tsx translation-validation.ts
+cd translation && npx tsx translation-validation.ts
 
 echo "\nRunning notification validation\n\n"
 npx tsx notification-validation.ts

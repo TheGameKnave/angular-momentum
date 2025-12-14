@@ -89,23 +89,23 @@ export class CookieConsentService {
       return;
     }
 
-    // istanbul ignore next
+    // istanbul ignore next - third-party analytics scripts, integration test scope
     this.loadGoogleAnalytics();
-    // istanbul ignore next
+    // istanbul ignore next - third-party analytics scripts, integration test scope
     this.loadHotjar();
   }
 
   /**
    * Load Google Analytics
    */
-  // istanbul ignore next
+  // istanbul ignore next - third-party script injection, integration test scope
   private loadGoogleAnalytics(): void {
     const gaScript = document.createElement('script');
     gaScript.async = true;
     gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${this.GA_ID}`;
     document.head.appendChild(gaScript);
 
-    // istanbul ignore next
+    // istanbul ignore next - async script onload callback
     gaScript.onload = () => {
       /* eslint-disable @typescript-eslint/no-explicit-any */
       (globalThis as any).dataLayer = (globalThis as any).dataLayer || [];
@@ -126,7 +126,7 @@ export class CookieConsentService {
   /**
    * Load Hotjar
    */
-  // istanbul ignore next
+  // istanbul ignore next - third-party script injection, integration test scope
   private loadHotjar(): void {
     /* eslint-disable @typescript-eslint/no-explicit-any, prefer-rest-params */
     const win = globalThis as any;

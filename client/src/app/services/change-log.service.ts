@@ -6,6 +6,7 @@ import { ChangeImpact } from '@app/models/data.model';
 import packageJson from 'src/../package.json';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CHANGELOG_CONFIG } from '@app/constants/service.constants';
+import { semverDiff } from '@app/helpers/semver.helper';
 
 /**
  * Represents a single changelog entry with version information and changes.
@@ -84,11 +85,13 @@ export class ChangeLogService {
         tap((changeLogArr) => {
           this.changes.set(changeLogArr);
           this.appVersion.set(changeLogArr[0].version);
-          const { impact, delta } = this.calculateDiff(
+          const { impact, delta } = semverDiff(
             this.getCurrentVersion(),
             changeLogArr[0].version,
           );
-          this.appDiff.set({ impact, delta });
+          // Map 'none' to 'patch' for backwards compatibility
+          const mappedImpact: ChangeImpact = impact === 'none' ? 'patch' : impact;
+          this.appDiff.set({ impact: mappedImpact, delta });
         }),
         catchError((error: unknown) => {
           console.error('Error fetching change log:', error);
@@ -103,38 +106,8 @@ export class ChangeLogService {
    * In dev mode, can be overridden via devVersionOverride signal.
    * @returns Current version string (e.g., '1.2.3')
    */
-  // istanbul ignore next // smh my damn head
+  // istanbul ignore next - returns static package.json version, mocked in tests
   public getCurrentVersion(): string {
     return this.devVersionOverride() ?? packageJson.version;
   }
-  /**
-   * Calculate semantic version difference between current and latest versions.
-   * Determines the impact level (major, minor, patch) and the numeric delta.
-   * @param currentVersion - Current version string (e.g., '1.2.3')
-   * @param latestVersion - Latest version string (e.g., '1.3.0')
-   * @returns Object containing impact level and delta value
-   */
-  private calculateDiff(
-    currentVersion: string,
-    latestVersion: string
-  ): { impact: ChangeImpact; delta: number } {
-    const cur = currentVersion.split('.').map(Number);
-    const latest = latestVersion.split('.').map(Number);
-
-    let impact: ChangeImpact = 'patch';
-    let delta = 0;
-
-    if (latest[0] > cur[0]) {
-      impact = 'major';
-      delta = latest[0] - cur[0];
-    } else if (latest[1] > cur[1]) {
-      impact = 'minor';
-      delta = latest[1] - cur[1];
-    } else if (latest[2] > cur[2]) {
-      delta = latest[2] - cur[2];
-    }
-
-    return { impact, delta };
-  }
-
 }

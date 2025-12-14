@@ -61,9 +61,9 @@ export const appProviders = [
     withInterceptorsFromDi()
   ),
   provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
-  // istanbul ignore next
+  // istanbul ignore next - conditional provider, isTestEnvironment is always true in unit tests
   isTestEnvironment ? [] : provideFeatureFlag(), // TODO figure out how to mock this in test environment without putting it in the code!!
-  // istanbul ignore next
+  // istanbul ignore next - conditional provider, isTestEnvironment is always true in unit tests
   isTestEnvironment ? [] : provideFeatureMonitor(), // Initialize feature monitoring at app startup
   provideTransloco({
     config: {

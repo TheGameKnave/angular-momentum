@@ -16,7 +16,7 @@ export class CookieStorage {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static getItem(_key: string): string | null {
-    // istanbul ignore next
+    // istanbul ignore next - SSR guard, document always exists in browser tests
     if (typeof document === 'undefined') {
       return null;
     }
@@ -37,7 +37,7 @@ export class CookieStorage {
    * @param value - Language code
    */
   static setItem(_key: string, value: string): void {
-    // istanbul ignore next
+    // istanbul ignore next - SSR guard, document always exists in browser tests
     if (typeof document === 'undefined') {
       return;
     }
@@ -52,7 +52,7 @@ export class CookieStorage {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static removeItem(_key: string): void {
-    // istanbul ignore next
+    // istanbul ignore next - SSR guard, document always exists in browser tests
     if (typeof document === 'undefined') {
       return;
     }

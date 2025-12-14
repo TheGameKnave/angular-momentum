@@ -18,7 +18,7 @@ export class HelpersService {
   private readonly featureFlagService = inject(FeatureFlagService);
 
   constructor() {
-    // istanbul ignore next
+    // istanbul ignore next - dev tool exposure, ENVIRONMENT.env is 'test' in unit tests
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (globalThis.window && ENVIRONMENT.env !== 'production') (globalThis.window as any).helpersService = this;
   }

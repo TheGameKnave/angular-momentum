@@ -305,7 +305,7 @@ export class NotificationService {
     } catch (error) {
       this.logService.log('Error showing notification', error);
     }
-    // istanbul ignore next
+    // istanbul ignore next - return after try/catch always executes but coverage sees it as branch
     return notificationId;
   }
 
