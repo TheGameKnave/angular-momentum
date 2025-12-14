@@ -1,7 +1,12 @@
 @charset "UTF-8";
 
+// ============================================================================
+// 1. IMPORTS & FONTS
+// ============================================================================
+
 @use "tailwindcss";
 @import "./vendor/flag-icons.css";
+@import "primeicons/primeicons.css";
 
 /* Raleway Regular */
 @font-face {
@@ -17,6 +22,7 @@
   font-weight: 100 900;
   font-style: italic;
 }
+
 /// Regular font family
 /// @type List
 $text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC', 'Segoe UI', 'Arial Unicode MS', Arial, sans-serif !default;
@@ -25,148 +31,286 @@ $text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC
 /// @type List
 $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Monaco', monospace !default;
 
-///////////
-// Theme //
-///////////
+// ============================================================================
+// 2. VARIABLES (THEME)
+// ============================================================================
 
-@import "primeicons/primeicons.css";
+// Brand colors
 $faint-brand: #9fe !default;
 $light-brand: #0ca !default;
 $brand: #1b9 !default;
 $dark-brand: #278 !default;
-$light-gray: #eee !default;
-$gray: #ccc !default;
-$dark-gray: #aaa !default;
-$mid-gray: #888 !default;
+
+// Gray scale
+$faint-gray: #eee !default;
+$light-gray: #ccc !default;
+$high-gray: #aaa !default;
+$mid-gray: #808080 !default;
+$low-gray: #444 !default;
+$dim-gray: #333 !default;
+$dark-gray: #222 !default;
+
+// Effects
 $shadow: rgba(0, 0, 0, 0.2) !default;
+$backdrop: rgba(0, 0, 0, 0.5) !default;
+
+// Text colors
+$text-light: #f4f4f4 !default;
 $text-warning-light: #ffa !default;
 $text-error-light: #f88 !default;
+$text-success-light: #8f8 !default;
+$text-info-light: #8ff !default;
+
+// UI colors
+$error-red: #e74c3c !default;
+$focus-ring: #667eea !default;
+$highlight-bg: rgba(102, 126, 234, 0.08) !default;
+$highlight-bg-active: rgba(102, 126, 234, 0.12) !default;
+$progress-start: #10b981 !default;
+$progress-end: #059669 !default;
+
+// ============================================================================
+// 3. DARK THEME (.app-dark)
+// ============================================================================
+
 .app-dark {
-  background-color: #333;
-  color: #f4f4f4;
-  --p-card-background:#4a4a4a;
-  --p-card-color:#f4f4f4;
-  --p-form-field-background: #333 !important;
-  --p-toggleswitch-handle-checked-background: #444 !important;
-  app-menu-feature, app-menu-language, app-menu-change-log {
-    background-color: #333;
-    color: #f4f4f4;
-    a {
-      color: #f4f4f4;
-    }
-  }
-  p > a {
-    color: $faint-brand;
-    &:hover {
-      color: $light-brand;
-    }
-  }
-  p > a:visited {
-    color: $light-brand;
-  }
-  footer {
-    background-color: #333;
-    color: #f4f4f4;
-  }
+  // CSS Custom Properties for PrimeNG
+  --p-card-background: #{$dim-gray} !important;
+  --p-panel-background: #{$dim-gray} !important;
+  --p-card-color: #{$text-light} !important;
+  --p-form-field-background: #{$dark-gray} !important;
+  --p-toggleswitch-handle-checked-background: #{$dim-gray} !important;
+
+  // Base colors
+  background-color: $dark-gray;
+  color: $text-light;
+
+  // State colors
   .warning {
     color: $text-warning-light;
   }
   .error {
     color: $text-error-light;
   }
-  .scroll-shadows {
-    -webkit-overflow-scrolling: touch;
 
-    background:
-      /* Shadow Cover TOP */
-      linear-gradient(
-        #333 30%,
-        rgba(255, 255, 255, 0)
-      ) center top,
-      
-      /* Shadow Cover BOTTOM */
-      linear-gradient(
-        rgba(255, 255, 255, 0),
-        #333 70%
-      ) center bottom,
-      
-      /* Shadow TOP */
-      radial-gradient(
-        farthest-side at 50% 0,
-        rgba(0, 0, 0, 0.7),
-        rgba(0, 0, 0, 0)
-      ) center top,
-      
-      /* Shadow BOTTOM */
-      radial-gradient(
-        farthest-side at 50% 100%,
-        rgba(0, 0, 0, 0.7),
-        rgba(0, 0, 0, 0)
-      ) center bottom;
-    
-    background-repeat: no-repeat;
-    background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
-    background-attachment: local, local, scroll, scroll;
+  // Links
+  a {
+    &:hover, &:focus {
+      color: $light-brand;
+    }
+  }
+  p > a {
+    color: $faint-brand;
+    &:hover, &:focus {
+      color: $light-brand;
+    }
+    &:visited {
+      color: $light-brand;
+    }
+  }
+
+  // Borders
+  app-menu-feature, .anchor-menu-panel, .cdk-dialog-panel, header, footer, .cookie-banner {
+    border-color: $mid-gray;
+  }
+  .p-tooltip .p-tooltip-text {
+    border-color: $dark-brand;
+  }
+
+  // Horizontal rules
+  hr:before {
+    background-image: linear-gradient(to right, rgba(200,200,200, 0), rgba(200,200,200, 0.75), rgba(200,200,200, 0));
+  }
+  .screen-xs.not-sm app-menu-feature hr:before {
+    background-image: linear-gradient(to bottom, rgba(200, 200, 200, 0), rgba(200, 200, 200, 0.75), rgba(200, 200, 200, 0));
+  }
+
+  // Overlays
+  .app-overlay-backdrop {
+    background-color: $backdrop;
+  }
+
+  // Menus
+  app-menu-feature {
+    background-color: $dark-gray;
+    color: $text-light;
+    a {
+      color: $text-light;
+    }
+  }
+  .anchor-menu-panel {
+    background-color: $backdrop;
+    color: $text-light;
+    a {
+      color: $text-light;
+      &.close:hover {
+        color: $light-brand;
+      }
+    }
+  }
+
+  // Header & Footer (need explicit background for sticky positioning)
+  header, footer {
+    background-color: $dark-gray;
+    color: $text-light;
+  }
+
+  // Ko-fi button
+  .kofi-button a {
+    color: $text-light;
+    border-color: $dark-brand;
+    &:hover {
+      border-color: $light-brand;
+    }
+  }
+
+  // Feature toggles
+  p-toggleswitch + label:hover {
+    color: $light-brand;
+  }
+
+  // Notification system
+  .notification-badge {
+    color: $text-light;
+  }
+  .notification-center-actions {
+    p-button button {
+      color: $text-light;
+      &:hover {
+        color: $light-brand;
+      }
+    }
+  }
+  .notification-item {
+    &:hover {
+      background-color: $dim-gray;
+    }
+    &.unread {
+      border-left-color: $light-brand;
+    }
+  }
+
+  // Notifications page
+  .notifications-page {
+    .notification-test-card {
+      background-color: $dark-gray;
+      border-color: $low-gray;
+
+      .notification-preview {
+        p {
+          color: $text-light;
+        }
+      }
+    }
+
+    .status-message {
+      &.local {
+        background-color: $low-gray;
+        color: $text-light;
+      }
+      &.server {
+        background-color: $dark-gray;
+        color: $text-light;
+      }
+    }
+
+    .status-item {
+      span {
+        &.granted {
+          color: $text-success-light;
+        }
+        &.denied {
+          color: $text-error-light;
+        }
+      }
+    }
+  }
+
+  // Cookie Banner
+  .cookie-banner {
+    background-color: $backdrop;
+    color: $text-light;
+  }
+  .cookie-banner-text {
+    color: $text-light;
+  }
+  .cookie-banner-link {
+    color: $faint-brand;
+    &:hover {
+      color: $light-brand;
+    }
+  }
+
+  // Scroll indicators
+  .scroll-indicator-vertical {
+    background: linear-gradient(to bottom, $light-brand, $dark-brand);
+  }
+  .scroll-indicator-horizontal {
+    background: linear-gradient(to right, $light-brand, $dark-brand);
   }
 }
 
-//////////
-// Base //
-//////////
+// ============================================================================
+// 4. BASE STYLES (html, body, typography, reset)
+// ============================================================================
 
 html {
   font-size: 62.5%;
+
+  // Boost interface size on mobile (1rem = 12px instead of 10px)
+  @media (max-width: 575px) {
+    font-size: 75%;
+  }
 }
+
 body {
   --p-icon-size: 2rem;
   --p-floatlabel-active-font-size: 1.4rem;
+  --p-message-text-font-size: 1.4rem;
+  --p-text-font-size: 1.4rem;
+  --p-inputtext-font-size: 1.4rem;
+  --p-content-font-size: 1.4rem;
   font: normal 1.2rem / 1.4 $text-font-stack;
-  font-family: $text-font-stack;
   font-weight: 500;
   font-feature-settings: "lnum";
-  .main, app-menu-feature {
-    padding-bottom: env(safe-area-inset-bottom) !important;
-  }
-  .main {
-    padding-top: env(safe-area-inset-top) !important; // iOS safe area for Tauri builds
-  }
-  app-menu-feature {
-    top: env(safe-area-inset-top);
-  }
+  // Set safe area insets
+  padding-bottom: env(safe-area-inset-bottom) !important;
+  padding-top: env(safe-area-inset-top) !important;
+  padding-left: env(safe-area-inset-left) !important;
+  padding-right: env(safe-area-inset-right) !important;
+
   h1 {
     font-weight: 600;
     font-size: 2.8rem;
   }
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  h2, h3, h4, h5, h6 {
     font-weight: 500;
   }
-  h2 {
-    font-size: 2.4rem;
-  }
-  h3 {
-    font-size: 2rem;
-  }
-  h4 {
-    font-size: 1.8rem;
-  }
-  h5 {
-    font-size: 1.6rem;
-  }
-  h6 {
-    font-size: 1.4rem;
-  }
+  h2 { font-size: 2.4rem; }
+  h3 { font-size: 2rem; }
+  h4 { font-size: 1.8rem; }
+  h5 { font-size: 1.6rem; }
+  h6 { font-size: 1.4rem; }
   p {
     font-size: 1.6rem;
     line-height: 1.6;
   }
 }
+
 .monospace {
   font-family: $code-font-stack;
 }
+
+pre {
+  overflow-x: auto;
+  white-space: pre;
+  max-width: 100%;
+}
+
+code {
+  word-break: break-word;
+}
+
 hr {
   border: 0;
   margin-block-end: 0;
@@ -182,13 +326,14 @@ hr {
     left: 0;
     border: 0;
     height: 1.5px;
-    background-image: linear-gradient(to right, rgba(200,200,200, 0), rgba(200,200,200, 0.75), rgba(200,200,200, 0));
   }
 }
+
 * {
-    &:not(.p-tooltip) {
+  &:not(.p-tooltip) {
     transition: color 0.2s ease-in-out,
                 background-color 0.2s ease-in-out,
+                border-color 0.2s ease-in-out,
                 opacity 0.2s ease-in-out,
                 box-shadow 0.2s ease-in-out,
                 transform 0.2s ease-in-out;
@@ -200,27 +345,11 @@ hr {
     display: none;                /* Chrome, Safari, iOS */
   }
 }
-.movable, .resizable, .menu, .panel, .sidebar, app-menu-feature, app-menu-language, app-menu-change-log {
-  transition: all 0.2s ease-in-out;
-}
-p-panel {
-  margin: 1rem 0;
-  .p-panel-content {
-    display: flex;
-    gap: 1rem;
-  }
-}
-.p-tooltip .p-tooltip-text {
-  border:1px solid $dark-brand;
-}
-.scroll-area {
-  height: 100%;
-  overflow-y: auto;
-}
 
 a {
   text-decoration: none;
 }
+
 p a:hover {
   text-decoration: underline;
   cursor: pointer;
@@ -232,6 +361,16 @@ p a:hover {
   -webkit-filter: grayscale(100%);
   filter: grayscale(100%);
 }
+.strikethrough {
+  text-decoration: line-through;
+}
+.muted {
+  font-size: 1.4rem;
+  opacity: 0.7;
+
+  i { margin-right: 0.5rem; }
+}
+
 button {
   font-size: 2rem;
   ul {
@@ -239,104 +378,205 @@ button {
     text-align: left;
   }
 }
+
 button,
 input[type="submit"],
 input[type="reset"],
 input[type="button"],
 input[type="checkbox"],
-label[for]
-{
+label[for] {
   cursor: pointer;
 }
+
 textarea {
   font-size: 1.4rem !important;
   width: 100%;
 }
+
 ul {
   list-style-type: none;
   margin: 0;
   padding: 0;
+  &.bulleted {
+    list-style-type: disc;
+    margin: 0.6em 0 0.6em 1em;
+  }
 }
 
-////////////
-// Layout //
-////////////
+// ============================================================================
+// 5. PRIMENG OVERRIDES
+// ============================================================================
+
+// PrimeNG font size overrides to compensate for reduced base font size
+// PrimeNG assumes 1rem = 16px, but we set 1rem = 10px for easier math
+.p-inputtext,
+.p-button,
+.p-button-label {
+  font-size: 1.4rem !important;
+}
+
+// Accessible focus indicator for buttons
+.p-button:focus-visible {
+  outline: 2px solid $focus-ring !important;
+  outline-offset: 2px;
+}
+
+.p-checkbox,
+.p-checkbox-box {
+  width: 2rem !important;
+  height: 2rem !important;
+}
+
+.p-message .p-message-text,
+.p-message .p-message-detail {
+  font-size: 1.4rem !important;
+}
+
+p-panel {
+  margin: 1rem 0;
+  .p-panel-header {
+    cursor: pointer;
+  }
+  .p-panel-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+}
+
+.p-tooltip-top {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.p-tooltip .p-tooltip-text {
+  border: 1px solid transparent;
+  max-width: 30rem !important;
+  width: max-content !important;
+  white-space: pre-line !important;
+  text-align: left !important;
+  display: block !important;
+}
+
+// fix for prime accordion reserving too much space
+.p-accordioncontent-wrapper {overflow: hidden;}
+
+// ============================================================================
+// 6. LAYOUT (main, header, footer, content)
+// ============================================================================
 
 .main {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100dvh;
+  overflow: auto;
   padding-left: 5rem;
 }
-app-menu-feature, app-menu-language, app-menu-change-log, header, footer {
+
+header, footer {
   border: 0 solid $mid-gray;
+  flex-shrink: 0;
 }
+
 header {
+  position: sticky;
+  top: 0;
+  left:0;
+  z-index: 100;
   flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
   padding: .6rem;
   border-bottom-width: 1px;
+  transition: transform 0.2s ease-out;
   > div {
     display: flex;
-    align-items: center; /* centers text and icons inside each container */
-    gap: 0.25rem; /* optional: space between text and icons */
+    align-items: center;
+    gap: 1rem;
   }
 }
+
 .content {
   flex: 1 0 auto;
   padding: 1rem;
 }
+
 footer {
+  position: relative;
+  left: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  z-index: 99;
   flex: 0 0 auto;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
   min-height: 4rem;
   border-top-width: 1px;
-  .language-button {
-    font-size: 2rem;
+  padding: 0 1rem;
+  transition: transform 0.2s ease-out;
+
+  > h4 {
+    margin: 0;
+    font-size: 1.8rem;
+  }
+
+  app-menu-language,
+  app-menu-change-log {
+    display: contents;
+
+    a {
+      font-size: 2rem;
+    }
+  }
+
+  .change-log-button h2 {
+    margin: 0;
   }
 }
 
-app-menu-feature, app-menu-language, app-menu-change-log {
+// ============================================================================
+// 7. COMPONENTS
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// 7.1 Feature Menu (app-menu-feature)
+// ----------------------------------------------------------------------------
+
+app-menu-feature {
   position: fixed;
   z-index: 100;
-  top: 0;
+  top: env(safe-area-inset-top);
+  left: env(safe-area-inset-left);
   bottom: 0;
   font-size: 1.6rem;
   overflow-y: auto;
-  a {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    .label {
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      flex: 1; /* ← this is crucial */
-    }
-    &:hover, &.selected {
-      color: $light-brand;
-    }
-    &.selected {
-      cursor: default;
-    }
-  }
-}
-app-menu-feature {
   padding: 5.2rem 0.6rem 4.3rem;
-  left: 0;
   width: 5rem;
   transition: width 0.1s ease-in-out !important;
   border-right-width: 1px;
+
   &:hover {
     width: 18rem;
     box-shadow: 1rem 0 1rem $shadow;
   }
+
+  .link-home, .kofi-button {
+    position: absolute;
+    left: 0.6rem;
+    right: 0.6rem;
+  }
+
   .link-home {
+    top: 0.6rem;
     white-space: nowrap;
     img {
       width: 3rem;
+      height: 3rem;
+      min-width: 3rem;
+      min-height: 3rem;
       display: inline-block;
       vertical-align: middle;
       -webkit-filter: grayscale(100%);
@@ -349,6 +589,28 @@ app-menu-feature {
       }
     }
   }
+
+  .kofi-button {
+    bottom: 0.6rem;
+    a {
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      background-color: $dark-brand;
+      border: 1px solid transparent;
+      border-radius: 0.6rem;
+      padding: 0.4rem 0.6rem;
+      font-size: 1.6rem;
+      white-space: nowrap;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    img {
+      max-width: 2.6rem;
+      display: block;
+    }
+  }
+
   a {
     display: inline-flex;
     width: 100%;
@@ -356,109 +618,1015 @@ app-menu-feature {
     justify-content: flex-start;
     gap: 1rem;
     padding: 0.4rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    .label {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    &:hover, &.selected {
+      color: $light-brand;
+    }
+    &.selected {
+      cursor: default;
+    }
   }
+
   i.pi {
     font-size: 2.6rem;
     vertical-align: middle;
     border-radius: 1rem;
   }
 }
-app-menu-language {
-  right: 0;
-  border-left-width: 1px;
-  box-shadow: -1rem 0 1rem $shadow;
-  max-width: 65vw;
-  ul {
-    display: grid;
-    grid-auto-flow: row;        /* fill horizontally first */
-    grid-auto-columns: max-content; /* each column only as wide as content */
-    gap: 0.5rem 1rem;              /* row/col spacing */
-    overflow-y: auto;              /* allow vertical scrolling if too tall */
-    max-width: 65vw;
-    li {
-      break-inside: avoid; /* prevent items from splitting */
-      display: inline-block; /* required for proper column flow */
-      width: max-content;
-      a {
-        padding: 0.4rem 0;
-        display: block;
-      }
-    }
-  }
+
+.movable, .resizable, .menu, .panel, .sidebar, app-menu-feature, app-menu-language, app-menu-change-log {
+  transition: all 0.2s ease-in-out;
 }
-app-menu-change-log {
-  left: 0;
-  border-right-width: 1px;
-  box-shadow: 1rem 0 1rem $shadow;
-  max-width: 40rem;
-  ul {
-    list-style-type: disc;
-    li {font-size: 1.6rem !important;}
-  }
+
+// ----------------------------------------------------------------------------
+// 7.2 Anchor Menu System (shared styles)
+// ----------------------------------------------------------------------------
+
+app-anchor-menu {
+  display: flex;
 }
-app-menu-language, app-menu-change-log {
-  padding-top: 4rem;
-  min-width: 18rem;
-  h3 {
-    position: absolute;
-    top: 0.6rem;
-    left: 0.6rem;
-    right: 0.6rem;
-  }
-  a.close i {
-    font-size: 1.8rem;
-    position: absolute;
-    top: 0;
-    right: 0;
-  }
-  h4, p, ul, p-card {
-    margin: 1rem;
-  }
+
+.anchor-menu-overlay-panel {
+  z-index: 1000;
 }
-.link-home, .kofi-button {
-  left: 0.6rem;
-  right: 0.6rem;
+
+.anchor-menu-trigger {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
-.link-home {
+
+.anchor-menu-close-button {
   position: absolute;
   top: 0.6rem;
-}
-.kofi-button {
-  position: absolute;
-  bottom: 0.6rem;
-  a {
-    display: inline-flex;
-    align-items: center;
-    gap: 1rem;
-    background-color: $dark-brand;
-    color: #fff;
-    border: 1px solid $dark-brand;
-    border-radius: 0.6rem;
-    padding: 0.4rem 0.6rem;
-    font-size: 1.6rem;
-    white-space: nowrap;
-    cursor: pointer;
-    text-decoration: none;
-    &:hover {
-      border-color: $light-brand;
-    }
-  }
-  img {
-    width: 2.6rem;
-    height: 2.6rem;
-    object-fit: contain;
-    flex-shrink: 0;
+  right: 0.6rem;
+  border: none;
+  cursor: pointer;
+  font-size: 2rem;
+  line-height: 1;
+  padding: 0.6rem;
+  z-index: 10;
+
+  i {
     display: block;
   }
 }
 
-//////////////////
-// screen sizes //
-//////////////////
+.anchor-menu-panel {
+  position: fixed;
+  border: 0px solid $mid-gray;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(2px);
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  // Generic styles for projected content using attribute selectors
+  // Menus should use: <div menu-content>, <div menu-header>, <div menu-body>
+  [menu-content] {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    font-size: 1.6rem;
+  }
+
+  [menu-header] {
+    padding: 1.6rem;
+    border-bottom: 1px solid transparent;
+    flex-shrink: 0;
+  }
+
+  [menu-body] {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 1.6rem 1.6rem 1.6rem;
+  }
+
+  [menu-footer] {
+    padding: 1.6rem;
+    border-top: 1px solid transparent;
+    flex-shrink: 0;
+  }
+
+  // Position variants
+
+  // Default: Centered modal (when position is empty)
+  &.position- {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 0.8rem;
+    border-width: 1px;
+    max-width: 90vw;
+  }
+
+  // Edge-anchored: Full height/width along edge
+  &.position-left {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    border-width: 0 1px 0 0;
+  }
+
+  &.position-right {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-width: 0 0 0 1px;
+  }
+
+  &.position-top {
+    top: 0;
+    left: 0;
+    right: 0;
+    border-width: 1px 0 0 0;
+  }
+
+  &.position-bottom {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-width: 0 0 1px 0;
+  }
+
+  // Corner-anchored: Full height from corner
+  &.position-top-right {
+    top: 0;
+    right: 0;
+    border-width: 0 0 1px 1px;
+    border-radius: 0 0 0 0.8rem;
+    max-height: 100dvh;
+  }
+
+  &.position-top-left {
+    top: 0;
+    left: 0;
+    border-width: 0 1px 1px 0;
+    border-radius: 0 0 0.8rem 0;
+    max-height: 100dvh;
+  }
+
+  &.position-bottom-right {
+    bottom: 0;
+    right: 0;
+    border-width: 1px 0 0 1px;
+    border-radius: 0.8rem 0 0 0;
+    max-height: 100dvh;
+  }
+
+  &.position-bottom-left {
+    bottom: 0;
+    left: 0;
+    border-width: 1px 1px 0 0;
+    border-radius: 0 0.8rem 0 0;
+    max-height: 100dvh;
+  }
+}
+
+// CDK Overlay Dialog (generic reusable dialog styles)
+.cdk-dialog-panel {
+  background-color: $backdrop;
+  border: 1px solid $mid-gray;
+  border-radius: 0.8rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(2px);
+  display: flex;
+  flex-direction: column;
+  max-width: 95vw;
+  max-height: 95vh;
+
+  // Size variants
+  &.size-sm { width: 30rem; }
+  &.size-md { width: 50rem; }
+  &.size-lg { width: 70rem; }
+}
+
+.cdk-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.6rem;
+  border-bottom: 1px solid $mid-gray;
+  flex-shrink: 0;
+}
+
+.cdk-dialog-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.cdk-dialog-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cdk-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 1.6rem;
+  border-top: 1px solid $mid-gray;
+  flex-shrink: 0;
+}
+
+// ----------------------------------------------------------------------------
+// 7.2.1 Dialog: Update
+// ----------------------------------------------------------------------------
+
+.dialog-update-panel {
+  @extend .cdk-dialog-panel;
+  @extend .size-md;
+}
+.dialog-update-header { @extend .cdk-dialog-header; }
+.dialog-update-close { @extend .cdk-dialog-close; }
+.dialog-update-content { @extend .cdk-dialog-content; }
+.dialog-update-footer { @extend .cdk-dialog-footer; }
+
+.update-warning {
+  i { margin-right: 0.5rem; }
+}
+
+.accordion-header-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+// ----------------------------------------------------------------------------
+// 7.2.2 Dialog: Migration
+// ----------------------------------------------------------------------------
+
+.dialog-migration-panel {
+  @extend .cdk-dialog-panel;
+}
+.dialog-migration-header { @extend .cdk-dialog-header; }
+.dialog-migration-content {
+  @extend .cdk-dialog-content;
+}
+.dialog-migration-footer { @extend .cdk-dialog-footer; }
+
+// ----------------------------------------------------------------------------
+// 7.2.3 Dialog: Clear Data
+// ----------------------------------------------------------------------------
+
+.dialog-clear-data-panel {
+  @extend .cdk-dialog-panel;
+  &.size-sm { width: 30rem; }
+}
+.dialog-clear-data-header {
+  @extend .cdk-dialog-header;
+  gap: 0.75rem;
+}
+.dialog-clear-data-content {
+  @extend .cdk-dialog-content;
+}
+.dialog-clear-data-footer { @extend .cdk-dialog-footer; }
+
+// ----------------------------------------------------------------------------
+// 7.2.4 Dialog: Generic Confirm
+// ----------------------------------------------------------------------------
+
+.dialog-confirm-panel {
+  @extend .cdk-dialog-panel;
+}
+.dialog-confirm-header {
+  @extend .cdk-dialog-header;
+  gap: 0.75rem;
+}
+.dialog-confirm-content {
+  @extend .cdk-dialog-content;
+}
+.dialog-confirm-footer { @extend .cdk-dialog-footer; }
+
+// ----------------------------------------------------------------------------
+// 7.3 Language Menu
+// ----------------------------------------------------------------------------
+
+.menu-language-body {
+  ul {
+    display: grid;
+    grid-auto-flow: row;
+    grid-auto-columns: max-content;
+    gap: 0.5rem 1rem;
+    max-width: 65vw;
+    li {
+      break-inside: avoid;
+      display: inline-block;
+      width: max-content;
+      a {
+        padding: 0.4rem 0;
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        &:hover, &.selected {
+          color: $light-brand;
+        }
+        &.selected {
+          cursor: default;
+        }
+      }
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+// 7.4 Change Log Menu
+// ----------------------------------------------------------------------------
+
+.menu-change-log-header {
+  h4, p {
+    margin: 1rem 0;
+  }
+
+  a {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &:hover {
+      color: $light-brand;
+    }
+  }
+}
+
+.menu-change-log-body {
+  p-card {
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  ul {
+    li {
+      font-size: 1.6rem !important;
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+// 7.5 Notification Center
+// ----------------------------------------------------------------------------
+
+.notification-center-button {
+  position: relative;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  border-radius: .4rem;
+  transition: background-color 0.2s;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -0.6rem;
+  right: -0.6rem;
+  background-color: $text-error-light;
+  border-radius: 1rem;
+  padding: 0.2rem 0.6rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  min-width: 1.8rem;
+  text-align: center;
+}
+
+.notification-center-header {
+  position: relative;
+
+  h3 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+  }
+
+  a.close {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+
+    i {
+      font-size: 1.8rem;
+    }
+  }
+}
+
+.notification-center-actions {
+  display: flex;
+  gap: 0.8rem;
+  margin-right: 2rem;
+  p-button button {
+    font-size: 1.6rem !important;
+    padding: 0.8rem !important;
+  }
+}
+
+.notification-empty {
+  padding: 4.8rem 1.6rem;
+  text-align: center;
+  color: $mid-gray;
+
+  .pi {
+    font-size: 3rem;
+    opacity: 0.3;
+    margin-bottom: 1.6rem;
+  }
+
+  p {
+    margin: 0;
+    font-size: 1.4rem;
+  }
+}
+
+.notification-list {
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+}
+
+.notification-content {
+  display: flex;
+  gap: 1.2rem;
+  flex: 1;
+  align-items: center;
+}
+
+.notification-text {
+  flex: 1;
+}
+
+.notification-item {
+  margin: 0 !important;
+  border-left: 3px solid transparent;
+
+  p-button button {
+    font-size: 1.4rem !important;
+    padding: 0.6rem !important;
+    min-width: 3.2rem !important;
+    min-height: 3.2rem !important;
+
+    &:hover {
+      color: $light-brand !important;
+    }
+
+    .pi {
+      font-size: 1.4rem !important;
+    }
+  }
+}
+
+.notification-icon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 0.4rem;
+  object-fit: cover;
+  flex-shrink: 0;
+  margin-left: 0.8rem;
+}
+
+.notification-title {
+  font-weight: 600;
+  font-size: 1.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.notification-body {
+  font-size: 1.3rem;
+}
+
+.notification-time {
+  font-size: 1.2rem;
+  opacity: 0.7;
+}
+
+// ----------------------------------------------------------------------------
+// 7.6 Auth Menu (button, header, form, profile, OTP)
+// ----------------------------------------------------------------------------
+
+.auth-menu-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.7;
+  }
+
+  i {
+    color: inherit;
+    transition: color 0.2s ease-in-out;
+
+    &.active-route {
+      color: $light-brand;
+    }
+  }
+}
+
+.menu-auth-header {
+  h3 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+  }
+
+  .auth-tabs {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .auth-tab {
+    background: none;
+    border: none;
+    padding: 0.8rem 1.6rem;
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: inherit;
+    opacity: 0.6;
+    border-bottom: 2px solid transparent;
+    transition: opacity 0.2s, border-color 0.2s;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    &.active {
+      opacity: 1;
+      border-bottom-color: currentColor;
+    }
+  }
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+
+    &.hidden {
+      display: none;
+    }
+
+    label {
+      margin: 0;
+      padding-bottom: 0.8rem;
+      display: block;
+    }
+
+    .error-message {
+      color: $error-red;
+      display: block;
+      position: absolute;
+      bottom: -1.6rem;
+      left: 0;
+      font-size: 1.2rem;
+      margin: 0;
+    }
+  }
+
+  .form-field-optional {
+    color: $mid-gray;
+    font-size: 0.9em;
+  }
+
+  // Override PrimeNG panel content width constraints
+  .p-panel .p-panel-content {
+    width: 100%;
+    max-width: none;
+  }
+
+  .mode-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    padding: 1.6rem 0 0;
+    border-top: 1px solid rgba(128, 128, 128, 0.2);
+
+    span {
+      color: rgba(128, 128, 128, 0.8);
+    }
+
+    button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .forgot-password {
+    text-align: center;
+    margin-top: -0.8rem;
+
+    button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.profile-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  .profile-info {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    padding-bottom: 1.6rem;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+    transition: all 0.2s ease;
+
+    // Clickable state
+    &.clickable {
+      cursor: pointer;
+      border-radius: 0.8rem;
+      padding: 1.2rem;
+      margin: -1.2rem;
+      margin-bottom: 0.4rem;
+
+      &:hover {
+        background-color: $highlight-bg;
+      }
+
+      &:active {
+        background-color: $highlight-bg-active;
+      }
+
+      &:focus-visible {
+        outline: 2px solid $focus-ring;
+        outline-offset: 2px;
+      }
+    }
+
+    .profile-avatar {
+      width: 5.6rem;
+      height: 5.6rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5264d3 0%, #663d91 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      font-weight: 600;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+
+    .profile-details {
+      flex: 1;
+      min-width: 0;
+
+      .profile-email {
+        font-size: 1.6rem;
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+        word-break: break-all;
+      }
+
+      .profile-username {
+        font-size: 1.4rem;
+        opacity: 0.7;
+      }
+    }
+
+    .profile-chevron {
+      font-size: 2rem;
+      opacity: 0.3;
+      transition: all 0.2s ease;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    &.clickable:hover .profile-chevron {
+      opacity: 0.6;
+      transform: translateX(4px);
+    }
+  }
+
+  .profile-metadata {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    padding-bottom: 1.6rem;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+
+    .metadata-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.4rem;
+
+      .metadata-label {
+        opacity: 0.7;
+      }
+
+      .metadata-value {
+        font-weight: 500;
+      }
+    }
+  }
+
+  .profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+.otp-instructions {
+  text-align: center;
+  margin-bottom: 1.6rem;
+
+  p {
+    margin: 0 0 0.8rem;
+    font-size: 1.4rem;
+  }
+
+  .otp-email {
+    font-weight: 600;
+    font-size: 1.5rem;
+    word-break: break-all;
+  }
+}
+
+.otp-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.6rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid rgba(128, 128, 128, 0.2);
+
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: inherit;
+    opacity: 0.8;
+
+    &:hover:not(:disabled) {
+      text-decoration: underline;
+      opacity: 1;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+// 7.7 Cookie Banner
+// ----------------------------------------------------------------------------
+
+.cookie-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  backdrop-filter: blur(2px);
+  border-top: 1px solid transparent;
+  padding: 1.5rem 2rem;
+  z-index: 10000;
+  box-shadow: 0 -0.4rem 2rem $shadow;
+}
+
+.cookie-banner-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.cookie-banner-text {
+  margin: 0;
+  font-size: 1.6rem;
+  line-height: 1.6;
+  font-weight: 400;
+  text-align: center;
+}
+
+.cookie-banner-link {
+  text-decoration: underline;
+  margin-left: 0.5rem;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.cookie-banner-actions {
+  display: flex;
+  gap: 1rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+// ----------------------------------------------------------------------------
+// 7.8 Privacy Policy
+// ----------------------------------------------------------------------------
+
+.privacy-content {
+  line-height: 1.6;
+
+  a {
+    text-decoration: underline;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+// ============================================================================
+// 8. PAGE-SPECIFIC STYLES
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// 8.1 Notifications Page
+// ----------------------------------------------------------------------------
+
+.notifications-page {
+  h2 {
+    margin-bottom: 2rem;
+  }
+
+  h3 {
+    margin-bottom: 1.5rem;
+  }
+
+  .status-section,
+  .test-section,
+  .info-section {
+    margin-bottom: 2rem;
+  }
+
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 1rem;
+  }
+
+  .status-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    strong {
+      font-size: 1.2rem;
+      color: $mid-gray;
+      text-transform: uppercase;
+    }
+
+    span {
+      font-size: 1.6rem;
+      font-weight: 600;
+    }
+  }
+
+  .notification-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .notification-test-card {
+    padding: 1.5rem;
+    border: 1px solid transparent;
+    border-radius: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+
+    .notification-preview {
+      flex: 1;
+
+      strong {
+        display: block;
+        font-size: 1.6rem;
+        margin-bottom: 0.5rem;
+      }
+
+      p {
+        font-size: 1.4rem;
+        margin: 0;
+      }
+    }
+
+    .notification-actions {
+      display: flex;
+      gap: 0.8rem;
+      flex-shrink: 0;
+    }
+  }
+
+  .status-message {
+    padding: 1rem;
+    border-radius: 0.4rem;
+    margin-top: 1rem;
+    font-size: 1.4rem;
+    border-left: 4px solid;
+  }
+
+  ul {
+    li {
+      font-size: 1.4rem;
+      line-height: 1.6;
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+// 8.2 IndexedDB Demo Card Styles
+// ----------------------------------------------------------------------------
+
+p-card ul li, p-card.indexeddb {
+  margin: 0.6rem 0;
+  padding: 0;
+  font-size: 2rem;
+}
+
+p-card.indexeddb {
+  input {
+    margin: 0.5rem 0;
+    font-size: 1.5rem;
+  }
+}
+
+// ============================================================================
+// 9. RESPONSIVE OVERRIDES (screen sizes)
+// ============================================================================
 
 .screen-xl {
   body.index footer {
-      left: 18rem;
+    left: 18rem;
   }
   app-menu-feature {
     width: 18rem;
@@ -468,25 +1636,28 @@ app-menu-language, app-menu-change-log {
     padding-left: 18rem;
   }
 }
+
 .screen-xs.not-sm {
+  // Layout overrides
   .main {
     padding-left: 0;
+    height: calc(100dvh - 4rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
   header, footer {
     border-left-width: 0;
   }
   footer {
-    padding-bottom: 4rem;
-    left: 0;
     > * {
       font-size: 1.6rem;
     }
   }
+
+  // Feature menu becomes bottom bar
   app-menu-feature {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    bottom: env(safe-area-inset-bottom);
+    left: env(safe-area-inset-left);
+    right: env(safe-area-inset-right);
     top: auto;
     display: flex;
     flex-direction: row;
@@ -496,6 +1667,9 @@ app-menu-language, app-menu-change-log {
     padding: 0;
     overflow-x: auto;
     border-width: 1px 0 0 0;
+    > div {
+      overflow-y: auto;
+    }
     > * {
       margin: 0;
     }
@@ -521,7 +1695,6 @@ app-menu-language, app-menu-change-log {
         bottom: 0;
         height: 100%;
         width: 1.5px;
-        background-image: linear-gradient(to bottom, rgba(200, 200, 200, 0), rgba(200, 200, 200, 0.75), rgba(200, 200, 200, 0));
       }
     }
     .kofi-button, .link-home {
@@ -540,19 +1713,123 @@ app-menu-language, app-menu-change-log {
       margin: 0;
     }
   }
-  p-card ul li , p-card.indexeddb{
+
+  // Anchor menus become scrollable centered modals
+  .cdk-overlay-pane:has(.anchor-menu-panel) {
+    inset: 0 !important;
+    overflow-y: auto;
+    display: block;
+    padding: 2rem 2.5vw;
+    pointer-events: auto; // iOS Safari requires pointer-events to allow touch scrolling
+    width: 100%;
+  }
+
+  .anchor-menu-panel[class*="position-"] {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none;
+    width: 100% !important;
+    max-width: 95vw;
+    max-height: none;
+    border-radius: 0.8rem;
+    border-width: 1px;
+    flex-shrink: 0;
+    pointer-events: auto;
+  }
+
+  // Let inner content grow naturally (overlay scrolls)
+  [menu-body] {
+    overflow-y: visible;
+    flex: none;
+  }
+
+  // IndexedDB card overrides
+  p-card ul li, p-card.indexeddb {
     margin: 0.4rem 0;
-    padding: 0rem 0;
+    padding: 0;
+  }
+
+  // Notification test cards stack vertically on mobile
+  .notification-test-card {
+    flex-direction: column;
+    align-items: stretch;
+
+    .notification-actions {
+      justify-content: space-around;
+    }
   }
 }
-p-card ul li , p-card.indexeddb{
-  margin: 0.6rem 0;
-  padding: 0rem 0;
-  font-size: 2rem;
-}
-p-card.indexeddb {
-  input {
-    margin: 0.5rem 0rem;
-    font-size: 1.5rem;
+
+// Cookie banner responsive
+@media (max-width: 768px) {
+  .cookie-banner-actions {
+    width: 100%;
+
+    button {
+      flex: 1;
+    }
   }
+}
+
+// ============================================================================
+// 10. UTILITIES & ANIMATIONS
+// ============================================================================
+
+.auto-close-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 6px;
+  width: 0;
+  background: linear-gradient(90deg, $progress-start, $progress-end);
+  animation: fill-progress linear forwards;
+}
+
+@keyframes fill-progress {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+// ----------------------------------------------------------------------------
+// Scroll Indicator
+// ----------------------------------------------------------------------------
+
+// Sticky track: sticks to bottom-left of scroll viewport
+// Width is set via JS to match viewport width
+.scroll-indicator-track {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+// Common indicator styles - absolutely positioned within sticky track
+// Negative offset moves indicators INTO the padding area (toward viewport edge)
+.scroll-indicator-vertical,
+.scroll-indicator-horizontal {
+  position: absolute;
+  bottom: calc(-1 * var(--si-offset-bottom, 0px) + 4px);
+  right: calc(-1 * var(--si-offset-right, 0px) + 4px);
+  background-color: $mid-gray;
+  border-radius: 0.2rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+}
+
+// Vertical indicator: thin bar extending upward from bottom-right
+.scroll-indicator-vertical {
+  width: 0.4rem;
+  height: var(--si-height, 0px);
+}
+
+// Horizontal indicator: thin bar extending leftward from bottom-right
+.scroll-indicator-horizontal {
+  height: 0.4rem;
+  width: var(--si-width, 0px);
 }

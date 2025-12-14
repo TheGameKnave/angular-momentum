@@ -1,16 +1,19 @@
 <ng-container *transloco="let t">
   <p-card>
-    <p>{{ t('Turn features on and off for feature flag testing') }}</p>
+    <p>{{ t('page.Turn features on and off for feature flag testing') }}</p>
+    @if (!authService.isAuthenticated()) {
+      <p-message severity="info" [text]="t('auth.Register or log in to access all features')" styleClass="mb-3" />
+    }
     <hr>
     <ul class="feature-list">
       @for (feature of Object.entries(featureFlagService.features()); track $index) {
-        <li [class.disabled]="!connectivity.isOnline()">
+        <li [class.disabled]="!connectivity.isOnline() || !authService.isAuthenticated()">
           <p-toggleswitch
             [inputId]="'thing'+feature[0]"
             [formControl]="featureControl(feature[0])"
           ></p-toggleswitch>&nbsp;
         <label
-          [for]="'thing'+feature[0]">{{ t(feature[0]) }}
+          [for]="'thing'+feature[0]">{{ t(featureKey(feature[0])) }}
         </label>
         </li>
       }

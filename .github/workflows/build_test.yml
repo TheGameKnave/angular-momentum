@@ -18,7 +18,7 @@ jobs:
       - name: Set Up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 22.14.0
+          node-version: 24.11.1
 
       - name: Install Dependencies
         run: |
@@ -28,10 +28,15 @@ jobs:
       - name: Run Translation Validation
         run: |
           echo "\nRunning translation validation\n\n"
-          cd tests/translation && npx ts-node translation-validation.ts
+          cd tests/translation && npx tsx translation-validation.ts
+          echo "\nRunning translation key usage check\n\n"
+          npx tsx translation-key-usage.ts
 
-      - name: Run ESLint
+      - name: Run Client ESLint
         run: cd client && npx eslint --ext .ts,.js src/
+
+      - name: Run Server ESLint
+        run: cd server && npx eslint .
 
       - name: Build the Client
         run: |
@@ -148,7 +153,7 @@ jobs:
 
   create-release-tag:
     needs: build-and-test
-    if: github.ref == 'refs/heads/feature/deploy-actions'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -176,6 +181,7 @@ jobs:
           fi
 
       - name: Create and push tag
+        if: steps.check_tag.outputs.exists != 'true'
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com

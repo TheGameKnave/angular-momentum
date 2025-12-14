@@ -1,33 +1,29 @@
-import { TestBed } from '@angular/core/testing';
-import { GraphqlApiComponent, InitializeApiRes } from './graphql-api.component';
-import { HttpClient, provideHttpClient } from '@angular/common/http';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { GraphqlApiComponent } from './graphql-api.component';
 import { of, throwError } from 'rxjs';
-import { MarkdownModule } from 'ngx-markdown';
-import { SecurityContext } from '@angular/core';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { FeatureMonitorService } from '@app/services/feature-monitor.service';
 import { getTranslocoModule } from '../../../../../../tests/helpers/transloco-testing.module';
+import { GraphqlService } from '@app/services/graphql.service';
 
 describe('GraphqlApiComponent', () => {
   let component: GraphqlApiComponent;
-  let httpClientSpy: jasmine.SpyObj<HttpClient>;
+  let fixture: ComponentFixture<GraphqlApiComponent>;
+  let graphqlServiceSpy: jasmine.SpyObj<GraphqlService>;
 
   beforeEach(async () => {
-    httpClientSpy = jasmine.createSpyObj('HttpClient', ['post']);
+    graphqlServiceSpy = jasmine.createSpyObj('GraphqlService', ['fetchDocs']);
+    graphqlServiceSpy.fetchDocs.and.returnValue(of(''));
 
     await TestBed.configureTestingModule({
       imports: [
         GraphqlApiComponent,
-        MarkdownModule.forRoot({ sanitize: SecurityContext.STYLE }),
         getTranslocoModule(),
       ],
       providers: [
-        { provide: HttpClient, useValue: httpClientSpy },
-        { provide: FeatureMonitorService, useValue: jasmine.createSpyObj('FeatureMonitorService', ['watchRouteFeatureAndRedirect']) }
+        { provide: GraphqlService, useValue: graphqlServiceSpy },
       ],
     }).compileComponents();
 
-    const fixture = TestBed.createComponent(GraphqlApiComponent);
+    fixture = TestBed.createComponent(GraphqlApiComponent);
     component = fixture.componentInstance;
   });
 
@@ -35,37 +31,34 @@ describe('GraphqlApiComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should make a POST request and emit API data on results$', (done) => {
-    const mockResponse: InitializeApiRes = { data: { docs: 'Sample docs' } };
-    httpClientSpy.post.and.returnValue(of(mockResponse));
-
-    component.ngOnInit();  // <---- IMPORTANT: call lifecycle hook!
-
-    component.results$.subscribe((res) => {
-      expect(res).toEqual(mockResponse);
-      expect(httpClientSpy.post).toHaveBeenCalledWith(
-        'http://localhost:4200/api',
-        { query: `
-query GetApiData {
-  docs
-}
-` },
-        jasmine.any(Object) // headers object
-      );
-      done();
-    });
+  it('should initialize with empty docs and no error', () => {
+    expect(component.docs()).toBe('');
+    expect(component.error()).toBe(false);
   });
 
-  it('should set error and emit null when HTTP POST fails', (done) => {
-    const mockError = new Error('Network error');
-    httpClientSpy.post.and.returnValue(throwError(() => mockError));
+  it('should fetch API docs on init and set docs signal', () => {
+    graphqlServiceSpy.fetchDocs.and.returnValue(of('Sample docs content'));
 
-    component.ngOnInit();  // <---- call lifecycle hook
+    component.ngOnInit();
 
-    component.results$.subscribe((res) => {
-      expect(res).toBeNull();
-      expect(component.error).toEqual(mockError); // use .toEqual, not .toBe
-      done();
-    });
+    expect(graphqlServiceSpy.fetchDocs).toHaveBeenCalled();
+    expect(component.docs()).toBe('Sample docs content');
+    expect(component.error()).toBe(false);
+  });
+
+  it('should set error when response has no docs', () => {
+    graphqlServiceSpy.fetchDocs.and.returnValue(of(''));
+
+    component.ngOnInit();
+
+    expect(component.error()).toBe(true);
+  });
+
+  it('should handle errors and set error signal', () => {
+    graphqlServiceSpy.fetchDocs.and.returnValue(throwError(() => new Error('Network error')));
+
+    component.ngOnInit();
+
+    expect(component.error()).toBe(true);
   });
 });

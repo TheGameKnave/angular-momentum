@@ -1,11 +1,13 @@
-import { TestBed, fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { of, Subject } from 'rxjs';
 import * as envModule from 'src/environments/environment';
 import { UpdateService } from './update.service';
 import { SwUpdate, VersionReadyEvent, VersionDetectedEvent } from '@angular/service-worker';
-import { DestroyRef } from '@angular/core';
+import { DestroyRef, signal } from '@angular/core';
 import { LogService } from './log.service';
 import { Update } from '@tauri-apps/plugin-updater';
+import { UpdateDialogService } from './update-dialog.service';
+import { ChangeLogService } from './change-log.service';
 
 describe('UpdateService', () => {
   let service: UpdateService;
@@ -13,6 +15,8 @@ describe('UpdateService', () => {
   let swUpdateSpy: jasmine.SpyObj<SwUpdate>;
   let destroyRefMock: jasmine.SpyObj<DestroyRef>;
   let logMock: jasmine.SpyObj<LogService>;
+  let updateDialogMock: jasmine.SpyObj<UpdateDialogService>;
+  let changeLogMock: jasmine.SpyObj<ChangeLogService>;
   let versionUpdates$: Subject<VersionReadyEvent | VersionDetectedEvent>;
 
   beforeEach(() => {
@@ -28,13 +32,23 @@ describe('UpdateService', () => {
 
     destroyRefMock = jasmine.createSpyObj('DestroyRef', ['']);
     logMock = jasmine.createSpyObj('LogService', ['log']);
+    updateDialogMock = jasmine.createSpyObj('UpdateDialogService', ['show', 'confirm', 'dismiss'], {
+      visible: signal(false)
+    });
+    updateDialogMock.show.and.returnValue(Promise.resolve(true));
+    changeLogMock = jasmine.createSpyObj('ChangeLogService', ['refresh', 'getCurrentVersion'], {
+      appVersion: signal('1.0.0'),
+      appDiff: signal({ impact: 'patch', major: 0, minor: 0, patch: 1 })
+    });
 
     TestBed.configureTestingModule({
       providers: [
         UpdateService,
         { provide: SwUpdate, useValue: swUpdateMock },
         { provide: DestroyRef, useValue: destroyRefMock },
-        { provide: LogService, useValue: logMock }
+        { provide: LogService, useValue: logMock },
+        { provide: UpdateDialogService, useValue: updateDialogMock },
+        { provide: ChangeLogService, useValue: changeLogMock }
       ]
     });
 
@@ -115,18 +129,18 @@ describe('UpdateService', () => {
       tick();
       expect(swUpdateMock.checkForUpdate).toHaveBeenCalled();
       expect(swUpdateMock.activateUpdate).toHaveBeenCalled();
-      expect(logMock.log).toHaveBeenCalledWith(jasmine.any(String), 'SW: Update available, activating...');
+      expect(logMock.log).toHaveBeenCalledWith('SW: Update available, activating...');
     }));
 
     it('should log if no SW update', fakeAsync(() => {
       swUpdateMock.checkForUpdate.and.returnValue(Promise.resolve(false));
       (service as any).checkServiceWorkerUpdate();
       tick();
-      expect(logMock.log).toHaveBeenCalledWith(jasmine.any(String), 'SW: No update available.');
+      expect(logMock.log).toHaveBeenCalledWith('SW: No update available.');
     }));
 
     it('should handle VERSION_READY and reload if confirmed', fakeAsync(async () => {
-      (service as any).confirmUser.and.returnValue(Promise.resolve(true));
+      updateDialogMock.show.and.returnValue(Promise.resolve(true));
 
       const versionReadyEvent: VersionReadyEvent = {
         type: 'VERSION_READY',
@@ -136,6 +150,8 @@ describe('UpdateService', () => {
 
       await (service as any).handleSwEvent(versionReadyEvent);
       tick();
+      expect(changeLogMock.refresh).toHaveBeenCalled();
+      expect(updateDialogMock.show).toHaveBeenCalled();
       expect((service as any).reloadPage).toHaveBeenCalled();
     }));
 
@@ -145,7 +161,7 @@ describe('UpdateService', () => {
         version: { hash: 'v1.2.3' }
       };
       (service as any).handleSwEvent(versionDetectedEvent);
-      expect(logMock.log).toHaveBeenCalledWith(jasmine.any(String), 'SW: New version detected:', { hash: 'v1.2.3' });
+      expect(logMock.log).toHaveBeenCalledWith('SW: New version detected:', { hash: 'v1.2.3' });
     });
   });
 

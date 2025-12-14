@@ -5,11 +5,11 @@ import { HelpersService } from '@app/services/helpers.service';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { Component, signal } from '@angular/core';
 import { ComponentInstance } from '@app/models/data.model';
-import { Router, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd, NavigationStart } from '@angular/router';
 import { Subject } from 'rxjs';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ConnectivityService } from '@app/services/connectivity.service';
-import { SCREEN_SIZES } from '@app/helpers/constants';
+import { SCREEN_SIZES } from '@app/constants/ui.constants';
 
 class MockConnectivityService {
   showOffline = signal(false);
@@ -97,6 +97,18 @@ describe('MenuFeatureComponent', () => {
     tick();
     expect(scrollSpy).toHaveBeenCalled();
   }));
+
+  it('should save scroll position on NavigationStart', fakeAsync(() => {
+    const scrollAreaMock = document.createElement('div');
+    Object.defineProperty(scrollAreaMock, 'scrollLeft', { value: 150, configurable: true });
+    component.scrollArea = { nativeElement: scrollAreaMock } as any;
+
+    component.ngAfterViewInit();
+    routerEvents$.next(new NavigationStart(1, '/'));
+    tick();
+
+    expect((component as any).savedScrollLeft).toBe(150);
+  }));
   it('should call scrollToCenter on resize', () => {
     const scrollSpy = spyOn(component, 'scrollToCenter');
 
@@ -174,7 +186,7 @@ describe('MenuFeatureComponent', () => {
     expect(scrollSpy).toHaveBeenCalled();
   });
 
-  it('should scroll immediately on Chrome Mobile', fakeAsync(() => {
+  it('should restore saved position then smooth scroll on Chrome Mobile', fakeAsync(() => {
     const scrollAreaMock = document.createElement('div');
     Object.defineProperty(scrollAreaMock, 'clientWidth', { value: 200, configurable: true });
     component.scrollArea = { nativeElement: scrollAreaMock } as any;
@@ -193,12 +205,17 @@ describe('MenuFeatureComponent', () => {
       configurable: true,
     });
 
+    // Simulate a saved scroll position (as if navigation just occurred)
+    (component as any).savedScrollLeft = 100;
+
     let scrollLeftValue = 0;
     Object.defineProperty(scrollAreaMock, 'scrollLeft', {
       get: () => scrollLeftValue,
       set: (val) => { scrollLeftValue = val; },
       configurable: true
     });
+
+    const scrollToSpy = spyOn(scrollAreaMock, 'scrollTo');
 
     const rafQueue: FrameRequestCallback[] = [];
     spyOn(window, 'requestAnimationFrame').and.callFake(cb => {
@@ -213,7 +230,13 @@ describe('MenuFeatureComponent', () => {
       cb(0);
     }
 
-    expect(scrollLeftValue).not.toBe(0);
+    // Verify saved position was restored first
+    expect(scrollLeftValue).toBe(100);
+    // Verify smooth scroll was then called
+    expect(scrollToSpy).toHaveBeenCalled();
+    const callArgs = scrollToSpy.calls.mostRecent().args[0] as ScrollToOptions;
+    expect(callArgs.behavior).toBe('smooth');
+    expect(typeof callArgs.left).toBe('number');
 
     Object.defineProperty(window.navigator, 'userAgent', { value: originalUA, configurable: true });
   }));

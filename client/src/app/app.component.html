@@ -1,14 +1,18 @@
 <ng-container *transloco="let t">
-  <div class="main">
+  <div class="main" appScrollIndicator>
     <header>
-      <div>
-        Momentum 
+      <div class="breadcrumbs">
+        Momentum
         @if(breadcrumb){ | {{ breadcrumb }}}
       </div>
-      <div>
+      <div class="header-actions">
+        <app-menu-auth />
+        @if (showNotifications()) {
+          <app-notification-center />
+        }
         @if(!connectivity.isOnline()){
           @if(connectivity.showOffline()){
-            @if(window.innerWidth >= SCREEN_SIZES.md) { You are currently offline }
+            @if((window?.innerWidth ?? 0) >= SCREEN_SIZES.md) { {{ t('connectivity.You are currently offline') }} }
             <i class="pi pi-exclamation-triangle"></i>
           }
           <i class="pi pi-wifi"></i>
@@ -17,59 +21,42 @@
         }
       </div>
     </header>
-  
+
     <div class="content">
       <router-outlet></router-outlet>
     </div>
   
     <footer>
-      @if (featureFlagService.getFeature('App Version')) {
-        <a
-          href="javascript:void(0)"
-          (click)="toggleMenu('changeLog', $event)"
-          (keydown.enter)="toggleMenu('changeLog', $event)"
-          class="change-log-button"
-        >
-          <h2
-            [class.warning]="appDiff().impact === 'minor' && appDiff().delta"
-            [class.error]="appDiff().impact === 'major' && appDiff().delta"
-          >
-            {{ t('v.') }} {{ version }}
-            @if (appDiff().delta) {
-              @if (appDiff().impact === 'patch') { <i class="pi pi-info-circle"></i> }
-              @if (appDiff().impact === 'minor') { <i class="pi pi-exclamation-circle"></i> }
-              @if (appDiff().impact === 'major') { <i class="pi pi-exclamation-triangle"></i> }
-            }
-          </h2>
-        </a>
+      @if (showAppVersion()) {
+        <app-menu-change-log />
       }
-      @if (featureFlagService.getFeature('Environment')) {
-        <h4>{{ t('{environmentName} environment',{ environmentName: isDevMode ? t('Development') : t('Production') }) }}</h4>
+      @if (showEnvironment()) {
+        <h4 [pTooltip]="isXsScreen() ? t('menu.{environmentName} environment', { environmentName: t(isDevMode ? 'menu.Development' : 'menu.Production') }) : null" tooltipPosition="top" [showDelay]="tooltipShowDelay" [hideDelay]="tooltipHideDelay">
+          @if (isXsScreen()) {
+            <i class="pi" [class.pi-code]="isDevMode" [class.pi-globe]="!isDevMode"></i>
+          } @else if (isNarrowScreen()) {
+            {{ t(isDevMode ? 'menu.Development' : 'menu.Production') }}
+          } @else {
+            {{ t('menu.{environmentName} environment', { environmentName: t(isDevMode ? 'menu.Development' : 'menu.Production') }) }}
+          }
+        </h4>
       }
-      @if (featureFlagService.getFeature('Language')) {
-        <a
-          href="javascript:void(0)"
-          (click)="toggleMenu('language', $event)"
-          (keydown.enter)="toggleMenu('language', $event)"
-          class="language-button"
-        >
-          <i class="pi pi-language"></i>&nbsp;<i [class]="'fi fi-' + translocoLoader.getCountry(translate.getActiveLang())"></i>
-        </a>
+      <h4><a routerLink="/privacy" class="privacy-link">{{ t(isNarrowScreen() ? 'privacy.Privacy' : 'privacy.Privacy Policy') }}</a></h4>
+      @if (showLanguage()) {
+        <app-menu-language />
       }
     </footer>
   </div>
 
   <app-menu-feature></app-menu-feature>
-  @if (openMenu === 'language') {
-    <app-menu-language
-      (click)="toggleMenu('language', $event)"
-      (keydown.enter)="toggleMenu('language', $event)"
-    />
-  }
-  @if (openMenu === 'changeLog') {
-    <app-menu-change-log
-      (click)="toggleMenu('changeLog', $event)"
-      (keydown.enter)="toggleMenu('changeLog', $event)"
-    />
-  }
+
+  <!-- Cookie Consent Banner -->
+  <app-cookie-banner />
+
+  <!-- Dialogs -->
+  <app-dialog-confirm />
+  <app-dialog-update />
+
+  <!-- Toast notifications -->
+  <p-toast />
 </ng-container>

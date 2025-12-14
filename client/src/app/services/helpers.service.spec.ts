@@ -26,14 +26,42 @@ describe('HelpersService', () => {
     delete (window as any).helpersService;
   });
 
-  it('should return filtered enabledComponents based on feature flags', () => {
-    featureFlagServiceSpy.getFeature.and.callFake((name: string) => name !== 'GraphQL API');
+  // Derive expected counts from COMPONENT_LIST structure
+  const nonFlaggedComponents = COMPONENT_LIST.filter(c => !('featureFlagged' in c) || !c.featureFlagged);
+  const flaggedComponents = COMPONENT_LIST.filter(c => 'featureFlagged' in c && c.featureFlagged);
+
+  it('should always include non-feature-flagged components', () => {
+    featureFlagServiceSpy.getFeature.and.returnValue(false);
 
     const allowed = service.enabledComponents();
 
-    expect(allowed.length).toBe(COMPONENT_LIST.length - 1);
-    expect(allowed.some(c => c.name === 'Features')).toBeTrue();
-    expect(allowed.some(c => c.name === 'IndexedDB')).toBeTrue();
-    expect(allowed.some(c => c.name === 'GraphQL API')).toBeFalse();
+    // Non-feature-flagged components should always be included
+    nonFlaggedComponents.forEach(c => {
+      expect(allowed.some(a => a.name === c.name)).toBeTrue();
+    });
+    expect(allowed.length).toBe(nonFlaggedComponents.length);
+  });
+
+  it('should filter feature-flagged components when flags are false', () => {
+    featureFlagServiceSpy.getFeature.and.returnValue(false);
+
+    const allowed = service.enabledComponents();
+
+    // Feature-flagged components should be excluded when flags are false
+    flaggedComponents.forEach(c => {
+      expect(allowed.some(a => a.name === c.name)).toBeFalse();
+    });
+  });
+
+  it('should include all components when feature flags are enabled', () => {
+    featureFlagServiceSpy.getFeature.and.returnValue(true);
+
+    const allowed = service.enabledComponents();
+
+    // All components should be included when flags are true
+    COMPONENT_LIST.forEach(c => {
+      expect(allowed.some(a => a.name === c.name)).toBeTrue();
+    });
+    expect(allowed.length).toBe(COMPONENT_LIST.length);
   });
 });

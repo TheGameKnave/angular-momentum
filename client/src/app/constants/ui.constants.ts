@@ -1,0 +1,85 @@
+/**
+ * UI-related constants for components
+ */
+
+/**
+ * Bootstrap-style responsive breakpoints in pixels.
+ * These values define the minimum viewport width for each screen size category.
+ * Used for responsive design and layout adjustments.
+ */
+export const SCREEN_SIZES = {
+  /** Small screens: 576px and up (mobile landscape, small tablets) */
+  sm: 576,
+  /** Medium screens: 768px and up (tablets portrait) */
+  md: 768,
+  /** Large screens: 992px and up (desktops, tablets landscape) */
+  lg: 992,
+  /** Extra large screens: 1200px and up (large desktops) */
+  xl: 1200,
+} as const;
+
+/**
+ * Overlay and z-index configuration for UI layering.
+ * Controls the stacking order of overlay elements like menus and modals.
+ */
+export const OVERLAY_CONFIG = {
+  /**
+   * Default z-index for overlay menus.
+   * Ensures overlays appear above regular content but below critical UI elements.
+   */
+  DEFAULT_Z_INDEX: 1000,
+} as const;
+
+/**
+ * IndexedDB configuration for browser-based persistent storage.
+ * Defines database parameters and auto-save behavior for offline data persistence.
+ *
+ * Note: DB_VERSION is now derived from INDEXEDDB_SCHEMA_MIGRATIONS in
+ * migrations/indexeddb-schema.ts to keep version and migrations in sync.
+ */
+export const INDEXEDDB_CONFIG = {
+  /**
+   * Database name for IndexedDB storage.
+   * Used to identify the application's database in the browser.
+   */
+  DB_NAME: 'momentum',
+  /**
+   * Debounce time for auto-save operations in milliseconds.
+   * Prevents excessive writes by waiting for user to finish typing.
+   */
+  DEBOUNCE_TIME_MS: 400,
+} as const;
+
+/**
+ * Time unit conversion constants.
+ * Provides standard multipliers for converting between time units.
+ * Useful for calculating durations and intervals.
+ */
+export const TIME_CONSTANTS = {
+  SECONDS: 1000,
+  MINUTES: 60 * 1000,
+  HOURS: 60 * 60 * 1000,
+  DAYS: 24 * 60 * 60 * 1000,
+  WEEKS: 7 * 24 * 60 * 60 * 1000,
+  YEARS: 365 * 24 * 60 * 60 * 1000,
+} as const;
+
+/**
+ * Tooltip configuration for PrimeNG tooltips.
+ * Provides consistent delay settings across the application.
+ */
+export const TOOLTIP_CONFIG = {
+  /** Delay in ms before showing tooltip (prevents eager popups) */
+  SHOW_DELAY: 1000,
+  /** Delay in ms before hiding tooltip */
+  HIDE_DELAY: 200,
+} as const;
+
+/**
+ * Known localStorage key names that should be promoted between user scopes.
+ * These are the base key names (without prefix).
+ */
+export const PROMOTABLE_LOCALSTORAGE_NAMES = [
+  'app_notifications',
+  'lang',
+] as const;

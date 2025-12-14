@@ -2,15 +2,12 @@ import { TestBed } from '@angular/core/testing';
 import { BrowserModule } from '@angular/platform-browser';
 import { SwRegistrationOptions } from '@angular/service-worker';
 import { HttpClient } from '@angular/common/http';
+import { isDevMode } from '@angular/core';
 
-import { appProviders, getLangFn } from './main.config';
-
-import { PrefixedMissingHandler } from './main.config';
+import { appProviders, PrefixedMissingHandler } from './main.config';
 import { TranslocoHttpLoader } from './app/services/transloco-loader.service';
 import { TranslocoService } from '@jsverse/transloco';
-import { SUPPORTED_LANGUAGES } from './app/helpers/constants';
-import { GetLangParams } from '@jsverse/transloco-persist-lang';
-import { isDevMode } from '@angular/core';
+import { SUPPORTED_LANGUAGES } from './app/constants/app.constants';
 
 describe('PrefixedMissingHandler', () => {
   let handler: PrefixedMissingHandler;
@@ -52,8 +49,8 @@ describe('Main Config Providers', () => {
     const translocoService = TestBed.inject(TranslocoService);
     expect(translocoService).toBeTruthy();
     const config = translocoService.config;
-    expect(config.availableLangs).toEqual(SUPPORTED_LANGUAGES);
-    expect(config.defaultLang).toBe('en');
+    expect(config.availableLangs).toEqual([...SUPPORTED_LANGUAGES]);
+    expect(config.defaultLang).toBe('en-US');
     expect(config.reRenderOnLangChange).toBeTrue();
     expect(config.prodMode).toBe(!isDevMode());
   });
@@ -61,33 +58,5 @@ describe('Main Config Providers', () => {
   it('should provide TranslocoHttpLoader', () => {
     const loader = TestBed.inject(TranslocoHttpLoader);
     expect(loader).toBeTruthy();
-  });
-
-  it('should provide TranslocoPersistLang with correct configuration', () => {
-    const getLangFnMock: GetLangParams = {
-      cachedLang: 'en',
-      browserLang: 'es',
-      cultureLang: 'fr',
-      defaultLang: 'de',
-    };
-
-    const storage = localStorage;
-    expect(storage).toBeTruthy();
-
-    // Case 1: cachedLang is defined
-    let lang = getLangFn(getLangFnMock);
-    expect(lang).toBe('en');
-
-    // Case 2: cachedLang is null, browserLang is defined
-    lang = getLangFn({ ...getLangFnMock, cachedLang: null });
-    expect(lang).toBe('es');
-
-    // Case 3: cachedLang is null, browserLang is undefined, cultureLang is defined
-    lang = getLangFn({ ...getLangFnMock, cachedLang: null, browserLang: undefined });
-    expect(lang).toBe('fr');
-
-    // Case 4: cachedLang is null, browserLang is undefined, cultureLang is undefined, fallback to defaultLang
-    lang = getLangFn({ ...getLangFnMock, cachedLang: null, browserLang: undefined, cultureLang: '' });
-    expect(lang).toBe('de');
   });
 });

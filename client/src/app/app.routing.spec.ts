@@ -34,6 +34,6 @@ describe('App Routing Configuration', () => {
   });
 
   it('should match the expected number of routes', () => {
-    expect(routes.length).toBe(2 + componentList.length); // base route + wildcard + generated routes
+    expect(routes.length).toBe(4 + componentList.length); // base route + profile route + privacy route + wildcard + generated routes
   });
 });

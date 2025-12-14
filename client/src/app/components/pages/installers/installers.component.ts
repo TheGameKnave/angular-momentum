@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { Installer } from '@app/models/data.model';
 import { ConnectivityService } from '@app/services/connectivity.service';
 import { InstallersService } from '@app/services/installers.service';
@@ -9,6 +9,13 @@ import { PanelModule } from 'primeng/panel';
 import { ButtonModule } from 'primeng/button';
 import { ChangeLogService } from '@app/services/change-log.service';
 
+/**
+ * Installers component that displays platform-specific application installers.
+ *
+ * This component provides download links and information for installing the application
+ * on different platforms (Windows, macOS, Linux). It automatically detects the current
+ * platform and refreshes the changelog fetch to format links to the latest version.
+ */
 @Component({
   selector: 'app-installers',
   imports: [
@@ -22,15 +29,17 @@ import { ChangeLogService } from '@app/services/change-log.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InstallersComponent implements OnInit {
+  protected readonly changeLogService = inject(ChangeLogService);
+  protected readonly installersService = inject(InstallersService);
+  protected readonly connectivity = inject(ConnectivityService);
 
   currentPlatform!: Installer;
 
-  constructor(
-    protected readonly changeLogService: ChangeLogService,
-    protected readonly installersService: InstallersService,
-    protected readonly connectivity: ConnectivityService,
-  ) {}
-
+  /**
+   * Angular lifecycle hook called after component initialization.
+   * Starts the connectivity service and refreshes the changelog service
+   * to fetch the latest version information for formatting installer download links.
+   */
   ngOnInit(): void {
     this.connectivity.start();
     this.changeLogService.refresh();

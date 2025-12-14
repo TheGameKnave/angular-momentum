@@ -1,0 +1,98 @@
+<p-card *transloco="let t">
+  <div class="notifications-page">
+    <h2>{{ t('page.Push Notifications') }}</h2>
+
+    <!-- Status Info -->
+    <section class="status-section">
+      <h3>{{ t('Status') }}</h3>
+      <div class="status-grid">
+        <div class="status-item">
+          <strong>{{ t('Platform') }}:</strong>
+          <span>{{ platformType }}</span>
+        </div>
+        <div class="status-item">
+          <strong>{{ t('Permission') }}:</strong>
+          <span [class.granted]="notificationService.permissionGranted()" [class.denied]="!notificationService.permissionGranted()">
+            {{ permissionStatus }}
+          </span>
+        </div>
+        <div class="status-item">
+          <strong>{{ t('Supported') }}:</strong>
+          <span>{{ notificationService.isSupported() ? t('Yes') : t('No') }}</span>
+        </div>
+        <div class="status-item">
+          <strong>{{ t('notification.Unread Count') }}:</strong>
+          <span>{{ notificationService.unreadCount() }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Test Notifications -->
+    <section class="test-section">
+      <h3>{{ t('page.Test Notifications') }}</h3>
+      <p>{{ t('page.Send predefined notifications to test the system') }}</p>
+      @if (!authService.isAuthenticated()) {
+        <p-message severity="info" [text]="t('auth.Register or log in to access all features')" styleClass="mb-3" />
+      }
+
+      <div class="notification-buttons">
+        @for (notification of predefinedNotifications; track notification.id) {
+          <div class="notification-test-card">
+            <div class="notification-preview">
+              <strong>{{ getTitle(notification) }}</strong>
+              <p>{{ getBody(notification) }}</p>
+            </div>
+            <div class="notification-actions">
+              <p-button
+                [label]="t('page.Send Local')"
+                icon="pi pi-bell"
+                (onClick)="sendLocalNotification(notification)"
+                [severity]="getSeverity(notification)"
+                size="small"></p-button>
+              <p-button
+                [label]="t('page.Broadcast')"
+                icon="pi pi-megaphone"
+                (onClick)="sendServerNotification(notification)"
+                [loading]="loading()"
+                [severity]="getSeverity(notification)"
+                size="small"
+                [outlined]="true"
+                [disabled]="!authService.isAuthenticated()"></p-button>
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (localNotificationStatus()) {
+        <div class="status-message local">
+          {{ localNotificationStatus() }}
+        </div>
+      }
+
+      @if (serverNotificationStatus()) {
+        <div class="status-message server">
+          {{ serverNotificationStatus() }}
+        </div>
+      }
+    </section>
+
+    <!-- Info Section -->
+    <section class="info-section">
+      <h3>{{ t('page.How It Works') }}</h3>
+      <ul class="bulleted">
+        <li>
+          <strong>{{ t('page.Local Notification') }}:</strong>
+          {{ t('page.Sends a notification only to your current browser/device. Uses the NotificationService directly.') }}
+        </li>
+        <li>
+          <strong>{{ t('page.Server Broadcast') }}:</strong>
+          {{ t('page.Sends a notification via GraphQL to the server, which broadcasts it to ALL connected clients via WebSocket.') }}
+        </li>
+        <li>
+          <strong>{{ t('page.Platform Detection') }}:</strong>
+          {{ t('page.Tauri apps use native OS notifications. Web/PWA uses browser notifications via Service Worker.') }}
+        </li>
+      </ul>
+    </section>
+  </div>
+</p-card>

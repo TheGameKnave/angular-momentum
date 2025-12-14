@@ -1,4 +1,56 @@
+/**
+ * Application version history and changelog
+ * @description Array of changelog entries tracking version releases, dates, descriptions, and changes
+ */
 export const changeLog = [  
+  {
+    version: "21.0.1",
+    date: "2025-12-13",
+    description: "translations, user data",
+    changes: [
+      "en-GB and swedish chef translation",
+      "promote anoonymous data to user storage on login",
+    ]
+  },
+  {
+    version: "21.0.0",
+    date: "2025-12-05",
+    description: "Angular 21",
+    changes: [
+      "ng21 upgrade",
+      "zoneless change detection",
+    ]
+  },
+  {
+    version: "20.0.2",
+    date: "2025-12-05",
+    description: "Scrolling",
+    changes: [
+      "Scroll headers and footers + horizontal",
+    ]
+  },
+  {
+    version: "20.0.1",
+    date: "2025-12-04",
+    description: "Scroll indicators, etc.",
+    changes: [
+      "installer links correction",
+      "no cookie consent in apps",
+      "ui styling adjustments",
+      "scroll indicators",
+    ]
+  },
+  {
+    version: "20.0.0",
+    date: "2025-11-28",
+    description: "gigantic: AUTH etc.",
+    changes: [
+      "Menu anchor consolidation",
+      "Privacy policy center",
+      "Cookie consent banner",
+      "Auth system via supabase",
+    ]
+  },
   {
     version: "0.20.13",
     date: "2025-11-05",

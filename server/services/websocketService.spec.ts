@@ -168,24 +168,16 @@ describe('setupWebSocket', () => {
     expect(disconnectHandler).toHaveBeenCalledTimes(1);
   });
   
-  it('should log connection errors', () => {
+  it('should handle connection errors silently', () => {
     setupWebSocket(mockServer);
 
     const errorHandler = io.on.mock.calls.find(
       ([event]) => event === 'connect_error'
     )?.[1];
 
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
     const mockError = new Error('Connection error');
-    errorHandler(mockError);
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'WebSocket connection error:',
-      mockError
-    );
-
-    /**/consoleErrorSpy.mockRestore();
+    // Error handler exists but doesn't log to console (removed for production)
+    expect(() => errorHandler(mockError)).not.toThrow();
   });
 
   it('should set up middleware and engine event listeners', () => {

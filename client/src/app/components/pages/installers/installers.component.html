@@ -1,7 +1,7 @@
 <ng-container *transloco="let t">
-  <h2>{{ t('Installers') }}</h2>
+  <h2>{{ t('nav.Installers') }}</h2>
   <p-card>
-    <p> {{ t('Install Angular Momentum on your device instead of using it via a web browser:') }}</p>
+    <p> {{ t('page.Install Angular Momentum on your device instead of using it via a web browser:') }}</p>
     <a
       pButton
       [class.disabled]="!connectivity.isOnline()"
@@ -12,8 +12,8 @@
       <i class="pi {{ installersService.currentPlatformInstaller().icon || '' }}"></i> {{ installersService.currentPlatformInstaller().name || '' }}
     </a>
   </p-card>
-  <p-panel header="{{ t('Other Installers') }}" [toggleable]="true" [collapsed]="true">
-    @for (installer of installersService.otherInstallers(); track $index) {
+  <p-panel header="{{ t('page.Other Installers') }}" [toggleable]="true" toggler="header" [collapsed]="true">
+    @for (installer of installersService.otherInstallers(); track installer.name) {
       <a
         pButton
         [class.disabled]="!connectivity.isOnline()"
