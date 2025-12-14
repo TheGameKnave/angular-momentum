@@ -38,6 +38,7 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 (* indicates a feature that’s visible in the sample app)
 
 ## Future features
+* toast notifications
 * Server-side rendering
 * Lighthouse CI to mitigate performance slip
 

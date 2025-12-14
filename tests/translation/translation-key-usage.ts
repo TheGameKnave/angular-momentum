@@ -95,8 +95,37 @@ function extractTemplateKeys(content: string): string[] {
 }
 
 /**
+ * Load translation namespaces from the schema file.
+ * This ensures the validator stays in sync with the schema.
+ * @returns Array of namespace prefixes (e.g., ['auth', 'error', 'menu', ...])
+ */
+function loadTranslationNamespaces(): string[] {
+  const schemaPath = path.join(__dirname, 'translation.schema.json');
+  const schemaContent = fs.readFileSync(schemaPath, 'utf-8');
+  const schema = JSON.parse(schemaContent);
+
+  // Extract keys that are objects (namespaces) vs simple strings (root-level keys)
+  const namespaces: string[] = [];
+  for (const [key, value] of Object.entries(schema.properties || {})) {
+    if (typeof value === 'object' && (value as any).type === 'object') {
+      namespaces.push(key);
+    }
+  }
+
+  return namespaces;
+}
+
+/**
+ * Translation key namespace prefixes derived from schema.
+ * Any string starting with these followed by a dot is likely a translation key.
+ */
+const TRANSLATION_NAMESPACES = loadTranslationNamespaces();
+
+/**
  * Extract translation keys from TypeScript content (services and components).
- * Handles keys containing apostrophes by matching quote types properly.
+ * Scans for:
+ * 1. Explicit translate/selectTranslate calls
+ * 2. Any string literal that looks like a translation key (namespace.text pattern)
  */
 function extractTsKeys(content: string): string[] {
   const keys: string[] = [];
@@ -124,6 +153,24 @@ function extractTsKeys(content: string): string[] {
   const selectTranslateDoubleRegex = /\.selectTranslate\(\s*"([^"]+)"/g;
   while ((match = selectTranslateDoubleRegex.exec(content)) !== null) {
     keys.push(match[1]);
+  }
+
+  // Match ANY string literal that looks like a translation key (namespace.text)
+  // This catches keys passed to services like confirmDialogService.show({ message: 'auth.foo' })
+  const namespacePattern = TRANSLATION_NAMESPACES.join('|');
+
+  // Double-quoted strings with namespace prefix
+  const nsDoubleRegex = new RegExp(`"((?:${namespacePattern})\\.[^"]+)"`, 'g');
+  while ((match = nsDoubleRegex.exec(content)) !== null) {
+    keys.push(match[1]);
+  }
+
+  // Single-quoted strings with namespace prefix (handles escaped apostrophes)
+  const nsSingleRegex = new RegExp(`'((?:${namespacePattern})\\.[^']*(?:\\\\'[^']*)*)'`, 'g');
+  while ((match = nsSingleRegex.exec(content)) !== null) {
+    // Unescape any escaped apostrophes to get the actual key
+    const key = match[1].replace(/\\'/g, "'");
+    keys.push(key);
   }
 
   return keys;

@@ -20,6 +20,7 @@ import { routes } from '@app/app.routing';
 import { SlugPipe } from '@app/pipes/slug.pipe';
 
 import { providePrimeNG } from 'primeng/config';
+import { MessageService } from 'primeng/api';
 import Lara from '@primeng/themes/lara';
 import { authInterceptor } from '@app/interceptors/auth.interceptor';
 import { platformAwareStorageFactory } from '@app/helpers/transloco-storage';
@@ -96,4 +97,5 @@ export const appProviders = [
     },
     ripple: true,
   }),
+  MessageService,
 ];

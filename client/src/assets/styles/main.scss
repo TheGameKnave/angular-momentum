@@ -459,6 +459,9 @@ p-panel {
   display: block !important;
 }
 
+// fix for prime accordion reserving too much space
+.p-accordioncontent-wrapper {overflow: hidden;}
+
 // ============================================================================
 // 6. LAYOUT (main, header, footer, content)
 // ============================================================================
@@ -851,6 +854,76 @@ app-anchor-menu {
   border-top: 1px solid $mid-gray;
   flex-shrink: 0;
 }
+
+// ----------------------------------------------------------------------------
+// 7.2.1 Dialog: Update
+// ----------------------------------------------------------------------------
+
+.dialog-update-panel {
+  @extend .cdk-dialog-panel;
+  @extend .size-md;
+}
+.dialog-update-header { @extend .cdk-dialog-header; }
+.dialog-update-close { @extend .cdk-dialog-close; }
+.dialog-update-content { @extend .cdk-dialog-content; }
+.dialog-update-footer { @extend .cdk-dialog-footer; }
+
+.update-warning {
+  i { margin-right: 0.5rem; }
+}
+
+.accordion-header-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+// ----------------------------------------------------------------------------
+// 7.2.2 Dialog: Migration
+// ----------------------------------------------------------------------------
+
+.dialog-migration-panel {
+  @extend .cdk-dialog-panel;
+}
+.dialog-migration-header { @extend .cdk-dialog-header; }
+.dialog-migration-content {
+  @extend .cdk-dialog-content;
+}
+.dialog-migration-footer { @extend .cdk-dialog-footer; }
+
+// ----------------------------------------------------------------------------
+// 7.2.3 Dialog: Clear Data
+// ----------------------------------------------------------------------------
+
+.dialog-clear-data-panel {
+  @extend .cdk-dialog-panel;
+  &.size-sm { width: 30rem; }
+}
+.dialog-clear-data-header {
+  @extend .cdk-dialog-header;
+  gap: 0.75rem;
+}
+.dialog-clear-data-content {
+  @extend .cdk-dialog-content;
+}
+.dialog-clear-data-footer { @extend .cdk-dialog-footer; }
+
+// ----------------------------------------------------------------------------
+// 7.2.4 Dialog: Generic Confirm
+// ----------------------------------------------------------------------------
+
+.dialog-confirm-panel {
+  @extend .cdk-dialog-panel;
+}
+.dialog-confirm-header {
+  @extend .cdk-dialog-header;
+  gap: 0.75rem;
+}
+.dialog-confirm-content {
+  @extend .cdk-dialog-content;
+}
+.dialog-confirm-footer { @extend .cdk-dialog-footer; }
+
 // ----------------------------------------------------------------------------
 // 7.3 Language Menu
 // ----------------------------------------------------------------------------

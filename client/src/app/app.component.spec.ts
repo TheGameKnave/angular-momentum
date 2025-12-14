@@ -16,6 +16,7 @@ import { SCREEN_SIZES } from './constants/ui.constants';
 import { ChangeLogService } from './services/change-log.service';
 import { UpdateDialogService } from './services/update-dialog.service';
 import { DataMigrationService } from './services/data-migration.service';
+import { MessageService } from 'primeng/api';
 
 class MockConnectivityService {
   showOffline = signal(false);
@@ -60,6 +61,7 @@ describe('AppComponent', () => {
         { provide: Socket, useValue: socketSpy },
         { provide: ConnectivityService, useClass: MockConnectivityService },
         { provide: ResourcePreloadService, useValue: jasmine.createSpyObj('ResourcePreloadService', ['preloadAll']) },
+        MessageService,
       ],
     }).compileComponents();
 

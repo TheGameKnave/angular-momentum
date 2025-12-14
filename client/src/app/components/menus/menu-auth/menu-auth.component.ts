@@ -97,7 +97,7 @@ export class MenuAuthComponent implements AfterViewInit {
     return new Promise((resolve) => {
       this.confirmDialogService.show({
         title: 'auth.Import Local Data',
-        message: 'auth.This device has saved data from before you logged in. Would you like to import it? (existing data won\'t be overwritten)',
+        message: 'auth.This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)',
         icon: 'pi pi-download',
         iconColor: 'text-blue-500',
         confirmLabel: 'auth.Import',

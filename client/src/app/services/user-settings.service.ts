@@ -200,4 +200,31 @@ export class UserSettingsService {
   clear(): void {
     this.settings.set(null);
   }
+
+  /**
+   * Deletes user settings from the server and clears local state.
+   * Used when user wants to clear all their data.
+   */
+  async deleteSettings(): Promise<void> {
+    this.loading.set(true);
+
+    try {
+      await firstValueFrom(
+        this.http.delete(`${ENVIRONMENT.baseUrl}/api/user-settings`)
+      );
+
+      this.settings.set(null);
+      this.logService.log('Settings deleted');
+    } catch (error: unknown) {
+      // 404 is fine - settings might not exist
+      const httpError = error as { status?: number };
+      if (httpError.status !== 404) {
+        this.logService.log('Error deleting settings', error);
+        throw error;
+      }
+      this.settings.set(null);
+    } finally {
+      this.loading.set(false);
+    }
+  }
 }

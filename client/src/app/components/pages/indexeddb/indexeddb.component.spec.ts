@@ -1,18 +1,27 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick, flush, discardPeriodicTasks } from '@angular/core/testing';
+import { signal, WritableSignal } from '@angular/core';
 import { IndexedDBComponent } from './indexeddb.component';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { ReactiveFormsModule } from '@angular/forms';
 import { IndexedDbService } from '@app/services/indexeddb.service';
+import { UserStorageService } from '@app/services/user-storage.service';
 
 describe('IndexedDBComponent', () => {
   let component: IndexedDBComponent;
   let fixture: ComponentFixture<IndexedDBComponent>;
   let indexedDbServiceSpy: jasmine.SpyObj<IndexedDbService>;
+  let storagePrefixSignal: WritableSignal<string>;
 
   beforeEach(async () => {
     indexedDbServiceSpy = jasmine.createSpyObj('IndexedDbService', ['get', 'set', 'del', 'clear', 'keys']);
     indexedDbServiceSpy.get.and.returnValue(Promise.resolve(undefined));
     indexedDbServiceSpy.set.and.returnValue(Promise.resolve('key'));
+
+    storagePrefixSignal = signal('anonymous');
+    const mockUserStorageService = {
+      storagePrefix: storagePrefixSignal,
+      prefixKey: (key: string) => `anonymous_${key}`,
+    };
 
     await TestBed.configureTestingModule({
       imports: [
@@ -22,12 +31,15 @@ describe('IndexedDBComponent', () => {
       ],
       providers: [
         { provide: IndexedDbService, useValue: indexedDbServiceSpy },
+        { provide: UserStorageService, useValue: mockUserStorageService },
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(IndexedDBComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    // Allow the effect to run and loadStoredValue to complete
+    await fixture.whenStable();
   });
 
   it('should create', () => {
@@ -59,6 +71,9 @@ describe('IndexedDBComponent', () => {
   });
 
   it('should save textarea value to IndexedDB after debounce', fakeAsync(() => {
+    // Clear any calls from initialization
+    indexedDbServiceSpy.set.calls.reset();
+
     component.textAreaData.setValue('Test data');
 
     // Should not save immediately
@@ -68,9 +83,14 @@ describe('IndexedDBComponent', () => {
     // Should save after debounce time (400ms)
     tick(300);
     expect(indexedDbServiceSpy.set).toHaveBeenCalledWith('key', 'Test data');
+
+    discardPeriodicTasks();
   }));
 
   it('should debounce multiple rapid changes', fakeAsync(() => {
+    // Clear any calls from initialization
+    indexedDbServiceSpy.set.calls.reset();
+
     component.textAreaData.setValue('first');
     tick(200);
     component.textAreaData.setValue('second');
@@ -81,12 +101,19 @@ describe('IndexedDBComponent', () => {
     // Should only save the final value once
     expect(indexedDbServiceSpy.set).toHaveBeenCalledTimes(1);
     expect(indexedDbServiceSpy.set).toHaveBeenCalledWith('key', 'third');
+
+    discardPeriodicTasks();
   }));
 
   it('should handle empty values', fakeAsync(() => {
+    // Clear any calls from initialization
+    indexedDbServiceSpy.set.calls.reset();
+
     component.textAreaData.setValue('');
     tick(500);
 
     expect(indexedDbServiceSpy.set).toHaveBeenCalledWith('key', '');
+
+    discardPeriodicTasks();
   }));
 });

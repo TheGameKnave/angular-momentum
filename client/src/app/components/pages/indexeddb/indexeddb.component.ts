@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, effect } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
@@ -8,6 +8,7 @@ import { CardModule } from "primeng/card";
 import { TextareaModule } from 'primeng/textarea';
 import { INDEXEDDB_CONFIG } from '@app/constants/ui.constants';
 import { IndexedDbService } from '@app/services/indexeddb.service';
+import { UserStorageService } from '@app/services/user-storage.service';
 
 /**
  * IndexedDB component that demonstrates browser-based persistent storage.
@@ -31,9 +32,21 @@ import { IndexedDbService } from '@app/services/indexeddb.service';
 export class IndexedDBComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly indexedDbService = inject(IndexedDbService);
+  private readonly userStorageService = inject(UserStorageService);
 
   private readonly storageKey = 'key';
   textAreaData = new FormControl('');
+
+  constructor() {
+    // Reload stored value when user scope changes (login/logout).
+    // Storage promotion happens before auth signals update, so data is already in place.
+    effect(() => {
+      // Access signal to create dependency
+      this.userStorageService.storagePrefix();
+      // Reload data from the new user scope
+      this.loadStoredValue();
+    });
+  }
 
   /**
    * Angular lifecycle hook called after component initialization.
@@ -41,8 +54,6 @@ export class IndexedDBComponent implements OnInit {
    * to persist textarea value changes to IndexedDB on user input.
    */
   ngOnInit() {
-    this.loadStoredValue();
-
     this.textAreaData.valueChanges.pipe(
       debounceTime(INDEXEDDB_CONFIG.DEBOUNCE_TIME_MS),
       takeUntilDestroyed(this.destroyRef)
@@ -58,14 +69,13 @@ export class IndexedDBComponent implements OnInit {
    */
   private async loadStoredValue(): Promise<void> {
     const data = await this.indexedDbService.get(this.storageKey);
-    if (typeof data === 'string') {
-      this.textAreaData.setValue(data, { emitEvent: false });
+    const value = typeof data === 'string' ? data : '';
+    this.textAreaData.setValue(value, { emitEvent: false });
 
-      // tell the DOM element it has new content
-      const el = document.getElementById('indexeddb') as HTMLTextAreaElement | null;
-      if (el) {
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-      }
+    // tell the DOM element it has new content
+    const el = document.getElementById('indexeddb') as HTMLTextAreaElement | null;
+    if (el) {
+      el.dispatchEvent(new Event('input', { bubbles: true }));
     }
   }
 }
