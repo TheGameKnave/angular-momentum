@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { StoragePromotionService } from './storage-promotion.service';
-import { UserStorageService, STORAGE_PREFIXES } from './user-storage.service';
+import { UserStorageService } from './user-storage.service';
+import { STORAGE_PREFIXES } from '@app/constants/storage.constants';
 import { IndexedDbService } from './indexeddb.service';
 import { LogService } from './log.service';
-import { PROMOTABLE_LOCALSTORAGE_KEYS } from '../constants/ui.constants';
+import { PROMOTABLE_LOCALSTORAGE_NAMES } from '../constants/ui.constants';
 
 describe('StoragePromotionService', () => {
   let service: StoragePromotionService;
@@ -48,13 +49,13 @@ describe('StoragePromotionService', () => {
     localStorage.clear();
   });
 
-  describe('PROMOTABLE_LOCALSTORAGE_KEYS', () => {
+  describe('PROMOTABLE_LOCALSTORAGE_NAMES', () => {
     it('should include app_notifications', () => {
-      expect(PROMOTABLE_LOCALSTORAGE_KEYS).toContain('app_notifications');
+      expect(PROMOTABLE_LOCALSTORAGE_NAMES).toContain('app_notifications');
     });
 
     it('should include lang', () => {
-      expect(PROMOTABLE_LOCALSTORAGE_KEYS).toContain('lang');
+      expect(PROMOTABLE_LOCALSTORAGE_NAMES).toContain('lang');
     });
   });
 
@@ -351,6 +352,118 @@ describe('StoragePromotionService', () => {
       await service.promoteAnonymousToUser('user-123');
 
       expect(mockLogService.log).toHaveBeenCalledWith('Failed to clear anonymous IndexedDB', jasmine.any(Error));
+    });
+  });
+
+  describe('hasAnonymousData', () => {
+    it('should return true when localStorage has anonymous data', async () => {
+      localStorage.setItem('anonymous_lang', 'es');
+
+      const result = await service.hasAnonymousData();
+
+      expect(result).toBeTrue();
+    });
+
+    it('should return true when localStorage has anonymous notifications', async () => {
+      localStorage.setItem('anonymous_app_notifications', JSON.stringify([{ id: '1' }]));
+
+      const result = await service.hasAnonymousData();
+
+      expect(result).toBeTrue();
+    });
+
+    it('should return false when localStorage anonymous data is empty string', async () => {
+      localStorage.setItem('anonymous_lang', '');
+
+      const result = await service.hasAnonymousData();
+
+      expect(result).toBeFalse();
+    });
+
+    it('should return true when IndexedDB has anonymous data', async () => {
+      mockIndexedDbService.keys.and.returnValue(Promise.resolve(['anonymous_settings']));
+      mockIndexedDbService.getRaw.and.returnValue(Promise.resolve({ theme: 'dark' }));
+
+      const result = await service.hasAnonymousData();
+
+      expect(result).toBeTrue();
+    });
+
+    it('should return false when IndexedDB anonymous data is empty', async () => {
+      mockIndexedDbService.keys.and.returnValue(Promise.resolve(['anonymous_settings']));
+      mockIndexedDbService.getRaw.and.returnValue(Promise.resolve(''));
+
+      const result = await service.hasAnonymousData();
+
+      expect(result).toBeFalse();
+    });
+
+    it('should return false when IndexedDB anonymous data is null', async () => {
+      mockIndexedDbService.keys.and.returnValue(Promise.resolve(['anonymous_settings']));
+      mockIndexedDbService.getRaw.and.returnValue(Promise.resolve(null));
+
+      const result = await service.hasAnonymousData();
+
+      expect(result).toBeFalse();
+    });
+
+    it('should return false when IndexedDB anonymous data is undefined', async () => {
+      mockIndexedDbService.keys.and.returnValue(Promise.resolve(['anonymous_settings']));
+      mockIndexedDbService.getRaw.and.returnValue(Promise.resolve(undefined));
+
+      const result = await service.hasAnonymousData();
+
+      expect(result).toBeFalse();
+    });
+
+    it('should return false when no anonymous data exists', async () => {
+      mockIndexedDbService.keys.and.returnValue(Promise.resolve([]));
+
+      const result = await service.hasAnonymousData();
+
+      expect(result).toBeFalse();
+    });
+
+    it('should skip non-anonymous IndexedDB keys', async () => {
+      mockIndexedDbService.keys.and.returnValue(Promise.resolve(['user_123_data', 'other_key']));
+
+      const result = await service.hasAnonymousData();
+
+      expect(result).toBeFalse();
+      expect(mockIndexedDbService.getRaw).not.toHaveBeenCalled();
+    });
+
+    it('should handle IndexedDB errors gracefully', async () => {
+      mockIndexedDbService.keys.and.rejectWith(new Error('IndexedDB error'));
+
+      const result = await service.hasAnonymousData();
+
+      expect(result).toBeFalse();
+      expect(mockLogService.log).toHaveBeenCalledWith('Failed to check anonymous IndexedDB data', jasmine.any(Error));
+    });
+  });
+
+  describe('clearAnonymousData', () => {
+    it('should clear localStorage and IndexedDB anonymous data', async () => {
+      localStorage.setItem('anonymous_lang', 'en');
+      localStorage.setItem('anonymous_app_notifications', '[]');
+      mockIndexedDbService.keys.and.returnValue(Promise.resolve(['anonymous_data']));
+      mockIndexedDbService.delRaw.and.returnValue(Promise.resolve());
+
+      await service.clearAnonymousData();
+
+      expect(localStorage.getItem('anonymous_lang')).toBeNull();
+      expect(localStorage.getItem('anonymous_app_notifications')).toBeNull();
+      expect(mockIndexedDbService.delRaw).toHaveBeenCalledWith('anonymous_data');
+      expect(mockLogService.log).toHaveBeenCalledWith('Anonymous data cleared (user declined import)');
+    });
+
+    it('should handle empty storage gracefully', async () => {
+      mockIndexedDbService.keys.and.returnValue(Promise.resolve([]));
+
+      await service.clearAnonymousData();
+
+      expect(mockLogService.log).toHaveBeenCalledWith('Anonymous data cleared (user declined import)');
     });
   });
 });

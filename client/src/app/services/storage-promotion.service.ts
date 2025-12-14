@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { UserStorageService, STORAGE_PREFIXES } from './user-storage.service';
+import { UserStorageService } from './user-storage.service';
+import { STORAGE_PREFIXES } from '@app/constants/storage.constants';
 import { IndexedDbService } from './indexeddb.service';
 import { LogService } from './log.service';
 import { Notification } from '../models/data.model';
-import { PROMOTABLE_LOCALSTORAGE_KEYS } from '../constants/ui.constants';
+import { PROMOTABLE_LOCALSTORAGE_NAMES } from '../constants/ui.constants';
 
 /**
  * Service for promoting storage data from anonymous to user scope.
@@ -67,7 +68,7 @@ export class StoragePromotionService {
    * Promote localStorage keys from anonymous to user scope.
    */
   private async promoteLocalStorage(userId: string): Promise<void> {
-    for (const baseKey of PROMOTABLE_LOCALSTORAGE_KEYS) {
+    for (const baseKey of PROMOTABLE_LOCALSTORAGE_NAMES) {
       const anonymousKey = this.userStorageService.prefixKeyForAnonymous(baseKey);
       const userKey = this.userStorageService.prefixKeyForUser(userId, baseKey);
 
@@ -180,7 +181,7 @@ export class StoragePromotionService {
    * Clear all anonymous localStorage keys.
    */
   private clearAnonymousLocalStorage(): void {
-    for (const baseKey of PROMOTABLE_LOCALSTORAGE_KEYS) {
+    for (const baseKey of PROMOTABLE_LOCALSTORAGE_NAMES) {
       const anonymousKey = this.userStorageService.prefixKeyForAnonymous(baseKey);
       try {
         localStorage.removeItem(anonymousKey);
@@ -209,5 +210,49 @@ export class StoragePromotionService {
     } catch (error) {
       this.logService.log('Failed to clear anonymous IndexedDB', error);
     }
+  }
+
+  /**
+   * Check if there is any anonymous data that could be promoted.
+   * Used to determine whether to show the import confirmation dialog.
+   */
+  async hasAnonymousData(): Promise<boolean> {
+    // Check localStorage
+    for (const baseKey of PROMOTABLE_LOCALSTORAGE_NAMES) {
+      const anonymousKey = this.userStorageService.prefixKeyForAnonymous(baseKey);
+      const value = localStorage.getItem(anonymousKey);
+      if (value !== null && value !== '') {
+        return true;
+      }
+    }
+
+    // Check IndexedDB
+    try {
+      const allKeys = await this.indexedDbService.keys();
+      const anonymousPrefix = `${STORAGE_PREFIXES.ANONYMOUS}_`;
+
+      for (const key of allKeys) {
+        if (typeof key === 'string' && key.startsWith(anonymousPrefix)) {
+          const value = await this.indexedDbService.getRaw(key);
+          if (value !== undefined && value !== null && value !== '') {
+            return true;
+          }
+        }
+      }
+    } catch (error) {
+      this.logService.log('Failed to check anonymous IndexedDB data', error);
+    }
+
+    return false;
+  }
+
+  /**
+   * Clear all anonymous data without promoting it.
+   * Called when user declines to import anonymous data.
+   */
+  async clearAnonymousData(): Promise<void> {
+    this.clearAnonymousLocalStorage();
+    await this.clearAnonymousIndexedDb();
+    this.logService.log('Anonymous data cleared (user declined import)');
   }
 }

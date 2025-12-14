@@ -9,6 +9,7 @@ import { UserSettingsService } from '@app/services/user-settings.service';
 import { UsernameService } from '@app/services/username.service';
 import { StoragePromotionService } from '@app/services/storage-promotion.service';
 import { NotificationService } from '@app/services/notification.service';
+import { ConfirmDialogService } from '@app/services/confirm-dialog.service';
 import { AuthGuard } from '@app/guards/auth.guard';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 
@@ -21,6 +22,7 @@ describe('MenuAuthComponent', () => {
   let mockUsernameService: jasmine.SpyObj<UsernameService>;
   let mockStoragePromotionService: jasmine.SpyObj<StoragePromotionService>;
   let mockNotificationService: jasmine.SpyObj<NotificationService>;
+  let mockConfirmDialogService: jasmine.SpyObj<ConfirmDialogService>;
   let mockRouter: jasmine.SpyObj<Router>;
   let routerEventsSubject: Subject<any>;
 
@@ -64,13 +66,19 @@ describe('MenuAuthComponent', () => {
     ]);
 
     mockStoragePromotionService = jasmine.createSpyObj('StoragePromotionService', [
-      'promoteAnonymousToUser'
+      'promoteAnonymousToUser',
+      'hasAnonymousData'
     ]);
     mockStoragePromotionService.promoteAnonymousToUser.and.returnValue(Promise.resolve());
+    mockStoragePromotionService.hasAnonymousData.and.returnValue(Promise.resolve(true));
 
     mockNotificationService = jasmine.createSpyObj('NotificationService', [
       'reloadFromStorage'
     ]);
+
+    mockConfirmDialogService = jasmine.createSpyObj('ConfirmDialogService', ['show'], {
+      visible: jasmine.createSpy('visible').and.returnValue(false)
+    });
 
     mockRouter = jasmine.createSpyObj('Router', ['navigate'], {
       events: routerEventsSubject.asObservable(),
@@ -102,6 +110,7 @@ describe('MenuAuthComponent', () => {
         { provide: UsernameService, useValue: mockUsernameService },
         { provide: StoragePromotionService, useValue: mockStoragePromotionService },
         { provide: NotificationService, useValue: mockNotificationService },
+        { provide: ConfirmDialogService, useValue: mockConfirmDialogService },
         { provide: Router, useValue: mockRouter },
       ]
     }).compileComponents();
@@ -352,12 +361,49 @@ describe('MenuAuthComponent', () => {
   });
 
   describe('storagePromotionCallback', () => {
-    it('should promote anonymous storage to user', async () => {
+    it('should promote anonymous storage to user when confirmed', async () => {
       const userId = 'test-user-id';
+      mockStoragePromotionService.hasAnonymousData.and.returnValue(Promise.resolve(true));
+
+      // Simulate user confirming the dialog by calling onConfirm
+      mockConfirmDialogService.show.and.callFake((options: any) => {
+        options.onConfirm();
+      });
 
       await component.storagePromotionCallback(userId);
 
+      expect(mockStoragePromotionService.hasAnonymousData).toHaveBeenCalled();
+      expect(mockConfirmDialogService.show).toHaveBeenCalled();
       expect(mockStoragePromotionService.promoteAnonymousToUser).toHaveBeenCalledWith(userId);
+    });
+
+    it('should not promote when user skips import', async () => {
+      const userId = 'test-user-id';
+      mockStoragePromotionService.hasAnonymousData.and.returnValue(Promise.resolve(true));
+
+      // Simulate user dismissing the dialog (visible becomes false without onConfirm)
+      let visibleCallCount = 0;
+      (mockConfirmDialogService.visible as jasmine.Spy).and.callFake(() => {
+        visibleCallCount++;
+        return visibleCallCount < 2; // Return true first, then false
+      });
+
+      await component.storagePromotionCallback(userId);
+
+      expect(mockStoragePromotionService.hasAnonymousData).toHaveBeenCalled();
+      expect(mockConfirmDialogService.show).toHaveBeenCalled();
+      expect(mockStoragePromotionService.promoteAnonymousToUser).not.toHaveBeenCalled();
+    });
+
+    it('should skip dialog when no anonymous data exists', async () => {
+      const userId = 'test-user-id';
+      mockStoragePromotionService.hasAnonymousData.and.returnValue(Promise.resolve(false));
+
+      await component.storagePromotionCallback(userId);
+
+      expect(mockStoragePromotionService.hasAnonymousData).toHaveBeenCalled();
+      expect(mockConfirmDialogService.show).not.toHaveBeenCalled();
+      expect(mockStoragePromotionService.promoteAnonymousToUser).not.toHaveBeenCalled();
     });
   });
 });
