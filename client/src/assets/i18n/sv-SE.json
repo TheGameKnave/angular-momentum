@@ -253,6 +253,13 @@
     ,"hours ago": "{count} huoors egu! Bork!"
     ,"minutes ago": "{count, plural, one {oone-a meenoote-a egu! Bork!} other {# meenutes egu! Bork!}}"
     ,"Just now": "Joost noo! Bork bork bork!"
+    ,"in years": "in {count} yeers! Bork!"
+    ,"in months": "in {count} moonths! Bork!"
+    ,"in weeks": "in {count} veeks! Bork!"
+    ,"in days": "in {count} deys! Bork!"
+    ,"in hours": "in {count} huoors! Bork!"
+    ,"in minutes": "{count, plural, one {in oone-a meenoote-a! Bork!} other {in # meenutes! Bork!}}"
+    ,"Momentarily": "Mumentereely! Bork bork bork!"
   }
   ,"migration": {
     "Your data has been updated to a new format.": "Yuoor deta hes beee updeted tu a noo furmet! Bork!"

@@ -253,6 +253,13 @@
     ,"hours ago": "{count}小時前"
     ,"minutes ago": "{count, plural, other {#分鐘前}}"
     ,"Just now": "剛剛"
+    ,"in years": "{count}年後"
+    ,"in months": "{count}個月後"
+    ,"in weeks": "{count}週後"
+    ,"in days": "{count}天後"
+    ,"in hours": "{count}小時後"
+    ,"in minutes": "{count, plural, other {#分鐘後}}"
+    ,"Momentarily": "馬上"
   }
   ,"migration": {
     "Your data has been updated to a new format.": "您的資料已更新為新格式。"

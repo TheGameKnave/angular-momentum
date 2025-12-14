@@ -269,9 +269,10 @@ export const ENVIRONMENT_KEYS = [
 
 /**
  * Relative time formatting translation keys.
- * Used by RelativeTimePipe for time display.
+ * Used by RelativeTimePipe for time display (past and future).
  */
 export const TIME_KEYS = [
+  // Past times
   "time.years ago",
   "time.months ago",
   "time.weeks ago",
@@ -279,6 +280,14 @@ export const TIME_KEYS = [
   "time.hours ago",
   "time.minutes ago",
   "time.Just now",
+  // Future times
+  "time.in years",
+  "time.in months",
+  "time.in weeks",
+  "time.in days",
+  "time.in hours",
+  "time.in minutes",
+  "time.Momentarily",
 ] as const;
 
 /**

@@ -1223,7 +1223,35 @@
         },
         "Just now": {
           "type": "string",
-          "description": "Relative time: > 1 minute ago (e.g., 'Just now')"
+          "description": "Relative time: Less than 1 minute ago"
+        },
+        "in years": {
+          "type": "string",
+          "description": "Relative time: Years from now (e.g., 'in 2 years')"
+        },
+        "in months": {
+          "type": "string",
+          "description": "Relative time: Months from now (e.g., 'in 3 months')"
+        },
+        "in weeks": {
+          "type": "string",
+          "description": "Relative time: Weeks from now (e.g., 'in 2 weeks')"
+        },
+        "in days": {
+          "type": "string",
+          "description": "Relative time: Days from now (e.g., 'in 3 days')"
+        },
+        "in hours": {
+          "type": "string",
+          "description": "Relative time: Hours from now (e.g., 'in 2 hours')"
+        },
+        "in minutes": {
+          "type": "string",
+          "description": "Relative time: Minutes from now (e.g., 'in 5 minutes')"
+        },
+        "Momentarily": {
+          "type": "string",
+          "description": "Relative time: Less than 1 minute from now"
         }
       },
       "required": [
@@ -1233,7 +1261,14 @@
         "days ago",
         "hours ago",
         "minutes ago",
-        "Just now"
+        "Just now",
+        "in years",
+        "in months",
+        "in weeks",
+        "in days",
+        "in hours",
+        "in minutes",
+        "Momentarily"
       ],
       "additionalProperties": false
     },

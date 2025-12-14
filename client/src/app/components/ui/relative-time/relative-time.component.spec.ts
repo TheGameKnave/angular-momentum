@@ -183,6 +183,29 @@ describe('RelativeTimeComponent', () => {
       expect(span.textContent).toContain('Jan');
     });
 
+    it('should display long format', () => {
+      component.mode = 'absolute';
+      component.format = 'long';
+      component.testDate = new Date('2024-01-15T10:30:00');
+      fixture.detectChanges();
+
+      const span = fixture.nativeElement.querySelector('app-relative-time span');
+      // Long format includes full month name
+      expect(span.textContent).toContain('January');
+    });
+
+    it('should display time only with shortTime format', () => {
+      component.mode = 'absolute';
+      component.format = 'shortTime';
+      component.testDate = new Date('2024-01-15T10:30:00');
+      fixture.detectChanges();
+
+      const span = fixture.nativeElement.querySelector('app-relative-time span');
+      // Should contain time components (10:30)
+      expect(span.textContent).toContain('10');
+      expect(span.textContent).toContain('30');
+    });
+
     it('should still have tooltip in absolute mode', () => {
       component.mode = 'absolute';
       component.testDate = new Date('2024-01-15T10:30:00');

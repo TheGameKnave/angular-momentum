@@ -253,6 +253,13 @@
     ,"hours ago": "vor {count} Stunden"
     ,"minutes ago": "{count, plural, one {vor einer Minute} other {vor # Minuten}}"
     ,"Just now": "Gerade eben"
+    ,"in years": "in {count} Jahren"
+    ,"in months": "in {count} Monaten"
+    ,"in weeks": "in {count} Wochen"
+    ,"in days": "in {count} Tagen"
+    ,"in hours": "in {count} Stunden"
+    ,"in minutes": "{count, plural, one {in einer Minute} other {in # Minuten}}"
+    ,"Momentarily": "Gleich"
   }
   ,"migration": {
     "Your data has been updated to a new format.": "Ihre Daten wurden in ein neues Format aktualisiert."
