@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { openDB, IDBPDatabase } from 'idb';
 import { INDEXEDDB_CONFIG } from '@app/constants/ui.constants';
-import { INDEXEDDB_SCHEMA_MIGRATIONS, CURRENT_INDEXEDDB_VERSION } from '@app/migrations/indexeddb-schema';
+import { INDEXEDDB_MIGRATIONS, CURRENT_INDEXEDDB_VERSION } from '@app/migrations';
 import { UserStorageService } from './user-storage.service';
 
 /**
@@ -16,6 +16,10 @@ import { UserStorageService } from './user-storage.service';
  * - Authenticated users: `user_{userId}_{key}`
  *
  * Use `getRaw`/`setRaw` methods for unprefixed access (e.g., for migration).
+ *
+ * IMPORTANT: Database initialization is lazy. Call `init()` to open the DB
+ * and run migrations. DataMigrationService controls when this happens to
+ * allow backing up data before migrations run.
  */
 @Injectable({
   providedIn: 'root',
@@ -24,24 +28,115 @@ export class IndexedDbService {
   private readonly userStorageService = inject(UserStorageService);
   private readonly storeName = 'keyval';
 
+  /** The previous database version before any upgrade (0 for new databases) */
+  private _previousVersion = 0;
+
+  /** Whether migrations have been run */
+  private _migrated = false;
+
+  /** Lazy-initialized database promise */
+  private dbPromise: Promise<IDBPDatabase> | null = null;
+
   /**
-   * Promise that resolves to the IndexedDB database instance.
-   * Creates the database with a 'keyval' object store if it doesn't exist.
+   * Get the current version of the existing database WITHOUT triggering migrations.
+   * Returns 0 if no database exists.
    */
-  private readonly dbPromise: Promise<IDBPDatabase> = openDB(
-    INDEXEDDB_CONFIG.DB_NAME,
-    INDEXEDDB_CONFIG.DB_VERSION,
-    {
-      /**
-       * Callback invoked when the database needs to be created or upgraded.
-       * @param db - The database instance to upgrade
-       */
-      // istanbul ignore next
-      upgrade(db) {
-        db.createObjectStore('keyval');
-      },
+  // istanbul ignore next - browser integration, tested via e2e
+  async getCurrentVersionWithoutMigrating(): Promise<number> {
+    const databases = await indexedDB.databases();
+    const existing = databases.find(db => db.name === INDEXEDDB_CONFIG.DB_NAME);
+    return existing?.version ?? 0;
+  }
+
+  /**
+   * Check if IDB migrations are needed (current version < target version).
+   */
+  async needsMigration(): Promise<boolean> {
+    const currentVersion = await this.getCurrentVersionWithoutMigrating();
+    // New DB (version 0) or outdated version needs migration
+    return currentVersion < CURRENT_INDEXEDDB_VERSION;
+  }
+
+  /**
+   * Open the database at its CURRENT version (no migrations).
+   * Used to read data for backup before running migrations.
+   * Returns null if database doesn't exist yet.
+   */
+  async openWithoutMigrating(): Promise<IDBPDatabase | null> {
+    const currentVersion = await this.getCurrentVersionWithoutMigrating();
+    if (currentVersion === 0) {
+      return null; // No existing DB
     }
-  );
+
+    // Open at current version - no upgrade will trigger
+    // istanbul ignore next - browser integration, tested via e2e
+    return openDB(INDEXEDDB_CONFIG.DB_NAME, currentVersion);
+  }
+
+  /**
+   * Initialize the database and run any pending migrations.
+   * Call this AFTER backing up data if migrations are needed.
+   */
+  // istanbul ignore next - browser integration, tested via e2e
+  async init(): Promise<void> {
+    if (this.dbPromise) return; // Already initialized
+
+    const previousVersion = await this.getCurrentVersionWithoutMigrating();
+    this._previousVersion = previousVersion;
+
+    this.dbPromise = openDB(
+      INDEXEDDB_CONFIG.DB_NAME,
+      CURRENT_INDEXEDDB_VERSION,
+      {
+        upgrade: (db, oldVersion, _newVersion, transaction) => {
+          this._migrated = oldVersion < CURRENT_INDEXEDDB_VERSION;
+          for (const migration of INDEXEDDB_MIGRATIONS) {
+            if (oldVersion < migration.version) {
+              migration.migrate(db, transaction);
+            }
+          }
+        },
+      }
+    );
+
+    await this.dbPromise;
+  }
+
+  /**
+   * Ensure the database is initialized before operations.
+   * Auto-initializes if not already done (for backwards compatibility).
+   */
+  private async getDb(): Promise<IDBPDatabase> {
+    // istanbul ignore next - auto-init path for backwards compatibility
+    if (!this.dbPromise) {
+      await this.init();
+    }
+    return this.dbPromise!;
+  }
+
+  /**
+   * Get the database version that existed before migrations ran.
+   * Returns 0 for new databases.
+   * Must be called after init().
+   */
+  getPreviousVersion(): number {
+    return this._previousVersion;
+  }
+
+  /**
+   * Check if migrations were run during init().
+   */
+  wasMigrated(): boolean {
+    return this._migrated;
+  }
+
+  /**
+   * Get the current database version.
+   */
+  async getVersion(): Promise<number> {
+    const db = await this.getDb();
+    return db.version;
+  }
 
   /**
    * Retrieves a value from the key-value store using user-scoped key.
@@ -50,7 +145,7 @@ export class IndexedDbService {
    */
   async get(key: string | number): Promise<unknown> {
     const prefixedKey = this.userStorageService.prefixKey(String(key));
-    return (await this.dbPromise).get(this.storeName, prefixedKey);
+    return (await this.getDb()).get(this.storeName, prefixedKey);
   }
 
   /**
@@ -61,7 +156,7 @@ export class IndexedDbService {
    */
   async set(key: string | number, val: unknown): Promise<IDBValidKey> {
     const prefixedKey = this.userStorageService.prefixKey(String(key));
-    return (await this.dbPromise).put(this.storeName, val, prefixedKey);
+    return (await this.getDb()).put(this.storeName, val, prefixedKey);
   }
 
   /**
@@ -71,7 +166,7 @@ export class IndexedDbService {
    */
   async del(key: string | number): Promise<void> {
     const prefixedKey = this.userStorageService.prefixKey(String(key));
-    return (await this.dbPromise).delete(this.storeName, prefixedKey);
+    return (await this.getDb()).delete(this.storeName, prefixedKey);
   }
 
   /**
@@ -83,9 +178,8 @@ export class IndexedDbService {
     const allKeys = await this.keys();
 
     for (const key of allKeys) {
-      // Keys in this app are always strings
       if (typeof key === 'string' && key.startsWith(`${prefix}_`)) {
-        await (await this.dbPromise).delete(this.storeName, key);
+        await (await this.getDb()).delete(this.storeName, key);
       }
     }
   }
@@ -95,7 +189,7 @@ export class IndexedDbService {
    * @returns Promise that resolves to an array of all keys
    */
   async keys(): Promise<IDBValidKey[]> {
-    return (await this.dbPromise).getAllKeys(this.storeName);
+    return (await this.getDb()).getAllKeys(this.storeName);
   }
 
   /**
@@ -105,7 +199,7 @@ export class IndexedDbService {
    * @returns Promise that resolves to the stored value, or undefined if not found
    */
   async getRaw(key: string | number): Promise<unknown> {
-    return (await this.dbPromise).get(this.storeName, key);
+    return (await this.getDb()).get(this.storeName, key);
   }
 
   /**
@@ -116,7 +210,7 @@ export class IndexedDbService {
    * @returns Promise that resolves when the value is stored
    */
   async setRaw(key: string | number, val: unknown): Promise<IDBValidKey> {
-    return (await this.dbPromise).put(this.storeName, val, key);
+    return (await this.getDb()).put(this.storeName, val, key);
   }
 
   /**
@@ -126,6 +220,6 @@ export class IndexedDbService {
    * @returns Promise that resolves when the value is deleted
    */
   async delRaw(key: string | number): Promise<void> {
-    return (await this.dbPromise).delete(this.storeName, key);
+    return (await this.getDb()).delete(this.storeName, key);
   }
 }

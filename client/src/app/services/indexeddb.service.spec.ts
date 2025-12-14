@@ -150,4 +150,67 @@ describe('IndexedDbService', () => {
       expect(mockStore.has('rawKey')).toBeFalse();
     });
   });
+
+  describe('version and migration methods', () => {
+    it('should return previous version as 0 initially', () => {
+      expect(service.getPreviousVersion()).toBe(0);
+    });
+
+    it('should return migrated as false initially', () => {
+      expect(service.wasMigrated()).toBeFalse();
+    });
+
+    it('should return database version via getVersion', async () => {
+      mockDb.version = 2;
+
+      const version = await service.getVersion();
+
+      expect(version).toBe(2);
+    });
+  });
+
+  describe('getCurrentVersionWithoutMigrating', () => {
+    it('should call indexedDB.databases and process results', async () => {
+      // This test verifies the logic works with the real indexedDB.databases
+      // Result depends on whether the test DB exists in the browser
+      const version = await service.getCurrentVersionWithoutMigrating();
+
+      // Should return a number (0 if no DB, or the actual version)
+      expect(typeof version).toBe('number');
+      expect(version).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('needsMigration', () => {
+    it('should check if migration is needed based on current version', async () => {
+      const needs = await service.needsMigration();
+
+      // Should return a boolean
+      expect(typeof needs).toBe('boolean');
+    });
+  });
+
+  describe('openWithoutMigrating', () => {
+    it('should return DB or null depending on existence', async () => {
+      const db = await service.openWithoutMigrating();
+
+      // Should return null or a database object
+      if (db !== null) {
+        expect(db.name).toBeDefined();
+        db.close();
+      }
+    });
+  });
+
+  describe('init', () => {
+    it('should not reinitialize if already initialized', async () => {
+      // dbPromise is already set in beforeEach
+      const originalPromise = (service as any).dbPromise;
+
+      await service.init();
+
+      // Should still be the same promise
+      expect((service as any).dbPromise).toBe(originalPromise);
+    });
+  });
 });

@@ -1,13 +1,6 @@
 import { Injectable, computed, inject } from '@angular/core';
 import { AuthService } from './auth.service';
-
-/**
- * Storage key prefixes for user-scoped data.
- */
-export const STORAGE_PREFIXES = {
-  ANONYMOUS: 'anonymous',
-  USER: 'user',
-} as const;
+import { STORAGE_PREFIXES } from '@app/constants/storage.constants';
 
 /**
  * Service for managing user-scoped storage keys.

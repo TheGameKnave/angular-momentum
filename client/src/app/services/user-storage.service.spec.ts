@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
-import { UserStorageService, STORAGE_PREFIXES } from './user-storage.service';
+import { UserStorageService } from './user-storage.service';
+import { STORAGE_PREFIXES } from '@app/constants/storage.constants';
 import { AuthService } from './auth.service';
 
 describe('UserStorageService', () => {
