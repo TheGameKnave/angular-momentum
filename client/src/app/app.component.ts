@@ -86,7 +86,32 @@ export class AppComponent implements OnInit {
       // Run data migrations after view is ready (so p-toast is mounted)
       // This runs on all platforms: web, Tauri desktop, and mobile
       this.dataMigrationService.runMigrations();
+
+      // Promote PrimeNG tooltips to browser's top-layer so they appear above CDK overlays
+      this.setupTooltipPopoverObserver();
     });
+  }
+
+  /**
+   * Sets up a MutationObserver to add popover="manual" to PrimeNG tooltips
+   * and show them in the browser's top-layer. This ensures tooltips appear
+   * above CDK overlay panels which use the popover API.
+   */
+  // istanbul ignore next: only called from afterNextRender which doesn't execute in unit tests
+  private setupTooltipPopoverObserver(): void {
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node instanceof HTMLElement && node.classList.contains('p-tooltip')) {
+            // Add popover attribute and show in top-layer
+            node.setAttribute('popover', 'manual');
+            node.showPopover();
+          }
+        }
+      }
+    });
+
+    observer.observe(document.body, { childList: true });
   }
 
   @HostListener('window:resize')

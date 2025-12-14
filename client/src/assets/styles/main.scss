@@ -113,8 +113,14 @@ $progress-end: #059669 !default;
   app-menu-feature, .anchor-menu-panel, .cdk-dialog-panel, header, footer, .cookie-banner {
     border-color: $mid-gray;
   }
-  .p-tooltip .p-tooltip-text {
-    border-color: $dark-brand;
+  .p-tooltip {
+    .p-tooltip-text {
+      border-color: $dark-brand;
+    }
+    &.p-tooltip-top .p-tooltip-arrow {
+      border-top-color: $dark-brand !important;
+      border-bottom-color: $dark-brand !important;
+    }
   }
 
   // Horizontal rules
@@ -271,6 +277,7 @@ body {
   --p-text-font-size: 1.4rem;
   --p-inputtext-font-size: 1.4rem;
   --p-content-font-size: 1.4rem;
+  --p-tooltip-gutter: 0.6rem;
   font: normal 1.2rem / 1.4 $text-font-stack;
   font-weight: 500;
   font-feature-settings: "lnum";
@@ -445,19 +452,25 @@ p-panel {
   }
 }
 
+.p-tooltip {
+  max-width: none !important;
+  width: max-content !important;
+  background-color: transparent !important;
+
+  .p-tooltip-text {
+    border: 1px solid transparent;
+    max-width: 30rem !important;
+    width: max-content !important;
+    white-space: pre-line !important;
+    text-align: left !important;
+    display: block !important;
+  }
+}
+
 .p-tooltip-top {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-}
-
-.p-tooltip .p-tooltip-text {
-  border: 1px solid transparent;
-  max-width: 30rem !important;
-  width: max-content !important;
-  white-space: pre-line !important;
-  text-align: left !important;
-  display: block !important;
 }
 
 // fix for prime accordion reserving too much space

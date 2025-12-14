@@ -293,7 +293,9 @@
         @if (authService.currentUser()?.created_at) {
           <div class="flex items-center gap-4">
             <span class="font-medium w-32">{{ t('profile.Member Since') }}:</span>
-            <p>{{ authService.currentUser()?.created_at | date:'medium' }}</p>
+            <app-relative-time
+              [timestamp]="authService.currentUser()?.created_at"
+            />
           </div>
         }
 
@@ -301,7 +303,9 @@
         @if (authService.currentUser()?.last_sign_in_at) {
           <div class="flex items-center gap-4">
             <span class="font-medium w-32">{{ t('profile.Last Sign In') }}:</span>
-            <p>{{ authService.currentUser()?.last_sign_in_at | date:'medium' }}</p>
+            <app-relative-time
+              [timestamp]="authService.currentUser()?.last_sign_in_at"
+            />
           </div>
         }
       </div>

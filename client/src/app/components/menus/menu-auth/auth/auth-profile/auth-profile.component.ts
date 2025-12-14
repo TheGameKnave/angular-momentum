@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, input, OnInit, output, inject } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { AuthService } from '@app/services/auth.service';
 import { UsernameService } from '@app/services/username.service';
 import { getUserInitials } from '@app/helpers/user.helper';
+import { RelativeTimeComponent } from '@app/components/ui/relative-time/relative-time.component';
 
 /**
  * Profile view component for authenticated users.
@@ -25,7 +25,7 @@ import { getUserInitials } from '@app/helpers/user.helper';
     TranslocoDirective,
     ButtonModule,
     MessageModule,
-    DatePipe,
+    RelativeTimeComponent,
   ],
 })
 export class AuthProfileComponent implements OnInit {

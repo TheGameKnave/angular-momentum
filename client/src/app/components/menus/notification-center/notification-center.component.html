@@ -60,7 +60,10 @@
                       }
                       <div class="notification-text">
                         <div class="notification-title">{{ getTitle(notification) }}</div>
-                        <div class="notification-time">{{ notification.timestamp | relativeTime }}</div>
+                        <app-relative-time
+                          class="notification-time"
+                          [timestamp]="notification.timestamp"
+                        />
                       </div>
                     </div>
                     <p-button

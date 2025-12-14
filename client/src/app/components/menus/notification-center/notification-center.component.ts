@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { AnchorMenuComponent } from '../anchor-menu/anchor-menu.component';
 import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
+import { RelativeTimeComponent } from '@app/components/ui/relative-time/relative-time.component';
 import { RelativeTimePipe } from '@app/pipes/relative-time.pipe';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { LocalizedStrings, Notification } from '@app/models/data.model';
@@ -22,13 +23,12 @@ import { LocalizedStrings, Notification } from '@app/models/data.model';
 @Component({
   selector: 'app-notification-center',
   standalone: true,
-  imports: [ButtonModule, CardModule, AnchorMenuComponent, ScrollIndicatorDirective, TranslocoDirective, RelativeTimePipe],
+  imports: [ButtonModule, CardModule, AnchorMenuComponent, ScrollIndicatorDirective, TranslocoDirective, RelativeTimeComponent, RelativeTimePipe],
   templateUrl: './notification-center.component.html'
 })
 export class NotificationCenterComponent {
   readonly notificationService = inject(NotificationService);
   private readonly translocoService = inject(TranslocoService);
-
 
   /**
    * Marks a specific notification as read.

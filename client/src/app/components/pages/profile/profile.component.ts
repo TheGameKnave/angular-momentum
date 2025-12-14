@@ -22,7 +22,7 @@ import { DataExportService } from '@app/services/data-export.service';
 import { DataMigrationService } from '@app/services/data-migration.service';
 import { IndexedDbService } from '@app/services/indexeddb.service';
 import { NotificationService } from '@app/services/notification.service';
-import { DatePipe } from '@angular/common';
+import { RelativeTimeComponent } from '@app/components/ui/relative-time/relative-time.component';
 import { passwordComplexityValidator, PASSWORD_REQUIREMENT_KEYS, USERNAME_REQUIREMENT_KEYS } from '@app/helpers/validation';
 import { getUserInitials } from '@app/helpers/user.helper';
 import { TOOLTIP_CONFIG } from '@app/constants/ui.constants';
@@ -57,7 +57,7 @@ import { TOOLTIP_CONFIG } from '@app/constants/ui.constants';
     TooltipModule,
     SelectModule,
     DialogConfirmComponent,
-    DatePipe,
+    RelativeTimeComponent,
   ],
 })
 export class ProfileComponent implements OnInit {

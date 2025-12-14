@@ -34,13 +34,19 @@
     @if (authService.currentUser()?.created_at) {
       <div class="metadata-item">
         <span class="metadata-label">{{ t('profile.Member Since') }}</span>
-        <span class="metadata-value">{{ authService.currentUser()?.created_at | date:'shortDate' }}</span>
+        <app-relative-time
+          class="metadata-value"
+          [timestamp]="authService.currentUser()?.created_at"
+        />
       </div>
     }
     @if (authService.currentUser()?.last_sign_in_at) {
       <div class="metadata-item">
         <span class="metadata-label">{{ t('profile.Last Sign In') }}</span>
-        <span class="metadata-value">{{ authService.currentUser()?.last_sign_in_at | date:'short' }}</span>
+        <app-relative-time
+          class="metadata-value"
+          [timestamp]="authService.currentUser()?.last_sign_in_at"
+        />
       </div>
     }
   </div>
