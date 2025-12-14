@@ -128,6 +128,7 @@ $progress-end: #059669 !default;
   // Overlays
   .app-overlay-backdrop {
     background-color: $backdrop;
+    backdrop-filter: blur(1px);
   }
 
   // Menus
@@ -462,6 +463,37 @@ p-panel {
 // fix for prime accordion reserving too much space
 .p-accordioncontent-wrapper {overflow: hidden;}
 
+// Toast sizing
+.p-toast {
+  width: 36rem !important;
+  max-width: calc(100vw - 40px);
+  overflow-y: auto;
+
+  .p-toast-message-content {
+    padding: 1.6rem;
+    gap: 1rem;
+  }
+
+  .p-toast-summary {
+    font-size: 1.6rem;
+    font-weight: 600;
+  }
+
+  .p-toast-detail {
+    font-size: 1.4rem;
+    margin-top: 0.4rem;
+  }
+
+  .p-toast-message-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+  .p-toast-close-icon {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+}
+
 // ============================================================================
 // 6. LAYOUT (main, header, footer, content)
 // ============================================================================
@@ -687,7 +719,6 @@ app-anchor-menu {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  backdrop-filter: blur(2px);
   z-index: 1000;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
@@ -801,7 +832,7 @@ app-anchor-menu {
   border: 1px solid $mid-gray;
   border-radius: 0.8rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(3px);
   display: flex;
   flex-direction: column;
   max-width: 95vw;
@@ -1334,11 +1365,15 @@ app-anchor-menu {
       flex: 1;
       min-width: 0;
 
+      > * {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
       .profile-email {
         font-size: 1.6rem;
         font-weight: 600;
         margin-bottom: 0.4rem;
-        word-break: break-all;
       }
 
       .profile-username {
@@ -1444,7 +1479,7 @@ app-anchor-menu {
   left: 0;
   right: 0;
   width: 100%;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(3px);
   border-top: 1px solid transparent;
   padding: 1.5rem 2rem;
   z-index: 10000;
