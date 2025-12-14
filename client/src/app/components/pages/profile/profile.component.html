@@ -258,6 +258,17 @@
         </div>
       </div>
     </p-panel>
+
+    <!-- Actions -->
+    <div>
+      <p-button
+        [label]="t('auth.Logout')"
+        severity="secondary"
+        icon="pi pi-sign-out"
+        (onClick)="onLogout()"
+        styleClass="flex-1"
+      />
+    </div>
   </p-card>
 
   <p-card class="mb-4">
@@ -340,6 +351,47 @@
             severity="secondary"
             styleClass="w-full md:w-auto"
           />
+          @if (exportError()) {
+            <p-message severity="error" [text]="exportError()!" styleClass="w-full" />
+          }
+        </div>
+
+        @if (hasDataBackup()) {
+          <!-- Export Previous Data (Migration Backup) -->
+          <p-panel
+            [header]="t('migration.Export Previous Data')"
+            toggler="header"
+            [toggleable]="true"
+            [collapsed]="true"
+            styleClass="w-full"
+          >
+            <div class="flex flex-col gap-2">
+              <p class="text-sm text-muted-foreground">{{ t('migration.Download a backup of your data from before the last update.') }}</p>
+              <p-button
+                [label]="t('migration.Export Previous Data')"
+                icon="pi pi-download"
+                (onClick)="onExportPreviousData()"
+                [loading]="backupLoading()"
+                severity="secondary"
+                styleClass="w-full md:w-auto"
+              />
+            </div>
+          </p-panel>
+
+          <hr />
+        }
+
+        <!-- Clear All Data -->
+        <div class="flex flex-col gap-2">
+          <p class="font-medium text-orange-600">{{ t('profile.Clear All Data') }}</p>
+          <p class="text-sm text-muted-foreground">{{ t('profile.Remove all stored preferences, notifications, and settings. Your account will remain active.') }}</p>
+          <p-button
+            [label]="t('profile.Clear Data')"
+            icon="pi pi-eraser"
+            (onClick)="onClearAllData()"
+            severity="warn"
+            styleClass="w-full md:w-auto"
+          />
         </div>
 
         <hr />
@@ -358,21 +410,8 @@
         </div>
       </div>
     </div>
-
-    <hr />
-
-    <!-- Actions -->
-    <div class="flex gap-3">
-      <p-button
-        [label]="t('auth.Logout')"
-        severity="secondary"
-        icon="pi pi-sign-out"
-        (onClick)="onLogout()"
-        styleClass="flex-1"
-      />
-    </div>
   </p-card>
 </div>
 
-<!-- Confirmation Dialog -->
-<p-confirmDialog />
+<!-- Generic Confirmation Dialog -->
+<app-dialog-confirm />
