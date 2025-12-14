@@ -326,6 +326,25 @@ export const AUTH_TEMPLATE_KEYS = [
 ] as const;
 
 /**
+ * Storage import dialog keys.
+ * Used in menu-auth.component.ts when prompting to import anonymous data on login.
+ */
+export const STORAGE_IMPORT_KEYS = [
+  "auth.Import Local Data",
+  "auth.This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)",
+  "auth.Import",
+  "auth.Skip",
+] as const;
+
+/**
+ * Data migration keys.
+ * Used in data-migration.service.ts for migration status messages.
+ */
+export const MIGRATION_KEYS = [
+  "migration.Your data has been updated to a new format.",
+] as const;
+
+/**
  * Page content keys used in templates but not detected by regex
  * (long keys, property bindings, etc.)
  */
@@ -378,6 +397,8 @@ export const ALL_PROGRAMMATIC_KEYS = [
   ...A11Y_KEYS,
   ...PRIVACY_KEYS,
   ...AUTH_TEMPLATE_KEYS,
+  ...STORAGE_IMPORT_KEYS,
+  ...MIGRATION_KEYS,
   ...PAGE_CONTENT_KEYS,
   ...PROFILE_PAGE_KEYS,
   ...DIALOG_LABEL_KEYS,

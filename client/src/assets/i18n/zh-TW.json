@@ -129,6 +129,10 @@
     ,"I confirm that I am 16 years of age or older": "我確認我已年滿16歲或以上"
     ,"I agree to the": "我同意"
     ,"Send Reset Code": "發送重設碼"
+    ,"Import Local Data": "匯入本機資料"
+    ,"This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)": "此裝置保存了您登入前的資料。是否要匯入？（現有資料不會被覆蓋）"
+    ,"Import": "匯入"
+    ,"Skip": "略過"
   }
   ,"Email": "電子郵件"
   ,"Password": "密碼"
@@ -187,6 +191,9 @@
     ,"A verification link will be sent to your new email address. You must click the link to complete the change.": "驗證連結將發送到您的新電子郵件地址。您必須點擊連結以完成變更。"
     ,"Update Email": "更新電子郵件"
     ,"Verification email sent! Please check your new email address and click the confirmation link.": "驗證電子郵件已發送！請檢查您的新電子郵件地址並點擊確認連結。"
+    ,"Clear All Data": "清除所有資料"
+    ,"Clear Data": "清除資料"
+    ,"Remove all stored preferences, notifications, and settings. Your account will remain active.": "刪除所有儲存的偏好設定、通知和設定。您的帳戶將保持活躍。"
   }
   ,"Cancel": "取消"
   ,"validation": {
@@ -232,8 +239,6 @@
     ,"Analytics cookies disabled": "分析Cookie已停用"
     ,"Cookie preference not set": "未設定Cookie偏好"
   }
-  ,"Delete": "刪除"
-  ,"Error": "錯誤"
   ,"OK": "確定"
   ,"Accept": "接受"
   ,"Decline": "拒絕"
@@ -248,5 +253,19 @@
     ,"hours ago": "{count}小時前"
     ,"minutes ago": "{count, plural, other {#分鐘前}}"
     ,"Just now": "剛剛"
+  }
+  ,"migration": {
+    "Your data has been updated to a new format.": "您的資料已更新為新格式。"
+    ,"The previous data is available to download from your profile page.": "之前的資料可以從您的個人資料頁面下載。"
+    ,"Export Previous Data": "匯出之前的資料"
+    ,"Download a backup of your data from before the last update.": "下載上次更新前的資料備份。"
+  }
+  ,"update": {
+    "New Version Available": "新版本可用"
+    ,"This is a major update and requires restart": "這是一個重大更新，需要重新啟動"
+    ,"This is a minor update and requires restart": "這是一個小版本更新，需要重新啟動"
+    ,"This is a small change—you can update later if desired.": "這是一個小改動—如果需要，您可以稍後更新。"
+    ,"Update Now": "立即更新"
+    ,"Later": "稍後"
   }
 }

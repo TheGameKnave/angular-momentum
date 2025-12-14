@@ -129,6 +129,10 @@
     ,"I confirm that I am 16 years of age or older": "Je confirme que j’ai 16 ans ou plus"
     ,"I agree to the": "J’accepte la"
     ,"Send Reset Code": "Envoyer le code de réinitialisation"
+    ,"Import Local Data": "Importer les données locales"
+    ,"This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)": "Cet appareil contient des données enregistrées avant votre connexion. Souhaitez-vous les importer ? (les données existantes ne seront pas écrasées)"
+    ,"Import": "Importer"
+    ,"Skip": "Ignorer"
   }
   ,"Email": "E-mail"
   ,"Password": "Mot de passe"
@@ -187,6 +191,9 @@
     ,"A verification link will be sent to your new email address. You must click the link to complete the change.": "Un lien de vérification sera envoyé à votre nouvelle adresse e-mail. Vous devez cliquer sur le lien pour terminer le changement."
     ,"Update Email": "Mettre à jour l’e-mail"
     ,"Verification email sent! Please check your new email address and click the confirmation link.": "E-mail de vérification envoyé ! Veuillez vérifier votre nouvelle adresse e-mail et cliquer sur le lien de confirmation."
+    ,"Clear All Data": "Effacer toutes les données"
+    ,"Clear Data": "Effacer les données"
+    ,"Remove all stored preferences, notifications, and settings. Your account will remain active.": "Supprimer toutes les préférences, notifications et paramètres enregistrés. Votre compte restera actif."
   }
   ,"Cancel": "Annuler"
   ,"validation": {
@@ -232,8 +239,6 @@
     ,"Analytics cookies disabled": "Cookies analytiques désactivés"
     ,"Cookie preference not set": "Préférence de cookies non définie"
   }
-  ,"Delete": "Supprimer"
-  ,"Error": "Erreur"
   ,"OK": "OK"
   ,"Accept": "Accepter"
   ,"Decline": "Refuser"
@@ -248,5 +253,19 @@
     ,"hours ago": "il y a {count} heures"
     ,"minutes ago": "{count, plural, one {il y a une minute} other {il y a # minutes}}"
     ,"Just now": "À l’instant"
+  }
+  ,"migration": {
+    "Your data has been updated to a new format.": "Vos données ont été mises à jour vers un nouveau format."
+    ,"The previous data is available to download from your profile page.": "Les données précédentes sont disponibles à l’export depuis votre page de profil."
+    ,"Export Previous Data": "Exporter les Données Précédentes"
+    ,"Download a backup of your data from before the last update.": "Téléchargez une sauvegarde de vos données avant la dernière mise à jour."
+  }
+  ,"update": {
+    "New Version Available": "Nouvelle version disponible"
+    ,"This is a major update and requires restart": "Il s’agit d’une mise à jour majeure et nécessite un redémarrage"
+    ,"This is a minor update and requires restart": "Il s’agit d’une mise à jour mineure et nécessite un redémarrage"
+    ,"This is a small change—you can update later if desired.": "Il s’agit d’un petit changement—vous pouvez mettre à jour plus tard si vous le souhaitez."
+    ,"Update Now": "Mettre à jour maintenant"
+    ,"Later": "Plus tard"
   }
 }

@@ -129,6 +129,10 @@
     ,"I confirm that I am 16 years of age or older": "Confirmo que tengo 16 años de edad o más"
     ,"I agree to the": "Acepto la"
     ,"Send Reset Code": "Enviar código de restablecimiento"
+    ,"Import Local Data": "Importar datos locales"
+    ,"This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)": "Este dispositivo tiene datos guardados de antes de iniciar sesión. ¿Desea importarlos? (los datos existentes no se sobrescribirán)"
+    ,"Import": "Importar"
+    ,"Skip": "Omitir"
   }
   ,"Email": "Correo"
   ,"Password": "Contraseña"
@@ -187,6 +191,9 @@
     ,"A verification link will be sent to your new email address. You must click the link to complete the change.": "Se enviará un enlace de verificación a su nuevo correo. Haga clic en el enlace para completar."
     ,"Update Email": "Actualizar correo"
     ,"Verification email sent! Please check your new email address and click the confirmation link.": "¡Correo de verificación enviado! Revise su nuevo correo y haga clic en el enlace."
+    ,"Clear All Data": "Borrar todos los datos"
+    ,"Clear Data": "Borrar datos"
+    ,"Remove all stored preferences, notifications, and settings. Your account will remain active.": "Eliminar todas las preferencias, notificaciones y configuraciones almacenadas. Tu cuenta permanecerá activa."
   }
   ,"Cancel": "Cancelar"
   ,"validation": {
@@ -232,8 +239,6 @@
     ,"Analytics cookies disabled": "Cookies de análisis deshabilitados"
     ,"Cookie preference not set": "Preferencia de cookies no establecida"
   }
-  ,"Delete": "Eliminar"
-  ,"Error": "Error"
   ,"OK": "OK"
   ,"Accept": "Aceptar"
   ,"Decline": "Rechazar"
@@ -248,5 +253,19 @@
     ,"hours ago": "hace {count} horas"
     ,"minutes ago": "{count, plural, one {hace un minuto} other {hace # minutos}}"
     ,"Just now": "Justo ahora"
+  }
+  ,"migration": {
+    "Your data has been updated to a new format.": "Tus datos han sido actualizados a un nuevo formato."
+    ,"The previous data is available to download from your profile page.": "Los datos anteriores están disponibles para exportar desde tu página de perfil."
+    ,"Export Previous Data": "Exportar Datos Anteriores"
+    ,"Download a backup of your data from before the last update.": "Descarga una copia de seguridad de tus datos antes de la última actualización."
+  }
+  ,"update": {
+    "New Version Available": "Nueva Versión Disponible"
+    ,"This is a major update and requires restart": "Esta es una actualización mayor y requiere reinicio"
+    ,"This is a minor update and requires restart": "Esta es una actualización menor y requiere reinicio"
+    ,"This is a small change—you can update later if desired.": "Este es un cambio pequeño—puedes actualizar más tarde si lo deseas."
+    ,"Update Now": "Actualizar Ahora"
+    ,"Later": "Más Tarde"
   }
 }

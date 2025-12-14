@@ -11,8 +11,6 @@
   ,"optional": "optional"
   ,"Cancel": "Cancel"
   ,"Save": "Save"
-  ,"Delete": "Delete"
-  ,"Error": "Error"
   ,"OK": "OK"
   ,"Accept": "Accept"
   ,"Decline": "Decline"
@@ -140,6 +138,10 @@
     ,"I confirm that I am 16 years of age or older": "I confirm that I am 16 years of age or older"
     ,"I agree to the": "I agree to the"
     ,"Send Reset Code": "Send Reset Code"
+    ,"Import Local Data": "Import Local Data"
+    ,"This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)": "This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)"
+    ,"Import": "Import"
+    ,"Skip": "Skip"
   }
   ,"error": {
     "Invalid credentials": "Invalid credentials"
@@ -194,6 +196,9 @@
     ,"A verification link will be sent to your new email address. You must click the link to complete the change.": "A verification link will be sent to your new email address. You must click the link to complete the change."
     ,"Update Email": "Update Email"
     ,"Verification email sent! Please check your new email address and click the confirmation link.": "Verification email sent! Please check your new email address and click the confirmation link."
+    ,"Clear All Data": "Clear All Data"
+    ,"Clear Data": "Clear Data"
+    ,"Remove all stored preferences, notifications, and settings. Your account will remain active.": "Remove all stored preferences, notifications, and settings. Your account will remain active."
   }
   ,"validation": {
     "3–30 characters": "3–30 characters"
@@ -248,5 +253,19 @@
     ,"hours ago": "{count} hours ago"
     ,"minutes ago": "{count, plural, one {one minute ago} other {# minutes ago}}"
     ,"Just now": "Just now"
+  }
+  ,"migration": {
+    "Your data has been updated to a new format.": "Your data has been updated to a new format."
+    ,"The previous data is available to download from your profile page.": "The previous data is available to export from your profile page."
+    ,"Export Previous Data": "Export Previous Data"
+    ,"Download a backup of your data from before the last update.": "Download a backup of your data from before the last update."
+  }
+  ,"update": {
+    "New Version Available": "New Version Available"
+    ,"This is a major update and requires restart": "This is a major update and requires restart"
+    ,"This is a minor update and requires restart": "This is a minor update and requires restart"
+    ,"This is a small change—you can update later if desired.": "This is a small change—you can update later if desired."
+    ,"Update Now": "Update Now"
+    ,"Later": "Later"
   }
 }

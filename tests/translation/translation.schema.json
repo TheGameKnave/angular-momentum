@@ -587,6 +587,22 @@
         "Send Reset Code": {
           "type": "string",
           "description": "Auth: Password reset request button"
+        },
+        "Import Local Data": {
+          "type": "string",
+          "description": "Auth: Storage import dialog title"
+        },
+        "This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)": {
+          "type": "string",
+          "description": "Auth: Storage import dialog message"
+        },
+        "Import": {
+          "type": "string",
+          "description": "Auth: Storage import confirm button"
+        },
+        "Skip": {
+          "type": "string",
+          "description": "Auth: Storage import cancel button"
         }
       },
       "required": [
@@ -636,7 +652,11 @@
         "The username you selected was unavailable. You can set a new one in your user profile",
         "I confirm that I am 16 years of age or older",
         "I agree to the",
-        "Send Reset Code"
+        "Send Reset Code",
+        "Import Local Data",
+        "This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)",
+        "Import",
+        "Skip"
       ],
       "additionalProperties": false
     },
@@ -888,6 +908,18 @@
         "Verification email sent! Please check your new email address and click the confirmation link.": {
           "type": "string",
           "description": "Profile: Email change confirmation message"
+        },
+        "Clear All Data": {
+          "type": "string",
+          "description": "Profile: Clear data section header"
+        },
+        "Clear Data": {
+          "type": "string",
+          "description": "Profile: Clear data button"
+        },
+        "Remove all stored preferences, notifications, and settings. Your account will remain active.": {
+          "type": "string",
+          "description": "Profile: Clear data description"
         }
       },
       "required": [
@@ -918,7 +950,10 @@
         "Please enter a valid email address",
         "A verification link will be sent to your new email address. You must click the link to complete the change.",
         "Update Email",
-        "Verification email sent! Please check your new email address and click the confirmation link."
+        "Verification email sent! Please check your new email address and click the confirmation link.",
+        "Clear All Data",
+        "Clear Data",
+        "Remove all stored preferences, notifications, and settings. Your account will remain active."
       ],
       "additionalProperties": false
     },
@@ -1134,14 +1169,6 @@
       ],
       "additionalProperties": false
     },
-    "Delete": {
-      "type": "string",
-      "description": "Common: Delete action button"
-    },
-    "Error": {
-      "type": "string",
-      "description": "Common: Error dialog header"
-    },
     "OK": {
       "type": "string",
       "description": "Common: OK/dismiss button"
@@ -1209,6 +1236,72 @@
         "Just now"
       ],
       "additionalProperties": false
+    },
+    "migration": {
+      "type": "object",
+      "properties": {
+        "Your data has been updated to a new format.": {
+          "type": "string",
+          "description": "Migration: Toast notification summary after automatic migration"
+        },
+        "The previous data is available to download from your profile page.": {
+          "type": "string",
+          "description": "Migration: Toast notification detail for authenticated users"
+        },
+        "Export Previous Data": {
+          "type": "string",
+          "description": "Migration: Profile panel header and button for pre-migration backup"
+        },
+        "Download a backup of your data from before the last update.": {
+          "type": "string",
+          "description": "Migration: Profile panel description"
+        }
+      },
+      "required": [
+        "Your data has been updated to a new format.",
+        "The previous data is available to download from your profile page.",
+        "Export Previous Data",
+        "Download a backup of your data from before the last update."
+      ],
+      "additionalProperties": false
+    },
+    "update": {
+      "type": "object",
+      "properties": {
+        "New Version Available": {
+          "type": "string",
+          "description": "Update dialog: Header title"
+        },
+        "This is a major update and requires restart": {
+          "type": "string",
+          "description": "Update dialog: Major update warning"
+        },
+        "This is a minor update and requires restart": {
+          "type": "string",
+          "description": "Update dialog: Minor update warning"
+        },
+        "This is a small change—you can update later if desired.": {
+          "type": "string",
+          "description": "Update dialog: Patch update info"
+        },
+        "Update Now": {
+          "type": "string",
+          "description": "Update dialog: Confirm button"
+        },
+        "Later": {
+          "type": "string",
+          "description": "Update dialog: Dismiss button"
+        }
+      },
+      "required": [
+        "New Version Available",
+        "This is a major update and requires restart",
+        "This is a minor update and requires restart",
+        "This is a small change—you can update later if desired.",
+        "Update Now",
+        "Later"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [
@@ -1234,14 +1327,14 @@
     "a11y",
     "Save",
     "privacy",
-    "Delete",
-    "Error",
     "OK",
     "Accept",
     "Decline",
     "connectivity",
     "time",
-    "feature"
+    "feature",
+    "migration",
+    "update"
   ],
   "additionalProperties": false
 }

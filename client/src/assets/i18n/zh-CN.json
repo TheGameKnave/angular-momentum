@@ -129,6 +129,10 @@
     ,"I confirm that I am 16 years of age or older": "我确认我已年满16岁或以上"
     ,"I agree to the": "我同意"
     ,"Send Reset Code": "发送重置码"
+    ,"Import Local Data": "导入本地数据"
+    ,"This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)": "此设备保存了您登录前的数据。是否要导入？（现有数据不会被覆盖）"
+    ,"Import": "导入"
+    ,"Skip": "跳过"
   }
   ,"Email": "电子邮件"
   ,"Password": "密码"
@@ -187,6 +191,9 @@
     ,"A verification link will be sent to your new email address. You must click the link to complete the change.": "验证链接将发送到您的新电子邮件地址。您必须点击链接以完成更改。"
     ,"Update Email": "更新电子邮件"
     ,"Verification email sent! Please check your new email address and click the confirmation link.": "验证电子邮件已发送！请检查您的新电子邮件地址并点击确认链接。"
+    ,"Clear All Data": "清除所有数据"
+    ,"Clear Data": "清除数据"
+    ,"Remove all stored preferences, notifications, and settings. Your account will remain active.": "删除所有存储的偏好设置、通知和设置。您的账户将保持活跃。"
   }
   ,"Cancel": "取消"
   ,"validation": {
@@ -232,8 +239,6 @@
     ,"Analytics cookies disabled": "分析Cookie已禁用"
     ,"Cookie preference not set": "未设置Cookie偏好"
   }
-  ,"Delete": "删除"
-  ,"Error": "错误"
   ,"OK": "确定"
   ,"Accept": "接受"
   ,"Decline": "拒绝"
@@ -248,5 +253,19 @@
     ,"hours ago": "{count}小时前"
     ,"minutes ago": "{count, plural, other {#分钟前}}"
     ,"Just now": "刚刚"
+  }
+  ,"migration": {
+    "Your data has been updated to a new format.": "您的数据已更新为新格式。"
+    ,"The previous data is available to download from your profile page.": "之前的数据可以从您的个人资料页面导出。"
+    ,"Export Previous Data": "导出之前的数据"
+    ,"Download a backup of your data from before the last update.": "下载上次更新前的数据备份。"
+  }
+  ,"update": {
+    "New Version Available": "新版本可用"
+    ,"This is a major update and requires restart": "这是一个重大更新，需要重启"
+    ,"This is a minor update and requires restart": "这是一个小版本更新，需要重启"
+    ,"This is a small change—you can update later if desired.": "这是一个小改动—如果需要，您可以稍后更新。"
+    ,"Update Now": "立即更新"
+    ,"Later": "稍后"
   }
 }

@@ -11,8 +11,6 @@
   ,"optional": "oopshunnel"
   ,"Cancel": "Cuncel"
   ,"Save": "Sefe-a! Bork!"
-  ,"Delete": "Delete-a"
-  ,"Error": "Irrur! Bork bork!"
   ,"OK": "Ookey-dookey!"
   ,"Accept": "Eccept"
   ,"Decline": "Decleene-a"
@@ -140,6 +138,10 @@
     ,"I confirm that I am 16 years of age or older": "I cunffurm zet I em 16 yeers ooff ege-a oor ooolder"
     ,"I agree to the": "I egree-a tu zee"
     ,"Send Reset Code": "Send Reset Cude-a"
+    ,"Import Local Data": "Impurt Lucel Deta"
+    ,"This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)": "Zees defice-a hes sefed deta frum beffure-a yuoo lugged in. Vuoold yuoo leeke-a tu impurt it? (exeesteeng deta vun’t be-a oofervreettee)"
+    ,"Import": "Impurt"
+    ,"Skip": "Skeep"
   }
   ,"error": {
     "Invalid credentials": "Infeleed credentiels. Bork!"
@@ -194,6 +196,9 @@
     ,"A verification link will be sent to your new email address. You must click the link to complete the change.": "A fereefficeshun leenk veel be-a sent tu yuoor noo ee-meil eddress. Yuoo moost cleeck zee leenk tu cumplete-a zee chunge-a."
     ,"Update Email": "Updete-a Ee-meil"
     ,"Verification email sent! Please check your new email address and click the confirmation link.": "Fereefficeshun ee-meil sent! Pleese-a check yuoor noo ee-meil eddress und cleeck zee cunffurmeshun leenk. Bork!"
+    ,"Clear All Data": "Cleer Ell Deta"
+    ,"Clear Data": "Cleer Deta"
+    ,"Remove all stored preferences, notifications, and settings. Your account will remain active.": "Remufe-a ell stured prefferences, nuteefficeshuns, und setteengs. Yuoor eccuoont veel remeeen ecteefe-a. Bork!"
   }
   ,"validation": {
     "3–30 characters": "3–30 cherecters"
@@ -248,5 +253,19 @@
     ,"hours ago": "{count} huoors egu! Bork!"
     ,"minutes ago": "{count, plural, one {oone-a meenoote-a egu! Bork!} other {# meenutes egu! Bork!}}"
     ,"Just now": "Joost noo! Bork bork bork!"
+  }
+  ,"migration": {
+    "Your data has been updated to a new format.": "Yuoor deta hes beee updeted tu a noo furmet! Bork!"
+    ,"The previous data is available to download from your profile page.": "Zee prefeeuoos deta is efeeeleble-a tu expurt frum yuoor prufeele-a pege-a. Bork!"
+    ,"Export Previous Data": "Expurt Prefeeuoos Deta"
+    ,"Download a backup of your data from before the last update.": "Duoonlued a beckoop ooff yuoor deta frum beffure-a zee lest updete-a. Bork!"
+  }
+  ,"update": {
+    "New Version Available": "Noo Fershun Efeeeleble-a! Bork!"
+    ,"This is a major update and requires restart": "Zees is a mejur updete-a und reqooures restert"
+    ,"This is a minor update and requires restart": "Zees is a meenur updete-a und reqooures restert"
+    ,"This is a small change—you can update later if desired.": "Zees is a smell chenge-a—yuoo cun updete-a leter iff desured. Bork!"
+    ,"Update Now": "Updete-a Noo"
+    ,"Later": "Leter"
   }
 }
