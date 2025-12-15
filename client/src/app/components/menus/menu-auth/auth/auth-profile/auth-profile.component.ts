@@ -6,6 +6,7 @@ import { AuthService } from '@app/services/auth.service';
 import { UsernameService } from '@app/services/username.service';
 import { getUserInitials } from '@app/helpers/user.helper';
 import { RelativeTimeComponent } from '@app/components/ui/relative-time/relative-time.component';
+import { TimerIndicatorDirective } from '@app/directives/timer-indicator.directive';
 
 /**
  * Profile view component for authenticated users.
@@ -26,6 +27,7 @@ import { RelativeTimeComponent } from '@app/components/ui/relative-time/relative
     ButtonModule,
     MessageModule,
     RelativeTimeComponent,
+    TimerIndicatorDirective,
   ],
 })
 export class AuthProfileComponent implements OnInit {

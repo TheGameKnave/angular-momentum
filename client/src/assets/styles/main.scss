@@ -1826,19 +1826,15 @@ p-card.indexeddb {
 // 10. UTILITIES & ANIMATIONS
 // ============================================================================
 
-.auto-close-progress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 6px;
-  width: 0;
-  background: linear-gradient(90deg, $progress-start, $progress-end);
-  animation: fill-progress linear forwards;
+// Timer Indicator Directive
+@keyframes timer-indicator-shrink {
+  from { width: 100%; }
+  to { width: 0; }
 }
 
-@keyframes fill-progress {
-  from { width: 0; }
-  to { width: 100%; }
+.timer-indicator {
+  background: linear-gradient(90deg, $progress-start, $progress-end) !important;
+  pointer-events: none;
 }
 
 // ----------------------------------------------------------------------------

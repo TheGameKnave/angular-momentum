@@ -1,4 +1,4 @@
-<div class="menu-auth-body profile-menu" *transloco="let t">
+<div class="menu-auth-body profile-menu" *transloco="let t" [appTimerIndicator]="autoCloseSeconds()">
   <!-- Username Creation Failed Warning -->
   @if (usernameService.creationFailed()) {
     <div class="px-4 pt-4">

@@ -190,9 +190,9 @@ describe('MenuAuthComponent', () => {
     it('should set auto-close timer and close menu after delay', async () => {
       await component.onLoginSuccess();
 
-      expect(component.autoCloseTimer()).toBe(2);
+      expect(component.autoCloseTimer()).toBe(4);
 
-      jasmine.clock().tick(2000);
+      jasmine.clock().tick(4000);
 
       expect(component.autoCloseTimer()).toBe(0);
       expect(component.anchorMenu.close).toHaveBeenCalled();
@@ -249,9 +249,9 @@ describe('MenuAuthComponent', () => {
     it('should set auto-close timer and close menu after delay', async () => {
       await component.onVerifySuccess();
 
-      expect(component.autoCloseTimer()).toBe(4);
+      expect(component.autoCloseTimer()).toBe(6);
 
-      jasmine.clock().tick(4000);
+      jasmine.clock().tick(6000);
 
       expect(component.autoCloseTimer()).toBe(0);
       expect(component.anchorMenu.close).toHaveBeenCalled();

@@ -9,14 +9,14 @@
 export const AUTO_CLOSE_TIMERS = {
   /**
    * Delay after successful login before closing menu.
-   * Short timer (2s) to quickly return user to their task.
+   * Short timer (4s) to quickly return user to their task.
    */
-  LOGIN: 2,
+  LOGIN: 4,
   /**
    * Delay after OTP verification before closing menu.
-   * Longer timer (4s) allows user to read verification warnings or confirmations.
+   * Longer timer (6s) allows user to read verification warnings or confirmations.
    */
-  OTP_VERIFICATION: 4,
+  OTP_VERIFICATION: 6,
   /**
    * No timer active.
    * Menu remains open until user manually closes it.
