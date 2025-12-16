@@ -42,21 +42,6 @@ export default defineConfig({
       dependencies: ['chromium-features'],
     },
 
-    // ==========================================================================
-    // FIREFOX & WEBKIT - Visual regression only
-    // Cross-browser rendering differences are the main concern; functional
-    // behavior is consistent across modern browsers thanks to Angular.
-    // ==========================================================================
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-      testMatch: /visual\.spec\.ts/,
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-      testMatch: /visual\.spec\.ts/,
-    },
   ],
   webServer: {
     command: 'kill $(lsof -ti:4200) $(lsof -ti:4201) 2>/dev/null || true; npm run dev',

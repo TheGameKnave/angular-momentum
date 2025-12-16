@@ -6,9 +6,9 @@
     [attr.aria-label]="authService.isAuthenticated() ? 'Profile' : 'Log in'"
   >
     @if (authService.isAuthenticated()) {
-      <i class="pi pi-user text-xl" [class.active-route]="isProfileRoute()"></i>
+      <i class="pi pi-user" [class.active-route]="isProfileRoute()"></i>
     } @else {
-      <i class="pi pi-sign-in text-xl"></i>
+      <i class="pi pi-sign-in"></i>
     }
   </span>
 
@@ -17,7 +17,7 @@
     @if (authService.isAuthenticated()) {
       <!-- Profile View (when authenticated) -->
       <div menu-header class="menu-auth-header">
-        <h3 class="text-lg font-semibold">{{ t('profile.Profile') }}</h3>
+        <h3>{{ t('profile.Profile') }}</h3>
         <hr />
       </div>
 

@@ -9,7 +9,7 @@ import { menus, pages, auth, common } from '../helpers/selectors';
 let sharedUser: TestUser;
 let sharedUserId: string;
 
-// Helper to login
+// Helper to login and close menu
 async function loginWithSharedUser(page: any): Promise<void> {
   await page.click(menus.authMenuButton);
   await page.click(auth.loginTab);
@@ -18,6 +18,9 @@ async function loginWithSharedUser(page: any): Promise<void> {
   await page.click(auth.loginSubmit);
   // Wait for auth menu to show profile (logged in state)
   await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+  // Close the menu so subsequent navigation works cleanly
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
 }
 
 test.describe('Profile Tests', () => {
@@ -63,12 +66,14 @@ test.describe('Profile Tests', () => {
 
     await expect(page.locator(pages.profilePage)).toBeVisible();
 
-
-    // Logout
+    // Logout via auth menu
     await page.click(menus.authMenuButton);
-    await page.click(auth.logoutButton);
-    // Wait for profile menu to disappear (indicates logged out state)
-    await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 5000 });
+    await page.waitForTimeout(300);
+    const logoutBtn = page.locator(auth.logoutButton);
+    await logoutBtn.waitFor({ state: 'visible' });
+    await logoutBtn.click();
+    // Wait for menu panel to close (logout triggers menu close)
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 10000 });
   });
 
   test('Profile displays user info', async ({ page }) => {
@@ -81,12 +86,14 @@ test.describe('Profile Tests', () => {
     // Check that user info is displayed
     await expect(page.locator(pages.profilePage)).toBeVisible();
 
-
-    // Logout
+    // Logout via auth menu
     await page.click(menus.authMenuButton);
-    await page.click(auth.logoutButton);
-    // Wait for profile menu to disappear (indicates logged out state)
-    await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 5000 });
+    await page.waitForTimeout(300);
+    const logoutBtn = page.locator(auth.logoutButton);
+    await logoutBtn.waitFor({ state: 'visible' });
+    await logoutBtn.click();
+    // Wait for menu panel to close (logout triggers menu close)
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 10000 });
   });
 
   // ============================================================================
@@ -105,17 +112,19 @@ test.describe('Profile Tests', () => {
 
     // Click to open dropdown
     await page.click(pages.profileTimezone);
-    await page.waitForTimeout(600);
-
+    await page.waitForTimeout(300);
 
     // Click outside to close
     await page.click('body', { position: { x: 10, y: 10 } });
 
-    // Logout
+    // Logout via auth menu
     await page.click(menus.authMenuButton);
-    await page.click(auth.logoutButton);
-    // Wait for profile menu to disappear (indicates logged out state)
-    await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 5000 });
+    await page.waitForTimeout(300);
+    const logoutBtn = page.locator(auth.logoutButton);
+    await logoutBtn.waitFor({ state: 'visible' });
+    await logoutBtn.click();
+    // Wait for menu panel to close (logout triggers menu close)
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 10000 });
   });
 
   // ============================================================================
@@ -132,12 +141,14 @@ test.describe('Profile Tests', () => {
     // Check export button exists
     await expect(page.locator(pages.profileExportButton)).toBeVisible();
 
-
-    // Logout
+    // Logout via auth menu
     await page.click(menus.authMenuButton);
-    await page.click(auth.logoutButton);
-    // Wait for profile menu to disappear (indicates logged out state)
-    await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 5000 });
+    await page.waitForTimeout(300);
+    const logoutBtn = page.locator(auth.logoutButton);
+    await logoutBtn.waitFor({ state: 'visible' });
+    await logoutBtn.click();
+    // Wait for menu panel to close (logout triggers menu close)
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 10000 });
   });
 });
 

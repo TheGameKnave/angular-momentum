@@ -66,8 +66,6 @@ $error-red: #e74c3c !default;
 $focus-ring: #667eea !default;
 $highlight-bg: rgba(102, 126, 234, 0.08) !default;
 $highlight-bg-active: rgba(102, 126, 234, 0.12) !default;
-$progress-start: #10b981 !default;
-$progress-end: #059669 !default;
 
 // ============================================================================
 // 3. DARK THEME (.app-dark)
@@ -198,15 +196,13 @@ $progress-end: #059669 !default;
   }
 
   // Notifications page
-  .notifications-page {
+  app-notifications {
     .notification-test-card {
       background-color: $dark-gray;
       border-color: $low-gray;
 
-      .notification-preview {
-        p {
-          color: $text-light;
-        }
+      .notification-preview p {
+        color: $text-light;
       }
     }
 
@@ -221,31 +217,32 @@ $progress-end: #059669 !default;
       }
     }
 
-    .status-item {
-      span {
-        &.granted {
-          color: $text-success-light;
-        }
-        &.denied {
-          color: $text-error-light;
-        }
+    .status-grid dd {
+      &.granted {
+        color: $text-success-light;
+      }
+      &.denied {
+        color: $text-error-light;
       }
     }
   }
 
   // Cookie Banner
-  .cookie-banner {
+  app-cookie-banner aside {
     background-color: $backdrop;
     color: $text-light;
-  }
-  .cookie-banner-text {
-    color: $text-light;
-  }
-  .cookie-banner-link {
-    color: $faint-brand;
-    &:hover {
-      color: $light-brand;
+
+    a {
+      color: $faint-brand;
+      &:hover {
+        color: $light-brand;
+      }
     }
+  }
+
+  // Privacy Policy
+  app-privacy-policy .summary-box {
+    background-color: $dark-gray;
   }
 
   // Scroll indicators
@@ -323,7 +320,7 @@ hr {
   border: 0;
   margin-block-end: 0;
   margin-block-start: 0;
-  padding: 0.3em 0;
+  padding: 0.6em 0;
   position: relative;
   overflow: hidden;
   min-height: 0.3rem;
@@ -423,6 +420,12 @@ ul {
   font-size: 1.4rem !important;
 }
 
+.p-select,
+.p-select-label,
+.p-select-option {
+  font-size: 1.5rem !important;
+}
+
 // Accessible focus indicator for buttons
 .p-button:focus-visible {
   outline: 2px solid $focus-ring !important;
@@ -450,6 +453,10 @@ p-panel {
     flex-wrap: wrap;
     gap: 1rem;
   }
+}
+
+.p-message {
+  margin: 1rem 0;
 }
 
 .p-tooltip {
@@ -504,6 +511,19 @@ p-panel {
   .p-toast-close-icon {
     width: 1.6rem;
     height: 1.6rem;
+  }
+}
+
+p-card {
+  margin-bottom: 1.6rem;
+  .p-card-header {
+    padding: 0.6rem;
+  }
+
+  ul li {
+    margin: 0.6rem 0;
+    padding: 0;
+    font-size: 2rem;
   }
 }
 
@@ -718,8 +738,16 @@ app-anchor-menu {
   cursor: pointer;
   font-size: 2rem;
   line-height: 1;
-  padding: 0.6rem;
-  z-index: 10;
+  padding: 0.8rem;
+  z-index: 100;
+  background: transparent;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+  color: inherit;
+
+  &:hover {
+    background-color: rgba(128, 128, 128, 0.2);
+  }
 
   i {
     display: block;
@@ -1022,11 +1050,6 @@ app-anchor-menu {
 }
 
 .menu-change-log-body {
-  p-card {
-    display: block;
-    margin-bottom: 1rem;
-  }
-
   ul {
     li {
       font-size: 1.6rem !important;
@@ -1270,11 +1293,62 @@ app-anchor-menu {
       font-size: 1.2rem;
       margin: 0;
     }
+
+    input, textarea {
+      width: 100%;
+    }
+
+    .hint {
+      font-size: 1.4rem;
+      opacity: 0.7;
+      margin-top: 0.4rem;
+    }
   }
 
   .form-field-optional {
     color: $mid-gray;
     font-size: 0.9em;
+  }
+
+  .checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.6rem;
+
+    label {
+      cursor: pointer;
+      margin: 0;
+
+      a {
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1.2rem;
+
+    p-button, button {
+      flex: 1;
+    }
+  }
+
+  .error-block {
+    margin-bottom: 1.6rem;
+
+    .retry-hint {
+      font-size: 1.4rem;
+      margin-top: 0.8rem;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 0.8rem;
+    }
   }
 
   // Override PrimeNG panel content width constraints
@@ -1316,12 +1390,40 @@ app-anchor-menu {
       border: none;
       cursor: pointer;
       padding: 0;
+      font-size: 1.4rem;
 
       &:hover {
         text-decoration: underline;
       }
     }
   }
+
+  button[pButton] {
+    width: 100%;
+  }
+}
+
+// Password toggle icon styling
+.password-toggle-icon {
+  cursor: pointer;
+  font-size: 2rem !important;
+
+  i {
+    font-size: 2rem;
+  }
+}
+
+// OTP input styling
+.otp-input {
+  padding: 1rem !important;
+  font-size: 1.6rem !important;
+  text-align: center;
+  letter-spacing: 0.5rem;
+}
+
+// Warning message container
+.warning-message {
+  padding: 1.6rem 1.6rem 0;
 }
 
 .profile-menu {
@@ -1446,11 +1548,16 @@ app-anchor-menu {
   p {
     margin: 0 0 0.8rem;
     font-size: 1.4rem;
+
+    &.hint {
+      opacity: 0.7;
+      margin-top: 1.2rem;
+    }
   }
 
   .otp-email {
     font-weight: 600;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     word-break: break-all;
   }
 }
@@ -1469,6 +1576,7 @@ app-anchor-menu {
     padding: 0;
     color: inherit;
     opacity: 0.8;
+    font-size: 1.4rem;
 
     &:hover:not(:disabled) {
       text-decoration: underline;
@@ -1486,53 +1594,52 @@ app-anchor-menu {
 // 7.7 Cookie Banner
 // ----------------------------------------------------------------------------
 
-.cookie-banner {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  backdrop-filter: blur(3px);
-  border-top: 1px solid transparent;
-  padding: 1.5rem 2rem;
-  z-index: 10000;
-  box-shadow: 0 -0.4rem 2rem $shadow;
-}
-
-.cookie-banner-content {
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-}
-
-.cookie-banner-text {
-  margin: 0;
-  font-size: 1.6rem;
-  line-height: 1.6;
-  font-weight: 400;
-  text-align: center;
-}
-
-.cookie-banner-link {
-  text-decoration: underline;
-  margin-left: 0.5rem;
-  font-weight: 500;
-
-  &:hover {
-    text-decoration: none;
+app-cookie-banner {
+  aside {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    backdrop-filter: blur(3px);
+    border-top: 1px solid transparent;
+    padding: 1.5rem 2rem;
+    z-index: 10000;
+    box-shadow: 0 -0.4rem 2rem $shadow;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
   }
-}
 
-.cookie-banner-actions {
-  display: flex;
-  gap: 1rem;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
+  p {
+    margin: 0;
+    font-size: 1.6rem;
+    line-height: 1.6;
+    font-weight: 400;
+    text-align: center;
+
+    a {
+      text-decoration: underline;
+      margin-left: 0.5rem;
+      font-weight: 500;
+
+      &:hover {
+        text-decoration: none;
+      }
+    }
+  }
+
+  nav {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -1542,11 +1649,80 @@ app-anchor-menu {
 .privacy-content {
   line-height: 1.6;
 
+  p {
+    margin-bottom: 1.6rem;
+  }
+
   a {
     text-decoration: underline;
 
     &:hover {
       opacity: 0.8;
+    }
+  }
+
+  ul {
+    list-style-type: disc;
+    margin: 0.6em 0 0.6em 2rem;
+
+    li {
+      margin-bottom: 0.8rem;
+      font-size: 1.5rem;
+      line-height: 1.6;
+    }
+  }
+}
+
+app-privacy-policy {
+
+  .updated-date {
+    font-size: 1.4rem;
+    opacity: 0.7;
+    margin-top: 0.8rem;
+  }
+
+  .summary-box {
+    padding: 1.6rem;
+    background-color: var(--p-surface-100);
+    border-radius: 0.4rem;
+    margin-bottom: 2.4rem;
+  }
+
+  .cookie-status {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    margin-bottom: 1.6rem;
+
+    .label {
+      font-weight: 500;
+    }
+
+    .status-enabled {
+      color: #16a34a;
+    }
+
+    .status-disabled {
+      color: $mid-gray;
+    }
+
+    .status-pending {
+      color: #ca8a04;
+    }
+  }
+
+  .cookie-actions {
+    display: flex;
+    gap: 0.8rem;
+  }
+
+  .service-list {
+    list-style-type: disc;
+    margin-left: 2rem;
+
+    li {
+      margin-bottom: 0.8rem;
+      line-height: 1.6;
     }
   }
 }
@@ -1556,21 +1732,127 @@ app-anchor-menu {
 // ============================================================================
 
 // ----------------------------------------------------------------------------
-// 8.1 Notifications Page
+// 8.1 Profile Page
 // ----------------------------------------------------------------------------
 
-.notifications-page {
-  h2 {
-    margin-bottom: 2rem;
+app-profile {
+  .profile-avatar {
+    background-color: var(--p-primary-color);
+    color: var(--p-primary-contrast-color);
   }
 
-  h3 {
-    margin-bottom: 1.5rem;
+  .profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    padding: 1.6rem;
+
+    .profile-header-info {
+      flex: 1;
+
+      h2 {
+        margin: 0;
+      }
+
+      p {
+        margin: 0.4rem 0 0;
+      }
+    }
   }
 
-  .status-section,
-  .test-section,
-  .info-section {
+  .profile-section {
+    h3 {
+      margin: 0 0 1.6rem;
+    }
+  }
+
+  .profile-form {
+    width: 100%;
+    max-width: none;
+  }
+
+  .profile-logout {
+    margin-top: 1rem;
+  }
+
+  .info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    margin: 0;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    font-size: 1.6rem;
+
+    dt {
+      font-weight: 500;
+      min-width: 12rem;
+      flex-shrink: 0;
+    }
+
+    dd {
+      margin: 0;
+      flex: 1;
+      word-break: break-all;
+
+      &.monospace {
+        font-family: $code-font-stack;
+        font-size: 1.5rem;
+      }
+    }
+  }
+
+  .timezone-select {
+    flex: 1;
+    max-width: 38.4rem;
+
+    .p-select {
+      width: 100%;
+    }
+  }
+
+  .data-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  .action-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+
+    .action-title {
+      font-weight: 500;
+      margin: 0;
+
+      &.warning {
+        color: #ea580c;
+      }
+
+      &.danger {
+        color: #dc2626;
+      }
+    }
+
+    .action-description {
+      font-size: 1.4rem;
+      opacity: 0.7;
+      margin: 0;
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+// 8.2 Notifications Page
+// ----------------------------------------------------------------------------
+
+app-notifications {
+  section {
     margin-bottom: 2rem;
   }
 
@@ -1578,34 +1860,32 @@ app-anchor-menu {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
     gap: 1rem;
-  }
 
-  .status-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    > div {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
 
-    strong {
+    dt {
       font-size: 1.2rem;
       color: $mid-gray;
       text-transform: uppercase;
     }
 
-    span {
+    dd {
       font-size: 1.6rem;
       font-weight: 600;
-    }
-  }
+      margin: 0;
 
-  .notification-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    margin-top: 1.5rem;
+      &.granted { color: #16a34a; }
+      &.denied { color: #dc2626; }
+    }
   }
 
   .notification-test-card {
     padding: 1.5rem;
+    margin: 1rem 0;
     border: 1px solid transparent;
     border-radius: 0.8rem;
     display: flex;
@@ -1623,7 +1903,7 @@ app-anchor-menu {
       }
 
       p {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
         margin: 0;
       }
     }
@@ -1642,27 +1922,15 @@ app-anchor-menu {
     font-size: 1.4rem;
     border-left: 4px solid;
   }
-
-  ul {
-    li {
-      font-size: 1.4rem;
-      line-height: 1.6;
-    }
-  }
 }
 
 // ----------------------------------------------------------------------------
-// 8.2 IndexedDB Demo Card Styles
+// 8.3 IndexedDB Page
 // ----------------------------------------------------------------------------
 
-p-card ul li, p-card.indexeddb {
-  margin: 0.6rem 0;
-  padding: 0;
+app-indexeddb p-card {
   font-size: 2rem;
-}
-
-p-card.indexeddb {
-  input {
+  input, textarea {
     margin: 0.5rem 0;
     font-size: 1.5rem;
   }
@@ -1693,10 +1961,11 @@ p-card.indexeddb {
     padding-left: 0;
     height: calc(100dvh - 4rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
-  header, footer {
+  .main > header,
+  .main > footer {
     border-left-width: 0;
   }
-  footer {
+  .main > footer {
     > * {
       font-size: 1.6rem;
     }
@@ -1796,14 +2065,12 @@ p-card.indexeddb {
     flex: none;
   }
 
-  // IndexedDB card overrides
-  p-card ul li, p-card.indexeddb {
+  p-card ul li {
     margin: 0.4rem 0;
-    padding: 0;
   }
 
   // Notification test cards stack vertically on mobile
-  .notification-test-card {
+  app-notifications .notification-test-card {
     flex-direction: column;
     align-items: stretch;
 
@@ -1815,7 +2082,7 @@ p-card.indexeddb {
 
 // Cookie banner responsive
 @media (max-width: 768px) {
-  .cookie-banner-actions {
+  app-cookie-banner nav {
     width: 100%;
 
     button {
@@ -1835,7 +2102,7 @@ p-card.indexeddb {
 }
 
 .timer-indicator {
-  background: linear-gradient(90deg, $progress-start, $progress-end) !important;
+  background: linear-gradient(90deg, $light-brand, $brand) !important;
   pointer-events: none;
 }
 

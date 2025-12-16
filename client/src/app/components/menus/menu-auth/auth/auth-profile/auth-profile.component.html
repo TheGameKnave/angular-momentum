@@ -1,11 +1,10 @@
 <div class="menu-auth-body profile-menu" *transloco="let t" [appTimerIndicator]="autoCloseSeconds()">
   <!-- Username Creation Failed Warning -->
   @if (usernameService.creationFailed()) {
-    <div class="px-4 pt-4">
+    <div class="warning-message">
       <p-message
         severity="warn"
         [text]="t('auth.The username you selected was unavailable. You can set a new one in your user profile')"
-        styleClass="w-full text-sm"
       />
     </div>
   }
@@ -58,7 +57,6 @@
       severity="secondary"
       icon="pi pi-sign-out"
       (onClick)="onLogout()"
-      styleClass="w-full"
     />
   </div>
 

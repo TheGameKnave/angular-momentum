@@ -66,11 +66,11 @@ export const auth = {
   resetEmail: 'app-auth-reset input[formControlName="email"]',
   resetSubmit: 'app-auth-reset button[type="submit"]',
 
-  // Profile (when logged in)
+  // Profile (when logged in - inside anchor-menu-panel)
   profileMenu: 'app-auth-profile',
   profileViewButton: 'app-auth-profile .profile-info',
-  // Logout button is in the menu panel, not the trigger component
-  logoutButton: '.anchor-menu-panel p-button',
+  // Logout button in the auth menu panel - target inner button element for reliable click
+  logoutButton: '.anchor-menu-panel app-auth-profile p-button:has-text("Logout") button',
 };
 
 // ============================================================================
@@ -143,7 +143,7 @@ export const common = {
   storagePromotionSkip: 'p-dialog button:has-text(/skip/i)',
 
   // Cookie consent banner
-  cookieBanner: 'app-cookie-banner .cookie-banner',
+  cookieBanner: 'app-cookie-banner aside',
   cookieAccept: 'app-cookie-banner p-button:has-text("Accept")',
   cookieDecline: 'app-cookie-banner p-button:has-text("Decline")',
 };

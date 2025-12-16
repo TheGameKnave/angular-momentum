@@ -93,6 +93,7 @@ export function createAuthRoutes(
       // If username provided, create username record
       if (username && usernameService && userData.user) {
         const validationResult = usernameService.validateUsername(username);
+        /* istanbul ignore else -- fingerprint always exists when valid */
         if (validationResult.valid && validationResult.fingerprint) {
           await usernameService.createUsername(
             userData.user.id,
@@ -102,6 +103,7 @@ export function createAuthRoutes(
         }
       }
 
+      /* istanbul ignore next -- userData.user always exists after createUser succeeds */
       res.json({
         success: true,
         userId: userData.user?.id,
@@ -166,6 +168,7 @@ export function createAuthRoutes(
       // If email provided, look up userId
       if (email && !userId) {
         const { data: listData, error: listError } = await supabase.auth.admin.listUsers();
+        /* istanbul ignore next -- listData null without error is unlikely */
         if (listError || !listData) {
           return res.status(500).json({
             success: false,

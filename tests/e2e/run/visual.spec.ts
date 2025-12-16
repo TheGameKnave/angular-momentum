@@ -158,6 +158,9 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
     await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    // Close the menu
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
 
     // Navigate to profile page
     await page.goto(`${APP_BASE_URL}/profile`);
@@ -165,23 +168,25 @@ test.describe('Visual Regression Tests', () => {
 
     // Replace dynamic content with stable placeholders for screenshot
     await page.evaluate(() => {
-      // Header: username's Profile -> User's Profile, email
-      const header = document.querySelector('.p-card-header');
-      if (header) {
-        const h2 = header.querySelector('h2');
-        const p = header.querySelector('p');
+      // Header: username's Profile -> User's Profile, email (in .profile-header-info)
+      const headerInfo = document.querySelector('.profile-header-info');
+      if (headerInfo) {
+        const h2 = headerInfo.querySelector('h2');
+        const p = headerInfo.querySelector('p');
         if (h2) h2.textContent = "User's Profile";
         if (p) p.textContent = 'user@example.com';
       }
 
-      // User Information card: email, user ID
-      const userInfoCard = document.querySelectorAll('p-card')[1];
-      if (userInfoCard) {
-        const paragraphs = userInfoCard.querySelectorAll('p');
-        paragraphs.forEach((p) => {
-          const text = p.textContent || '';
-          if (text.includes('@')) p.textContent = 'user@example.com';
-          if (text.match(/^[a-f0-9-]{36}$/i)) p.textContent = '00000000-0000-0000-0000-000000000000';
+      // User Information section: email, user ID (in dd elements inside .info-list)
+      const infoList = document.querySelector('.info-list');
+      if (infoList) {
+        const ddElements = infoList.querySelectorAll('dd');
+        ddElements.forEach((dd) => {
+          const text = dd.textContent || '';
+          // Replace email
+          if (text.includes('@')) dd.textContent = 'user@example.com';
+          // Replace UUID
+          if (text.match(/^[a-f0-9-]{36}$/i)) dd.textContent = '00000000-0000-0000-0000-000000000000';
         });
       }
 
@@ -194,7 +199,8 @@ test.describe('Visual Regression Tests', () => {
 
     // Logout
     await page.click(menus.authMenuButton);
-    await page.click(auth.logoutButton);
+    const logoutBtn = page.locator(auth.logoutButton);
+    await logoutBtn.click();
   });
 
   // ============================================================================
@@ -271,9 +277,7 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
     await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
-
-    // Open auth menu to show profile
-    await page.click(menus.authMenuButton);
+    // Menu stays open after login with profile view showing
     await page.waitForTimeout(300);
 
     await makeBackgroundOpaque(page, '.anchor-menu-panel');
@@ -290,8 +294,8 @@ test.describe('Visual Regression Tests', () => {
       if (email) email.textContent = 'user@example.com';
       if (username) username.textContent = 'username';
 
-      // Replace timestamps
-      const timestamps = document.querySelectorAll('.profile-metadata .metadata-value');
+      // Replace timestamps (app-relative-time inside profile metadata)
+      const timestamps = document.querySelectorAll('.profile-metadata app-relative-time');
       timestamps.forEach((el) => (el.textContent = 'Jan 1, 2024'));
     });
 
@@ -302,7 +306,8 @@ test.describe('Visual Regression Tests', () => {
     });
 
     // Logout
-    await page.click(auth.logoutButton);
+    const logoutBtn = page.locator(auth.logoutButton);
+    await logoutBtn.click();
   });
 
   test('menu-feature', async ({ page }) => {
@@ -374,10 +379,10 @@ test.describe('Visual Regression Tests', () => {
     // Don't dismiss cookie banner - we want to capture it!
 
     // Wait for cookie banner to appear
-    const cookieBanner = page.locator('.cookie-banner');
+    const cookieBanner = page.locator('app-cookie-banner aside');
     await expect(cookieBanner).toBeVisible({ timeout: 5000 });
 
-    await makeBackgroundOpaque(page, '.cookie-banner');
+    await makeBackgroundOpaque(page, 'app-cookie-banner aside');
 
     await expect(cookieBanner).toHaveScreenshot('banner-cookie.png', {
       maxDiffPixelRatio: 0.001,

@@ -14,7 +14,6 @@
       type="email"
       [placeholder]="t('auth.Enter your email')"
       autocomplete="email"
-      class="w-full"
     />
     @if (signupForm.get('email')?.invalid && signupForm.get('email')?.touched) {
       @if (signupForm.get('email')?.hasError('emailTypo')) {
@@ -45,7 +44,6 @@
       type="text"
       [placeholder]="t('auth.Choose a username')"
       autocomplete="username"
-      class="w-full"
     />
     @if (signupForm.get('username')?.invalid && signupForm.get('username')?.touched) {
       <small class="error-message">{{ t('auth.Username not available') }}</small>
@@ -69,16 +67,17 @@
         [attr.type]="showPassword() ? 'text' : 'password'"
         [placeholder]="t('auth.Enter your password')"
         autocomplete="new-password"
-        class="w-full"
       />
       <p-inputicon
-        [styleClass]="'pi ' + (showPassword() ? 'pi-eye-slash' : 'pi-eye') + ' cursor-pointer text-2xl'"
+        styleClass="password-toggle-icon"
         (mousedown)="onPasswordPeekStart()"
         (mouseup)="onPasswordPeekEnd()"
         (mouseleave)="onPasswordPeekEnd()"
         (touchstart)="onPasswordPeekStart()"
         (touchend)="onPasswordPeekEnd()"
-      />
+      >
+        <i [class]="'pi ' + (showPassword() ? 'pi-eye-slash' : 'pi-eye')"></i>
+      </p-inputicon>
     </p-iconfield>
     @if (signupForm.get('password')?.invalid && signupForm.get('password')?.touched) {
       <small class="error-message">{{ t('auth.Password is required') }}</small>
@@ -100,16 +99,17 @@
         [attr.type]="showConfirmPassword() ? 'text' : 'password'"
         [placeholder]="t('auth.Re-enter your password')"
         autocomplete="new-password"
-        class="w-full"
       />
       <p-inputicon
-        [styleClass]="'pi ' + (showConfirmPassword() ? 'pi-eye-slash' : 'pi-eye') + ' cursor-pointer text-2xl'"
+        styleClass="password-toggle-icon"
         (mousedown)="onConfirmPasswordPeekStart()"
         (mouseup)="onConfirmPasswordPeekEnd()"
         (mouseleave)="onConfirmPasswordPeekEnd()"
         (touchstart)="onConfirmPasswordPeekStart()"
         (touchend)="onConfirmPasswordPeekEnd()"
-      />
+      >
+        <i [class]="'pi ' + (showConfirmPassword() ? 'pi-eye-slash' : 'pi-eye')"></i>
+      </p-inputicon>
     </p-iconfield>
     @if (signupForm.hasError('passwordMismatch') && signupForm.get('confirmPassword')?.touched) {
       <small class="error-message">{{ t('auth.Passwords do not match') }}</small>
@@ -117,27 +117,27 @@
   </div>
 
   <!-- Age Verification Checkbox -->
-  <div class="flex items-center gap-2 mb-4">
+  <div class="checkbox-field">
     <p-checkbox
       formControlName="ageVerification"
       [binary]="true"
       inputId="age-verification"
     />
-    <label for="age-verification" class="cursor-pointer">
+    <label for="age-verification">
       {{ t('auth.I confirm that I am 16 years of age or older') }}
     </label>
   </div>
 
   <!-- Privacy Policy Checkbox -->
-  <div class="flex items-center gap-2 mb-4">
+  <div class="checkbox-field">
     <p-checkbox
       formControlName="privacyPolicy"
       [binary]="true"
       inputId="privacy-policy"
     />
-    <label for="privacy-policy" class="cursor-pointer">
+    <label for="privacy-policy">
       {{ t('auth.I agree to the') }}
-      <a routerLink="/privacy" target="_blank" class="text-primary hover:underline">
+      <a routerLink="/privacy" target="_blank">
         {{ t('privacy.Privacy Policy') }}
       </a>
     </label>
@@ -155,13 +155,13 @@
 
   <!-- Error Message -->
   @if (errorMessage()) {
-    <div class="mb-4">
-      <p-message severity="error" styleClass="w-full mb-2">
+    <div class="error-block">
+      <p-message severity="error">
         <span>{{ t(errorMessage()!) }}</span>
       </p-message>
 
       @if (showRetry()) {
-        <p class="text-sm mt-2">
+        <p class="retry-hint">
           {{ t('auth.If this persists,') }}
           <a
             href="mailto:support@angularmomentum.app"
@@ -173,7 +173,6 @@
           type="button"
           (click)="retryCaptcha()"
           severity="secondary"
-          class="w-full mt-2"
         >{{t('auth.Try Again')}}</button>
       }
     </div>
@@ -185,7 +184,6 @@
     type="submit"
     [loading]="loading()"
     [disabled]="signupForm.invalid"
-    class="w-full"
   >
     {{ t('auth.Create Account') }}
   </button>

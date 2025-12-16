@@ -1,48 +1,68 @@
 #!/bin/bash
-# Copy webkit (default) snapshots to chromium/firefox variants that are missing or failed
-# Only copies when: target doesn't exist OR a failed actual exists in test-results
+# Accept failed visual regression test screenshots as new baselines
+# Copies *-actual.png files from test-results to the snapshots folder
 # Usage: ./copy-snapshots.sh
 
-SNAPSHOT_DIR="tests/e2e/run/visual.spec.ts-snapshots"
+SNAPSHOT_DIR="tests/e2e/screenshots/visual.spec.ts-snapshots"
 RESULTS_DIR="tests/e2e/screenshots/test-results"
 
 cd "$(dirname "$0")/../.." || exit 1
 
-if [ ! -d "$SNAPSHOT_DIR" ]; then
-  echo "Error: Snapshot directory not found: $SNAPSHOT_DIR"
-  exit 1
+if [ ! -d "$RESULTS_DIR" ]; then
+  echo "No test-results directory found. Run tests first."
+  exit 0
 fi
 
 count=0
-for file in "$SNAPSHOT_DIR"/*-darwin.png; do
-  [ -f "$file" ] || continue
+processed=""
 
-  filename=$(basename "$file")
+# Find all *-actual.png files in test-results
+while IFS= read -r actual_file; do
+  [ -f "$actual_file" ] || continue
 
-  # Skip if already a browser-specific file (contains -chromium- or -firefox-)
-  if [[ "$filename" == *-chromium-* ]] || [[ "$filename" == *-firefox-* ]]; then
+  # Get the filename (e.g., page-features-actual.png)
+  filename=$(basename "$actual_file")
+
+  # Extract the base name without -actual.png (e.g., page-features)
+  base="${filename%-actual.png}"
+
+  # Get the parent directory name to extract browser info
+  # e.g., visual-Visual-Regression-Tests-page-features-chromium-retry1
+  parent_dir=$(basename "$(dirname "$actual_file")")
+
+  # Extract browser from parent directory name
+  browser=""
+  if [[ "$parent_dir" == *"-webkit"* ]]; then
+    browser="webkit"
+  elif [[ "$parent_dir" == *"-chromium"* ]]; then
+    browser="chromium"
+  elif [[ "$parent_dir" == *"-firefox"* ]]; then
+    browser="firefox"
+  fi
+
+  if [ -z "$browser" ]; then
+    echo "  Skipped (unknown browser): $actual_file"
     continue
   fi
 
-  base="${filename%-darwin.png}"
+  # Build target key and filename
+  target_key="${base}-${browser}"
+  target="$SNAPSHOT_DIR/${target_key}-darwin.png"
 
-  for browser in chromium firefox; do
-    target="$SNAPSHOT_DIR/${base}-${browser}-darwin.png"
+  # Skip if already processed (handles retry duplicates)
+  if [[ "$processed" == *"|${target_key}|"* ]]; then
+    continue
+  fi
+  processed="${processed}|${target_key}|"
 
-    # Check if there's a failed actual in test-results (indicates failure)
-    failed_actual=$(find "$RESULTS_DIR" -name "${base}-actual.png" -path "*-${browser}*" 2>/dev/null | head -1)
+  cp "$actual_file" "$target"
+  ((count++))
+  echo "  Updated: ${target_key}-darwin.png"
 
-    # Copy if: target missing OR failed actual exists
-    if [ ! -f "$target" ] || [ -n "$failed_actual" ]; then
-      cp "$file" "$target"
-      ((count++))
-      echo "  Copied: ${base}-${browser}-darwin.png"
-    fi
-  done
-done
+done < <(find "$RESULTS_DIR" -name "*-actual.png" -type f 2>/dev/null)
 
 if [ $count -eq 0 ]; then
-  echo "No snapshots needed copying (all up to date)"
+  echo "No snapshots needed updating (all up to date)"
 else
-  echo "Copied $count snapshot(s)"
+  echo "Updated $count snapshot(s)"
 fi

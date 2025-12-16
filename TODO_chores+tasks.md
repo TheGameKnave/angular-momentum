@@ -1,10 +1,9 @@
 # TODO chores/tasks
 
-stupid tailwind classes
 re-order translation keys in en-us and foreign files
 twain-speak translation file
 changing email should use OTP flow and better template
-light/dark theming approach
+light/dark theming approach (rename variables?)
 public vs private/auth api
 debug notifications
 

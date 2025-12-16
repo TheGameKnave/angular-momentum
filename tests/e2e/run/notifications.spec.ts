@@ -131,8 +131,11 @@ test.describe('Notifications Tests', () => {
     await page.fill(auth.loginPassword, sharedUser.password);
     await page.click(auth.loginSubmit);
 
-    // Wait for login to complete
+    // Wait for login to complete (profile view appears in menu)
     await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    // Close the menu
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
 
     await navigateToNotifications(page);
 
@@ -141,19 +144,22 @@ test.describe('Notifications Tests', () => {
 
     if (await sendServerButton.isVisible().catch(() => false)) {
       await sendServerButton.click();
-      await page.waitForTimeout(600);
-
+      await page.waitForTimeout(300);
 
       // Check notification center for the notification
       await page.click(menus.notificationCenterButton);
-      await page.waitForTimeout(600);
-
+      await page.waitForTimeout(300);
     }
+
+    // Close notification center if open
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
 
     // Logout
     await page.click(menus.authMenuButton);
-    await page.click(auth.logoutButton);
-    // Wait for profile menu to disappear (indicates logged out state)
-    await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 5000 });
+    const logoutBtn = page.locator(auth.logoutButton);
+    await logoutBtn.click();
+    // Wait for menu panel to close (logout triggers menu close)
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 5000 });
   });
 });

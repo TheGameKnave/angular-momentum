@@ -2053,4 +2053,367 @@ describe('Auth Routes', () => {
       });
     });
   });
+
+  describe('POST /test/create-user', () => {
+    beforeEach(() => {
+      // Ensure we're in test environment
+      process.env.NODE_ENV = 'test';
+      // Add admin API mock
+      mockSupabase.auth.admin.createUser = jest.fn();
+    });
+
+    it('should return 403 in production environment', async () => {
+      process.env.NODE_ENV = 'production';
+
+      const response = await request(app)
+        .post('/api/auth/test/create-user')
+        .send({ email: 'test@example.com', password: 'password123' });
+
+      expect(response.status).toBe(403);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Test endpoints are only available in test/development environments',
+      });
+    });
+
+    it('should return 503 if Supabase is not configured', async () => {
+      const appWithoutSupabase = express();
+      appWithoutSupabase.use(express.json());
+      appWithoutSupabase.use('/api/auth', createAuthRoutes(null, mockUsernameService, mockTurnstileService));
+
+      const response = await request(appWithoutSupabase)
+        .post('/api/auth/test/create-user')
+        .send({ email: 'test@example.com', password: 'password123' });
+
+      expect(response.status).toBe(503);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'AUTH_SERVICE_NOT_CONFIGURED',
+      });
+    });
+
+    it('should return 400 if email or password is missing', async () => {
+      const response1 = await request(app)
+        .post('/api/auth/test/create-user')
+        .send({ password: 'password123' });
+
+      expect(response1.status).toBe(400);
+      expect(response1.body).toEqual({
+        success: false,
+        error: 'Email and password are required',
+      });
+
+      const response2 = await request(app)
+        .post('/api/auth/test/create-user')
+        .send({ email: 'test@example.com' });
+
+      expect(response2.status).toBe(400);
+      expect(response2.body).toEqual({
+        success: false,
+        error: 'Email and password are required',
+      });
+    });
+
+    it('should create user successfully without username', async () => {
+      mockSupabase.auth.admin.createUser.mockResolvedValue({
+        data: { user: { id: 'user-123', email: 'test@example.com' } },
+        error: null,
+      });
+
+      const response = await request(app)
+        .post('/api/auth/test/create-user')
+        .send({ email: 'test@example.com', password: 'password123' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        userId: 'user-123',
+        email: 'test@example.com',
+      });
+      expect(mockSupabase.auth.admin.createUser).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        password: 'password123',
+        email_confirm: true,
+        user_metadata: {},
+      });
+    });
+
+    it('should create user with username', async () => {
+      mockSupabase.auth.admin.createUser.mockResolvedValue({
+        data: { user: { id: 'user-123', email: 'test@example.com' } },
+        error: null,
+      });
+      mockUsernameService.validateUsername.mockReturnValue({
+        valid: true,
+        fingerprint: 'testuser',
+      });
+      mockUsernameService.createUsername.mockResolvedValue({
+        success: true,
+      });
+
+      const response = await request(app)
+        .post('/api/auth/test/create-user')
+        .send({ email: 'test@example.com', password: 'password123', username: 'TestUser' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        userId: 'user-123',
+        email: 'test@example.com',
+      });
+      expect(mockUsernameService.createUsername).toHaveBeenCalledWith(
+        'user-123',
+        'TestUser',
+        'testuser'
+      );
+    });
+
+    it('should return 400 if createUser returns error', async () => {
+      mockSupabase.auth.admin.createUser.mockResolvedValue({
+        data: { user: null },
+        error: { message: 'Email already exists' },
+      });
+
+      const response = await request(app)
+        .post('/api/auth/test/create-user')
+        .send({ email: 'test@example.com', password: 'password123' });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Email already exists',
+      });
+    });
+
+    it('should return 500 if an unexpected error occurs', async () => {
+      mockSupabase.auth.admin.createUser.mockImplementation(() => {
+        throw new Error('Unexpected error');
+      });
+
+      const response = await request(app)
+        .post('/api/auth/test/create-user')
+        .send({ email: 'test@example.com', password: 'password123' });
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Unexpected error',
+      });
+    });
+
+    it('should handle non-Error throws', async () => {
+      mockSupabase.auth.admin.createUser.mockImplementation(() => {
+        throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
+      });
+
+      const response = await request(app)
+        .post('/api/auth/test/create-user')
+        .send({ email: 'test@example.com', password: 'password123' });
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Unknown error',
+      });
+    });
+  });
+
+  describe('DELETE /test/delete-user', () => {
+    beforeEach(() => {
+      // Ensure we're in test environment
+      process.env.NODE_ENV = 'test';
+      // Add admin API mocks
+      mockSupabase.auth.admin.listUsers = jest.fn();
+      mockSupabase.auth.admin.deleteUser = jest.fn();
+    });
+
+    it('should return 403 in production environment', async () => {
+      process.env.NODE_ENV = 'production';
+
+      const response = await request(app)
+        .delete('/api/auth/test/delete-user')
+        .send({ email: 'test@example.com' });
+
+      expect(response.status).toBe(403);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Test endpoints are only available in test/development environments',
+      });
+    });
+
+    it('should return 503 if Supabase is not configured', async () => {
+      const appWithoutSupabase = express();
+      appWithoutSupabase.use(express.json());
+      appWithoutSupabase.use('/api/auth', createAuthRoutes(null, mockUsernameService, mockTurnstileService));
+
+      const response = await request(appWithoutSupabase)
+        .delete('/api/auth/test/delete-user')
+        .send({ email: 'test@example.com' });
+
+      expect(response.status).toBe(503);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'AUTH_SERVICE_NOT_CONFIGURED',
+      });
+    });
+
+    it('should return 400 if email and userId are both missing', async () => {
+      const response = await request(app)
+        .delete('/api/auth/test/delete-user')
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Email or userId is required',
+      });
+    });
+
+    it('should delete user by userId successfully', async () => {
+      const deleteMock = {
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ error: null }),
+        }),
+      };
+      mockSupabase.from.mockReturnValue(deleteMock);
+      mockSupabase.auth.admin.deleteUser.mockResolvedValue({ error: null });
+
+      const response = await request(app)
+        .delete('/api/auth/test/delete-user')
+        .send({ userId: 'user-123' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+      });
+      expect(mockSupabase.auth.admin.deleteUser).toHaveBeenCalledWith('user-123');
+    });
+
+    it('should delete user by email successfully', async () => {
+      mockSupabase.auth.admin.listUsers.mockResolvedValue({
+        data: { users: [{ id: 'user-123', email: 'test@example.com' }] },
+        error: null,
+      });
+
+      const deleteMock = {
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ error: null }),
+        }),
+      };
+      mockSupabase.from.mockReturnValue(deleteMock);
+      mockSupabase.auth.admin.deleteUser.mockResolvedValue({ error: null });
+
+      const response = await request(app)
+        .delete('/api/auth/test/delete-user')
+        .send({ email: 'test@example.com' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+      });
+      expect(mockSupabase.auth.admin.deleteUser).toHaveBeenCalledWith('user-123');
+    });
+
+    it('should return 500 if listUsers returns error', async () => {
+      mockSupabase.auth.admin.listUsers.mockResolvedValue({
+        data: null,
+        error: { message: 'Failed to list users' },
+      });
+
+      const response = await request(app)
+        .delete('/api/auth/test/delete-user')
+        .send({ email: 'test@example.com' });
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Failed to list users',
+      });
+    });
+
+    it('should return 404 if user not found by email', async () => {
+      mockSupabase.auth.admin.listUsers.mockResolvedValue({
+        data: { users: [{ id: 'other-user', email: 'other@example.com' }] },
+        error: null,
+      });
+
+      const response = await request(app)
+        .delete('/api/auth/test/delete-user')
+        .send({ email: 'test@example.com' });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'User not found',
+      });
+    });
+
+    it('should return 500 if deleteUser returns error', async () => {
+      const deleteMock = {
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ error: null }),
+        }),
+      };
+      mockSupabase.from.mockReturnValue(deleteMock);
+      mockSupabase.auth.admin.deleteUser.mockResolvedValue({
+        error: { message: 'Failed to delete user' },
+      });
+
+      const response = await request(app)
+        .delete('/api/auth/test/delete-user')
+        .send({ userId: 'user-123' });
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Failed to delete user',
+      });
+    });
+
+    it('should return 500 if an unexpected error occurs', async () => {
+      mockSupabase.auth.admin.deleteUser.mockImplementation(() => {
+        throw new Error('Unexpected error');
+      });
+
+      const deleteMock = {
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ error: null }),
+        }),
+      };
+      mockSupabase.from.mockReturnValue(deleteMock);
+
+      const response = await request(app)
+        .delete('/api/auth/test/delete-user')
+        .send({ userId: 'user-123' });
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Unexpected error',
+      });
+    });
+
+    it('should handle non-Error throws', async () => {
+      mockSupabase.auth.admin.deleteUser.mockImplementation(() => {
+        throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
+      });
+
+      const deleteMock = {
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ error: null }),
+        }),
+      };
+      mockSupabase.from.mockReturnValue(deleteMock);
+
+      const response = await request(app)
+        .delete('/api/auth/test/delete-user')
+        .send({ userId: 'user-123' });
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Unknown error',
+      });
+    });
+  });
 });

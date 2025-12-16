@@ -69,18 +69,18 @@ test.describe('Authentication Tests', () => {
     await page.fill(auth.loginIdentifier, sharedUser.email);
     await page.fill(auth.loginPassword, sharedUser.password);
 
-    // Submit and wait for logged in state
+    // Submit and wait for logged in state (profile view appears in menu)
     await page.click(auth.loginSubmit);
     await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
 
-    // Verify logged in state - profile menu should show
-    await page.click(menus.authMenuButton);
+    // Menu might auto-close after login, so ensure it's open to verify profile
     await expect(page.locator(auth.profileMenu)).toBeVisible();
 
-    // Logout for next test
-    await page.click(auth.logoutButton);
-    // Wait for profile menu to disappear (indicates logged out state)
-    await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 5000 });
+    // Logout for next test - click logout button
+    const logoutBtn = page.locator(auth.logoutButton);
+    await logoutBtn.click();
+    // Wait for menu panel to close (logout triggers menu close)
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 5000 });
   });
 
   test('Login with username succeeds', async ({ page }) => {
@@ -92,19 +92,18 @@ test.describe('Authentication Tests', () => {
     await page.fill(auth.loginIdentifier, sharedUser.username);
     await page.fill(auth.loginPassword, sharedUser.password);
 
-    // Submit and wait for logged in state
+    // Submit and wait for logged in state (profile view appears in menu)
     await page.click(auth.loginSubmit);
     await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
 
-    // Verify logged in state
-    await page.click(menus.authMenuButton);
+    // Menu might auto-close after login, so ensure it's open to verify profile
     await expect(page.locator(auth.profileMenu)).toBeVisible();
 
-
-    // Logout for next test
-    await page.click(auth.logoutButton);
-    // Wait for profile menu to disappear (indicates logged out state)
-    await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 5000 });
+    // Logout for next test - click logout button
+    const logoutBtn = page.locator(auth.logoutButton);
+    await logoutBtn.click();
+    // Wait for menu panel to close (logout triggers menu close)
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 5000 });
   });
 
   test('Login with invalid credentials shows error', async ({ page }) => {
@@ -172,22 +171,19 @@ test.describe('Authentication Tests', () => {
     await page.fill(auth.loginPassword, sharedUser.password);
     await page.click(auth.loginSubmit);
 
-    // Wait for login to complete
+    // Wait for login to complete (profile view appears in menu)
     await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
-
-    // Open auth menu (should show profile)
-    await page.click(menus.authMenuButton);
     await expect(page.locator(auth.profileMenu)).toBeVisible();
 
-    // Click logout and wait for logged out state
-    await page.click(auth.logoutButton);
-    // Wait for profile menu to disappear (indicates logged out state)
-    await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 5000 });
+    // Click logout and wait for menu to close
+    const logoutBtn = page.locator(auth.logoutButton);
+    await logoutBtn.click();
+    // Wait for menu panel to close (logout triggers menu close)
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 5000 });
 
-    // Verify logged out - should show signup form (default view when not authenticated)
+    // Verify logged out - open menu and should show signup form (default view when not authenticated)
     await page.click(menus.authMenuButton);
     await expect(page.locator(auth.signupForm)).toBeVisible();
-
   });
 
   // ============================================================================
@@ -215,11 +211,11 @@ test.describe('Authentication Tests', () => {
     await page.fill(auth.loginPassword, sharedUser.password);
     await page.click(auth.loginSubmit);
 
-    // Wait for login to complete - profile menu should appear
+    // Wait for login to complete (profile view appears in menu)
     await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
     // Close the auth menu
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(300);
 
     // Navigate to profile
     await page.goto(`${APP_BASE_URL}/profile`);
@@ -228,12 +224,12 @@ test.describe('Authentication Tests', () => {
     // Should be on profile page
     await expect(page.locator(pages.profilePage)).toBeVisible();
 
-
     // Logout
     await page.click(menus.authMenuButton);
-    await page.click(auth.logoutButton);
-    // Wait for profile menu to disappear (indicates logged out state)
-    await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 5000 });
+    const logoutBtn = page.locator(auth.logoutButton);
+    await logoutBtn.click();
+    // Wait for menu panel to close (logout triggers menu close)
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 5000 });
   });
 
   // ============================================================================

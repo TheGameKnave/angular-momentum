@@ -1,16 +1,16 @@
-<div *transloco="let t">
-  <p-card class="mb-4">
+<ng-container *transloco="let t">
+  <p-card>
     <ng-template pTemplate="header">
-      <div class="flex items-center gap-4 p-4">
+      <div class="profile-header">
         <p-avatar
           [label]="getUserInitials()"
           size="xlarge"
           shape="circle"
-          styleClass="bg-primary text-white"
+          styleClass="profile-avatar"
         />
-        <div class="flex-1">
-          <h2 class="text-2xl font-bold">@if (usernameService.username()?.username) {{{ usernameService.username()?.username }}’s }{{ t('profile.Profile') }}</h2>
-          <p class="text-lg">{{ authService.currentUser()?.email }}</p>
+        <div class="profile-header-info">
+          <h2>@if (usernameService.username()?.username) {{{ usernameService.username()?.username }}'s }{{ t('profile.Profile') }}</h2>
+          <p>{{ authService.currentUser()?.email }}</p>
         </div>
       </div>
     </ng-template>
@@ -21,9 +21,8 @@
       toggler="header" [toggleable]="true"
       [collapsed]="!passwordPanelExpanded()"
       (collapsedChange)="onPanelCollapsedChange($event)"
-      styleClass="w-full"
     >
-      <form [formGroup]="passwordForm" (ngSubmit)="onSubmitPasswordChange()" class="auth-form" style="width: 100%; max-width: none;">
+      <form [formGroup]="passwordForm" (ngSubmit)="onSubmitPasswordChange()" class="auth-form profile-form">
           <!-- Current Password Input (only shown for regular password change, not reset flow) -->
           @if (!isPasswordResetFlow()) {
             <div class="form-field">
@@ -38,17 +37,17 @@
                   [attr.type]="showCurrentPassword() ? 'text' : 'password'"
                   [placeholder]="t('auth.Enter your current password')"
                   autocomplete="current-password"
-                  class="w-full"
-                  style="padding: 1rem; font-size: 1rem;"
                 />
                 <p-inputicon
-                  [styleClass]="'pi ' + (showCurrentPassword() ? 'pi-eye-slash' : 'pi-eye') + ' cursor-pointer text-2xl'"
+                  styleClass="password-toggle-icon"
                   (mousedown)="onCurrentPasswordPeekStart()"
                   (mouseup)="onCurrentPasswordPeekEnd()"
                   (mouseleave)="onCurrentPasswordPeekEnd()"
                   (touchstart)="onCurrentPasswordPeekStart()"
                   (touchend)="onCurrentPasswordPeekEnd()"
-                />
+                >
+                  <i [class]="'pi ' + (showCurrentPassword() ? 'pi-eye-slash' : 'pi-eye')"></i>
+                </p-inputicon>
               </p-iconfield>
               @if (passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched) {
                 <small class="error-message">{{ t('auth.Current password is required') }}</small>
@@ -73,17 +72,17 @@
                 [attr.type]="showNewPassword() ? 'text' : 'password'"
                 [placeholder]="t('auth.Enter your new password')"
                 autocomplete="new-password"
-                class="w-full"
-                style="padding: 1rem; font-size: 1rem;"
               />
               <p-inputicon
-                [styleClass]="'pi ' + (showNewPassword() ? 'pi-eye-slash' : 'pi-eye') + ' cursor-pointer text-2xl'"
+                styleClass="password-toggle-icon"
                 (mousedown)="onNewPasswordPeekStart()"
                 (mouseup)="onNewPasswordPeekEnd()"
                 (mouseleave)="onNewPasswordPeekEnd()"
                 (touchstart)="onNewPasswordPeekStart()"
                 (touchend)="onNewPasswordPeekEnd()"
-              />
+              >
+                <i [class]="'pi ' + (showNewPassword() ? 'pi-eye-slash' : 'pi-eye')"></i>
+              </p-inputicon>
             </p-iconfield>
             @if (passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched) {
               <small class="error-message">{{ t('auth.Password is required') }}</small>
@@ -103,17 +102,17 @@
                 [attr.type]="showConfirmPassword() ? 'text' : 'password'"
                 [placeholder]="t('auth.Re-enter your new password')"
                 autocomplete="new-password"
-                class="w-full"
-                style="padding: 1rem; font-size: 1rem;"
               />
               <p-inputicon
-                [styleClass]="'pi ' + (showConfirmPassword() ? 'pi-eye-slash' : 'pi-eye') + ' cursor-pointer text-2xl'"
+                styleClass="password-toggle-icon"
                 (mousedown)="onConfirmPasswordPeekStart()"
                 (mouseup)="onConfirmPasswordPeekEnd()"
                 (mouseleave)="onConfirmPasswordPeekEnd()"
                 (touchstart)="onConfirmPasswordPeekStart()"
                 (touchend)="onConfirmPasswordPeekEnd()"
-              />
+              >
+                <i [class]="'pi ' + (showConfirmPassword() ? 'pi-eye-slash' : 'pi-eye')"></i>
+              </p-inputicon>
             </p-iconfield>
             @if (passwordForm.hasError('passwordMismatch') && passwordForm.get('confirmPassword')?.touched) {
               <small class="error-message">{{ t('auth.Passwords do not match') }}</small>
@@ -122,22 +121,21 @@
 
           <!-- Error Message -->
           @if (passwordError()) {
-            <p-message severity="error" [text]="passwordError()!" styleClass="w-full" />
+            <p-message severity="error" [text]="passwordError()!" />
           }
 
           <!-- Success Message -->
           @if (passwordSuccess()) {
-            <p-message severity="success" [text]="t('auth.Password updated successfully!')" styleClass="w-full" />
+            <p-message severity="success" [text]="t('auth.Password updated successfully!')" />
           }
 
           <!-- Submit Button -->
-          <div class="flex gap-3">
+          <div class="form-actions">
             <p-button
               type="submit"
               [label]="t('auth.Update Password')"
               [loading]="passwordLoading()"
               [disabled]="passwordForm.invalid"
-              styleClass="flex-1"
             />
           </div>
         </form>
@@ -149,9 +147,8 @@
       toggler="header" [toggleable]="true"
       [collapsed]="!emailPanelExpanded()"
       (collapsedChange)="onEmailPanelCollapsedChange($event)"
-      styleClass="w-full"
     >
-      <form [formGroup]="emailForm" (ngSubmit)="onSubmitEmailChange()" class="auth-form" style="width: 100%; max-width: none;">
+      <form [formGroup]="emailForm" (ngSubmit)="onSubmitEmailChange()" class="auth-form profile-form">
         <!-- New Email Input -->
         <div class="form-field">
           <label for="new-email">{{ t('profile.New Email Address') }}</label>
@@ -163,8 +160,6 @@
             type="email"
             [placeholder]="t('profile.Enter your new email address')"
             autocomplete="email"
-            class="w-full"
-            style="padding: 1rem; font-size: 1rem;"
           />
           @if (emailForm.get('newEmail')?.invalid && emailForm.get('newEmail')?.touched) {
             <small class="error-message">{{ t('profile.Please enter a valid email address') }}</small>
@@ -175,12 +170,11 @@
         <p-message
           severity="info"
           [text]="t('profile.A verification link will be sent to your new email address. You must click the link to complete the change.')"
-          styleClass="w-full"
         />
 
         <!-- Error Message -->
         @if (emailError()) {
-          <p-message severity="error" [text]="emailError()!" styleClass="w-full" />
+          <p-message severity="error" [text]="emailError()!" />
         }
 
         <!-- Success Message -->
@@ -188,18 +182,16 @@
           <p-message
             severity="success"
             [text]="t('profile.Verification email sent! Please check your new email address and click the confirmation link.')"
-            styleClass="w-full"
           />
         }
 
         <!-- Submit Button -->
-        <div class="flex gap-3">
+        <div class="form-actions">
           <p-button
             type="submit"
             [label]="t('profile.Update Email')"
             [loading]="emailLoading()"
             [disabled]="emailForm.invalid"
-            styleClass="flex-1"
           />
         </div>
       </form>
@@ -211,9 +203,8 @@
       toggler="header" [toggleable]="true"
       [collapsed]="!usernamePanelExpanded()"
       (collapsedChange)="onUsernamePanelCollapsedChange($event)"
-      styleClass="w-full"
     >
-      <div class="flex flex-col gap-4" style="width: 100%; max-width: none;">
+      <div class="auth-form profile-form">
 
         <!-- New Username Input -->
         <div class="form-field">
@@ -230,133 +221,133 @@
             (ngModelChange)="editedUsername.set($event)"
             [placeholder]="t('profile.Enter username')"
             autocomplete="username"
-            class="w-full"
-            style="padding: 1rem; font-size: 1rem;"
           />
-          <small class="text-muted-foreground">{{ t('profile.Without a username, your profile is private') }}</small>
+          <small class="hint">{{ t('profile.Without a username, your profile is private') }}</small>
         </div>
 
         <!-- Error Message -->
         @if (usernameError()) {
-          <p-message severity="error" [text]="usernameError()!" styleClass="w-full" />
+          <p-message severity="error" [text]="usernameError()!" />
         }
 
         <!-- Success Message -->
         @if (usernameSuccess()) {
-          <p-message severity="success" [text]="t('profile.Username updated successfully!')" styleClass="w-full" />
+          <p-message severity="success" [text]="t('profile.Username updated successfully!')" />
         }
 
         <!-- Submit Button -->
-        <div class="flex gap-3">
+        <div class="form-actions">
           <p-button
             [label]="t('Save')"
             (onClick)="onSaveUsername()"
             [loading]="usernameLoading()"
             [disabled]="!isUsernameDirty()"
-            styleClass="flex-1"
           />
         </div>
       </div>
     </p-panel>
 
     <!-- Actions -->
-    <div>
+    <div class="profile-logout">
       <p-button
         [label]="t('auth.Logout')"
         severity="secondary"
         icon="pi pi-sign-out"
         (onClick)="onLogout()"
-        styleClass="flex-1"
       />
     </div>
   </p-card>
 
-  <p-card class="mb-4">
+  <p-card>
     <!-- User Information -->
-    <div>
-      <h3 class="text-lg font-semibold mb-4">{{ t('profile.User Information') }}</h3>
+    <section class="profile-section">
+      <h3>{{ t('profile.User Information') }}</h3>
 
-      <div class="flex flex-col gap-3">
+      <dl class="info-list">
         <!-- Email -->
-        <div class="flex items-center gap-4">
-          <span class="font-medium w-32">{{ t('Email') }}:</span>
-          <p>{{ authService.currentUser()?.email }}</p>
+        <div class="info-row">
+          <dt>{{ t('Email') }}:</dt>
+          <dd>{{ authService.currentUser()?.email }}</dd>
         </div>
 
         <!-- User ID -->
-        <div class="flex items-center gap-4">
-          <span class="font-medium w-32">{{ t('profile.User ID') }}:</span>
-          <p class="font-mono text-sm break-all">{{ authService.currentUser()?.id }}</p>
+        <div class="info-row">
+          <dt>{{ t('profile.User ID') }}:</dt>
+          <dd class="monospace">{{ authService.currentUser()?.id }}</dd>
         </div>
 
         <!-- Member Since -->
         @if (authService.currentUser()?.created_at) {
-          <div class="flex items-center gap-4">
-            <span class="font-medium w-32">{{ t('profile.Member Since') }}:</span>
-            <app-relative-time
-              [timestamp]="authService.currentUser()?.created_at"
-            />
+          <div class="info-row">
+            <dt>{{ t('profile.Member Since') }}:</dt>
+            <dd>
+              <app-relative-time
+                [timestamp]="authService.currentUser()?.created_at"
+              />
+            </dd>
           </div>
         }
 
         <!-- Last Sign In -->
         @if (authService.currentUser()?.last_sign_in_at) {
-          <div class="flex items-center gap-4">
-            <span class="font-medium w-32">{{ t('profile.Last Sign In') }}:</span>
-            <app-relative-time
-              [timestamp]="authService.currentUser()?.last_sign_in_at"
-            />
+          <div class="info-row">
+            <dt>{{ t('profile.Last Sign In') }}:</dt>
+            <dd>
+              <app-relative-time
+                [timestamp]="authService.currentUser()?.last_sign_in_at"
+              />
+            </dd>
           </div>
         }
-      </div>
-    </div>
+      </dl>
+    </section>
 
     <hr />
 
     <!-- User Preferences -->
-    <div>
-      <h3 class="text-lg font-semibold mb-4">{{ t('profile.Preferences') }}</h3>
+    <section class="profile-section">
+      <h3>{{ t('profile.Preferences') }}</h3>
 
-      <div class="flex flex-col gap-3">
+      <dl class="info-list">
         <!-- Timezone -->
-        <div class="flex items-center gap-4">
-          <span class="font-medium w-32">{{ t('profile.Timezone') }}:</span>
-          <p-select
-            [options]="commonTimezones"
-            [ngModel]="selectedTimezone()"
-            (ngModelChange)="selectedTimezone.set($event)"
-            (onChange)="onTimezoneChange($event)"
-            [loading]="timezoneLoading()"
-            optionLabel="label"
-            optionValue="value"
-            [placeholder]="t('profile.Select timezone')"
-            styleClass="w-full md:w-96"
-          />
+        <div class="info-row">
+          <dt>{{ t('profile.Timezone') }}:</dt>
+          <dd class="timezone-select">
+            <p-select
+              [options]="commonTimezones"
+              [ngModel]="selectedTimezone()"
+              (ngModelChange)="selectedTimezone.set($event)"
+              (onChange)="onTimezoneChange($event)"
+              [loading]="timezoneLoading()"
+              optionLabel="label"
+              optionValue="value"
+              [placeholder]="t('profile.Select timezone')"
+            />
+          </dd>
         </div>
-      </div>
-    </div>
+      </dl>
+    </section>
 
   </p-card>
-  <p-card class="mb-4">
+  <p-card>
 
     <!-- Data & Privacy -->
-    <div>
-      <h3 class="text-lg font-semibold mb-4">{{ t('profile.Data & Privacy') }}</h3>
+    <section class="profile-section">
+      <h3>{{ t('profile.Data & Privacy') }}</h3>
 
-      <div class="flex flex-col gap-3">
+      <div class="data-actions">
         <!-- Export Data -->
-        <div class="flex flex-col gap-2">
-          <p class="font-medium">{{ t('profile.Export Your Data') }}</p>
-          <p class="text-sm text-muted-foreground">{{ t('profile.Download all your account data in JSON format') }}</p>
+        <div class="action-item">
+          <p class="action-title">{{ t('profile.Export Your Data') }}</p>
+          <p class="action-description">{{ t('profile.Download all your account data in JSON format') }}</p>
           <p-button
             [label]="t('profile.Export Data')"
             icon="pi pi-download"
             (onClick)="onExportData()"
             severity="secondary"
-            styleClass="w-full md:w-auto"
           />
           @if (exportError()) {
-            <p-message severity="error" [text]="exportError()!" styleClass="w-full" />
+            <p-message severity="error" [text]="exportError()!" />
           }
         </div>
 
@@ -367,17 +358,15 @@
             toggler="header"
             [toggleable]="true"
             [collapsed]="true"
-            styleClass="w-full"
           >
-            <div class="flex flex-col gap-2">
-              <p class="text-sm text-muted-foreground">{{ t('migration.Download a backup of your data from before the last update.') }}</p>
+            <div class="action-item">
+              <p class="action-description">{{ t('migration.Download a backup of your data from before the last update.') }}</p>
               <p-button
                 [label]="t('migration.Export Previous Data')"
                 icon="pi pi-download"
                 (onClick)="onExportPreviousData()"
                 [loading]="backupLoading()"
                 severity="secondary"
-                styleClass="w-full md:w-auto"
               />
             </div>
           </p-panel>
@@ -386,36 +375,34 @@
         }
 
         <!-- Clear All Data -->
-        <div class="flex flex-col gap-2">
-          <p class="font-medium text-orange-600">{{ t('profile.Clear All Data') }}</p>
-          <p class="text-sm text-muted-foreground">{{ t('profile.Remove all stored preferences, notifications, and settings. Your account will remain active.') }}</p>
+        <div class="action-item">
+          <p class="action-title warning">{{ t('profile.Clear All Data') }}</p>
+          <p class="action-description">{{ t('profile.Remove all stored preferences, notifications, and settings. Your account will remain active.') }}</p>
           <p-button
             [label]="t('profile.Clear Data')"
             icon="pi pi-eraser"
             (onClick)="onClearAllData()"
             severity="warn"
-            styleClass="w-full md:w-auto"
           />
         </div>
 
         <hr />
 
         <!-- Delete Account -->
-        <div class="flex flex-col gap-2">
-          <p class="font-medium text-red-600">{{ t('profile.Delete Account') }}</p>
-          <p class="text-sm text-muted-foreground">{{ t('profile.Permanently delete your account and all associated data. This action cannot be undone.') }}</p>
+        <div class="action-item">
+          <p class="action-title danger">{{ t('profile.Delete Account') }}</p>
+          <p class="action-description">{{ t('profile.Permanently delete your account and all associated data. This action cannot be undone.') }}</p>
           <p-button
             [label]="t('profile.Delete Account')"
             icon="pi pi-trash"
             (onClick)="onDeleteAccount()"
             severity="danger"
-            styleClass="w-full md:w-auto"
           />
         </div>
       </div>
-    </div>
+    </section>
   </p-card>
-</div>
 
 <!-- Generic Confirmation Dialog -->
 <app-dialog-confirm />
+</ng-container>

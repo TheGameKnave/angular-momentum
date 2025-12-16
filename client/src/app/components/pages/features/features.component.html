@@ -2,7 +2,7 @@
   <p-card>
     <p>{{ t('page.Turn features on and off for feature flag testing') }}</p>
     @if (!authService.isAuthenticated()) {
-      <p-message severity="info" [text]="t('auth.Register or log in to access all features')" styleClass="mb-3" />
+      <p-message severity="info" [text]="t('auth.Register or log in to access all features')" />
     }
     <hr>
     <ul class="feature-list">
