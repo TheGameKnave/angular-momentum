@@ -1071,6 +1071,10 @@
           "type": "string",
           "description": "Profile: Email change success message"
         },
+        "Type {text} to confirm": {
+          "type": "string",
+          "description": "Profile: Prompt to type confirmation text (e.g., DELETE) for destructive actions"
+        },
         "Download all your account data in JSON format": {
           "type": "string",
           "description": "Profile: Data export description"
@@ -1171,6 +1175,7 @@
         "Data & Privacy",
         "Delete Account",
         "Email address updated successfully!",
+        "Type {text} to confirm",
         "Download all your account data in JSON format",
         "Enter username",
         "Enter your new email address",

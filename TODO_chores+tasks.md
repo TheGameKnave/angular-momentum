@@ -1,7 +1,8 @@
 # TODO chores/tasks
 
-relative time/date translation lag
 e2e test accounts polluting the auth database
+relative time/date translation lag
+scss multi-file split
 light/dark theming approach (rename variables?)
 public vs private/auth api
 debug notifications

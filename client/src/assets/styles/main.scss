@@ -64,6 +64,8 @@ $text-info-light: #8ff !default;
 // UI colors
 $error-red: #e74c3c !default;
 $focus-ring: #667eea !default;
+$action-warning: #ea580c;
+$action-danger: #dc2626;
 $highlight-bg: rgba(102, 126, 234, 0.08) !default;
 $highlight-bg-active: rgba(102, 126, 234, 0.12) !default;
 
@@ -237,6 +239,17 @@ $highlight-bg-active: rgba(102, 126, 234, 0.12) !default;
       &:hover {
         color: $light-brand;
       }
+    }
+  }
+
+  // profile actions
+  .action-title {
+    &.warning {
+      color: $action-warning;
+    }
+
+    &.danger {
+      color: $action-danger;
     }
   }
 
@@ -993,6 +1006,21 @@ app-anchor-menu {
 }
 .dialog-confirm-content {
   @extend .cdk-dialog-content;
+}
+.dialog-confirm-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+
+  label {
+    font-size: 1.8rem;
+    color: $action-warning;
+  }
+
+  input {
+    width: 100%;
+  }
 }
 .dialog-confirm-footer { @extend .cdk-dialog-footer; }
 
@@ -1829,14 +1857,6 @@ app-profile {
     .action-title {
       font-weight: 500;
       margin: 0;
-
-      &.warning {
-        color: #ea580c;
-      }
-
-      &.danger {
-        color: #dc2626;
-      }
     }
 
     .action-description {

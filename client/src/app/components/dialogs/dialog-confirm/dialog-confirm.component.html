@@ -20,6 +20,23 @@
           <p>{{ t(opts.message) }}</p>
         }
 
+        <!-- Confirmation text input -->
+        @if (opts.requireConfirmationText) {
+          <div class="dialog-confirm-input">
+            <label for="confirmationInput">
+              {{ t('profile.Type {text} to confirm', { text: opts.requireConfirmationText }) }}
+            </label>
+            <input
+              pInputText
+              id="confirmationInput"
+              type="text"
+              [value]="confirmationInput()"
+              (input)="onConfirmationInputChange($event)"
+              autocomplete="off"
+            />
+          </div>
+        }
+
         <!-- Error message -->
         @if (error()) {
           <p-message severity="error" [text]="error()!" />
@@ -40,6 +57,7 @@
           [severity]="opts.confirmSeverity || 'primary'"
           [icon]="opts.confirmIcon || ''"
           [loading]="loading()"
+          [disabled]="isConfirmDisabled()"
           (onClick)="onConfirm()"
         />
       </div>

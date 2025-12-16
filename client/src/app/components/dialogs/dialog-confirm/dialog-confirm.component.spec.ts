@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { signal } from '@angular/core';
+import { signal, WritableSignal } from '@angular/core';
 import { DialogConfirmComponent } from './dialog-confirm.component';
 import { ConfirmDialogService, ConfirmDialogOptions } from '@app/services/confirm-dialog.service';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
@@ -7,7 +7,10 @@ import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.mo
 describe('DialogConfirmComponent', () => {
   let component: DialogConfirmComponent;
   let fixture: ComponentFixture<DialogConfirmComponent>;
-  let mockDialogService: jasmine.SpyObj<ConfirmDialogService>;
+  let mockDialogService: jasmine.SpyObj<ConfirmDialogService> & {
+    confirmationInput: WritableSignal<string>;
+    isConfirmationValid: jasmine.Spy;
+  };
 
   const mockOptions: ConfirmDialogOptions = {
     title: 'Test Title',
@@ -20,15 +23,19 @@ describe('DialogConfirmComponent', () => {
   };
 
   beforeEach(async () => {
+    const confirmationInputSignal = signal('');
     mockDialogService = jasmine.createSpyObj('ConfirmDialogService', [
       'confirm',
       'dismiss',
+      'isConfirmationValid',
     ], {
       visible: signal(false), // Start hidden to avoid CDK overlay issues before ViewChild is ready
       loading: signal(false),
       error: signal<string | null>(null),
       options: signal<ConfirmDialogOptions | null>(mockOptions),
+      confirmationInput: confirmationInputSignal,
     });
+    mockDialogService.isConfirmationValid.and.returnValue(true);
 
     await TestBed.configureTestingModule({
       imports: [
@@ -77,5 +84,40 @@ describe('DialogConfirmComponent', () => {
 
   it('should expose options signal from service', () => {
     expect(component.options()).toEqual(mockOptions);
+  });
+
+  describe('confirmation text', () => {
+    it('should expose confirmationInput signal from service', () => {
+      expect(component.confirmationInput()).toBe('');
+    });
+
+    it('should return false from isConfirmDisabled when not loading and confirmation is valid', () => {
+      mockDialogService.isConfirmationValid.and.returnValue(true);
+
+      expect(component.isConfirmDisabled()).toBe(false);
+    });
+
+    it('should return true from isConfirmDisabled when loading', () => {
+      (mockDialogService.loading as unknown as WritableSignal<boolean>).set(true);
+      mockDialogService.isConfirmationValid.and.returnValue(true);
+
+      expect(component.isConfirmDisabled()).toBe(true);
+    });
+
+    it('should return true from isConfirmDisabled when confirmation is invalid', () => {
+      mockDialogService.isConfirmationValid.and.returnValue(false);
+
+      expect(component.isConfirmDisabled()).toBe(true);
+    });
+
+    it('should update confirmationInput when onConfirmationInputChange is called', () => {
+      const mockEvent = {
+        target: { value: 'DELETE' }
+      } as unknown as Event;
+
+      component.onConfirmationInputChange(mockEvent);
+
+      expect(mockDialogService.confirmationInput()).toBe('DELETE');
+    });
   });
 });

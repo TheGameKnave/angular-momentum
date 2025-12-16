@@ -375,6 +375,7 @@ export const PROFILE_PAGE_KEYS = [
   "profile.A verification code will be sent to your new email address. You must enter the code to complete the change.",
   "profile.Verification email sent! Please check your new email address and enter the confirmation code.",
   "profile.Email address updated successfully!",
+  "profile.Type {text} to confirm",
 ] as const;
 
 /**
@@ -387,6 +388,7 @@ export const DIALOG_DEFAULT_LABELS = {
 } as const;
 
 export const DIALOG_LABEL_KEYS = Object.values(DIALOG_DEFAULT_LABELS);
+
 
 /**
  * All programmatically-used translation keys combined.

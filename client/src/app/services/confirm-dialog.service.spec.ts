@@ -215,6 +215,20 @@ describe('ConfirmDialogService', () => {
       expect(service.options()).toBeNull();
     });
 
+    it('should clear confirmation input', () => {
+      const options: ConfirmDialogOptions = {
+        title: 'Test',
+        requireConfirmationText: 'DELETE',
+        onConfirm: () => Promise.resolve(),
+      };
+      service.show(options);
+      service.confirmationInput.set('DELETE');
+
+      service.dismiss();
+
+      expect(service.confirmationInput()).toBe('');
+    });
+
     it('should prevent callback from being executed after dismiss', async () => {
       const callback = jasmine.createSpy('callback').and.returnValue(Promise.resolve());
       const options: ConfirmDialogOptions = {
@@ -228,6 +242,69 @@ describe('ConfirmDialogService', () => {
       await service.confirm();
 
       expect(callback).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('requireConfirmationText', () => {
+    it('should start with confirmationInput as empty string', () => {
+      expect(service.confirmationInput()).toBe('');
+    });
+
+    it('should reset confirmationInput when show is called', () => {
+      service.confirmationInput.set('some text');
+      const options: ConfirmDialogOptions = {
+        title: 'Test',
+        onConfirm: () => Promise.resolve(),
+      };
+
+      service.show(options);
+
+      expect(service.confirmationInput()).toBe('');
+    });
+
+    it('should return true from isConfirmationValid when no requireConfirmationText is set', () => {
+      const options: ConfirmDialogOptions = {
+        title: 'Test',
+        onConfirm: () => Promise.resolve(),
+      };
+      service.show(options);
+
+      expect(service.isConfirmationValid()).toBe(true);
+    });
+
+    it('should return false from isConfirmationValid when requireConfirmationText is set but input is empty', () => {
+      const options: ConfirmDialogOptions = {
+        title: 'Test',
+        requireConfirmationText: 'DELETE',
+        onConfirm: () => Promise.resolve(),
+      };
+      service.show(options);
+
+      expect(service.isConfirmationValid()).toBe(false);
+    });
+
+    it('should return false from isConfirmationValid when input does not match', () => {
+      const options: ConfirmDialogOptions = {
+        title: 'Test',
+        requireConfirmationText: 'DELETE',
+        onConfirm: () => Promise.resolve(),
+      };
+      service.show(options);
+      service.confirmationInput.set('delete');
+
+      expect(service.isConfirmationValid()).toBe(false);
+    });
+
+    it('should return true from isConfirmationValid when input matches exactly', () => {
+      const options: ConfirmDialogOptions = {
+        title: 'Test',
+        requireConfirmationText: 'DELETE',
+        onConfirm: () => Promise.resolve(),
+      };
+      service.show(options);
+      service.confirmationInput.set('DELETE');
+
+      expect(service.isConfirmationValid()).toBe(true);
     });
   });
 });

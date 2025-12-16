@@ -658,7 +658,7 @@ export class ProfileComponent implements OnInit {
 
   /**
    * Delete account with confirmation.
-   * Uses CDK dialog for confirmation.
+   * Uses CDK dialog for confirmation with required text input.
    */
   onDeleteAccount(): void {
     this.confirmDialogService.show({
@@ -669,6 +669,7 @@ export class ProfileComponent implements OnInit {
       confirmLabel: 'profile.Delete Account',
       confirmIcon: 'pi pi-trash',
       confirmSeverity: 'danger',
+      requireConfirmationText: 'DELETE',
       onConfirm: async () => {
         const { error } = await this.authService.deleteAccount();
 
