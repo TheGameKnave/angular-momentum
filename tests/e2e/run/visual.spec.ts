@@ -351,6 +351,23 @@ test.describe('Visual Regression Tests', () => {
     });
   });
 
+  test('menu-changelog', async ({ page }) => {
+    await page.goto(APP_BASE_URL);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+
+    await page.click(menus.changelogMenuButton);
+    await page.waitForTimeout(300);
+
+    await makeBackgroundOpaque(page, '.anchor-menu-panel');
+
+    const menuPanel = page.locator('.anchor-menu-panel');
+    await expect(menuPanel).toHaveScreenshot('menu-changelog.png', {
+      maxDiffPixelRatio: 0.001,
+      animations: 'disabled',
+    });
+  });
+
   test('banner-cookie', async ({ page }) => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
