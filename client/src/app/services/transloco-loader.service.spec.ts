@@ -103,4 +103,15 @@ describe('TranslocoHttpLoader', () => {
     expect(loader.getNativeName(ln)).toEqual(expectedNativeName);
   });
 
+  // Custom language override tests (novelty/easter egg languages)
+  describe('custom language overrides', () => {
+    it('should return custom flag code for sv-BO (Bork)', () => {
+      expect(loader.getCountry('sv-BO')).toEqual('bork');
+    });
+
+    it('should return custom native name for sv-BO (Bork)', () => {
+      expect(loader.getNativeName('sv-BO')).toEqual('Svenska (Bork Bork!)');
+    });
+  });
+
 });

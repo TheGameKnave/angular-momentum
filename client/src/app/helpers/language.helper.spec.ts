@@ -18,13 +18,13 @@ describe('normalizeLanguage', () => {
     expect(normalizeLanguage('es')).toBe('es');
     expect(normalizeLanguage('zh-CN')).toBe('zh-CN');
     expect(normalizeLanguage('zh-TW')).toBe('zh-TW');
-    expect(normalizeLanguage('sv-SE')).toBe('sv-SE');
+    expect(normalizeLanguage('sv-BO')).toBe('sv-BO');
   });
 
   it('should map bare language codes to regional variants', () => {
     expect(normalizeLanguage('en')).toBe('en-US');
     expect(normalizeLanguage('zh')).toBe('zh-CN');
-    expect(normalizeLanguage('sv')).toBe('sv-SE');
+    expect(normalizeLanguage('sv')).toBe('sv-BO');
   });
 
   it('should return undefined for unsupported languages', () => {
@@ -96,14 +96,14 @@ describe('getLangFn', () => {
     });
     expect(lang).toBe('zh-CN');
 
-    // Bare 'sv' should normalize to 'sv-SE'
+    // Bare 'sv' should normalize to 'sv-BO'
     lang = getLangFn({
       cachedLang: null,
       browserLang: 'sv',
       cultureLang: '',
       defaultLang: 'de',
     });
-    expect(lang).toBe('sv-SE');
+    expect(lang).toBe('sv-BO');
   });
 
   it('should skip unsupported languages and try next option', () => {

@@ -27,7 +27,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
       'es': '¡Bienvenido!',
       'zh-CN': '欢迎！',
       'zh-TW': '歡迎！',
-      'sv-SE': 'Velcume-a! Bork bork bork!',
+      'sv-BO': 'Velcume-a! Bork bork bork!',
     },
     body: {
       'en-US': 'Thanks for trying Angular Momentum—your modern Angular starter kit!',
@@ -37,7 +37,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
       'es': '¡Gracias por probar Angular Momentum, tu kit de inicio moderno para Angular!',
       'zh-CN': '感谢您试用Angular Momentum—您的现代Angular入门套件！',
       'zh-TW': '感謝您試用Angular Momentum—您的現代Angular入門套件！',
-      'sv-SE': 'Thunks fur tryeeng Ungooler Moomentoom—yuoor muddern Ungooler sterter keet! Bork!',
+      'sv-BO': 'Thunks fur tryeeng Ungooler Moomentoom—yuoor muddern Ungooler sterter keet! Bork!',
     },
     label: {
       'en-US': 'Welcome Message',
@@ -47,7 +47,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
       'es': 'Mensaje de Bienvenida',
       'zh-CN': '欢迎消息',
       'zh-TW': '歡迎訊息',
-      'sv-SE': 'Velcume-a Messege-a',
+      'sv-BO': 'Velcume-a Messege-a',
     },
   },
   feature_update: {
@@ -59,7 +59,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
       'es': 'Nueva Función Disponible',
       'zh-CN': '新功能可用',
       'zh-TW': '新功能可用',
-      'sv-SE': 'Noo Feetoore-a Efeeeleble-a',
+      'sv-BO': 'Noo Feetoore-a Efeeeleble-a',
     },
     body: {
       'en-US': 'Check out the latest updates in the Features section!',
@@ -69,7 +69,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
       'es': '¡Consulta las últimas actualizaciones en la sección de Funciones!',
       'zh-CN': '查看功能部分的最新更新！',
       'zh-TW': '查看功能部分的最新更新！',
-      'sv-SE': 'Check oooot zee letest updetes in zee Feetoores secshun! Bork!',
+      'sv-BO': 'Check oooot zee letest updetes in zee Feetoores secshun! Bork!',
     },
     label: {
       'en-US': 'Feature Update',
@@ -79,7 +79,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
       'es': 'Actualización de Función',
       'zh-CN': '功能更新',
       'zh-TW': '功能更新',
-      'sv-SE': 'Feetoore-a Updete-a',
+      'sv-BO': 'Feetoore-a Updete-a',
     },
   },
   maintenance: {
@@ -91,7 +91,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
       'es': 'Mantenimiento del Sistema',
       'zh-CN': '系统维护',
       'zh-TW': '系統維護',
-      'sv-SE': 'System Meentinunce-a',
+      'sv-BO': 'System Meentinunce-a',
     },
     body: {
       'en-US': 'Scheduled maintenance will occur tonight at {time}.',
@@ -101,7 +101,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
       'es': 'El mantenimiento programado ocurrirá esta noche a las {time}.',
       'zh-CN': '计划维护将于今晚{time}进行。',
       'zh-TW': '計劃維護將於今晚{time}進行。',
-      'sv-SE': 'Schedooled meentinunce-a veel ooccoor tuneegt et {time}. Bork!',
+      'sv-BO': 'Schedooled meentinunce-a veel ooccoor tuneegt et {time}. Bork!',
     },
     label: {
       'en-US': 'Maintenance Alert',
@@ -111,7 +111,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
       'es': 'Alerta de Mantenimiento',
       'zh-CN': '维护警报',
       'zh-TW': '維護警報',
-      'sv-SE': 'Meentinunce-a Elert',
+      'sv-BO': 'Meentinunce-a Elert',
     },
   },
   achievement: {
@@ -123,7 +123,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
       'es': 'Logro Desbloqueado',
       'zh-CN': '成就解锁',
       'zh-TW': '成就解鎖',
-      'sv-SE': 'Echeefement Unlucked! Bork bork!',
+      'sv-BO': 'Echeefement Unlucked! Bork bork!',
     },
     body: {
       'en-US': 'You successfully tested the notification system!',
@@ -133,7 +133,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
       'es': '¡Probaste exitosamente el sistema de notificaciones!',
       'zh-CN': '您成功测试了通知系统！',
       'zh-TW': '您成功測試了通知系統！',
-      'sv-SE': 'Yuoo soocccessffoollee tested zee nootifficesshun system! Bork bork bork!',
+      'sv-BO': 'Yuoo soocccessffoollee tested zee nootifficesshun system! Bork bork bork!',
     },
     label: {
       'en-US': 'Achievement',
@@ -143,7 +143,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
       'es': 'Logro',
       'zh-CN': '成就',
       'zh-TW': '成就',
-      'sv-SE': 'Echeefement',
+      'sv-BO': 'Echeefement',
     },
   },
 } as const;

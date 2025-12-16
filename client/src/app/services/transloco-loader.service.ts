@@ -5,6 +5,15 @@ import { catchError, Observable, of } from 'rxjs';
 import { LANGUAGES } from 'i18n-l10n-flags';
 
 /**
+ * Custom language overrides for flag icons and display names.
+ * Used for novelty/easter egg languages or when the default
+ * i18n-l10n-flags metadata doesn't match desired presentation.
+ */
+const LANGUAGE_OVERRIDES: Record<string, { flag: string; name: string }> = {
+  'sv-BO': { flag: 'bork', name: 'Svenska (Bork Bork!)' }, // Swedish Chef
+};
+
+/**
  * HTTP-based translation loader for Transloco internationalization.
  *
  * Loads translation files from /assets/i18n/ directory and provides
@@ -15,6 +24,7 @@ import { LANGUAGES } from 'i18n-l10n-flags';
  * - Graceful error handling (returns empty object on failure)
  * - Language metadata extraction from i18n-l10n-flags library
  * - Locale-specific name formatting
+ * - Custom overrides for novelty languages (e.g., Swedish Chef)
  */
 @Injectable({
   providedIn: 'root'
@@ -46,13 +56,18 @@ export class TranslocoHttpLoader implements TranslocoLoader {
 }
 
   /**
-   * Get country code for a language.
-   * Extracts country code from language metadata or locale string.
+   * Get country/flag code for a language.
+   * Checks for custom overrides first, then extracts from language metadata or locale string.
    *
    * @param ln - Language code (e.g., 'en', 'en-US')
-   * @returns Lowercase country code (e.g., 'us', 'gb')
+   * @returns Lowercase flag code (e.g., 'us', 'gb', 'bork')
    */
   getCountry(ln: string): string {
+    // Check for custom override first
+    if (LANGUAGE_OVERRIDES[ln]) {
+      return LANGUAGE_OVERRIDES[ln].flag;
+    }
+
     if (!ln.includes('-')) {
       return Object.keys(this.languages[ln].locales)[0].split('-')[1].toLowerCase();
     } else {
@@ -62,13 +77,19 @@ export class TranslocoHttpLoader implements TranslocoLoader {
 
   /**
    * Get native name for a language.
-   * Returns the language name as it appears in that language (e.g., 'English', 'Español').
+   * Checks for custom overrides first, then returns the language name as it appears
+   * in that language (e.g., 'English', 'Español').
    * For locale-specific variants, includes both language and locale names.
    *
    * @param ln - Language code (e.g., 'en', 'en-US')
    * @returns Native language name, with locale variant if applicable (e.g., 'English (United States)')
    */
   getNativeName(ln: string): string {
+    // Check for custom override first
+    if (LANGUAGE_OVERRIDES[ln]) {
+      return LANGUAGE_OVERRIDES[ln].name;
+    }
+
     if (!ln.includes('-')) {
       return this.languages[ln].nativeName;
     } else {

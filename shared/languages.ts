@@ -13,7 +13,7 @@ export const SUPPORTED_LANGUAGES = [
   'es',
   'zh-CN',
   'zh-TW',
-  'sv-SE',
+  'sv-BO', // for Swedish (Bork) - Swedish Chef variant
 ] as const;
 
 export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];

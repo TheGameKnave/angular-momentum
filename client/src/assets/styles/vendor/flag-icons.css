@@ -1100,3 +1100,8 @@
 .fi-xk {
   background-image: url(../../icons/vendor/flags/xk.svg);
 }
+
+/* Custom flag for Svenska (Bork Bork!) - inverted Swedish flag */
+.fi-bork {
+  background-image: url(../../icons/vendor/flags/bork.svg);
+}
