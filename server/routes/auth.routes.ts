@@ -26,6 +26,200 @@ export function createAuthRoutes(
 ): Router {
   const router = Router();
 
+  // ============================================================================
+  // TEST-ONLY ENDPOINTS (only available in test/development environments)
+  // ============================================================================
+
+  /**
+   * POST /api/auth/test/create-user
+   * Creates a test user with auto-verified status (bypasses email verification).
+   * ONLY available when NODE_ENV === 'test' or 'development'.
+   *
+   * Request body:
+   * {
+   *   "email": "test@example.com",
+   *   "password": "TestPassword123!",
+   *   "username": "optional_username"
+   * }
+   *
+   * Response:
+   * {
+   *   "success": true,
+   *   "userId": "uuid-here",
+   *   "email": "test@example.com"
+   * }
+   */
+  router.post('/test/create-user', async (req: Request, res: Response) => {
+    // Only allow in test/development environments
+    if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
+      return res.status(403).json({
+        success: false,
+        error: 'Test endpoints are only available in test/development environments'
+      });
+    }
+
+    if (!supabase) {
+      return res.status(503).json({
+        success: false,
+        error: AUTH_ERROR_CODES.SERVICE_NOT_CONFIGURED
+      });
+    }
+
+    const { email, password, username } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email and password are required'
+      });
+    }
+
+    try {
+      // Create user with admin API (auto-confirms email)
+      const { data: userData, error: createError } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true, // Auto-verify email
+        user_metadata: username ? { username } : {}
+      });
+
+      if (createError) {
+        return res.status(400).json({
+          success: false,
+          error: createError.message
+        });
+      }
+
+      // If username provided, create username record
+      if (username && usernameService && userData.user) {
+        const validationResult = usernameService.validateUsername(username);
+        if (validationResult.valid && validationResult.fingerprint) {
+          await usernameService.createUsername(
+            userData.user.id,
+            username,
+            validationResult.fingerprint
+          );
+        }
+      }
+
+      res.json({
+        success: true,
+        userId: userData.user?.id,
+        email: userData.user?.email
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({
+        success: false,
+        error: message
+      });
+    }
+  });
+
+  /**
+   * DELETE /api/auth/test/delete-user
+   * Deletes a test user and all associated data.
+   * ONLY available when NODE_ENV === 'test' or 'development'.
+   *
+   * Request body:
+   * {
+   *   "email": "test@example.com"
+   * }
+   * OR
+   * {
+   *   "userId": "uuid-here"
+   * }
+   *
+   * Response:
+   * {
+   *   "success": true
+   * }
+   */
+  router.delete('/test/delete-user', async (req: Request, res: Response) => {
+    // Only allow in test/development environments
+    if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
+      return res.status(403).json({
+        success: false,
+        error: 'Test endpoints are only available in test/development environments'
+      });
+    }
+
+    if (!supabase) {
+      return res.status(503).json({
+        success: false,
+        error: AUTH_ERROR_CODES.SERVICE_NOT_CONFIGURED
+      });
+    }
+
+    const { email, userId } = req.body;
+
+    if (!email && !userId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email or userId is required'
+      });
+    }
+
+    try {
+      let targetUserId = userId;
+
+      // If email provided, look up userId
+      if (email && !userId) {
+        const { data: listData, error: listError } = await supabase.auth.admin.listUsers();
+        if (listError || !listData) {
+          return res.status(500).json({
+            success: false,
+            error: listError?.message || 'Failed to list users'
+          });
+        }
+        const user = listData.users.find((u: { email?: string }) => u.email === email);
+        if (!user) {
+          return res.status(404).json({
+            success: false,
+            error: 'User not found'
+          });
+        }
+        targetUserId = user.id;
+      }
+
+      // Delete username record first (foreign key constraint)
+      await supabase
+        .from('usernames')
+        .delete()
+        .eq('user_id', targetUserId);
+
+      // Delete user settings
+      await supabase
+        .from('user_settings')
+        .delete()
+        .eq('user_id', targetUserId);
+
+      // Delete the auth user
+      const { error: deleteError } = await supabase.auth.admin.deleteUser(targetUserId);
+
+      if (deleteError) {
+        return res.status(500).json({
+          success: false,
+          error: deleteError.message
+        });
+      }
+
+      res.json({
+        success: true
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({
+        success: false,
+        error: message
+      });
+    }
+  });
+
+  // ============================================================================
+  // PRODUCTION ENDPOINTS
+  // ============================================================================
+
   /**
    * POST /api/auth/webhook/signup-verification
    * Webhook endpoint called by Supabase after user signup.

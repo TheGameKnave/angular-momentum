@@ -1679,6 +1679,8 @@ p-card.indexeddb {
   app-menu-feature {
     width: 18rem;
     box-shadow: none;
+    // Disable transition on wide screens for instant appearance (no animation flicker)
+    transition: none;
   }
   .main {
     padding-left: 18rem;

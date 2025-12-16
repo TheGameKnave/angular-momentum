@@ -22,8 +22,10 @@
     "test:notification": "cd tests/translation && npx tsx notification-validation.ts",
     "test:server": "cd server && npm test",
     "test:client": "cd client && npm test",
-    "test:e2e": "cd tests/e2e && node clean_screenshots && node test_runner",
-    "accept": "cd tests/e2e && node accept_tests",
+    "test:e2e": "npx playwright test --config=tests/e2e/playwright.config.ts",
+    "test:e2e:ui": "npx playwright test --config=tests/e2e/playwright.config.ts --ui",
+    "test:e2e:headed": "npx playwright test --config=tests/e2e/playwright.config.ts --headed",
+    "test:e2e:accept": "./tests/e2e/copy-snapshots.sh",
     "deploy:dev": "./deploy.sh dev",
     "deploy:staging": "./deploy.sh staging",
     "bump-version": "node bump_version.js",
@@ -38,14 +40,12 @@
     "@types/express-serve-static-core": "^5.1.0"
   },
   "devDependencies": {
-    "@types/express-serve-static-core": "^5.1.0",
     "@formatjs/icu-messageformat-parser": "^2.11.4",
     "@jirutka/ajv-cli": "^6.0.0-beta.5",
+    "@playwright/test": "^1.57.0",
+    "@types/express-serve-static-core": "^5.1.0",
     "ajv": "^8.17.1",
     "husky": "^9.1.7",
-    "testcafe": "^3.6.2",
-    "testcafe-angular-selectors": "^0.4.1",
-    "testcafe-blink-diff": "^0.5.5",
     "typescript": "~5.9.3"
   }
 }

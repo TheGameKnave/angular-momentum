@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": false,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "types": ["node"],
+    "paths": {
+      "@helpers/*": ["helpers/*"],
+      "@data/*": ["data/*"]
+    }
+  },
+  "include": [
+    "run/**/*.ts",
+    "helpers/**/*.ts",
+    "data/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "../../node_modules"
+  ]
+}

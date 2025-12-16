@@ -28,11 +28,8 @@ cd ../client && npx eslint --ext .ts src/
 echo "\nRunning client tests\n\n"
 cd ../client && npm test
 
-# echo "\nRunning e2e tests\n\n"
-# cd ../tests/e2e && node clean_screenshots && node test_runner
+echo "\nRunning e2e tests\n\n"
+cd ../ && npx playwright test --config=tests/e2e/playwright.config.ts --project=chromium --project=chromium-features --project=chromium-feature-toggles
 
-# echo "\nRunning screenshot diff tests\n\n"
-# cd ../../ && npx testcafe-blink-diff tests/e2e/screenshots --compare accepted:tested --open --threshold 0.003
-
-echo "\n Running sonar-scanner\n\n"
-cd ../ && npm run sonar
+echo "\nRunning sonar-scanner\n\n"
+npm run sonar

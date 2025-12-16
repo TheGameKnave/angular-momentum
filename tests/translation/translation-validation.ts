@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
 import { SUPPORTED_LANGUAGES } from '../../shared/languages.js';
 import * as path from 'path';
-import fs from 'fs';
+import * as fs from 'fs';
 
 // --- Typographical Character Validation ---
 // Enforces smart typography: curly quotes, proper ellipsis, etc.
@@ -86,7 +86,7 @@ SUPPORTED_LANGUAGES.forEach((lang) => {
          * @param obj - Object containing translation entries
          * @param prefix - Key prefix for nested entries
          */
-        function validateEntries(obj: Record<string, unknown>, prefix = ''): void {
+        const validateEntries = (obj: Record<string, unknown>, prefix = ''): void => {
           Object.entries(obj).forEach(([key, value]) => {
             const fullKey = prefix ? `${prefix}.${key}` : key;
 

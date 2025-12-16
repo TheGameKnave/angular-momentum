@@ -77,7 +77,35 @@ describe('FeatureMonitorService', () => {
     flushMicrotasks();
     tick();
 
-    // Since currentSegment is '', it should redirect (or behave accordingly)
+    // Since currentSegment is '', it's a static route and should not redirect
     expect(router.navigate).not.toHaveBeenCalledWith(['/']);
+  }));
+
+  it('should NOT redirect for static routes (profile, privacy)', fakeAsync(() => {
+    mockUrl = '/privacy';
+
+    helpersService.enabledComponents.and.returnValue([]); // nothing enabled
+    slugPipe.transform.and.callFake(name => name.toLowerCase().replace(/\s+/g, '-'));
+
+    service = TestBed.inject(FeatureMonitorService);
+    flushMicrotasks();
+    tick();
+
+    // privacy is a static route, should not redirect
+    expect(router.navigate).not.toHaveBeenCalled();
+  }));
+
+  it('should NOT redirect for profile route', fakeAsync(() => {
+    mockUrl = '/profile';
+
+    helpersService.enabledComponents.and.returnValue([]);
+    slugPipe.transform.and.callFake(name => name.toLowerCase().replace(/\s+/g, '-'));
+
+    service = TestBed.inject(FeatureMonitorService);
+    flushMicrotasks();
+    tick();
+
+    // profile is a static route, should not redirect
+    expect(router.navigate).not.toHaveBeenCalled();
   }));
 });

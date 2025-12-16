@@ -19,7 +19,7 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Internationalization (i18n) with Transloco *
 * IndexedDB for offline storage *
 * Documentation enforced via husky
-* e2e testing with TestCafe + snapshots
+* e2e testing with Playwright + snapshots
 * 100% coverage in unit tests (jasmine for client and jest for server)
 * Feature flags *
 * CI/CD (github actions, sonar)
@@ -34,11 +34,11 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Supabase(?) user management (emails and password resetting, etc) *
 * timezone detection AND user-setting *
 * Push notifications (WebSocket-based) for Web, PWA, and all Tauri platforms *
+* toast notifications *
 
 (* indicates a feature that’s visible in the sample app)
 
 ## Future features
-* toast notifications
 * Server-side rendering
 * Lighthouse CI to mitigate performance slip
 

@@ -83,12 +83,16 @@ export function setupApp(): express.Application {
   app.use(logger);
   app.use(express.json());
 
-  // Rate limiting for API endpoints
+  // Rate limiting for API endpoints (disabled in dev/test environments)
   const apiLimiter = rateLimit({
     windowMs: 10/*minutes*/ * 60/*seconds*/ * 1000/*milliseconds*/,
     max: 100,
     standardHeaders: true,
     legacyHeaders: false,
+    skip: () => {
+      // Disable rate limiting entirely in development/test environments
+      return process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+    }
   });
 
   app.use(express.urlencoded({ extended: true }));
