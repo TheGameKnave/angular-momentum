@@ -222,7 +222,7 @@
   },
 
   "profile": {
-    "A verification link will be sent to your new email address. You must click the link to complete the change.": "验证链接将发送到您的新电子邮件地址。您必须点击链接以完成更改。",
+    "A verification code will be sent to your new email address. You must enter the code to complete the change.": "验证码将发送到您的新电子邮件地址。您必须输入验证码以完成更改。",
     "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.": "您确定要删除您的帐户吗？此操作无法撤消。您的所有数据将被永久删除。",
     "Change Email Address": "更改电子邮件地址",
     "Change Password": "修改密码",
@@ -231,6 +231,7 @@
     "Clear Data": "清除数据",
     "Data & Privacy": "数据与隐私",
     "Delete Account": "删除帐户",
+    "Email address updated successfully!": "电子邮件地址更新成功！",
     "Download all your account data in JSON format": "以JSON格式下载您的所有帐户数据",
     "Enter username": "输入用户名",
     "Enter your new email address": "输入您的新电子邮件地址",
@@ -251,7 +252,7 @@
     "User ID": "用户ID",
     "User Information": "用户信息",
     "Username updated successfully!": "用户名更新成功！",
-    "Verification email sent! Please check your new email address and click the confirmation link.": "验证电子邮件已发送！请检查您的新电子邮件地址并点击确认链接。",
+    "Verification email sent! Please check your new email address and enter the confirmation code.": "验证电子邮件已发送！请检查您的新电子邮件地址并输入确认码。",
     "Without a username, your profile is private": "没有用户名，您的个人资料是私密的"
   },
 

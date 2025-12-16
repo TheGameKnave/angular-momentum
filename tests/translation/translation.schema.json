@@ -1031,7 +1031,7 @@
     "profile": {
       "type": "object",
       "properties": {
-        "A verification link will be sent to your new email address. You must click the link to complete the change.": {
+        "A verification code will be sent to your new email address. You must enter the code to complete the change.": {
           "type": "string",
           "description": "Profile: Email change process explanation"
         },
@@ -1066,6 +1066,10 @@
         "Delete Account": {
           "type": "string",
           "description": "Profile: Account deletion button"
+        },
+        "Email address updated successfully!": {
+          "type": "string",
+          "description": "Profile: Email change success message"
         },
         "Download all your account data in JSON format": {
           "type": "string",
@@ -1147,7 +1151,7 @@
           "type": "string",
           "description": "Profile: Username change success message"
         },
-        "Verification email sent! Please check your new email address and click the confirmation link.": {
+        "Verification email sent! Please check your new email address and enter the confirmation code.": {
           "type": "string",
           "description": "Profile: Email change confirmation message"
         },
@@ -1157,7 +1161,7 @@
         }
       },
       "required": [
-        "A verification link will be sent to your new email address. You must click the link to complete the change.",
+        "A verification code will be sent to your new email address. You must enter the code to complete the change.",
         "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.",
         "Change Email Address",
         "Change Password",
@@ -1166,6 +1170,7 @@
         "Clear Data",
         "Data & Privacy",
         "Delete Account",
+        "Email address updated successfully!",
         "Download all your account data in JSON format",
         "Enter username",
         "Enter your new email address",
@@ -1186,7 +1191,7 @@
         "User ID",
         "User Information",
         "Username updated successfully!",
-        "Verification email sent! Please check your new email address and click the confirmation link.",
+        "Verification email sent! Please check your new email address and enter the confirmation code.",
         "Without a username, your profile is private"
       ],
       "additionalProperties": false

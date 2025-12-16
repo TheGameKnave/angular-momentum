@@ -148,53 +148,140 @@
       [collapsed]="!emailPanelExpanded()"
       (collapsedChange)="onEmailPanelCollapsedChange($event)"
     >
-      <form [formGroup]="emailForm" (ngSubmit)="onSubmitEmailChange()" class="auth-form profile-form">
-        <!-- New Email Input -->
-        <div class="form-field">
-          <label for="new-email">{{ t('profile.New Email Address') }}</label>
-          <input
-            pInputText
-            id="new-email"
-            name="newEmail"
-            formControlName="newEmail"
-            type="email"
-            [placeholder]="t('profile.Enter your new email address')"
-            autocomplete="email"
+      <!-- Step 1: Email Input Form -->
+      @if (!emailOtpSent() && !emailChangeComplete()) {
+        <form [formGroup]="emailForm" (ngSubmit)="onSubmitEmailChange()" class="auth-form profile-form">
+          <!-- New Email Input -->
+          <div class="form-field">
+            <label for="new-email">{{ t('profile.New Email Address') }}</label>
+            <input
+              pInputText
+              id="new-email"
+              name="newEmail"
+              formControlName="newEmail"
+              type="email"
+              [placeholder]="t('profile.Enter your new email address')"
+              autocomplete="email"
+            />
+            @if (emailForm.get('newEmail')?.invalid && emailForm.get('newEmail')?.touched) {
+              <small class="error-message">{{ t('profile.Please enter a valid email address') }}</small>
+            }
+          </div>
+
+          <!-- Info Message -->
+          <p-message
+            severity="info"
+            [text]="t('profile.A verification code will be sent to your new email address. You must enter the code to complete the change.')"
           />
-          @if (emailForm.get('newEmail')?.invalid && emailForm.get('newEmail')?.touched) {
-            <small class="error-message">{{ t('profile.Please enter a valid email address') }}</small>
+
+          <!-- Error Message -->
+          @if (emailError()) {
+            <p-message severity="error" [text]="emailError()!" />
           }
-        </div>
 
-        <!-- Info Message -->
-        <p-message
-          severity="info"
-          [text]="t('profile.A verification link will be sent to your new email address. You must click the link to complete the change.')"
-        />
+          <!-- Submit Button -->
+          <div class="form-actions">
+            <p-button
+              type="submit"
+              [label]="t('profile.Update Email')"
+              [loading]="emailLoading()"
+              [disabled]="emailForm.invalid"
+            />
+          </div>
+        </form>
+      }
 
-        <!-- Error Message -->
-        @if (emailError()) {
-          <p-message severity="error" [text]="emailError()!" />
-        }
-
-        <!-- Success Message -->
-        @if (emailSuccess()) {
+      <!-- Step 3: Success State -->
+      @if (emailChangeComplete()) {
+        <div class="auth-form profile-form">
           <p-message
             severity="success"
-            [text]="t('profile.Verification email sent! Please check your new email address and click the confirmation link.')"
+            [text]="t('profile.Email address updated successfully!')"
           />
-        }
-
-        <!-- Submit Button -->
-        <div class="form-actions">
-          <p-button
-            type="submit"
-            [label]="t('profile.Update Email')"
-            [loading]="emailLoading()"
-            [disabled]="emailForm.invalid"
-          />
+          <div class="form-actions">
+            <p-button
+              type="button"
+              [label]="t('OK')"
+              (onClick)="onCancelEmailChange()"
+            />
+          </div>
         </div>
-      </form>
+      }
+
+      <!-- Step 2: OTP Verification Form -->
+      @if (emailOtpSent()) {
+        <div class="auth-form profile-form">
+          <!-- OTP Instructions -->
+          <div class="otp-instructions">
+            <p>{{ t('auth.We’ve sent a 6-digit verification code to:') }}</p>
+            <p class="otp-email">{{ pendingNewEmail() }}</p>
+          </div>
+
+          <!-- OTP Input -->
+          <div class="form-field">
+            <label for="email-otp">{{ t('auth.Verification Code') }}</label>
+            <input
+              pInputText
+              id="email-otp"
+              name="emailOtp"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="6"
+              placeholder="000000"
+              autocomplete="one-time-code"
+              class="otp-input"
+              [value]="emailOtp()"
+              (input)="onEmailOtpInput($event)"
+              (paste)="onEmailOtpPaste($event)"
+            />
+            @if (emailOtp().length > 0 && emailOtp().length < 6) {
+              <small class="error-message">{{ t('auth.Please enter the 6-digit code') }}</small>
+            }
+          </div>
+
+          <!-- Success Message -->
+          @if (emailSuccess()) {
+            <p-message
+              severity="success"
+              [text]="t('profile.Verification email sent! Please check your new email address and enter the confirmation code.')"
+            />
+          }
+
+          <!-- Error Message -->
+          @if (emailError()) {
+            <p-message severity="error" [text]="emailError()!" />
+          }
+
+          <!-- Verify Button -->
+          <div class="form-actions">
+            <p-button
+              type="button"
+              [label]="t('auth.Verify Code')"
+              [loading]="emailLoading()"
+              [disabled]="emailOtp().length !== 6"
+              (onClick)="onVerifyEmailOtp()"
+            />
+          </div>
+
+          <!-- OTP Actions -->
+          <div class="otp-actions">
+            <button
+              type="button"
+              (click)="onResendEmailOtp()"
+              [disabled]="emailLoading()"
+            >
+              {{ t('auth.Resend code') }}
+            </button>
+            <button
+              type="button"
+              (click)="onCancelEmailChange()"
+            >
+              {{ t('Cancel') }}
+            </button>
+          </div>
+        </div>
+      }
     </p-panel>
 
     <!-- Username Panel -->

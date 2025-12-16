@@ -1,6 +1,7 @@
 # TODO chores/tasks
 
-changing email should use OTP flow and better template
+relative time/date translation lag
+e2e test accounts polluting the auth database
 light/dark theming approach (rename variables?)
 public vs private/auth api
 debug notifications

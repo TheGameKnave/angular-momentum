@@ -222,7 +222,7 @@
   },
 
   "profile": {
-    "A verification link will be sent to your new email address. You must click the link to complete the change.": "A verifikaishn link wil bi sent tu ior niu imail adres. Iu must klik xe link tu kompliit xe chainj.",
+    "A verification code will be sent to your new email address. You must enter the code to complete the change.": "A verifikaishn koud wil bi sent tu ior niu imail adres. Iu must entr xe koud tu kompliit xe chainj.",
     "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.": "Ar iu shur iu want tu diliit ior akownt? Xis akshn kanat bi undun. Al ior daita wil bi permnnentli diliitd.",
     "Change Email Address": "Chainj Imail Adres",
     "Change Password": "Chainj Paswerd",
@@ -231,6 +231,7 @@
     "Clear Data": "Kliir Daita",
     "Data & Privacy": "Daita & Praivasi",
     "Delete Account": "Diliit Akownt",
+    "Email address updated successfully!": "Imail adres updaitd suksesfuli!",
     "Download all your account data in JSON format": "Downlod al ior akownt daita in JSON format",
     "Enter username": "Entr iuzerneim",
     "Enter your new email address": "Entr ior niu imail adres",
@@ -251,7 +252,7 @@
     "User ID": "Iuzr ID",
     "User Information": "Iuzr Informaishn",
     "Username updated successfully!": "Iuzerneim updaitd suksesfuli!",
-    "Verification email sent! Please check your new email address and click the confirmation link.": "Verifikaishn imail sent! Pliiz chek ior niu imail adres and klik xe konfermaishn link.",
+    "Verification email sent! Please check your new email address and enter the confirmation code.": "Verifikaishn imail sent! Pliiz chek ior niu imail adres and entr xe konfermaishn koud.",
     "Without a username, your profile is private": "Wixawt a iuzerneim, ior profail iz praivt"
   },
 

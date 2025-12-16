@@ -102,6 +102,10 @@ export class ProfileComponent implements OnInit {
   readonly emailLoading = signal(false);
   readonly emailError = signal<string | null>(null);
   readonly emailSuccess = signal(false);
+  readonly emailOtpSent = signal(false); // True when OTP has been sent
+  readonly emailChangeComplete = signal(false); // True when email change is fully completed
+  readonly pendingNewEmail = signal<string | null>(null); // Email awaiting OTP verification
+  readonly emailOtp = signal(''); // OTP input value
 
   // Common timezones for the dropdown
   readonly commonTimezones = [
@@ -332,7 +336,7 @@ export class ProfileComponent implements OnInit {
   }
 
   /**
-   * Handle email change form submission
+   * Handle email change form submission (step 1: send OTP)
    */
   async onSubmitEmailChange(): Promise<void> {
     if (this.emailForm.invalid) {
@@ -345,7 +349,7 @@ export class ProfileComponent implements OnInit {
 
     const { newEmail } = this.emailForm.value;
 
-    // Update email (sends verification to new email)
+    // Update email (sends verification OTP to new email)
     const { error } = await this.authService.updateEmail(newEmail);
 
     this.emailLoading.set(false);
@@ -355,9 +359,108 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
-    // Success! User needs to verify new email
+    // OTP sent! Show OTP input form
+    this.pendingNewEmail.set(newEmail);
+    this.emailOtpSent.set(true);
     this.emailSuccess.set(true);
+  }
+
+  /**
+   * Handle OTP input for email change verification
+   */
+  onEmailOtpInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const filtered = input.value.replaceAll(/\D/g, '');
+    if (input.value !== filtered) {
+      input.value = filtered;
+    }
+    this.emailOtp.set(filtered);
+
+    // Auto-submit when 6 digits entered
+    if (filtered.length === 6) {
+      this.onVerifyEmailOtp();
+    }
+  }
+
+  /**
+   * Handle paste for OTP input
+   */
+  onEmailOtpPaste(event: ClipboardEvent): void {
+    event.preventDefault();
+    const pastedText = event.clipboardData?.getData('text') ?? '';
+    const filtered = pastedText.replaceAll(/\D/g, '').slice(0, 6);
+    this.emailOtp.set(filtered);
+
+    // Auto-submit when 6 digits pasted
+    if (filtered.length === 6) {
+      this.onVerifyEmailOtp();
+    }
+  }
+
+  /**
+   * Handle OTP verification for email change (step 2: verify OTP)
+   */
+  async onVerifyEmailOtp(): Promise<void> {
+    const otp = this.emailOtp();
+    const newEmail = this.pendingNewEmail();
+
+    if (otp?.length !== 6 || !newEmail) {
+      return;
+    }
+
+    this.emailLoading.set(true);
+    this.emailError.set(null);
+
+    const { error } = await this.authService.verifyEmailChangeOtp(newEmail, otp);
+
+    this.emailLoading.set(false);
+
+    if (error) {
+      this.emailError.set(error.message);
+      return;
+    }
+
+    // Success! Email has been changed
+    this.emailChangeComplete.set(true);
+    this.emailOtpSent.set(false);
+    this.pendingNewEmail.set(null);
+    this.emailOtp.set('');
     this.emailForm.reset();
+  }
+
+  /**
+   * Cancel email change and go back to email input
+   */
+  onCancelEmailChange(): void {
+    this.emailOtpSent.set(false);
+    this.emailChangeComplete.set(false);
+    this.pendingNewEmail.set(null);
+    this.emailOtp.set('');
+    this.emailError.set(null);
+    this.emailSuccess.set(false);
+  }
+
+  /**
+   * Resend OTP for email change
+   */
+  async onResendEmailOtp(): Promise<void> {
+    const newEmail = this.pendingNewEmail();
+    if (!newEmail) return;
+
+    this.emailLoading.set(true);
+    this.emailError.set(null);
+
+    const { error } = await this.authService.updateEmail(newEmail);
+
+    this.emailLoading.set(false);
+
+    if (error) {
+      this.emailError.set(error.message);
+      return;
+    }
+
+    // Show success message for resend
+    this.emailSuccess.set(true);
   }
 
   /**

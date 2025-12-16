@@ -222,7 +222,7 @@
   },
 
   "profile": {
-    "A verification link will be sent to your new email address. You must click the link to complete the change.": "A verification link will be sent to your new email address. You must click the link to complete the change.",
+    "A verification code will be sent to your new email address. You must enter the code to complete the change.": "A verification code will be sent to your new email address. You must enter the code to complete the change.",
     "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.": "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.",
     "Change Email Address": "Change Email Address",
     "Change Password": "Change Password",
@@ -231,6 +231,7 @@
     "Clear Data": "Clear Data",
     "Data & Privacy": "Data & Privacy",
     "Delete Account": "Delete Account",
+    "Email address updated successfully!": "Email address updated successfully!",
     "Download all your account data in JSON format": "Download all your account data in JSON format",
     "Enter username": "Enter username",
     "Enter your new email address": "Enter your new email address",
@@ -251,7 +252,7 @@
     "User ID": "User ID",
     "User Information": "User Information",
     "Username updated successfully!": "Username updated successfully!",
-    "Verification email sent! Please check your new email address and click the confirmation link.": "Verification email sent! Please check your new email address and click the confirmation link.",
+    "Verification email sent! Please check your new email address and enter the confirmation code.": "Verification email sent! Please check your new email address and enter the confirmation code.",
     "Without a username, your profile is private": "Without a username, your profile is private"
   },
 

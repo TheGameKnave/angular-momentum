@@ -222,7 +222,7 @@
   },
 
   "profile": {
-    "A verification link will be sent to your new email address. You must click the link to complete the change.": "Se enviará un enlace de verificación a su nuevo correo. Haga clic en el enlace para completar.",
+    "A verification code will be sent to your new email address. You must enter the code to complete the change.": "Se enviará un código de verificación a su nuevo correo. Ingrese el código para completar.",
     "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.": "¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer. Todos tus datos serán eliminados permanentemente.",
     "Change Email Address": "Cambiar correo",
     "Change Password": "Cambiar contraseña",
@@ -231,6 +231,7 @@
     "Clear Data": "Borrar datos",
     "Data & Privacy": "Datos y Privacidad",
     "Delete Account": "Eliminar cuenta",
+    "Email address updated successfully!": "¡Correo actualizado correctamente!",
     "Download all your account data in JSON format": "Descarga todos los datos de tu cuenta en formato JSON",
     "Enter username": "Ingrese usuario",
     "Enter your new email address": "Ingrese su nuevo correo",
@@ -251,7 +252,7 @@
     "User ID": "ID de usuario",
     "User Information": "Información del usuario",
     "Username updated successfully!": "¡Usuario actualizado!",
-    "Verification email sent! Please check your new email address and click the confirmation link.": "¡Correo de verificación enviado! Revise su nuevo correo y haga clic en el enlace.",
+    "Verification email sent! Please check your new email address and enter the confirmation code.": "¡Correo de verificación enviado! Revise su nuevo correo e ingrese el código de confirmación.",
     "Without a username, your profile is private": "Sin usuario, tu perfil es privado"
   },
 

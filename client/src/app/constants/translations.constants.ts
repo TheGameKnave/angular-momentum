@@ -372,8 +372,9 @@ export const PROFILE_PAGE_KEYS = [
   "profile.Permanently delete your account and all associated data. This action cannot be undone.",
   "profile.Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.",
   "privacy.We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.",
-  "profile.A verification link will be sent to your new email address. You must click the link to complete the change.",
-  "profile.Verification email sent! Please check your new email address and click the confirmation link.",
+  "profile.A verification code will be sent to your new email address. You must enter the code to complete the change.",
+  "profile.Verification email sent! Please check your new email address and enter the confirmation code.",
+  "profile.Email address updated successfully!",
 ] as const;
 
 /**

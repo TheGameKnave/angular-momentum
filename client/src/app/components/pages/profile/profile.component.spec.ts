@@ -34,13 +34,14 @@ describe('ProfileComponent', () => {
     const consentStatusSignal = signal<'accepted' | 'declined' | 'pending'>('pending');
 
     mockAuthService = jasmine.createSpyObj('AuthService',
-      ['logout', 'updatePassword', 'updateEmail', 'getToken', 'deleteAccount', 'isPasswordRecovery', 'login'],
+      ['logout', 'updatePassword', 'updateEmail', 'verifyEmailChangeOtp', 'getToken', 'deleteAccount', 'isPasswordRecovery', 'login'],
       { currentUser: currentUserSignal }
     );
     mockAuthService.isPasswordRecovery.and.returnValue(false);
     mockAuthService.logout.and.returnValue(Promise.resolve());
     mockAuthService.updatePassword.and.returnValue(Promise.resolve({ error: null } as any));
     mockAuthService.updateEmail.and.returnValue(Promise.resolve({ error: null } as any));
+    mockAuthService.verifyEmailChangeOtp.and.returnValue(Promise.resolve({ error: null } as any));
     mockAuthService.getToken.and.returnValue(Promise.resolve('test-token'));
     mockAuthService.deleteAccount.and.returnValue(Promise.resolve({ error: null } as any));
     mockAuthService.login.and.returnValue(Promise.resolve({ error: null } as any));
@@ -363,12 +364,14 @@ describe('ProfileComponent', () => {
       expect(mockAuthService.updateEmail).not.toHaveBeenCalled();
     });
 
-    it('should update email successfully', async () => {
+    it('should send OTP and show OTP form on success', async () => {
       component.emailForm.patchValue({ newEmail: 'new@example.com' });
 
       await component.onSubmitEmailChange();
 
       expect(mockAuthService.updateEmail).toHaveBeenCalledWith('new@example.com');
+      expect(component.emailOtpSent()).toBe(true);
+      expect(component.pendingNewEmail()).toBe('new@example.com');
       expect(component.emailSuccess()).toBe(true);
     });
 
@@ -382,6 +385,172 @@ describe('ProfileComponent', () => {
       await component.onSubmitEmailChange();
 
       expect(component.emailError()).toBe('Email already in use');
+      expect(component.emailOtpSent()).toBe(false);
+    });
+  });
+
+  describe('onEmailOtpInput', () => {
+    it('should filter non-digit characters', () => {
+      const event = { target: { value: 'abc123def456' } } as unknown as Event;
+      component.onEmailOtpInput(event);
+      expect(component.emailOtp()).toBe('123456');
+    });
+
+    it('should auto-submit when 6 digits entered', async () => {
+      component['pendingNewEmail'].set('new@example.com');
+      spyOn(component, 'onVerifyEmailOtp');
+
+      const event = { target: { value: '123456' } } as unknown as Event;
+      component.onEmailOtpInput(event);
+
+      expect(component.onVerifyEmailOtp).toHaveBeenCalled();
+    });
+
+    it('should not auto-submit when less than 6 digits', () => {
+      spyOn(component, 'onVerifyEmailOtp');
+
+      const event = { target: { value: '12345' } } as unknown as Event;
+      component.onEmailOtpInput(event);
+
+      expect(component.onVerifyEmailOtp).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('onEmailOtpPaste', () => {
+    it('should filter and limit pasted content to 6 digits', () => {
+      const event = {
+        preventDefault: jasmine.createSpy('preventDefault'),
+        clipboardData: { getData: () => 'Code: 123456789' }
+      } as unknown as ClipboardEvent;
+
+      component.onEmailOtpPaste(event);
+
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(component.emailOtp()).toBe('123456');
+    });
+
+    it('should auto-submit when 6 digits pasted', async () => {
+      component['pendingNewEmail'].set('new@example.com');
+      spyOn(component, 'onVerifyEmailOtp');
+
+      const event = {
+        preventDefault: jasmine.createSpy('preventDefault'),
+        clipboardData: { getData: () => '123456' }
+      } as unknown as ClipboardEvent;
+
+      component.onEmailOtpPaste(event);
+
+      expect(component.onVerifyEmailOtp).toHaveBeenCalled();
+    });
+
+    it('should handle null clipboard data', () => {
+      const event = {
+        preventDefault: jasmine.createSpy('preventDefault'),
+        clipboardData: null
+      } as unknown as ClipboardEvent;
+
+      component.onEmailOtpPaste(event);
+
+      expect(component.emailOtp()).toBe('');
+    });
+  });
+
+  describe('onVerifyEmailOtp', () => {
+    it('should not verify with incomplete OTP', async () => {
+      component['emailOtp'].set('12345');
+      component['pendingNewEmail'].set('new@example.com');
+
+      await component.onVerifyEmailOtp();
+
+      expect(mockAuthService.verifyEmailChangeOtp).not.toHaveBeenCalled();
+    });
+
+    it('should not verify without pending email', async () => {
+      component['emailOtp'].set('123456');
+      component['pendingNewEmail'].set(null);
+
+      await component.onVerifyEmailOtp();
+
+      expect(mockAuthService.verifyEmailChangeOtp).not.toHaveBeenCalled();
+    });
+
+    it('should verify OTP successfully', async () => {
+      component['emailOtp'].set('123456');
+      component['pendingNewEmail'].set('new@example.com');
+      component['emailOtpSent'].set(true);
+
+      await component.onVerifyEmailOtp();
+
+      expect(mockAuthService.verifyEmailChangeOtp).toHaveBeenCalledWith('new@example.com', '123456');
+      expect(component.emailChangeComplete()).toBe(true);
+      expect(component.emailOtpSent()).toBe(false);
+      expect(component.pendingNewEmail()).toBeNull();
+      expect(component.emailOtp()).toBe('');
+    });
+
+    it('should show error when OTP verification fails', async () => {
+      mockAuthService.verifyEmailChangeOtp.and.returnValue(Promise.resolve({
+        error: { message: 'Invalid OTP' } as any
+      }));
+
+      component['emailOtp'].set('123456');
+      component['pendingNewEmail'].set('new@example.com');
+
+      await component.onVerifyEmailOtp();
+
+      expect(component.emailError()).toBe('Invalid OTP');
+      expect(component.emailChangeComplete()).toBe(false);
+    });
+  });
+
+  describe('onCancelEmailChange', () => {
+    it('should reset all email change state', () => {
+      component['emailOtpSent'].set(true);
+      component['emailChangeComplete'].set(true);
+      component['pendingNewEmail'].set('new@example.com');
+      component['emailOtp'].set('123456');
+      component['emailError'].set('Some error');
+      component['emailSuccess'].set(true);
+
+      component.onCancelEmailChange();
+
+      expect(component.emailOtpSent()).toBe(false);
+      expect(component.emailChangeComplete()).toBe(false);
+      expect(component.pendingNewEmail()).toBeNull();
+      expect(component.emailOtp()).toBe('');
+      expect(component.emailError()).toBeNull();
+      expect(component.emailSuccess()).toBe(false);
+    });
+  });
+
+  describe('onResendEmailOtp', () => {
+    it('should not resend without pending email', async () => {
+      component['pendingNewEmail'].set(null);
+
+      await component.onResendEmailOtp();
+
+      expect(mockAuthService.updateEmail).not.toHaveBeenCalled();
+    });
+
+    it('should resend OTP successfully', async () => {
+      component['pendingNewEmail'].set('new@example.com');
+
+      await component.onResendEmailOtp();
+
+      expect(mockAuthService.updateEmail).toHaveBeenCalledWith('new@example.com');
+      expect(component.emailSuccess()).toBe(true);
+    });
+
+    it('should show error when resend fails', async () => {
+      mockAuthService.updateEmail.and.returnValue(Promise.resolve({
+        error: { message: 'Rate limited' } as any
+      }));
+
+      component['pendingNewEmail'].set('new@example.com');
+
+      await component.onResendEmailOtp();
+
+      expect(component.emailError()).toBe('Rate limited');
     });
   });
 

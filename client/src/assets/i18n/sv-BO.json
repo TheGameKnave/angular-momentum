@@ -222,7 +222,7 @@
   },
 
   "profile": {
-    "A verification link will be sent to your new email address. You must click the link to complete the change.": "A fereefficeshun leenk veel be-a sent tu yuoor noo ee-meil eddress. Yuoo moost cleeck zee leenk tu cumplete-a zee chunge-a.",
+    "A verification code will be sent to your new email address. You must enter the code to complete the change.": "A fereefficeshun cude-a veel be-a sent tu yuoor noo ee-meil eddress. Yuoo moost inter zee cude-a tu cumplete-a zee chunge-a.",
     "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.": "Ere-a yuoo soore-a yuoo vunt tu delete-a yuoor eccuoont? Zees ecshun cunnot be-a undune-a. Ell yuoor deta veel be-a permunentlee deleted.",
     "Change Email Address": "Chunge-a Ee-meil Eddress",
     "Change Password": "Chunge-a Pessvurd",
@@ -231,6 +231,7 @@
     "Clear Data": "Cleer Deta",
     "Data & Privacy": "Deta & Preefecee",
     "Delete Account": "Delete-a Eccuoont",
+    "Email address updated successfully!": "Ee-meil eddress updeted soocccessffoollee! Bork!",
     "Download all your account data in JSON format": "Doonlued ell yuoor eccuoont deta in JSON furmet",
     "Enter username": "Inter userneme-a",
     "Enter your new email address": "Inter yuoor noo ee-meil eddress",
@@ -251,7 +252,7 @@
     "User ID": "User ID",
     "User Information": "User Inffurmeshun",
     "Username updated successfully!": "Userneme-a updeted soocccessffoollee! Bork!",
-    "Verification email sent! Please check your new email address and click the confirmation link.": "Fereefficeshun ee-meil sent! Pleese-a check yuoor noo ee-meil eddress und cleeck zee cunffurmeshun leenk. Bork!",
+    "Verification email sent! Please check your new email address and enter the confirmation code.": "Fereefficeshun ee-meil sent! Pleese-a check yuoor noo ee-meil eddress und inter zee cunffurmeshun cude-a. Bork!",
     "Without a username, your profile is private": "Veethuoot a userneme-a, yuoor pruffeele-a is preefete-a"
   },
 

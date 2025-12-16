@@ -1056,6 +1056,53 @@ describe('AuthService', () => {
     });
   });
 
+  describe('verifyEmailChangeOtp', () => {
+    it('should verify email change OTP successfully', async () => {
+      mockSupabaseAuth.verifyOtp.and.returnValue(Promise.resolve({
+        data: { user: createMockUser('new@example.com'), session: null },
+        error: null
+      }));
+
+      const result = await service.verifyEmailChangeOtp('new@example.com', '123456');
+
+      expect(result.error).toBeNull();
+      expect(mockSupabaseAuth.verifyOtp).toHaveBeenCalledWith({
+        email: 'new@example.com',
+        token: '123456',
+        type: 'email_change'
+      });
+    });
+
+    it('should handle email change OTP verification error', async () => {
+      mockSupabaseAuth.verifyOtp.and.returnValue(Promise.resolve({
+        data: { user: null, session: null },
+        error: { message: 'Invalid OTP' }
+      }));
+
+      const result = await service.verifyEmailChangeOtp('new@example.com', '123456');
+
+      expect(result.error?.message).toBe('Invalid OTP');
+    });
+
+    it('should handle verifyEmailChangeOtp when Supabase not initialized', async () => {
+      (service as any).supabase = null;
+
+      const result = await service.verifyEmailChangeOtp('new@example.com', '123456');
+
+      expect(result.error?.message).toBe('error.Authentication service not initialized');
+      expect(result.error?.status).toBe(500);
+    });
+
+    it('should handle exception during verifyEmailChangeOtp', async () => {
+      mockSupabaseAuth.verifyOtp.and.throwError('Network error');
+
+      const result = await service.verifyEmailChangeOtp('new@example.com', '123456');
+
+      expect(result.error?.message).toBe('error.Verification failed');
+      expect(result.error?.status).toBe(500);
+    });
+  });
+
   describe('return URL management', () => {
     it('should set return URL', () => {
       service.setReturnUrl('/profile');

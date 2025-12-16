@@ -759,7 +759,7 @@ export class AuthService {
   /**
    * Update user email address.
    * Sends verification email to new address.
-   * User must click link in email to confirm change.
+   * User must enter OTP code from email to confirm change.
    */
   async updateEmail(newEmail: string): Promise<{ error: AuthError | null }> {
     if (!this.supabase) {
@@ -781,6 +781,39 @@ export class AuthService {
     } catch (error) {
       this.logService.log('Email update exception', error);
       return { error: { message: 'error.Email update failed', status: 500 } as AuthError };
+    }
+  }
+
+  /**
+   * Verify email change with OTP code.
+   * Completes the email address update after user enters the 6-digit code.
+   *
+   * @param newEmail - The new email address to verify
+   * @param token - 6-digit OTP code from email
+   * @returns Success/error status
+   */
+  async verifyEmailChangeOtp(newEmail: string, token: string): Promise<{ error: AuthError | null }> {
+    if (!this.supabase) {
+      return { error: { message: 'error.Authentication service not initialized', status: 500 } as AuthError };
+    }
+
+    try {
+      const { error } = await this.supabase.auth.verifyOtp({
+        email: newEmail,
+        token,
+        type: 'email_change'
+      });
+
+      if (error) {
+        this.logService.log('Email change OTP verification error', error);
+        return { error };
+      }
+
+      this.logService.log('Email change verified successfully');
+      return { error: null };
+    } catch (error) {
+      this.logService.log('Email change OTP verification exception', error);
+      return { error: { message: 'error.Verification failed', status: 500 } as AuthError };
     }
   }
 
