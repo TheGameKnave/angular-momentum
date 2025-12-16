@@ -105,6 +105,14 @@ describe('TranslocoHttpLoader', () => {
 
   // Custom language override tests (novelty/easter egg languages)
   describe('custom language overrides', () => {
+    it('should return custom flag code for en-MT (Twain)', () => {
+      expect(loader.getCountry('en-MT')).toEqual('twain');
+    });
+
+    it('should return custom native name for en-MT (Twain)', () => {
+      expect(loader.getNativeName('en-MT')).toEqual('English (Twain)');
+    });
+
     it('should return custom flag code for sv-BO (Bork)', () => {
       expect(loader.getCountry('sv-BO')).toEqual('bork');
     });

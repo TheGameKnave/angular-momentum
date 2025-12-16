@@ -22,6 +22,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
     title: {
       'en-US': 'Welcome!',
       'en-GB': 'Welcome!',
+      'en-MT': 'Welkm!',
       'de': 'Willkommen!',
       'fr': 'Bienvenue !',
       'es': '¡Bienvenido!',
@@ -32,6 +33,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
     body: {
       'en-US': 'Thanks for trying Angular Momentum—your modern Angular starter kit!',
       'en-GB': 'Thanks for trying Angular Momentum—your modern Angular starter kit!',
+      'en-MT': 'Xanks for traiin Angular Momntm—ior modrn Angular startr kit!',
       'de': 'Danke, dass Sie Angular Momentum ausprobieren—Ihr modernes Angular-Starter-Kit!',
       'fr': 'Merci d’essayer Angular Momentum—votre kit de démarrage Angular moderne !',
       'es': '¡Gracias por probar Angular Momentum, tu kit de inicio moderno para Angular!',
@@ -42,6 +44,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
     label: {
       'en-US': 'Welcome Message',
       'en-GB': 'Welcome Message',
+      'en-MT': 'Welkm Mesij',
       'de': 'Willkommensnachricht',
       'fr': 'Message de Bienvenue',
       'es': 'Mensaje de Bienvenida',
@@ -54,6 +57,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
     title: {
       'en-US': 'New Feature Available',
       'en-GB': 'New Feature Available',
+      'en-MT': 'Niu Fiichr Eivailabl',
       'de': 'Neue Funktion Verfügbar',
       'fr': 'Nouvelle Fonctionnalité Disponible',
       'es': 'Nueva Función Disponible',
@@ -64,6 +68,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
     body: {
       'en-US': 'Check out the latest updates in the Features section!',
       'en-GB': 'Check out the latest updates in the Features section!',
+      'en-MT': 'Chek awt xe laitest updaits in xe Fiichrs sekshn!',
       'de': 'Schauen Sie sich die neuesten Updates im Funktionsbereich an!',
       'fr': 'Découvrez les dernières mises à jour dans la section Fonctionnalités !',
       'es': '¡Consulta las últimas actualizaciones en la sección de Funciones!',
@@ -74,6 +79,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
     label: {
       'en-US': 'Feature Update',
       'en-GB': 'Feature Update',
+      'en-MT': 'Fiichr Updait',
       'de': 'Funktionsaktualisierung',
       'fr': 'Mise à Jour de Fonctionnalité',
       'es': 'Actualización de Función',
@@ -86,6 +92,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
     title: {
       'en-US': 'System Maintenance',
       'en-GB': 'System Maintenance',
+      'en-MT': 'Sistm Maintinns',
       'de': 'Systemwartung',
       'fr': 'Maintenance du Système',
       'es': 'Mantenimiento del Sistema',
@@ -96,6 +103,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
     body: {
       'en-US': 'Scheduled maintenance will occur tonight at {time}.',
       'en-GB': 'Scheduled maintenance will occur tonight at {time}.',
+      'en-MT': 'Sheduld maintinns wil okur tunait at {time}.',
       'de': 'Die geplante Wartung findet heute Nacht um {time} statt.',
       'fr': 'La maintenance programmée aura lieu ce soir à {time}.',
       'es': 'El mantenimiento programado ocurrirá esta noche a las {time}.',
@@ -106,6 +114,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
     label: {
       'en-US': 'Maintenance Alert',
       'en-GB': 'Maintenance Alert',
+      'en-MT': 'Maintinns Alert',
       'de': 'Wartungshinweis',
       'fr': 'Alerte de Maintenance',
       'es': 'Alerta de Mantenimiento',
@@ -118,6 +127,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
     title: {
       'en-US': 'Achievement Unlocked',
       'en-GB': 'Achievement Unlocked',
+      'en-MT': 'Achiivmnt Unlokd',
       'de': 'Erfolg Freigeschaltet',
       'fr': 'Succès Débloqué',
       'es': 'Logro Desbloqueado',
@@ -128,6 +138,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
     body: {
       'en-US': 'You successfully tested the notification system!',
       'en-GB': 'You successfully tested the notification system!',
+      'en-MT': 'Iu suksesfuli testd xe notifikaishn sistm!',
       'de': 'Sie haben das Benachrichtigungssystem erfolgreich getestet!',
       'fr': 'Vous avez testé avec succès le système de notifications !',
       'es': '¡Probaste exitosamente el sistema de notificaciones!',
@@ -138,6 +149,7 @@ export const NOTIFICATIONS: Record<string, NotificationDefinition> = {
     label: {
       'en-US': 'Achievement',
       'en-GB': 'Achievement',
+      'en-MT': 'Achiivmnt',
       'de': 'Erfolg',
       'fr': 'Succès',
       'es': 'Logro',

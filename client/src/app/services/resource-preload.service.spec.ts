@@ -31,8 +31,8 @@ describe('ResourcePreloadService', () => {
     it('should preload all configured resources', async () => {
       spyOn(service, 'preload').and.returnValue(Promise.resolve());
       await service.preloadAll();
-      // Should preload 8 flag resources + 2 font resources = 10 total
-      expect(service.preload).toHaveBeenCalledTimes(10);
+      // Should preload 9 flag resources + 2 font resources = 11 total
+      expect(service.preload).toHaveBeenCalledTimes(11);
     });
 
     it('should handle preload failures gracefully', async () => {

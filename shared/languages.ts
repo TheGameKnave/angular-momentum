@@ -8,6 +8,7 @@
 export const SUPPORTED_LANGUAGES = [
   'en-US',
   'en-GB',
+  'en-MT', // for English (Twain) - Mark Twain's phonetic reform
   'de',
   'fr',
   'es',

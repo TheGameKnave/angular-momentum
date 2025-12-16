@@ -13,6 +13,7 @@ describe('normalizeLanguage', () => {
   it('should return supported languages unchanged', () => {
     expect(normalizeLanguage('en-US')).toBe('en-US');
     expect(normalizeLanguage('en-GB')).toBe('en-GB');
+    expect(normalizeLanguage('en-MT')).toBe('en-MT');
     expect(normalizeLanguage('de')).toBe('de');
     expect(normalizeLanguage('fr')).toBe('fr');
     expect(normalizeLanguage('es')).toBe('es');

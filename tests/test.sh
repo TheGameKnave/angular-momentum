@@ -28,8 +28,8 @@ cd ../client && npx eslint --ext .ts src/
 echo "\nRunning client tests\n\n"
 cd ../client && npm test
 
-echo "\nRunning e2e tests\n\n"
-cd ../ && npx playwright test --config=tests/e2e/playwright.config.ts --project=chromium --project=chromium-features --project=chromium-feature-toggles
-
 echo "\nRunning sonar-scanner\n\n"
 npm run sonar
+
+echo "\nRunning e2e tests\n\n"
+cd ../ && npx playwright test --config=tests/e2e/playwright.config.ts --project=chromium --project=chromium-features --project=chromium-feature-toggles

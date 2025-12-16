@@ -1,6 +1,5 @@
 # TODO chores/tasks
 
-twain-speak translation file
 changing email should use OTP flow and better template
 light/dark theming approach (rename variables?)
 public vs private/auth api
