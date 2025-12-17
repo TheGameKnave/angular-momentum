@@ -1,13 +1,101 @@
 @charset "UTF-8";
 
-// ============================================================================
-// 1. IMPORTS & FONTS
-// ============================================================================
+// =============================================================================
+// MAIN STYLESHEET
+// =============================================================================
 
 @use "tailwindcss";
+
 @import "./vendor/flag-icons.css";
 @import "primeicons/primeicons.css";
 
+// =============================================================================
+// VARIABLES & CSS CUSTOM PROPERTIES
+// =============================================================================
+
+// Font stacks (compile-time only - used in font declarations)
+$text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC', 'Segoe UI', 'Arial Unicode MS', Arial, sans-serif;
+$code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Monaco', monospace;
+
+// =============================================================================
+// CSS Custom Properties - Light Mode Defaults
+// =============================================================================
+:root {
+  // -----------------------------------------------------------------------------
+  // Brand Colors (constant across themes)
+  // -----------------------------------------------------------------------------
+  --color-brand-faint: #9fe;
+  --color-brand-light: #0ca;
+  --color-brand: #1b9;
+  --color-brand-dark: #278;
+
+  // -----------------------------------------------------------------------------
+  // Semantic Colors (theme-aware)
+  // -----------------------------------------------------------------------------
+
+  // Backgrounds
+  --color-bg-primary: #f4f4f4;
+  --color-bg-secondary: #f2f2f2;
+  --color-bg-tertiary: #eee;
+  --color-bg-overlay: #fff;
+  --color-bg-backdrop: rgba(0, 0, 0, 0.5);
+  --p-card-background: #eee !important;
+  --p-panel-background: #eee !important;
+
+  // Text
+  --color-text-primary: #222;
+  --color-text-secondary: #444;
+  --color-text-muted: #808080;
+
+  // Borders
+  --color-border-primary: #ccc;
+  --color-border-secondary: #808080;
+
+  // States
+  --color-text-warning: #b45309;
+  --color-text-error: #dc2626;
+  --color-text-success: #16a34a;
+  --color-text-info: #0891b2;
+
+  // Interactive
+  --color-link: var(--color-brand-dark);
+  --color-link-hover: var(--color-brand-light);
+  --color-link-visited: var(--color-brand);
+  --color-active: var(--color-brand-light);
+
+  // Effects
+  --color-shadow: rgba(0, 0, 0, 0.2);
+  --color-highlight-bg: rgba(102, 126, 234, 0.08);
+  --color-highlight-bg-active: rgba(102, 126, 234, 0.12);
+
+  // UI-specific
+  --color-focus-ring: #667eea;
+  --color-error-red: #e74c3c;
+  --color-action-warning: #ea580c;
+  --color-action-danger: #dc2626;
+
+  // Horizontal rule gradient
+  --hr-gradient: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
+  --hr-gradient-vertical: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
+
+  // Scroll indicator gradient
+  --scroll-indicator-gradient-v: linear-gradient(to bottom, var(--color-brand-dark), var(--color-brand));
+  --scroll-indicator-gradient-h: linear-gradient(to right, var(--color-brand-dark), var(--color-brand));
+
+  // Component-specific
+  --kofi-button-bg: var(--color-brand-dark);
+  --kofi-button-border: transparent;
+  --kofi-button-border-hover: var(--color-brand-light);
+  --tooltip-border-color: transparent;
+  --notification-badge-bg: #f88;
+  --notification-unread-border: var(--color-brand-dark);
+}
+
+// =============================================================================
+// BASE STYLES (html, body, typography, reset)
+// =============================================================================
+
+// Font faces
 /* Raleway Regular */
 @font-face {
   font-family: 'Raleway';
@@ -22,254 +110,6 @@
   font-weight: 100 900;
   font-style: italic;
 }
-
-/// Regular font family
-/// @type List
-$text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC', 'Segoe UI', 'Arial Unicode MS', Arial, sans-serif !default;
-
-/// Code (monospace) font family
-/// @type List
-$code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Monaco', monospace !default;
-
-// ============================================================================
-// 2. VARIABLES (THEME)
-// ============================================================================
-
-// Brand colors
-$faint-brand: #9fe !default;
-$light-brand: #0ca !default;
-$brand: #1b9 !default;
-$dark-brand: #278 !default;
-
-// Gray scale
-$faint-gray: #eee !default;
-$light-gray: #ccc !default;
-$high-gray: #aaa !default;
-$mid-gray: #808080 !default;
-$low-gray: #444 !default;
-$dim-gray: #333 !default;
-$dark-gray: #222 !default;
-
-// Effects
-$shadow: rgba(0, 0, 0, 0.2) !default;
-$backdrop: rgba(0, 0, 0, 0.5) !default;
-
-// Text colors
-$text-light: #f4f4f4 !default;
-$text-warning-light: #ffa !default;
-$text-error-light: #f88 !default;
-$text-success-light: #8f8 !default;
-$text-info-light: #8ff !default;
-
-// UI colors
-$error-red: #e74c3c !default;
-$focus-ring: #667eea !default;
-$action-warning: #ea580c;
-$action-danger: #dc2626;
-$highlight-bg: rgba(102, 126, 234, 0.08) !default;
-$highlight-bg-active: rgba(102, 126, 234, 0.12) !default;
-
-// ============================================================================
-// 3. DARK THEME (.app-dark)
-// ============================================================================
-
-.app-dark {
-  // CSS Custom Properties for PrimeNG
-  --p-card-background: #{$dim-gray} !important;
-  --p-panel-background: #{$dim-gray} !important;
-  --p-card-color: #{$text-light} !important;
-  --p-form-field-background: #{$dark-gray} !important;
-  --p-toggleswitch-handle-checked-background: #{$dim-gray} !important;
-
-  // Base colors
-  background-color: $dark-gray;
-  color: $text-light;
-
-  // State colors
-  .warning {
-    color: $text-warning-light;
-  }
-  .error {
-    color: $text-error-light;
-  }
-
-  // Links
-  a {
-    &:hover, &:focus {
-      color: $light-brand;
-    }
-  }
-  p > a {
-    color: $faint-brand;
-    &:hover, &:focus {
-      color: $light-brand;
-    }
-    &:visited {
-      color: $light-brand;
-    }
-  }
-
-  // Borders
-  app-menu-feature, .anchor-menu-panel, .cdk-dialog-panel, header, footer, .cookie-banner {
-    border-color: $mid-gray;
-  }
-  .p-tooltip {
-    .p-tooltip-text {
-      border-color: $dark-brand;
-    }
-    &.p-tooltip-top .p-tooltip-arrow {
-      border-top-color: $dark-brand !important;
-      border-bottom-color: $dark-brand !important;
-    }
-  }
-
-  // Horizontal rules
-  hr:before {
-    background-image: linear-gradient(to right, rgba(200,200,200, 0), rgba(200,200,200, 0.75), rgba(200,200,200, 0));
-  }
-  .screen-xs.not-sm app-menu-feature hr:before {
-    background-image: linear-gradient(to bottom, rgba(200, 200, 200, 0), rgba(200, 200, 200, 0.75), rgba(200, 200, 200, 0));
-  }
-
-  // Overlays
-  .app-overlay-backdrop {
-    background-color: $backdrop;
-    backdrop-filter: blur(1px);
-  }
-
-  // Menus
-  app-menu-feature {
-    background-color: $dark-gray;
-    color: $text-light;
-    a {
-      color: $text-light;
-    }
-  }
-  .anchor-menu-panel {
-    background-color: $backdrop;
-    color: $text-light;
-    a {
-      color: $text-light;
-      &.close:hover {
-        color: $light-brand;
-      }
-    }
-  }
-
-  // Header & Footer (need explicit background for sticky positioning)
-  header, footer {
-    background-color: $dark-gray;
-    color: $text-light;
-  }
-
-  // Ko-fi button
-  .kofi-button a {
-    color: $text-light;
-    border-color: $dark-brand;
-    &:hover {
-      border-color: $light-brand;
-    }
-  }
-
-  // Feature toggles
-  p-toggleswitch + label:hover {
-    color: $light-brand;
-  }
-
-  // Notification system
-  .notification-badge {
-    color: $text-light;
-  }
-  .notification-center-actions {
-    p-button button {
-      color: $text-light;
-      &:hover {
-        color: $light-brand;
-      }
-    }
-  }
-  .notification-item {
-    &:hover {
-      background-color: $dim-gray;
-    }
-    &.unread {
-      border-left-color: $light-brand;
-    }
-  }
-
-  // Notifications page
-  app-notifications {
-    .notification-test-card {
-      background-color: $dark-gray;
-      border-color: $low-gray;
-
-      .notification-preview p {
-        color: $text-light;
-      }
-    }
-
-    .status-message {
-      &.local {
-        background-color: $low-gray;
-        color: $text-light;
-      }
-      &.server {
-        background-color: $dark-gray;
-        color: $text-light;
-      }
-    }
-
-    .status-grid dd {
-      &.granted {
-        color: $text-success-light;
-      }
-      &.denied {
-        color: $text-error-light;
-      }
-    }
-  }
-
-  // Cookie Banner
-  app-cookie-banner aside {
-    background-color: $backdrop;
-    color: $text-light;
-
-    a {
-      color: $faint-brand;
-      &:hover {
-        color: $light-brand;
-      }
-    }
-  }
-
-  // profile actions
-  .action-title {
-    &.warning {
-      color: $action-warning;
-    }
-
-    &.danger {
-      color: $action-danger;
-    }
-  }
-
-  // Privacy Policy
-  app-privacy-policy .summary-box {
-    background-color: $dark-gray;
-  }
-
-  // Scroll indicators
-  .scroll-indicator-vertical {
-    background: linear-gradient(to bottom, $light-brand, $dark-brand);
-  }
-  .scroll-indicator-horizontal {
-    background: linear-gradient(to right, $light-brand, $dark-brand);
-  }
-}
-
-// ============================================================================
-// 4. BASE STYLES (html, body, typography, reset)
-// ============================================================================
 
 html {
   font-size: 62.5%;
@@ -291,6 +131,8 @@ body {
   font: normal 1.2rem / 1.4 $text-font-stack;
   font-weight: 500;
   font-feature-settings: "lnum";
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
   // Set safe area insets
   padding-bottom: env(safe-area-inset-bottom) !important;
   padding-top: env(safe-area-inset-top) !important;
@@ -344,6 +186,7 @@ hr {
     left: 0;
     border: 0;
     height: 1.5px;
+    background-image: var(--hr-gradient);
   }
 }
 
@@ -366,11 +209,32 @@ hr {
 
 a {
   text-decoration: none;
+  &:hover, &:focus {
+    color: var(--color-link-hover);
+  }
+}
+
+p > a {
+  color: var(--color-link);
+  &:hover, &:focus {
+    color: var(--color-link-hover);
+  }
+  &:visited {
+    color: var(--color-link-visited);
+  }
 }
 
 p a:hover {
   text-decoration: underline;
   cursor: pointer;
+}
+
+.warning {
+  color: var(--color-text-warning);
+}
+
+.error {
+  color: var(--color-text-error);
 }
 
 .disabled {
@@ -421,9 +285,67 @@ ul {
   }
 }
 
-// ============================================================================
-// 5. PRIMENG OVERRIDES
-// ============================================================================
+// =============================================================================
+// DARK THEME - CSS Custom Property Overrides
+// =============================================================================
+
+.app-dark {
+  // -----------------------------------------------------------------------------
+  // Semantic Color Overrides
+  // -----------------------------------------------------------------------------
+
+  // Backgrounds
+  --color-bg-primary: #222;
+  --color-bg-secondary: #333;
+  --color-bg-tertiary: #444;
+  --color-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  // Text
+  --color-text-primary: #f4f4f4;
+  --color-text-secondary: #ccc;
+  --color-text-muted: #808080;
+
+  // Borders
+  --color-border-primary: #808080;
+  --color-border-secondary: #444;
+
+  // States
+  --color-text-warning: #ffa;
+  --color-text-error: #f88;
+  --color-text-success: #8f8;
+  --color-text-info: #8ff;
+
+  // Interactive
+  --color-link: var(--color-brand-faint);
+  --color-link-hover: var(--color-brand-light);
+  --color-link-visited: var(--color-brand-light);
+
+  // Horizontal rule gradient
+  --hr-gradient: linear-gradient(to right, rgba(200, 200, 200, 0), rgba(200, 200, 200, 0.75), rgba(200, 200, 200, 0));
+  --hr-gradient-vertical: linear-gradient(to bottom, rgba(200, 200, 200, 0), rgba(200, 200, 200, 0.75), rgba(200, 200, 200, 0));
+
+  // Scroll indicator gradient
+  --scroll-indicator-gradient-v: linear-gradient(to bottom, var(--color-brand-light), var(--color-brand-dark));
+  --scroll-indicator-gradient-h: linear-gradient(to right, var(--color-brand-light), var(--color-brand-dark));
+
+  // Component-specific
+  --kofi-button-border: var(--color-brand-dark);
+  --tooltip-border-color: var(--color-brand-dark);
+  --notification-unread-border: var(--color-brand-light);
+
+  // -----------------------------------------------------------------------------
+  // PrimeNG Custom Properties
+  // -----------------------------------------------------------------------------
+  --p-card-background: #333 !important;
+  --p-panel-background: #333 !important;
+  --p-card-color: #f4f4f4 !important;
+  --p-form-field-background: #222 !important;
+  --p-toggleswitch-handle-checked-background: #333 !important;
+}
+
+// =============================================================================
+// PRIMENG OVERRIDES
+// =============================================================================
 
 // PrimeNG font size overrides to compensate for reduced base font size
 // PrimeNG assumes 1rem = 16px, but we set 1rem = 10px for easier math
@@ -441,7 +363,7 @@ ul {
 
 // Accessible focus indicator for buttons
 .p-button:focus-visible {
-  outline: 2px solid $focus-ring !important;
+  outline: 2px solid var(--color-focus-ring) !important;
   outline-offset: 2px;
 }
 
@@ -478,12 +400,17 @@ p-panel {
   background-color: transparent !important;
 
   .p-tooltip-text {
-    border: 1px solid transparent;
+    border: 1px solid var(--tooltip-border-color);
     max-width: 30rem !important;
     width: max-content !important;
     white-space: pre-line !important;
     text-align: left !important;
     display: block !important;
+  }
+
+  &.p-tooltip-top .p-tooltip-arrow {
+    border-top-color: var(--tooltip-border-color) !important;
+    border-bottom-color: var(--tooltip-border-color) !important;
   }
 }
 
@@ -540,9 +467,9 @@ p-card {
   }
 }
 
-// ============================================================================
-// 6. LAYOUT (main, header, footer, content)
-// ============================================================================
+// =============================================================================
+// LAYOUT (main, header, footer, content)
+// =============================================================================
 
 .main {
   display: flex;
@@ -553,8 +480,10 @@ p-card {
 }
 
 header, footer {
-  border: 0 solid $mid-gray;
+  border: 0 solid var(--color-border-primary);
   flex-shrink: 0;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
 }
 
 header {
@@ -615,13 +544,13 @@ footer {
   }
 }
 
-// ============================================================================
-// 7. COMPONENTS
-// ============================================================================
+// =============================================================================
+// COMPONENTS
+// =============================================================================
 
-// ----------------------------------------------------------------------------
-// 7.1 Feature Menu (app-menu-feature)
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Feature Menu (app-menu-feature)
+// -----------------------------------------------------------------------------
 
 app-menu-feature {
   position: fixed;
@@ -631,14 +560,17 @@ app-menu-feature {
   bottom: 0;
   font-size: 1.6rem;
   overflow-y: auto;
-  padding: 5.2rem 0.6rem 4.3rem;
+  padding: 6.4rem 0.6rem 5.8rem;
   width: 5rem;
   transition: width 0.1s ease-in-out !important;
   border-right-width: 1px;
+  border-color: var(--color-border-primary);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
 
   &:hover {
     width: 18rem;
-    box-shadow: 1rem 0 1rem $shadow;
+    box-shadow: 1rem 0 1rem var(--color-shadow);
   }
 
   .link-home, .kofi-button {
@@ -674,14 +606,18 @@ app-menu-feature {
       display: inline-flex;
       align-items: center;
       gap: 1rem;
-      background-color: $dark-brand;
-      border: 1px solid transparent;
+      background-color: var(--kofi-button-bg);
+      border: 1px solid var(--kofi-button-border);
       border-radius: 0.6rem;
       padding: 0.4rem 0.6rem;
       font-size: 1.6rem;
       white-space: nowrap;
       cursor: pointer;
       text-decoration: none;
+
+      &:hover {
+        border-color: var(--kofi-button-border-hover);
+      }
     }
     img {
       max-width: 2.6rem;
@@ -699,13 +635,15 @@ app-menu-feature {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: var(--color-text-primary);
+
     .label {
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
     }
     &:hover, &.selected {
-      color: $light-brand;
+      color: var(--color-active);
     }
     &.selected {
       cursor: default;
@@ -717,15 +655,19 @@ app-menu-feature {
     vertical-align: middle;
     border-radius: 1rem;
   }
+
+  hr:before {
+    background-image: var(--hr-gradient);
+  }
 }
 
 .movable, .resizable, .menu, .panel, .sidebar, app-menu-feature, app-menu-language, app-menu-change-log {
   transition: all 0.2s ease-in-out;
 }
 
-// ----------------------------------------------------------------------------
-// 7.2 Anchor Menu System (shared styles)
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Anchor Menu System (shared styles)
+// -----------------------------------------------------------------------------
 
 app-anchor-menu {
   display: flex;
@@ -769,12 +711,21 @@ app-anchor-menu {
 
 .anchor-menu-panel {
   position: fixed;
-  border: 0px solid $mid-gray;
+  border: 0px solid var(--color-border-primary);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   z-index: 1000;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background-color: var(--color-bg-overlay) !important;
+  color: var(--color-text-primary);
+
+  a {
+    color: var(--color-text-primary);
+    &.close:hover {
+      color: var(--color-active);
+    }
+  }
 
   // Generic styles for projected content using attribute selectors
   // Menus should use: <div menu-content>, <div menu-header>, <div menu-body>
@@ -880,10 +831,22 @@ app-anchor-menu {
   }
 }
 
+// Overlay backdrop
+.app-overlay-backdrop {
+  background-color: var(--color-bg-backdrop);
+  backdrop-filter: blur(1px);
+  opacity: 1;
+}
+
+// CDK overlay backdrop (ensure visibility)
+.cdk-overlay-backdrop.cdk-overlay-backdrop-showing {
+  opacity: 1;
+}
+
 // CDK Overlay Dialog (generic reusable dialog styles)
 .cdk-dialog-panel {
-  background-color: $backdrop;
-  border: 1px solid $mid-gray;
+  background-color: var(--color-bg-backdrop);
+  border: 1px solid var(--color-border-primary);
   border-radius: 0.8rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(3px);
@@ -903,7 +866,7 @@ app-anchor-menu {
   align-items: center;
   justify-content: space-between;
   padding: 1.6rem;
-  border-bottom: 1px solid $mid-gray;
+  border-bottom: 1px solid var(--color-border-primary);
   flex-shrink: 0;
 }
 
@@ -936,13 +899,13 @@ app-anchor-menu {
   justify-content: flex-end;
   gap: 0.5rem;
   padding: 1.6rem;
-  border-top: 1px solid $mid-gray;
+  border-top: 1px solid var(--color-border-primary);
   flex-shrink: 0;
 }
 
-// ----------------------------------------------------------------------------
-// 7.2.1 Dialog: Update
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Dialog: Update
+// -----------------------------------------------------------------------------
 
 .dialog-update-panel {
   @extend .cdk-dialog-panel;
@@ -963,9 +926,9 @@ app-anchor-menu {
   gap: 0.5rem;
 }
 
-// ----------------------------------------------------------------------------
-// 7.2.2 Dialog: Migration
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Dialog: Migration
+// -----------------------------------------------------------------------------
 
 .dialog-migration-panel {
   @extend .cdk-dialog-panel;
@@ -976,9 +939,9 @@ app-anchor-menu {
 }
 .dialog-migration-footer { @extend .cdk-dialog-footer; }
 
-// ----------------------------------------------------------------------------
-// 7.2.3 Dialog: Clear Data
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Dialog: Clear Data
+// -----------------------------------------------------------------------------
 
 .dialog-clear-data-panel {
   @extend .cdk-dialog-panel;
@@ -993,9 +956,9 @@ app-anchor-menu {
 }
 .dialog-clear-data-footer { @extend .cdk-dialog-footer; }
 
-// ----------------------------------------------------------------------------
-// 7.2.4 Dialog: Generic Confirm
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Dialog: Generic Confirm
+// -----------------------------------------------------------------------------
 
 .dialog-confirm-panel {
   @extend .cdk-dialog-panel;
@@ -1015,7 +978,7 @@ app-anchor-menu {
 
   label {
     font-size: 1.8rem;
-    color: $action-warning;
+    color: var(--color-action-warning);
   }
 
   input {
@@ -1024,9 +987,9 @@ app-anchor-menu {
 }
 .dialog-confirm-footer { @extend .cdk-dialog-footer; }
 
-// ----------------------------------------------------------------------------
-// 7.3 Language Menu
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Language Menu
+// -----------------------------------------------------------------------------
 
 .menu-language-body {
   ul {
@@ -1047,7 +1010,7 @@ app-anchor-menu {
         text-overflow: ellipsis;
 
         &:hover, &.selected {
-          color: $light-brand;
+          color: var(--color-active);
         }
         &.selected {
           cursor: default;
@@ -1057,9 +1020,9 @@ app-anchor-menu {
   }
 }
 
-// ----------------------------------------------------------------------------
-// 7.4 Change Log Menu
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Change Log Menu
+// -----------------------------------------------------------------------------
 
 .menu-change-log-header {
   h4, p {
@@ -1072,7 +1035,7 @@ app-anchor-menu {
     text-overflow: ellipsis;
 
     &:hover {
-      color: $light-brand;
+      color: var(--color-active);
     }
   }
 }
@@ -1085,9 +1048,9 @@ app-anchor-menu {
   }
 }
 
-// ----------------------------------------------------------------------------
-// 7.5 Notification Center
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Notification Center
+// -----------------------------------------------------------------------------
 
 .notification-center-button {
   position: relative;
@@ -1106,7 +1069,8 @@ app-anchor-menu {
   position: absolute;
   top: -0.6rem;
   right: -0.6rem;
-  background-color: $text-error-light;
+  background-color: var(--notification-badge-bg);
+  color: var(--color-text-primary);
   border-radius: 1rem;
   padding: 0.2rem 0.6rem;
   font-size: 1.1rem;
@@ -1142,13 +1106,18 @@ app-anchor-menu {
   p-button button {
     font-size: 1.6rem !important;
     padding: 0.8rem !important;
+    color: var(--color-text-primary);
+
+    &:hover {
+      color: var(--color-active);
+    }
   }
 }
 
 .notification-empty {
   padding: 4.8rem 1.6rem;
   text-align: center;
-  color: $mid-gray;
+  color: var(--color-text-muted);
 
   .pi {
     font-size: 3rem;
@@ -1190,6 +1159,14 @@ app-anchor-menu {
   margin: 0 !important;
   border-left: 3px solid transparent;
 
+  &:hover {
+    background-color: var(--color-bg-secondary);
+  }
+
+  &.unread {
+    border-left-color: var(--notification-unread-border);
+  }
+
   p-button button {
     font-size: 1.4rem !important;
     padding: 0.6rem !important;
@@ -1197,7 +1174,7 @@ app-anchor-menu {
     min-height: 3.2rem !important;
 
     &:hover {
-      color: $light-brand !important;
+      color: var(--color-active) !important;
     }
 
     .pi {
@@ -1230,9 +1207,9 @@ app-anchor-menu {
   opacity: 0.7;
 }
 
-// ----------------------------------------------------------------------------
-// 7.6 Auth Menu (button, header, form, profile, OTP)
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Auth Menu (button, header, form, profile, OTP)
+// -----------------------------------------------------------------------------
 
 .auth-menu-button {
   background: none;
@@ -1253,7 +1230,7 @@ app-anchor-menu {
     transition: color 0.2s ease-in-out;
 
     &.active-route {
-      color: $light-brand;
+      color: var(--color-active);
     }
   }
 }
@@ -1313,7 +1290,7 @@ app-anchor-menu {
     }
 
     .error-message {
-      color: $error-red;
+      color: var(--color-error-red);
       display: block;
       position: absolute;
       bottom: -1.6rem;
@@ -1334,7 +1311,7 @@ app-anchor-menu {
   }
 
   .form-field-optional {
-    color: $mid-gray;
+    color: var(--color-text-muted);
     font-size: 0.9em;
   }
 
@@ -1476,15 +1453,15 @@ app-anchor-menu {
       margin-bottom: 0.4rem;
 
       &:hover {
-        background-color: $highlight-bg;
+        background-color: var(--color-highlight-bg);
       }
 
       &:active {
-        background-color: $highlight-bg-active;
+        background-color: var(--color-highlight-bg-active);
       }
 
       &:focus-visible {
-        outline: 2px solid $focus-ring;
+        outline: 2px solid var(--color-focus-ring);
         outline-offset: 2px;
       }
     }
@@ -1618,9 +1595,9 @@ app-anchor-menu {
   }
 }
 
-// ----------------------------------------------------------------------------
-// 7.7 Cookie Banner
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Cookie Banner
+// -----------------------------------------------------------------------------
 
 app-cookie-banner {
   aside {
@@ -1631,16 +1608,25 @@ app-cookie-banner {
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
+    background-color: var(--color-bg-overlay);
+    color: var(--color-text-primary);
     backdrop-filter: blur(3px);
-    border-top: 1px solid transparent;
+    border-top: 1px solid var(--color-border-primary);
     padding: 1.5rem 2rem;
     z-index: 10000;
-    box-shadow: 0 -0.4rem 2rem $shadow;
+    box-shadow: 0 -0.4rem 2rem var(--color-shadow);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 1.5rem;
+
+    a {
+      color: var(--color-link);
+      &:hover {
+        color: var(--color-link-hover);
+      }
+    }
   }
 
   p {
@@ -1670,9 +1656,9 @@ app-cookie-banner {
   }
 }
 
-// ----------------------------------------------------------------------------
-// 7.8 Privacy Policy
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Privacy Policy
+// -----------------------------------------------------------------------------
 
 .privacy-content {
   line-height: 1.6;
@@ -1711,7 +1697,7 @@ app-privacy-policy {
 
   .summary-box {
     padding: 1.6rem;
-    background-color: var(--p-surface-100);
+    background-color: var(--color-bg-secondary);
     border-radius: 0.4rem;
     margin-bottom: 2.4rem;
   }
@@ -1727,11 +1713,11 @@ app-privacy-policy {
     }
 
     .status-enabled {
-      color: #16a34a;
+      color: var(--color-text-success);
     }
 
     .status-disabled {
-      color: $mid-gray;
+      color: var(--color-text-muted);
     }
 
     .status-pending {
@@ -1755,13 +1741,35 @@ app-privacy-policy {
   }
 }
 
-// ============================================================================
-// 8. PAGE-SPECIFIC STYLES
-// ============================================================================
+// -----------------------------------------------------------------------------
+// Profile Actions
+// -----------------------------------------------------------------------------
 
-// ----------------------------------------------------------------------------
-// 8.1 Profile Page
-// ----------------------------------------------------------------------------
+.action-title {
+  &.warning {
+    color: var(--color-action-warning);
+  }
+
+  &.danger {
+    color: var(--color-action-danger);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Toggle switches
+// -----------------------------------------------------------------------------
+
+p-toggleswitch + label:hover {
+  color: var(--color-active);
+}
+
+// =============================================================================
+// PAGE-SPECIFIC STYLES
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Profile Page
+// -----------------------------------------------------------------------------
 
 app-profile {
   .profile-avatar {
@@ -1867,9 +1875,9 @@ app-profile {
   }
 }
 
-// ----------------------------------------------------------------------------
-// 8.2 Notifications Page
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Notifications Page
+// -----------------------------------------------------------------------------
 
 app-notifications {
   section {
@@ -1889,7 +1897,7 @@ app-notifications {
 
     dt {
       font-size: 1.2rem;
-      color: $mid-gray;
+      color: var(--color-text-muted);
       text-transform: uppercase;
     }
 
@@ -1898,15 +1906,16 @@ app-notifications {
       font-weight: 600;
       margin: 0;
 
-      &.granted { color: #16a34a; }
-      &.denied { color: #dc2626; }
+      &.granted { color: var(--color-text-success); }
+      &.denied { color: var(--color-text-error); }
     }
   }
 
   .notification-test-card {
     padding: 1.5rem;
     margin: 1rem 0;
-    border: 1px solid transparent;
+    border: 1px solid var(--color-border-secondary);
+    background-color: var(--color-bg-secondary);
     border-radius: 0.8rem;
     display: flex;
     justify-content: space-between;
@@ -1925,6 +1934,7 @@ app-notifications {
       p {
         font-size: 1.5rem;
         margin: 0;
+        color: var(--color-text-primary);
       }
     }
 
@@ -1941,12 +1951,21 @@ app-notifications {
     margin-top: 1rem;
     font-size: 1.4rem;
     border-left: 4px solid;
+    color: var(--color-text-primary);
+
+    &.local {
+      background-color: var(--color-bg-tertiary);
+    }
+
+    &.server {
+      background-color: var(--color-bg-secondary);
+    }
   }
 }
 
-// ----------------------------------------------------------------------------
-// 8.3 IndexedDB Page
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// IndexedDB Page
+// -----------------------------------------------------------------------------
 
 app-indexeddb p-card {
   font-size: 2rem;
@@ -1956,9 +1975,9 @@ app-indexeddb p-card {
   }
 }
 
-// ============================================================================
-// 9. RESPONSIVE OVERRIDES (screen sizes)
-// ============================================================================
+// =============================================================================
+// RESPONSIVE OVERRIDES (screen sizes)
+// =============================================================================
 
 .screen-xl {
   body.index footer {
@@ -2034,6 +2053,7 @@ app-indexeddb p-card {
         bottom: 0;
         height: 100%;
         width: 1.5px;
+        background-image: var(--hr-gradient-vertical);
       }
     }
     .kofi-button, .link-home {
@@ -2111,9 +2131,9 @@ app-indexeddb p-card {
   }
 }
 
-// ============================================================================
-// 10. UTILITIES & ANIMATIONS
-// ============================================================================
+// =============================================================================
+// UTILITIES & ANIMATIONS
+// =============================================================================
 
 // Timer Indicator Directive
 @keyframes timer-indicator-shrink {
@@ -2122,13 +2142,13 @@ app-indexeddb p-card {
 }
 
 .timer-indicator {
-  background: linear-gradient(90deg, $light-brand, $brand) !important;
+  background: linear-gradient(90deg, var(--color-brand-light), var(--color-brand)) !important;
   pointer-events: none;
 }
 
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Scroll Indicator
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 // Sticky track: sticks to bottom-left of scroll viewport
 // Width is set via JS to match viewport width
@@ -2148,7 +2168,7 @@ app-indexeddb p-card {
   position: absolute;
   bottom: calc(-1 * var(--si-offset-bottom, 0px) + 4px);
   right: calc(-1 * var(--si-offset-right, 0px) + 4px);
-  background-color: $mid-gray;
+  background-color: var(--color-text-muted);
   border-radius: 0.2rem;
   opacity: 0;
   pointer-events: none;
@@ -2159,10 +2179,12 @@ app-indexeddb p-card {
 .scroll-indicator-vertical {
   width: 0.4rem;
   height: var(--si-height, 0px);
+  background: var(--scroll-indicator-gradient-v);
 }
 
 // Horizontal indicator: thin bar extending leftward from bottom-right
 .scroll-indicator-horizontal {
   height: 0.4rem;
   width: var(--si-width, 0px);
+  background: var(--scroll-indicator-gradient-h);
 }
