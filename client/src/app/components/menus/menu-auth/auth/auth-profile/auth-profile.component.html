@@ -1,4 +1,4 @@
-<div class="menu-auth-body profile-menu" *transloco="let t" [appTimerIndicator]="autoCloseSeconds()">
+<div class="profile-menu" *transloco="let t" [appTimerIndicator]="autoCloseSeconds()">
   <!-- Username Creation Failed Warning -->
   @if (usernameService.creationFailed()) {
     <div class="warning-message">
@@ -60,8 +60,4 @@
     />
   </div>
 
-  <!-- Auto-close progress bar -->
-  @if (autoCloseSeconds() > 0) {
-    <div class="auto-close-progress" [style.animation-duration.s]="autoCloseSeconds()"></div>
-  }
 </div>

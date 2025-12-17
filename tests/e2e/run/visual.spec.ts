@@ -24,7 +24,6 @@ import { auth, menus, pages } from '../helpers/selectors';
 
 // Shared test user for authenticated screenshots
 let testUser: { email: string; password: string; username: string };
-let testUserId: string;
 
 /**
  * Helper to make translucent backgrounds opaque before screenshot.
@@ -49,7 +48,6 @@ test.describe('Visual Regression Tests', () => {
       throw new Error(`Failed to create test user: ${result.error}`);
     }
     testUser = user;
-    testUserId = result.userId!;
   });
 
   test.afterAll(async () => {
@@ -85,7 +83,8 @@ test.describe('Visual Regression Tests', () => {
         height += child.getBoundingClientRect().height;
       }
       // Fall back to offsetHeight if no children or very small
-      return Math.max(height, el.offsetHeight, 100);
+      const offsetHeight = (el as HTMLElement).offsetHeight ?? 0;
+      return Math.max(height, offsetHeight, 100);
     });
 
     const height = Math.min(contentHeight, MAX_PAGE_HEIGHT);
@@ -277,7 +276,8 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
     await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
-    // Menu stays open after login with profile view showing
+    // Wait for username to load (prevents flaky screenshots)
+    await page.waitForSelector('.profile-username:not(:empty)', { timeout: 10000 });
     await page.waitForTimeout(300);
 
     await makeBackgroundOpaque(page, '.anchor-menu-panel');
