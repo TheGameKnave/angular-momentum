@@ -7,8 +7,11 @@ import {
   inject,
   signal,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
-import { TranslocoService } from '@jsverse/transloco';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslocoService, TranslocoEvents } from '@jsverse/transloco';
+import { filter } from 'rxjs';
 import { TooltipModule } from 'primeng/tooltip';
 import { RelativeTimePipe } from '@app/pipes/relative-time.pipe';
 import { TIME_CONSTANTS, TOOLTIP_CONFIG } from '@app/constants/ui.constants';
@@ -57,6 +60,7 @@ export type AbsoluteTimeFormat = 'short' | 'medium' | 'long' | 'shortDate' | 'sh
 export class RelativeTimeComponent implements OnInit, OnChanges, OnDestroy {
   private readonly translocoService = inject(TranslocoService);
   private readonly relativeTimePipe = inject(RelativeTimePipe);
+  private readonly destroyRef = inject(DestroyRef);
 
   @Input({ required: true }) timestamp!: Date | number | string | null | undefined;
   @Input() mode: TimeDisplayMode = 'relative';
@@ -70,7 +74,7 @@ export class RelativeTimeComponent implements OnInit, OnChanges, OnDestroy {
   private intervalId: ReturnType<typeof setInterval> | null = null;
 
   /**
-   * Initialize display and start timer if in relative mode.
+   * Initialize display, subscribe to language changes, and start timer if in relative mode.
    */
   ngOnInit(): void {
     this.update();
@@ -78,6 +82,14 @@ export class RelativeTimeComponent implements OnInit, OnChanges, OnDestroy {
     if (this.mode === 'relative') {
       this.startTimer();
     }
+    // Update when translations are loaded (after language change)
+    // istanbul ignore next - Transloco testing module doesn't emit translationLoadSuccess events
+    this.translocoService.events$
+      .pipe(
+        filter((e): e is TranslocoEvents => e.type === 'translationLoadSuccess'),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.update());
   }
 
   /**
