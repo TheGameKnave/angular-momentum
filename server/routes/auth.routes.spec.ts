@@ -2416,4 +2416,260 @@ describe('Auth Routes', () => {
       });
     });
   });
+
+  describe('DELETE /test/cleanup-e2e-users', () => {
+    beforeEach(() => {
+      // Ensure we're in test environment
+      process.env.NODE_ENV = 'test';
+      // Add admin API mocks
+      mockSupabase.auth.admin.listUsers = jest.fn();
+      mockSupabase.auth.admin.deleteUser = jest.fn();
+    });
+
+    it('should return 403 in production environment', async () => {
+      process.env.NODE_ENV = 'production';
+
+      const response = await request(app)
+        .delete('/api/auth/test/cleanup-e2e-users');
+
+      expect(response.status).toBe(403);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Test endpoints are only available in test/development environments',
+      });
+    });
+
+    it('should return 503 if Supabase is not configured', async () => {
+      const appWithoutSupabase = express();
+      appWithoutSupabase.use(express.json());
+      appWithoutSupabase.use('/api/auth', createAuthRoutes(null, mockUsernameService, mockTurnstileService));
+
+      const response = await request(appWithoutSupabase)
+        .delete('/api/auth/test/cleanup-e2e-users');
+
+      expect(response.status).toBe(503);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'AUTH_SERVICE_NOT_CONFIGURED',
+      });
+    });
+
+    it('should return 500 if listUsers returns error', async () => {
+      mockSupabase.auth.admin.listUsers.mockResolvedValue({
+        data: null,
+        error: { message: 'Failed to list users' },
+      });
+
+      const response = await request(app)
+        .delete('/api/auth/test/cleanup-e2e-users');
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Failed to list users',
+      });
+    });
+
+    it('should return success with 0 deleted when no e2e users exist', async () => {
+      mockSupabase.auth.admin.listUsers.mockResolvedValue({
+        data: { users: [
+          { id: 'user-1', email: 'regular@example.com' },
+          { id: 'user-2', email: 'another@example.com' },
+        ] },
+        error: null,
+      });
+
+      const response = await request(app)
+        .delete('/api/auth/test/cleanup-e2e-users');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        deleted: 0,
+        found: 0,
+      });
+    });
+
+    it('should skip users without email addresses', async () => {
+      mockSupabase.auth.admin.listUsers.mockResolvedValue({
+        data: { users: [
+          { id: 'user-1', email: undefined },
+          { id: 'user-2' }, // no email property at all
+          { id: 'e2e-1', email: 'e2e-abc@angular-momentum.test' },
+        ] },
+        error: null,
+      });
+
+      const deleteMock = {
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ error: null }),
+        }),
+      };
+      mockSupabase.from.mockReturnValue(deleteMock);
+      mockSupabase.auth.admin.deleteUser.mockResolvedValue({ error: null });
+
+      const response = await request(app)
+        .delete('/api/auth/test/cleanup-e2e-users');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        deleted: 1,
+        found: 1,
+      });
+      // Only the e2e user should be deleted
+      expect(mockSupabase.auth.admin.deleteUser).toHaveBeenCalledTimes(1);
+      expect(mockSupabase.auth.admin.deleteUser).toHaveBeenCalledWith('e2e-1');
+    });
+
+    it('should delete e2e test users successfully', async () => {
+      mockSupabase.auth.admin.listUsers.mockResolvedValue({
+        data: { users: [
+          { id: 'user-1', email: 'regular@example.com' },
+          { id: 'e2e-1', email: 'e2e-abc@angular-momentum.test' },
+          { id: 'e2e-2', email: 'e2e-xyz@angular-momentum.test' },
+        ] },
+        error: null,
+      });
+
+      const deleteMock = {
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ error: null }),
+        }),
+      };
+      mockSupabase.from.mockReturnValue(deleteMock);
+      mockSupabase.auth.admin.deleteUser.mockResolvedValue({ error: null });
+
+      const response = await request(app)
+        .delete('/api/auth/test/cleanup-e2e-users');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        deleted: 2,
+        found: 2,
+      });
+      expect(mockSupabase.auth.admin.deleteUser).toHaveBeenCalledTimes(2);
+      expect(mockSupabase.auth.admin.deleteUser).toHaveBeenCalledWith('e2e-1');
+      expect(mockSupabase.auth.admin.deleteUser).toHaveBeenCalledWith('e2e-2');
+    });
+
+    it('should report errors when some deletions fail', async () => {
+      mockSupabase.auth.admin.listUsers.mockResolvedValue({
+        data: { users: [
+          { id: 'e2e-1', email: 'e2e-abc@angular-momentum.test' },
+          { id: 'e2e-2', email: 'e2e-xyz@angular-momentum.test' },
+        ] },
+        error: null,
+      });
+
+      const deleteMock = {
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ error: null }),
+        }),
+      };
+      mockSupabase.from.mockReturnValue(deleteMock);
+      mockSupabase.auth.admin.deleteUser
+        .mockResolvedValueOnce({ error: null })
+        .mockResolvedValueOnce({ error: { message: 'Delete failed' } });
+
+      const response = await request(app)
+        .delete('/api/auth/test/cleanup-e2e-users');
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.deleted).toBe(1);
+      expect(response.body.found).toBe(2);
+      expect(response.body.errors).toContain('Failed to delete e2e-xyz@angular-momentum.test: Delete failed');
+    });
+
+    it('should handle exceptions during individual user deletion', async () => {
+      mockSupabase.auth.admin.listUsers.mockResolvedValue({
+        data: { users: [
+          { id: 'e2e-1', email: 'e2e-abc@angular-momentum.test' },
+          { id: 'e2e-2', email: 'e2e-xyz@angular-momentum.test' },
+        ] },
+        error: null,
+      });
+
+      const deleteMock = {
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ error: null }),
+        }),
+      };
+      mockSupabase.from.mockReturnValue(deleteMock);
+      mockSupabase.auth.admin.deleteUser
+        .mockResolvedValueOnce({ error: null })
+        .mockImplementationOnce(() => {
+          throw new Error('Unexpected deletion error');
+        });
+
+      const response = await request(app)
+        .delete('/api/auth/test/cleanup-e2e-users');
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.deleted).toBe(1);
+      expect(response.body.found).toBe(2);
+      expect(response.body.errors).toContain('Failed to delete e2e-xyz@angular-momentum.test: Unexpected deletion error');
+    });
+
+    it('should handle non-Error throws during individual user deletion', async () => {
+      mockSupabase.auth.admin.listUsers.mockResolvedValue({
+        data: { users: [
+          { id: 'e2e-1', email: 'e2e-abc@angular-momentum.test' },
+        ] },
+        error: null,
+      });
+
+      const deleteMock = {
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ error: null }),
+        }),
+      };
+      mockSupabase.from.mockReturnValue(deleteMock);
+      mockSupabase.auth.admin.deleteUser.mockImplementation(() => {
+        throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
+      });
+
+      const response = await request(app)
+        .delete('/api/auth/test/cleanup-e2e-users');
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.deleted).toBe(0);
+      expect(response.body.found).toBe(1);
+      expect(response.body.errors).toContain('Failed to delete e2e-abc@angular-momentum.test: Unknown error');
+    });
+
+    it('should return 500 if an unexpected error occurs in the main try block', async () => {
+      mockSupabase.auth.admin.listUsers.mockImplementation(() => {
+        throw new Error('Unexpected error');
+      });
+
+      const response = await request(app)
+        .delete('/api/auth/test/cleanup-e2e-users');
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Unexpected error',
+      });
+    });
+
+    it('should handle non-Error throws in main catch block', async () => {
+      mockSupabase.auth.admin.listUsers.mockImplementation(() => {
+        throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
+      });
+
+      const response = await request(app)
+        .delete('/api/auth/test/cleanup-e2e-users');
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Unknown error',
+      });
+    });
+  });
 });

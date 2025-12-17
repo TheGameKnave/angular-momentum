@@ -26,6 +26,57 @@ export function createAuthRoutes(
 ): Router {
   const router = Router();
 
+  /**
+   * Helper to delete a user and their associated data by userId.
+   * Handles usernames and user_settings deletion before auth user deletion.
+   */
+  async function deleteUserById(userId: string): Promise<{ success: boolean; error?: string }> {
+    /* istanbul ignore next -- defensive check; callers already guard against null supabase */
+    if (!supabase) {
+      return { success: false, error: AUTH_ERROR_CODES.SERVICE_NOT_CONFIGURED };
+    }
+
+    // Delete username record first (foreign key constraint)
+    await supabase.from('usernames').delete().eq('user_id', userId);
+
+    // Delete user settings
+    await supabase.from('user_settings').delete().eq('user_id', userId);
+
+    // Delete the auth user
+    const { error: deleteError } = await supabase.auth.admin.deleteUser(userId);
+
+    if (deleteError) {
+      return { success: false, error: deleteError.message };
+    }
+
+    return { success: true };
+  }
+
+  /**
+   * Guard for test-only endpoints.
+   * Returns the supabase client if checks pass, null if response was sent.
+   * This pattern ensures TypeScript knows supabase is non-null when returned.
+   */
+  function testEndpointGuard(res: Response): SupabaseClient | null {
+    if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
+      res.status(403).json({
+        success: false,
+        error: 'Test endpoints are only available in test/development environments'
+      });
+      return null;
+    }
+
+    if (!supabase) {
+      res.status(503).json({
+        success: false,
+        error: AUTH_ERROR_CODES.SERVICE_NOT_CONFIGURED
+      });
+      return null;
+    }
+
+    return supabase;
+  }
+
   // ============================================================================
   // TEST-ONLY ENDPOINTS (only available in test/development environments)
   // ============================================================================
@@ -50,20 +101,8 @@ export function createAuthRoutes(
    * }
    */
   router.post('/test/create-user', async (req: Request, res: Response) => {
-    // Only allow in test/development environments
-    if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
-      return res.status(403).json({
-        success: false,
-        error: 'Test endpoints are only available in test/development environments'
-      });
-    }
-
-    if (!supabase) {
-      return res.status(503).json({
-        success: false,
-        error: AUTH_ERROR_CODES.SERVICE_NOT_CONFIGURED
-      });
-    }
+    const sb = testEndpointGuard(res);
+    if (!sb) return;
 
     const { email, password, username } = req.body;
 
@@ -76,7 +115,7 @@ export function createAuthRoutes(
 
     try {
       // Create user with admin API (auto-confirms email)
-      const { data: userData, error: createError } = await supabase.auth.admin.createUser({
+      const { data: userData, error: createError } = await sb.auth.admin.createUser({
         email,
         password,
         email_confirm: true, // Auto-verify email
@@ -138,20 +177,8 @@ export function createAuthRoutes(
    * }
    */
   router.delete('/test/delete-user', async (req: Request, res: Response) => {
-    // Only allow in test/development environments
-    if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
-      return res.status(403).json({
-        success: false,
-        error: 'Test endpoints are only available in test/development environments'
-      });
-    }
-
-    if (!supabase) {
-      return res.status(503).json({
-        success: false,
-        error: AUTH_ERROR_CODES.SERVICE_NOT_CONFIGURED
-      });
-    }
+    const sb = testEndpointGuard(res);
+    if (!sb) return;
 
     const { email, userId } = req.body;
 
@@ -167,7 +194,7 @@ export function createAuthRoutes(
 
       // If email provided, look up userId
       if (email && !userId) {
-        const { data: listData, error: listError } = await supabase.auth.admin.listUsers();
+        const { data: listData, error: listError } = await sb.auth.admin.listUsers();
         /* istanbul ignore next -- listData null without error is unlikely */
         if (listError || !listData) {
           return res.status(500).json({
@@ -185,30 +212,78 @@ export function createAuthRoutes(
         targetUserId = user.id;
       }
 
-      // Delete username record first (foreign key constraint)
-      await supabase
-        .from('usernames')
-        .delete()
-        .eq('user_id', targetUserId);
-
-      // Delete user settings
-      await supabase
-        .from('user_settings')
-        .delete()
-        .eq('user_id', targetUserId);
-
-      // Delete the auth user
-      const { error: deleteError } = await supabase.auth.admin.deleteUser(targetUserId);
-
-      if (deleteError) {
+      const result = await deleteUserById(targetUserId);
+      if (!result.success) {
         return res.status(500).json({
           success: false,
-          error: deleteError.message
+          error: result.error
         });
       }
 
+      res.json({ success: true });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({
+        success: false,
+        error: message
+      });
+    }
+  });
+
+  /**
+   * DELETE /api/auth/test/cleanup-e2e-users
+   * Deletes all e2e test users (emails matching *@angular-momentum.test).
+   * ONLY available when NODE_ENV === 'test' or 'development'.
+   *
+   * Response:
+   * {
+   *   "success": true,
+   *   "deleted": 5,
+   *   "errors": []
+   * }
+   */
+  router.delete('/test/cleanup-e2e-users', async (req: Request, res: Response) => {
+    const sb = testEndpointGuard(res);
+    if (!sb) return;
+
+    try {
+      // List all users
+      const { data: listData, error: listError } = await sb.auth.admin.listUsers();
+      /* istanbul ignore next -- listData null without error is unlikely */
+      if (listError || !listData) {
+        return res.status(500).json({
+          success: false,
+          error: listError?.message || 'Failed to list users'
+        });
+      }
+
+      // Filter for e2e test users (email ends with @angular-momentum.test)
+      const e2eUsers = listData.users.filter((u: { email?: string }) =>
+        u.email?.endsWith('@angular-momentum.test')
+      );
+
+      const results = await Promise.all(
+        e2eUsers.map(async (user) => {
+          try {
+            const result = await deleteUserById(user.id);
+            return { email: user.email, ...result };
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Unknown error';
+            return { email: user.email, success: false, error: message };
+          }
+        })
+      );
+
+      const deletedCount = results.filter(r => r.success).length;
+      const errors = results
+        .filter(r => !r.success)
+        .map(r => `Failed to delete ${r.email}: ${r.error}`);
+
       res.json({
-        success: true
+        success: true,
+        deleted: deletedCount,
+        found: e2eUsers.length,
+        errors: errors.length > 0 ? errors : undefined
       });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error';

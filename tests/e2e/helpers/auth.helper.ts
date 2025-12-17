@@ -42,6 +42,19 @@ export async function deleteTestUser(emailOrUserId: { email?: string; userId?: s
 }
 
 /**
+ * Cleans up all e2e test users (emails ending with @angular-momentum.test).
+ * Used in global teardown to remove leftover test accounts.
+ * Only works in test/development environments.
+ */
+export async function cleanupE2ETestUsers(): Promise<{ success: boolean; deleted: number; found: number; errors?: string[] }> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/test/cleanup-e2e-users`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  return response.json();
+}
+
+/**
  * Logs in a user via the UI.
  * Opens the auth menu and fills in credentials.
  */

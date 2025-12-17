@@ -5,6 +5,7 @@ const APP_BASE_URL = process.env.APP_BASE_URL || 'http://localhost:4200';
 export default defineConfig({
   testDir: './run',
   globalSetup: './global-setup.ts',
+  globalTeardown: './global-teardown.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 1, // Retry once locally to catch flaky tests
