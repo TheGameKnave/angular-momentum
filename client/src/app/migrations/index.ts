@@ -3,6 +3,7 @@ import { lsV1ExampleMigration } from './ls-v1-example.migration';
 import { lsV21UserScopedMigration } from './ls-v21-user-scoped.migration';
 import { idbV1InitialMigration } from './idb-v1-initial.migration';
 import { idbV2UserScopedMigration } from './idb-v2-user-scoped.migration';
+import { idbV3SeparateStoresMigration } from './idb-v3-separate-stores.migration';
 
 /**
  * All registered localStorage migrations, in version order.
@@ -18,6 +19,7 @@ export const LOCALSTORAGE_MIGRATIONS: DataMigration[] = [
 export const INDEXEDDB_MIGRATIONS: IndexedDbMigration[] = [
   idbV1InitialMigration,
   idbV2UserScopedMigration,
+  idbV3SeparateStoresMigration,
 ];
 
 // =============================================================================

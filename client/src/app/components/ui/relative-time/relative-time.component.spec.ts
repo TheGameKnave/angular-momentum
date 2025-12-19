@@ -1,4 +1,4 @@
-import { Component, DebugElement } from '@angular/core';
+import { Component, DebugElement, signal } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { RelativeTimeComponent } from './relative-time.component';
@@ -6,6 +6,7 @@ import { Tooltip } from 'primeng/tooltip';
 import { TIME_CONSTANTS } from '@app/constants/ui.constants';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { TranslocoService } from '@jsverse/transloco';
+import { UserSettingsService } from '@app/services/user-settings.service';
 
 @Component({
   template: `<app-relative-time [timestamp]="testDate" [mode]="mode" [format]="format" />`,
@@ -21,10 +22,18 @@ class TestHostComponent {
 describe('RelativeTimeComponent', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let component: TestHostComponent;
+  let mockUserSettingsService: Partial<UserSettingsService>;
 
   beforeEach(async () => {
+    mockUserSettingsService = {
+      timezonePreference: signal('UTC'),
+    };
+
     await TestBed.configureTestingModule({
       imports: [TestHostComponent, getTranslocoModule()],
+      providers: [
+        { provide: UserSettingsService, useValue: mockUserSettingsService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);
@@ -152,7 +161,8 @@ describe('RelativeTimeComponent', () => {
     it('should display formatted date in absolute mode with short format', () => {
       component.mode = 'absolute';
       component.format = 'short';
-      component.testDate = new Date('2024-12-13T21:41:00');
+      // Use UTC date string (Z suffix) so it displays consistently in UTC timezone
+      component.testDate = new Date('2024-12-13T21:41:00Z');
       fixture.detectChanges();
 
       const span = fixture.nativeElement.querySelector('app-relative-time span');
@@ -164,7 +174,8 @@ describe('RelativeTimeComponent', () => {
     it('should display date only with shortDate format', () => {
       component.mode = 'absolute';
       component.format = 'shortDate';
-      component.testDate = new Date('2024-11-17T10:30:00');
+      // Use UTC date string (Z suffix) so it displays consistently in UTC timezone
+      component.testDate = new Date('2024-11-17T10:30:00Z');
       fixture.detectChanges();
 
       const span = fixture.nativeElement.querySelector('app-relative-time span');
@@ -176,7 +187,8 @@ describe('RelativeTimeComponent', () => {
     it('should display medium format', () => {
       component.mode = 'absolute';
       component.format = 'medium';
-      component.testDate = new Date('2024-01-15T10:30:00');
+      // Use UTC date string (Z suffix) so it displays consistently in UTC timezone
+      component.testDate = new Date('2024-01-15T10:30:00Z');
       fixture.detectChanges();
 
       const span = fixture.nativeElement.querySelector('app-relative-time span');
@@ -187,7 +199,8 @@ describe('RelativeTimeComponent', () => {
     it('should display long format', () => {
       component.mode = 'absolute';
       component.format = 'long';
-      component.testDate = new Date('2024-01-15T10:30:00');
+      // Use UTC date string (Z suffix) so it displays consistently in UTC timezone
+      component.testDate = new Date('2024-01-15T10:30:00Z');
       fixture.detectChanges();
 
       const span = fixture.nativeElement.querySelector('app-relative-time span');
@@ -198,7 +211,8 @@ describe('RelativeTimeComponent', () => {
     it('should display time only with shortTime format', () => {
       component.mode = 'absolute';
       component.format = 'shortTime';
-      component.testDate = new Date('2024-01-15T10:30:00');
+      // Use UTC date string (Z suffix) so it displays consistently in UTC timezone
+      component.testDate = new Date('2024-01-15T10:30:00Z');
       fixture.detectChanges();
 
       const span = fixture.nativeElement.querySelector('app-relative-time span');
@@ -257,5 +271,44 @@ describe('RelativeTimeComponent', () => {
       // but the subscription callback should have been called)
       expect(span.textContent).toBeTruthy();
     }));
+  });
+
+  describe('timezone changes', () => {
+    it('should update tooltip when timezone preference changes', () => {
+      component.mode = 'absolute';
+      // Use UTC noon on a fixed date
+      component.testDate = new Date('2024-06-15T12:00:00Z');
+      fixture.detectChanges();
+
+      const spanDebug: DebugElement = fixture.debugElement.query(By.css('app-relative-time span'));
+      const tooltipDirective = spanDebug.injector.get(Tooltip);
+
+      // Initial tooltip should be in UTC
+      const initialTooltip = tooltipDirective.content;
+      expect(initialTooltip).toContain('12:00'); // UTC noon
+
+      // Change timezone preference to New York (UTC-4 in summer)
+      (mockUserSettingsService.timezonePreference as ReturnType<typeof signal>).set('America/New_York');
+      fixture.detectChanges();
+
+      // Tooltip should now show Eastern time (8:00 AM)
+      const updatedTooltip = tooltipDirective.content;
+      expect(updatedTooltip).toContain('8:00'); // Eastern time
+    });
+
+    it('should display correct time for user timezone in absolute mode', () => {
+      // Set timezone to Tokyo (UTC+9)
+      (mockUserSettingsService.timezonePreference as ReturnType<typeof signal>).set('Asia/Tokyo');
+
+      component.mode = 'absolute';
+      component.format = 'shortTime';
+      // Use UTC midnight
+      component.testDate = new Date('2024-06-15T00:00:00Z');
+      fixture.detectChanges();
+
+      const span = fixture.nativeElement.querySelector('app-relative-time span');
+      // UTC midnight should be 9:00 AM in Tokyo
+      expect(span.textContent).toContain('9:00');
+    });
   });
 });

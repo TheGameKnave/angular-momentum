@@ -12,7 +12,8 @@ export default defineConfig({
   workers: process.env.CI ? 4 : undefined, // undefined = use all available CPUs locally
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
-    ['list']
+    ['list'],
+    ['./flow-reporter.ts', { outputDir: 'playwright-report' }],
   ],
   use: {
     baseURL: APP_BASE_URL,

@@ -272,7 +272,6 @@ export class MenuAuthComponent implements AfterViewInit {
    */
   async onLogout(): Promise<void> {
     this.anchorMenu.close();
-    this.userSettingsService.clear();
     this.usernameService.clear();
     this.authUiState.reset();
 
@@ -280,6 +279,9 @@ export class MenuAuthComponent implements AfterViewInit {
     const requiresAuth = this.isCurrentRouteAuthGuarded();
 
     await this.authService.logout();
+
+    // Clear user settings and reload preferences for anonymous scope
+    await this.userSettingsService.clear();
 
     // Reload notifications from anonymous storage (will be empty or have anonymous notifications)
     this.notificationService.reloadFromStorage();

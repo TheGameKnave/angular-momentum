@@ -18,7 +18,7 @@ import { CONNECTIVITY_CONFIG } from '@app/constants/service.constants';
 export class ConnectivityService {
   private readonly logService = inject(LogService);
 
-  private readonly _isOnline = signal<boolean>(false);
+  private readonly _isOnline = signal<boolean>(navigator.onLine);
   isOnline = this._isOnline.asReadonly();
 
   private readonly _osOnline = signal<boolean>(navigator.onLine);

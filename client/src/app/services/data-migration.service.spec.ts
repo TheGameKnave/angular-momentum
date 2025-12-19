@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { DataMigrationService, DataBackup } from './data-migration.service';
-import { IndexedDbService } from './indexeddb.service';
+import { IndexedDbService, IDB_STORES } from './indexeddb.service';
 import { UserStorageService } from './user-storage.service';
 import { LogService } from './log.service';
 import { MessageService } from 'primeng/api';
@@ -161,7 +161,8 @@ describe('DataMigrationService', () => {
           indexedDbVersion: 1,
           localStorage: jasmine.any(Object),
           indexedDb: jasmine.any(Object),
-        })
+        }),
+        IDB_STORES.BACKUPS
       );
     });
 
@@ -173,6 +174,7 @@ describe('DataMigrationService', () => {
       // Should NOT call setRaw for backup (only for migration data)
       expect(mockIndexedDbService.setRaw).not.toHaveBeenCalledWith(
         jasmine.stringMatching(/data_backup/),
+        jasmine.anything(),
         jasmine.anything()
       );
     });
@@ -329,7 +331,7 @@ describe('DataMigrationService', () => {
 
         await service.deleteDataBackup();
 
-        expect(mockIndexedDbService.delRaw).toHaveBeenCalledWith('user_123_data_backup');
+        expect(mockIndexedDbService.delRaw).toHaveBeenCalledWith('user_123_data_backup', IDB_STORES.BACKUPS);
         expect(mockLogService.log).toHaveBeenCalledWith('Data backup deleted');
       });
     });
@@ -382,7 +384,8 @@ describe('DataMigrationService', () => {
             'user_123_lang': 'es',
             'user_123_theme': 'dark',
           }),
-        })
+        }),
+        IDB_STORES.BACKUPS
       );
 
       // Should not include other keys or backup key

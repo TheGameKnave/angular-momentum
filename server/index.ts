@@ -123,7 +123,9 @@ if (require.main === module) {
   const app = setupApp();
   const server = createServer(app);
 
-  const io = setupWebSocket(server);
+  // Initialize Supabase for WebSocket auth
+  const supabase = initializeSupabase();
+  const io = setupWebSocket(server, supabase);
 
   app.set('io', io);
 

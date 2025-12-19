@@ -5,6 +5,8 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { UpdateService } from '@app/services/update.service';
 import { UpdateDialogService } from '@app/services/update-dialog.service';
 import { DataMigrationService } from '@app/services/data-migration.service';
+import { UserSettingsService } from '@app/services/user-settings.service';
+import { AuthService } from '@app/services/auth.service';
 import { DialogConfirmComponent } from '@app/components/dialogs/dialog-confirm/dialog-confirm.component';
 
 import { TranslocoDirective } from '@jsverse/transloco';
@@ -65,6 +67,8 @@ export class AppComponent implements OnInit {
   readonly changeLogService = inject(ChangeLogService);
   private readonly updateDialogService = inject(UpdateDialogService);
   private readonly dataMigrationService = inject(DataMigrationService);
+  private readonly userSettingsService = inject(UserSettingsService);
+  private readonly authService = inject(AuthService);
   protected translocoLoader = inject(TranslocoHttpLoader);
   protected featureFlagService = inject(FeatureFlagService);
   private readonly slugPipe = inject(SlugPipe);
@@ -85,7 +89,17 @@ export class AppComponent implements OnInit {
 
       // Run data migrations after view is ready (so p-toast is mounted)
       // This runs on all platforms: web, Tauri desktop, and mobile
-      this.dataMigrationService.runMigrations();
+      this.dataMigrationService.runMigrations().then(async () => {
+        // Load local preferences after IndexedDB is initialized
+        // This applies the user's theme immediately (before server sync)
+        await this.userSettingsService.loadLocalPreferences();
+
+        // If user is already authenticated (page refresh), sync with server
+        // This resolves conflicts between local and server data using timestamps
+        if (this.authService.isAuthenticated()) {
+          this.userSettingsService.initialize();
+        }
+      });
 
       // Promote PrimeNG tooltips to browser's top-layer so they appear above CDK overlays
       this.setupTooltipPopoverObserver();

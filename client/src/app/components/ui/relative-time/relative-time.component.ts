@@ -8,6 +8,7 @@ import {
   signal,
   ChangeDetectionStrategy,
   DestroyRef,
+  effect,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoService, TranslocoEvents } from '@jsverse/transloco';
@@ -15,6 +16,7 @@ import { filter } from 'rxjs';
 import { TooltipModule } from 'primeng/tooltip';
 import { RelativeTimePipe } from '@app/pipes/relative-time.pipe';
 import { TIME_CONSTANTS, TOOLTIP_CONFIG } from '@app/constants/ui.constants';
+import { UserSettingsService } from '@app/services/user-settings.service';
 
 /** Display mode for the time component */
 export type TimeDisplayMode = 'relative' | 'absolute';
@@ -61,6 +63,16 @@ export class RelativeTimeComponent implements OnInit, OnChanges, OnDestroy {
   private readonly translocoService = inject(TranslocoService);
   private readonly relativeTimePipe = inject(RelativeTimePipe);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly userSettingsService = inject(UserSettingsService);
+
+  constructor() {
+    // Update display when timezone preference changes
+    effect(() => {
+      // Access the signal to track it
+      this.userSettingsService.timezonePreference();
+      this.update();
+    });
+  }
 
   @Input({ required: true }) timestamp!: Date | number | string | null | undefined;
   @Input() mode: TimeDisplayMode = 'relative';
@@ -142,6 +154,7 @@ export class RelativeTimeComponent implements OnInit, OnChanges, OnDestroy {
   private formatAbsolute(date: Date): string {
     const locale = this.translocoService.getActiveLang();
     const options = this.getFormatOptions();
+    options.timeZone = this.userSettingsService.timezonePreference();
     return new Intl.DateTimeFormat(locale, options).format(date);
   }
 
@@ -166,14 +179,17 @@ export class RelativeTimeComponent implements OnInit, OnChanges, OnDestroy {
 
   /**
    * Gets the localized full date/time string for a timestamp.
+   * Uses the user's timezone preference for display.
    * @param date - The date to format
-   * @returns Localized date/time string
+   * @returns Localized date/time string in user's preferred timezone
    */
   private getLocalizedDateTime(date: Date): string {
     const locale = this.translocoService.getActiveLang();
+    const timezone = this.userSettingsService.timezonePreference();
     return new Intl.DateTimeFormat(locale, {
       dateStyle: 'full',
       timeStyle: 'short',
+      timeZone: timezone,
     }).format(date);
   }
 

@@ -3,7 +3,7 @@ import { signal, WritableSignal } from '@angular/core';
 import { IndexedDBComponent } from './indexeddb.component';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { ReactiveFormsModule } from '@angular/forms';
-import { IndexedDbService } from '@app/services/indexeddb.service';
+import { IndexedDbService, IDB_STORES } from '@app/services/indexeddb.service';
 import { UserStorageService } from '@app/services/user-storage.service';
 
 describe('IndexedDBComponent', () => {
@@ -55,7 +55,7 @@ describe('IndexedDBComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(indexedDbServiceSpy.get).toHaveBeenCalledWith('key');
+    expect(indexedDbServiceSpy.get).toHaveBeenCalledWith('key', IDB_STORES.PERSISTENT);
     expect(component.textAreaData.value).toBe('Stored data');
   });
 
@@ -82,7 +82,7 @@ describe('IndexedDBComponent', () => {
 
     // Should save after debounce time (400ms)
     tick(300);
-    expect(indexedDbServiceSpy.set).toHaveBeenCalledWith('key', 'Test data');
+    expect(indexedDbServiceSpy.set).toHaveBeenCalledWith('key', 'Test data', IDB_STORES.PERSISTENT);
 
     discardPeriodicTasks();
   }));
@@ -100,7 +100,7 @@ describe('IndexedDBComponent', () => {
 
     // Should only save the final value once
     expect(indexedDbServiceSpy.set).toHaveBeenCalledTimes(1);
-    expect(indexedDbServiceSpy.set).toHaveBeenCalledWith('key', 'third');
+    expect(indexedDbServiceSpy.set).toHaveBeenCalledWith('key', 'third', IDB_STORES.PERSISTENT);
 
     discardPeriodicTasks();
   }));
@@ -112,7 +112,7 @@ describe('IndexedDBComponent', () => {
     component.textAreaData.setValue('');
     tick(500);
 
-    expect(indexedDbServiceSpy.set).toHaveBeenCalledWith('key', '');
+    expect(indexedDbServiceSpy.set).toHaveBeenCalledWith('key', '', IDB_STORES.PERSISTENT);
 
     discardPeriodicTasks();
   }));

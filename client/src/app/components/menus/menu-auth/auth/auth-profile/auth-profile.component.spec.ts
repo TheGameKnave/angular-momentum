@@ -3,6 +3,7 @@ import { signal } from '@angular/core';
 import { AuthProfileComponent } from './auth-profile.component';
 import { AuthService } from '@app/services/auth.service';
 import { UsernameService } from '@app/services/username.service';
+import { UserSettingsService } from '@app/services/user-settings.service';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 
 describe('AuthProfileComponent', () => {
@@ -10,6 +11,7 @@ describe('AuthProfileComponent', () => {
   let fixture: ComponentFixture<AuthProfileComponent>;
   let mockAuthService: jasmine.SpyObj<AuthService>;
   let mockUsernameService: jasmine.SpyObj<UsernameService>;
+  let mockUserSettingsService: Partial<UserSettingsService>;
 
   beforeEach(async () => {
     mockAuthService = jasmine.createSpyObj('AuthService', ['isAuthenticated'], {
@@ -34,6 +36,10 @@ describe('AuthProfileComponent', () => {
       creationFailed: signal(false)
     });
 
+    mockUserSettingsService = {
+      timezonePreference: signal('UTC'),
+    };
+
     await TestBed.configureTestingModule({
       imports: [
         AuthProfileComponent,
@@ -42,6 +48,7 @@ describe('AuthProfileComponent', () => {
       providers: [
         { provide: AuthService, useValue: mockAuthService },
         { provide: UsernameService, useValue: mockUsernameService },
+        { provide: UserSettingsService, useValue: mockUserSettingsService },
       ]
     }).compileComponents();
 
@@ -116,6 +123,7 @@ describe('AuthProfileComponent', () => {
         providers: [
           { provide: AuthService, useValue: mockAuthService },
           { provide: UsernameService, useValue: mockUsernameService },
+          { provide: UserSettingsService, useValue: mockUserSettingsService },
         ]
       });
 
@@ -148,6 +156,7 @@ describe('AuthProfileComponent', () => {
         providers: [
           { provide: AuthService, useValue: mockAuthService },
           { provide: UsernameService, useValue: mockUsernameService },
+          { provide: UserSettingsService, useValue: mockUserSettingsService },
         ]
       });
 
@@ -180,6 +189,7 @@ describe('AuthProfileComponent', () => {
         providers: [
           { provide: AuthService, useValue: mockAuthService },
           { provide: UsernameService, useValue: mockUsernameService },
+          { provide: UserSettingsService, useValue: mockUserSettingsService },
         ]
       });
 
@@ -230,6 +240,7 @@ describe('AuthProfileComponent', () => {
         providers: [
           { provide: AuthService, useValue: mockAuthService },
           { provide: UsernameService, useValue: mockUsernameService },
+          { provide: UserSettingsService, useValue: mockUserSettingsService },
         ]
       });
 
@@ -327,6 +338,7 @@ describe('AuthProfileComponent', () => {
         providers: [
           { provide: AuthService, useValue: mockAuthService },
           { provide: UsernameService, useValue: mockUsernameService },
+          { provide: UserSettingsService, useValue: mockUserSettingsService },
         ]
       });
 
@@ -363,6 +375,7 @@ describe('AuthProfileComponent', () => {
         providers: [
           { provide: AuthService, useValue: mockAuthService },
           { provide: UsernameService, useValue: mockUsernameService },
+          { provide: UserSettingsService, useValue: mockUserSettingsService },
         ]
       });
 

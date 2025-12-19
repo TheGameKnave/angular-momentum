@@ -59,9 +59,9 @@ $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono',
 
   // Interactive
   --color-link: var(--color-brand-dark);
-  --color-link-hover: var(--color-brand-light);
+  --color-link-hover: var(--color-brand);
   --color-link-visited: var(--color-brand);
-  --color-active: var(--color-brand-light);
+  --color-active: var(--color-brand);
 
   // Effects
   --color-shadow: rgba(0, 0, 0, 0.2);
@@ -83,10 +83,11 @@ $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono',
   --scroll-indicator-gradient-h: linear-gradient(to right, var(--color-brand-dark), var(--color-brand));
 
   // Component-specific
-  --kofi-button-bg: var(--color-brand-dark);
-  --kofi-button-border: transparent;
-  --kofi-button-border-hover: var(--color-brand-light);
-  --tooltip-border-color: transparent;
+  --button-bg: var(--color-brand-light);
+  --button-border: var(--color-brand-light);
+  --color-button-text-hover: var(--color-brand-dark);
+  --button-border-hover: var(--color-brand-dark);
+  --tooltip-border-color: var(--color-brand-light);
   --notification-badge-bg: #f88;
   --notification-unread-border: var(--color-brand-dark);
 }
@@ -317,8 +318,8 @@ ul {
 
   // Interactive
   --color-link: var(--color-brand-faint);
-  --color-link-hover: var(--color-brand-light);
-  --color-link-visited: var(--color-brand-light);
+  --color-link-hover: var(--color-brand);
+  --color-link-visited: var(--color-brand);
 
   // Horizontal rule gradient
   --hr-gradient: linear-gradient(to right, rgba(200, 200, 200, 0), rgba(200, 200, 200, 0.75), rgba(200, 200, 200, 0));
@@ -329,7 +330,10 @@ ul {
   --scroll-indicator-gradient-h: linear-gradient(to right, var(--color-brand-light), var(--color-brand-dark));
 
   // Component-specific
-  --kofi-button-border: var(--color-brand-dark);
+  --button-bg: var(--color-brand-dark);
+  --button-border: var(--color-brand-dark);
+  --button-border-hover: var(--color-brand-light);
+  --color-button-text-hover: var(--color-brand-light);
   --tooltip-border-color: var(--color-brand-dark);
   --notification-unread-border: var(--color-brand-light);
 
@@ -606,17 +610,18 @@ app-menu-feature {
       display: inline-flex;
       align-items: center;
       gap: 1rem;
-      background-color: var(--kofi-button-bg);
-      border: 1px solid var(--kofi-button-border);
+      background-color: var(--button-bg);
+      border: 1px solid var(--button-border);
       border-radius: 0.6rem;
       padding: 0.4rem 0.6rem;
       font-size: 1.6rem;
       white-space: nowrap;
       cursor: pointer;
       text-decoration: none;
-
+      
       &:hover {
-        border-color: var(--kofi-button-border-hover);
+        color: var(--color-button-text-hover);
+        border-color: var(--button-border-hover);
       }
     }
     img {
@@ -1759,8 +1764,14 @@ app-privacy-policy {
 // Toggle switches
 // -----------------------------------------------------------------------------
 
-p-toggleswitch + label:hover {
-  color: var(--color-active);
+label:has(+ p-toggleswitch),
+p-toggleswitch + label {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-active);
+  }
 }
 
 // =============================================================================
@@ -1848,6 +1859,23 @@ app-profile {
 
     .p-select {
       width: 100%;
+    }
+  }
+
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+
+    .theme-label {
+      font-size: 1.4rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+
+      &.active {
+        color: var(--color-active);
+        font-weight: 500;
+        pointer-events: none;
+      }
     }
   }
 
@@ -2041,7 +2069,7 @@ app-indexeddb p-card {
         width: calc(50vw - 2.3rem);
       }
       > * {
-        margin: 0 0.6rem;
+        margin: auto 0.6rem;
         flex: 0 0 auto;
       }
     }

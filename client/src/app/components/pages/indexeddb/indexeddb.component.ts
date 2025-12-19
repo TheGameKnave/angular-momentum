@@ -7,7 +7,7 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 import { CardModule } from "primeng/card";
 import { TextareaModule } from 'primeng/textarea';
 import { INDEXEDDB_CONFIG } from '@app/constants/ui.constants';
-import { IndexedDbService } from '@app/services/indexeddb.service';
+import { IndexedDbService, IDB_STORES } from '@app/services/indexeddb.service';
 import { UserStorageService } from '@app/services/user-storage.service';
 
 /**
@@ -58,7 +58,7 @@ export class IndexedDBComponent implements OnInit {
       debounceTime(INDEXEDDB_CONFIG.DEBOUNCE_TIME_MS),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((data) => {
-      this.indexedDbService.set(this.storageKey, data);
+      this.indexedDbService.set(this.storageKey, data, IDB_STORES.PERSISTENT);
     });
   }
 
@@ -68,7 +68,7 @@ export class IndexedDBComponent implements OnInit {
    * proper UI state updates (e.g., for floating labels).
    */
   private async loadStoredValue(): Promise<void> {
-    const data = await this.indexedDbService.get(this.storageKey);
+    const data = await this.indexedDbService.get(this.storageKey, IDB_STORES.PERSISTENT);
     const value = typeof data === 'string' ? data : '';
     this.textAreaData.setValue(value, { emitEvent: false });
 

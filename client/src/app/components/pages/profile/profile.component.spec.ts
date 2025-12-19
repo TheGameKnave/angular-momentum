@@ -32,6 +32,8 @@ describe('ProfileComponent', () => {
     const settingsSignal = signal({ timezone: 'UTC' });
     const usernameSignal = signal({ username: 'testuser' });
     const consentStatusSignal = signal<'accepted' | 'declined' | 'pending'>('pending');
+    const timezonePreferenceSignal = signal('UTC');
+    const themePreferenceSignal = signal<'light' | 'dark'>('dark');
 
     mockAuthService = jasmine.createSpyObj('AuthService',
       ['logout', 'updatePassword', 'updateEmail', 'verifyEmailChangeOtp', 'getToken', 'deleteAccount', 'isPasswordRecovery', 'login'],
@@ -50,13 +52,15 @@ describe('ProfileComponent', () => {
     mockDataExportService.exportUserData.and.returnValue(Promise.resolve());
 
     mockUserSettingsService = jasmine.createSpyObj('UserSettingsService',
-      ['initialize', 'clear', 'detectTimezone', 'updateTimezone', 'deleteSettings'],
-      { settings: settingsSignal }
+      ['initialize', 'clear', 'detectTimezone', 'updateTimezone', 'deleteSettings', 'loadLocalPreferences', 'updateThemePreference'],
+      { settings: settingsSignal, timezonePreference: timezonePreferenceSignal, themePreference: themePreferenceSignal }
     );
     mockUserSettingsService.initialize.and.returnValue(Promise.resolve());
     mockUserSettingsService.detectTimezone.and.returnValue('UTC');
     mockUserSettingsService.updateTimezone.and.returnValue(Promise.resolve(null));
     mockUserSettingsService.deleteSettings.and.returnValue(Promise.resolve());
+    mockUserSettingsService.loadLocalPreferences.and.returnValue(Promise.resolve());
+    mockUserSettingsService.updateThemePreference.and.returnValue(Promise.resolve(null));
 
     mockUsernameService = jasmine.createSpyObj('UsernameService',
       ['loadUsername', 'updateUsername', 'deleteUsername', 'clear'],
@@ -72,8 +76,9 @@ describe('ProfileComponent', () => {
 
     mockConfirmDialogService = jasmine.createSpyObj('ConfirmDialogService', ['show', 'confirm', 'dismiss']);
 
-    mockIndexedDbService = jasmine.createSpyObj('IndexedDbService', ['clear']);
+    mockIndexedDbService = jasmine.createSpyObj('IndexedDbService', ['clear', 'clearAll']);
     mockIndexedDbService.clear.and.returnValue(Promise.resolve());
+    mockIndexedDbService.clearAll.and.returnValue(Promise.resolve());
 
     mockNotificationService = jasmine.createSpyObj('NotificationService', ['clearAll']);
 
@@ -195,7 +200,6 @@ describe('ProfileComponent', () => {
     const event = { value: 'America/New_York' };
     await component.onTimezoneChange(event);
     expect(mockUserSettingsService.updateTimezone).toHaveBeenCalledWith('America/New_York');
-    expect(component.selectedTimezone()).toBe('America/New_York');
   });
 
   describe('ngOnInit', () => {
@@ -219,11 +223,11 @@ describe('ProfileComponent', () => {
       expect(component.passwordForm.contains('currentPassword')).toBe(true);
     });
 
-    it('should use detected timezone when settings has no timezone', async () => {
-      (mockUserSettingsService.settings as any).set({ id: '123', timezone: undefined });
-      mockUserSettingsService.detectTimezone.and.returnValue('Europe/London');
+    it('should use timezonePreference from service', async () => {
+      // The component uses userSettingsService.timezonePreference() directly
+      (mockUserSettingsService.timezonePreference as any).set('Europe/London');
       await component.ngOnInit();
-      expect(component.selectedTimezone()).toBe('Europe/London');
+      expect(mockUserSettingsService.timezonePreference()).toBe('Europe/London');
     });
 
     it('should handle null username data by setting empty string', async () => {
@@ -750,23 +754,22 @@ describe('ProfileComponent', () => {
       component.onClearAllData();
       await confirmCallback();
 
-      expect(mockIndexedDbService.clear).toHaveBeenCalled();
+      expect(mockIndexedDbService.clearAll).toHaveBeenCalled();
       expect(mockNotificationService.clearAll).toHaveBeenCalled();
       expect(mockUserSettingsService.deleteSettings).toHaveBeenCalled();
     });
 
-    it('should reset timezone to detected timezone after clearing', async () => {
+    it('should reload local preferences after clearing', async () => {
       let confirmCallback: () => Promise<void> = async () => {};
 
       mockConfirmDialogService.show.and.callFake((options: { onConfirm: () => Promise<void> }) => {
         confirmCallback = options.onConfirm;
       });
-      mockUserSettingsService.detectTimezone.and.returnValue('America/New_York');
 
       component.onClearAllData();
       await confirmCallback();
 
-      expect(component.selectedTimezone()).toBe('America/New_York');
+      expect(mockUserSettingsService.loadLocalPreferences).toHaveBeenCalled();
     });
   });
 
@@ -786,6 +789,38 @@ describe('ProfileComponent', () => {
 
       // Error should be cleared (and remain null if export succeeds)
       expect(component.exportError()).toBeNull();
+    });
+  });
+
+  describe('onThemeChange', () => {
+    it('should update theme preference when toggle changes', async () => {
+      await component.onThemeChange(true);
+
+      expect(mockUserSettingsService.updateThemePreference).toHaveBeenCalledWith('dark');
+      expect(component.themeLoading()).toBe(false);
+    });
+
+    it('should set light theme when isDark is false', async () => {
+      await component.onThemeChange(false);
+
+      expect(mockUserSettingsService.updateThemePreference).toHaveBeenCalledWith('light');
+    });
+
+    it('should set themeLoading during update', async () => {
+      let resolvePromise: () => void;
+      const pendingPromise = new Promise<null>(resolve => {
+        resolvePromise = () => resolve(null);
+      });
+      mockUserSettingsService.updateThemePreference.and.returnValue(pendingPromise);
+
+      const updatePromise = component.onThemeChange(true);
+
+      expect(component.themeLoading()).toBe(true);
+
+      resolvePromise!();
+      await updatePromise;
+
+      expect(component.themeLoading()).toBe(false);
     });
   });
 

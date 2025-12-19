@@ -7,6 +7,7 @@ import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 import { AnchorMenuComponent } from '../anchor-menu/anchor-menu.component';
 import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
 import { MenuCloseDirective } from '@app/directives/menu-close.directive';
+import { UserSettingsService } from '@app/services/user-settings.service';
 
 /**
  * Menu language component that provides a language selection overlay.
@@ -28,8 +29,9 @@ import { MenuCloseDirective } from '@app/directives/menu-close.directive';
   ],
 })
 export class MenuLanguageComponent {
-  translate = inject(TranslocoService);
-  translocoLoader = inject(TranslocoHttpLoader);
+  readonly translate = inject(TranslocoService);
+  readonly translocoLoader = inject(TranslocoHttpLoader);
+  private readonly userSettingsService = inject(UserSettingsService);
 
   Object = Object;
   supportedLanguages: string[] = [...SUPPORTED_LANGUAGES];
@@ -58,6 +60,7 @@ export class MenuLanguageComponent {
         if (langClass) {
           const langCode = this.classToLang[langClass];
           this.translate.setActiveLang(langCode);
+          this.userSettingsService.updateLanguagePreference(langCode);
         }
       }
     }

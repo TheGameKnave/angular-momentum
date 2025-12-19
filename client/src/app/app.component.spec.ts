@@ -8,7 +8,7 @@ import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.mo
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Socket } from 'ngx-socket-io';
-import { Subject } from 'rxjs';
+import { Subject, EMPTY } from 'rxjs';
 import { signal } from '@angular/core';
 import { ConnectivityService } from './services/connectivity.service';
 import { ResourcePreloadService } from './services/resource-preload.service';
@@ -17,6 +17,8 @@ import { ChangeLogService } from './services/change-log.service';
 import { UpdateDialogService } from './services/update-dialog.service';
 import { DataMigrationService } from './services/data-migration.service';
 import { MessageService } from 'primeng/api';
+import { SocketIoService } from './services/socket.io.service';
+import { AuthService } from './services/auth.service';
 
 class MockConnectivityService {
   showOffline = signal(false);
@@ -45,6 +47,12 @@ describe('AppComponent', () => {
     router = jasmine.createSpyObj('Router', ['navigate'], { events: routerEvents$.asObservable() });
 
     const socketSpy = jasmine.createSpyObj('Socket', ['on', 'fromEvent', 'emit', 'disconnect', 'connect']);
+    const socketIoServiceSpy = jasmine.createSpyObj('SocketIoService', ['listen', 'emit']);
+    socketIoServiceSpy.listen.and.returnValue(EMPTY);
+
+    const authServiceSpy = jasmine.createSpyObj('AuthService', ['isAuthenticated', 'getToken']);
+    authServiceSpy.isAuthenticated.and.returnValue(false);
+    authServiceSpy.getToken.and.returnValue(Promise.resolve(null));
 
     TestBed.configureTestingModule({
       imports: [
@@ -59,6 +67,8 @@ describe('AppComponent', () => {
         { provide: SlugPipe, useValue: slugPipe },
         { provide: Router, useValue: router },
         { provide: Socket, useValue: socketSpy },
+        { provide: SocketIoService, useValue: socketIoServiceSpy },
+        { provide: AuthService, useValue: authServiceSpy },
         { provide: ConnectivityService, useClass: MockConnectivityService },
         { provide: ResourcePreloadService, useValue: jasmine.createSpyObj('ResourcePreloadService', ['preloadAll']) },
         MessageService,

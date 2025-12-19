@@ -21,12 +21,28 @@ import { UserStorageService } from './user-storage.service';
  * and run migrations. DataMigrationService controls when this happens to
  * allow backing up data before migrations run.
  */
+/** Available IndexedDB store names */
+export const IDB_STORES = {
+  /** Persistent data store (encryption keys, etc.) */
+  PERSISTENT: 'persistent',
+  /** User settings/preferences store */
+  SETTINGS: 'settings',
+  /** Pre-migration data backups */
+  BACKUPS: 'backups',
+} as const;
+
+export type IdbStoreName = typeof IDB_STORES[keyof typeof IDB_STORES];
+
+/**
+ * Service for managing IndexedDB storage with user-scoped keys and migrations.
+ * Provides methods to get, set, and delete values with automatic key prefixing
+ * based on the current user context.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class IndexedDbService {
   private readonly userStorageService = inject(UserStorageService);
-  private readonly storeName = 'keyval';
 
   /** The previous database version before any upgrade (0 for new databases) */
   private _previousVersion = 0;
@@ -90,11 +106,15 @@ export class IndexedDbService {
       {
         upgrade: (db, oldVersion, _newVersion, transaction) => {
           this._migrated = oldVersion < CURRENT_INDEXEDDB_VERSION;
+          // Chain migrations sequentially - idb awaits transaction.done internally
+          // Using void to satisfy Sonar (no Promise return from void callback)
+          let chain: Promise<void> = Promise.resolve();
           for (const migration of INDEXEDDB_MIGRATIONS) {
             if (oldVersion < migration.version) {
-              migration.migrate(db, transaction);
+              chain = chain.then(() => migration.migrate(db, transaction) ?? Promise.resolve());
             }
           }
+          void chain; // Explicitly discard to satisfy Sonar void return requirement
         },
       }
     );
@@ -139,87 +159,106 @@ export class IndexedDbService {
   }
 
   /**
-   * Retrieves a value from the key-value store using user-scoped key.
+   * Retrieves a value from a store using user-scoped key.
    * @param key - The base key to retrieve (will be prefixed with user scope)
+   * @param store - The store to use
    * @returns Promise that resolves to the stored value, or undefined if not found
    */
-  async get(key: string | number): Promise<unknown> {
+  async get(key: string | number, store: IdbStoreName): Promise<unknown> {
     const prefixedKey = this.userStorageService.prefixKey(String(key));
-    return (await this.getDb()).get(this.storeName, prefixedKey);
+    return (await this.getDb()).get(store, prefixedKey);
   }
 
   /**
-   * Stores a value in the key-value store using user-scoped key.
+   * Stores a value in a store using user-scoped key.
    * @param key - The base key to store the value under (will be prefixed with user scope)
    * @param val - The value to store
+   * @param store - The store to use
    * @returns Promise that resolves when the value is stored
    */
-  async set(key: string | number, val: unknown): Promise<IDBValidKey> {
+  async set(key: string | number, val: unknown, store: IdbStoreName): Promise<IDBValidKey> {
     const prefixedKey = this.userStorageService.prefixKey(String(key));
-    return (await this.getDb()).put(this.storeName, val, prefixedKey);
+    return (await this.getDb()).put(store, val, prefixedKey);
   }
 
   /**
-   * Deletes a value from the key-value store using user-scoped key.
+   * Deletes a value from a store using user-scoped key.
    * @param key - The base key to delete (will be prefixed with user scope)
+   * @param store - The store to use
    * @returns Promise that resolves when the value is deleted
    */
-  async del(key: string | number): Promise<void> {
+  async del(key: string | number, store: IdbStoreName): Promise<void> {
     const prefixedKey = this.userStorageService.prefixKey(String(key));
-    return (await this.getDb()).delete(this.storeName, prefixedKey);
+    return (await this.getDb()).delete(store, prefixedKey);
   }
 
   /**
-   * Clears all values from the key-value store for the current user scope.
+   * Clears all values from a store for the current user scope.
+   * @param store - The store to clear
    * @returns Promise that resolves when all values are cleared
    */
-  async clear(): Promise<void> {
+  async clear(store: IdbStoreName): Promise<void> {
     const prefix = this.userStorageService.storagePrefix();
-    const allKeys = await this.keys();
+    const allKeys = await this.keys(store);
 
     for (const key of allKeys) {
       if (typeof key === 'string' && key.startsWith(`${prefix}_`)) {
-        await (await this.getDb()).delete(this.storeName, key);
+        await (await this.getDb()).delete(store, key);
       }
     }
   }
 
   /**
-   * Retrieves all keys from the key-value store (all scopes).
+   * Clears all values from ALL stores for the current user scope.
+   * @returns Promise that resolves when all values are cleared from all stores
+   */
+  async clearAll(): Promise<void> {
+    const stores: IdbStoreName[] = [IDB_STORES.PERSISTENT, IDB_STORES.SETTINGS, IDB_STORES.BACKUPS];
+    for (const store of stores) {
+      await this.clear(store);
+    }
+  }
+
+  /**
+   * Retrieves all keys from a store (all scopes).
+   * @param store - The store to get keys from
    * @returns Promise that resolves to an array of all keys
    */
-  async keys(): Promise<IDBValidKey[]> {
-    return (await this.getDb()).getAllKeys(this.storeName);
+  async keys(store: IdbStoreName): Promise<IDBValidKey[]> {
+    return (await this.getDb()).getAllKeys(store);
   }
 
   /**
    * Retrieves a value using the exact key provided (no prefixing).
-   * Used internally for migration operations.
+   * Used internally for backup operations.
    * @param key - The exact key to retrieve
+   * @param store - The store to use
    * @returns Promise that resolves to the stored value, or undefined if not found
    */
-  async getRaw(key: string | number): Promise<unknown> {
-    return (await this.getDb()).get(this.storeName, key);
+  async getRaw(key: string | number, store: IdbStoreName): Promise<unknown> {
+    return (await this.getDb()).get(store, key);
   }
 
   /**
    * Stores a value using the exact key provided (no prefixing).
-   * Used internally for migration operations.
+   * Used internally for backup operations.
    * @param key - The exact key to store the value under
    * @param val - The value to store
+   * @param store - The store to use
    * @returns Promise that resolves when the value is stored
    */
-  async setRaw(key: string | number, val: unknown): Promise<IDBValidKey> {
-    return (await this.getDb()).put(this.storeName, val, key);
+  async setRaw(key: string | number, val: unknown, store: IdbStoreName): Promise<IDBValidKey> {
+    return (await this.getDb()).put(store, val, key);
   }
 
   /**
    * Deletes a value using the exact key provided (no prefixing).
-   * Used internally for migration operations.
+   * Used internally for backup operations.
    * @param key - The exact key to delete
+   * @param store - The store to use
    * @returns Promise that resolves when the value is deleted
    */
-  async delRaw(key: string | number): Promise<void> {
-    return (await this.getDb()).delete(this.storeName, key);
+  async delRaw(key: string | number, store: IdbStoreName): Promise<void> {
+    return (await this.getDb()).delete(store, key);
   }
 }

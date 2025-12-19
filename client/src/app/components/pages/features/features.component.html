@@ -9,12 +9,10 @@
       @for (feature of Object.entries(featureFlagService.features()); track $index) {
         <li [class.disabled]="!connectivity.isOnline() || !authService.isAuthenticated()">
           <p-toggleswitch
-            [inputId]="'thing'+feature[0]"
+            [inputId]="'feature-'+feature[0]"
             [formControl]="featureControl(feature[0])"
-          ></p-toggleswitch>&nbsp;
-        <label
-          [for]="'thing'+feature[0]">{{ t(featureKey(feature[0])) }}
-        </label>
+          />
+          <label [for]="'feature-'+feature[0]">{{ t(featureKey(feature[0])) }}</label>
         </li>
       }
     </ul>

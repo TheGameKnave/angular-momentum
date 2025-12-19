@@ -13,6 +13,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { MessageModule } from 'primeng/message';
 import { TooltipModule } from 'primeng/tooltip';
 import { SelectModule } from 'primeng/select';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { ConfirmDialogService } from '@app/services/confirm-dialog.service';
 import { DialogConfirmComponent } from '@app/components/dialogs/dialog-confirm/dialog-confirm.component';
 import { AuthService } from '@app/services/auth.service';
@@ -56,6 +57,7 @@ import { TOOLTIP_CONFIG } from '@app/constants/ui.constants';
     MessageModule,
     TooltipModule,
     SelectModule,
+    ToggleSwitchModule,
     DialogConfirmComponent,
     RelativeTimeComponent,
   ],
@@ -84,9 +86,11 @@ export class ProfileComponent implements OnInit {
   readonly showCurrentPassword = signal(false);
   readonly isPasswordResetFlow = signal(false); // True when coming from password reset email
 
-  // Timezone state
+  // Timezone state - use service signal directly
   readonly timezoneLoading = signal(false);
-  readonly selectedTimezone = signal<string>('UTC');
+
+  // Theme state - use service signal directly
+  readonly themeLoading = signal(false);
 
   // Username state
   readonly usernamePanelExpanded = signal(false);
@@ -191,14 +195,8 @@ export class ProfileComponent implements OnInit {
       );
     }
 
-    // Load user settings (timezone)
-    const settings = this.userSettingsService.settings();
-    if (settings?.timezone) {
-      this.selectedTimezone.set(settings.timezone);
-    } else {
-      // Use detected timezone as fallback
-      this.selectedTimezone.set(this.userSettingsService.detectTimezone());
-    }
+    // Preferences are loaded from userSettingsService signals
+    // (themePreference and timezonePreference are already reactive)
 
     // Load username asynchronously
     this.loadUsernameAsync();
@@ -233,11 +231,14 @@ export class ProfileComponent implements OnInit {
    */
   async onLogout(): Promise<void> {
     // Clear user data
-    this.userSettingsService.clear();
     this.usernameService.clear();
 
     // Logout and navigate to home (required since /profile is auth-guarded)
     await this.authService.logout();
+
+    // Clear user settings and reload preferences for anonymous scope
+    await this.userSettingsService.clear();
+
     await this.router.navigate(['/']);
   }
 
@@ -509,13 +510,18 @@ export class ProfileComponent implements OnInit {
    * Handle timezone change
    */
   async onTimezoneChange(event: { value: string }): Promise<void> {
-    const newTimezone = event.value;
     this.timezoneLoading.set(true);
-
-    await this.userSettingsService.updateTimezone(newTimezone);
-    this.selectedTimezone.set(newTimezone);
-
+    await this.userSettingsService.updateTimezone(event.value);
     this.timezoneLoading.set(false);
+  }
+
+  /**
+   * Handle theme toggle change
+   */
+  async onThemeChange(isDark: boolean): Promise<void> {
+    this.themeLoading.set(true);
+    await this.userSettingsService.updateThemePreference(isDark ? 'dark' : 'light');
+    this.themeLoading.set(false);
   }
 
   /**
@@ -641,8 +647,8 @@ export class ProfileComponent implements OnInit {
       confirmIcon: 'pi pi-trash',
       confirmSeverity: 'danger',
       onConfirm: async () => {
-        // Clear IndexedDB data for current user
-        await this.indexedDbService.clear();
+        // Clear IndexedDB data for current user (all stores)
+        await this.indexedDbService.clearAll();
 
         // Clear notification service local state
         this.notificationService.clearAll();
@@ -650,8 +656,8 @@ export class ProfileComponent implements OnInit {
         // Delete user settings from server and clear local state
         await this.userSettingsService.deleteSettings();
 
-        // Reset timezone UI to detected timezone (since saved preference was cleared)
-        this.selectedTimezone.set(this.userSettingsService.detectTimezone());
+        // Reload preferences (will use detected timezone since server settings cleared)
+        await this.userSettingsService.loadLocalPreferences();
       },
     });
   }

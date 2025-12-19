@@ -1,10 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { IndexedDbService } from './indexeddb.service';
+import { IndexedDbService, IdbStoreName } from './indexeddb.service';
 import { UserStorageService } from './user-storage.service';
 import { LogService } from './log.service';
 import { ENVIRONMENT } from 'src/environments/environment';
 import packageJson from 'src/../package.json';
-import { USER_LOCALSTORAGE_NAMES, USER_INDEXEDDB_NAMES } from '@app/constants/storage.constants';
+import { USER_LOCALSTORAGE_NAMES, USER_INDEXEDDB_ENTRIES } from '@app/constants/storage.constants';
 
 /**
  * Structure of exported user data.
@@ -137,10 +137,10 @@ export class DataExportService {
   private async collectIndexedDbData(): Promise<Record<string, unknown>> {
     const result: Record<string, unknown> = {};
 
-    for (const baseKey of USER_INDEXEDDB_NAMES) {
+    for (const { key: baseKey, store } of USER_INDEXEDDB_ENTRIES) {
       const prefixedKey = this.userStorageService.prefixKey(baseKey);
       try {
-        const value = await this.indexedDbService.getRaw(prefixedKey);
+        const value = await this.indexedDbService.getRaw(prefixedKey, store as IdbStoreName);
         if (value !== undefined) {
           result[baseKey] = value;
         }
@@ -192,10 +192,10 @@ export class DataExportService {
     }
 
     // Check IndexedDB
-    for (const baseKey of USER_INDEXEDDB_NAMES) {
+    for (const { key: baseKey, store } of USER_INDEXEDDB_ENTRIES) {
       const prefixedKey = this.userStorageService.prefixKey(baseKey);
       try {
-        const value = await this.indexedDbService.getRaw(prefixedKey);
+        const value = await this.indexedDbService.getRaw(prefixedKey, store as IdbStoreName);
         if (value !== undefined) {
           return true;
         }

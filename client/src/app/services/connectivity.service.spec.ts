@@ -43,7 +43,7 @@ describe('ConnectivityService', () => {
 
 
   it('should initialize signals correctly', () => {
-    expect(service.isOnline()).toBeFalse(); // now starts false
+    expect(service.isOnline()).toBe(navigator.onLine); // starts with OS-reported status
     expect(service.osOnline()).toBe(navigator.onLine);
     expect(service.showOffline()).toBeFalse();
     expect(service.lastVerifiedOnline()).toBeUndefined();

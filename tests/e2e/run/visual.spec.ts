@@ -202,6 +202,79 @@ test.describe('Visual Regression Tests', () => {
     await logoutBtn.click();
   });
 
+  test('page-profile-light', async ({ page }) => {
+    // Login first
+    await page.goto(APP_BASE_URL);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+
+    await page.click(menus.authMenuButton);
+    await page.click(auth.loginTab);
+    await page.fill(auth.loginIdentifier, testUser.email);
+    await page.fill(auth.loginPassword, testUser.password);
+    await page.click(auth.loginSubmit);
+    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    // Close the menu
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+
+    // Navigate to profile page
+    await page.goto(`${APP_BASE_URL}/profile`);
+    await waitForAngular(page);
+
+    // Switch to light mode by clicking the theme toggle
+    const themeToggle = page.locator(pages.profileThemeToggle);
+    await themeToggle.waitFor({ state: 'visible' });
+
+    // Get initial state - if dark, toggle to light
+    const htmlElement = page.locator('html');
+    const isDark = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
+    if (isDark) {
+      await page.click(pages.profileThemeToggle);
+      await page.waitForTimeout(500); // Wait for theme to apply
+    }
+
+    // Replace dynamic content with stable placeholders for screenshot
+    await page.evaluate(() => {
+      // Header: username's Profile -> User's Profile, email (in .profile-header-info)
+      const headerInfo = document.querySelector('.profile-header-info');
+      if (headerInfo) {
+        const h2 = headerInfo.querySelector('h2');
+        const p = headerInfo.querySelector('p');
+        if (h2) h2.textContent = "User's Profile";
+        if (p) p.textContent = 'user@example.com';
+      }
+
+      // User Information section: email, user ID (in dd elements inside .info-list)
+      const infoList = document.querySelector('.info-list');
+      if (infoList) {
+        const ddElements = infoList.querySelectorAll('dd');
+        ddElements.forEach((dd) => {
+          const text = dd.textContent || '';
+          // Replace email
+          if (text.includes('@')) dd.textContent = 'user@example.com';
+          // Replace UUID
+          if (text.match(/^[a-f0-9-]{36}$/i)) dd.textContent = '00000000-0000-0000-0000-000000000000';
+        });
+      }
+
+      // Timestamps
+      const timestamps = document.querySelectorAll('app-relative-time');
+      timestamps.forEach((el) => (el.textContent = 'Jan 1, 2024'));
+    });
+
+    await screenshotPageComponent(page, pages.profilePage, 'page-profile-light.png');
+
+    // Switch back to dark mode before logout
+    await page.click(pages.profileThemeToggle);
+    await page.waitForTimeout(300);
+
+    // Logout
+    await page.click(menus.authMenuButton);
+    const logoutBtn = page.locator(auth.logoutButton);
+    await logoutBtn.click();
+  });
+
   // ============================================================================
   // MENU/COMPONENT SNAPSHOTS (with opaque backgrounds)
   // ============================================================================
@@ -395,6 +468,7 @@ test.describe('Visual Regression Tests', () => {
 
   // ============================================================================
   // RESPONSIVE LAYOUT SNAPSHOTS
+  // Full-page layouts at different viewport sizes
   // ============================================================================
 
   test('layout-mobile', async ({ page }) => {
@@ -419,5 +493,211 @@ test.describe('Visual Regression Tests', () => {
       maxDiffPixelRatio: 0.001,
       animations: 'disabled',
     });
+  });
+
+  // ============================================================================
+  // RESPONSIVE PAGE SNAPSHOTS
+  // Each page at phone (375px) and tablet (768px) viewports
+  // ============================================================================
+
+  const VIEWPORT_PHONE = { width: 375, height: 667 };
+  const VIEWPORT_TABLET = { width: 768, height: 1024 };
+
+  test('page-landing-phone', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT_PHONE);
+    await page.goto(APP_BASE_URL);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+    await screenshotPageComponent(page, pages.landingPage, 'page-landing-phone.png');
+  });
+
+  test('page-landing-tablet', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT_TABLET);
+    await page.goto(APP_BASE_URL);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+    await screenshotPageComponent(page, pages.landingPage, 'page-landing-tablet.png');
+  });
+
+  test('page-features-phone', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT_PHONE);
+    await page.goto(`${APP_BASE_URL}/features`);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+    await screenshotPageComponent(page, pages.featuresPage, 'page-features-phone.png');
+  });
+
+  test('page-features-tablet', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT_TABLET);
+    await page.goto(`${APP_BASE_URL}/features`);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+    await screenshotPageComponent(page, pages.featuresPage, 'page-features-tablet.png');
+  });
+
+  test('page-graphql-phone', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT_PHONE);
+    await page.goto(`${APP_BASE_URL}/graphql-api`);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+    await screenshotPageComponent(page, pages.graphqlPage, 'page-graphql-phone.png');
+  });
+
+  test('page-graphql-tablet', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT_TABLET);
+    await page.goto(`${APP_BASE_URL}/graphql-api`);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+    await screenshotPageComponent(page, pages.graphqlPage, 'page-graphql-tablet.png');
+  });
+
+  test('page-indexeddb-phone', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT_PHONE);
+    await page.goto(`${APP_BASE_URL}/indexeddb`);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+    await screenshotPageComponent(page, pages.indexedDbPage, 'page-indexeddb-phone.png');
+  });
+
+  test('page-indexeddb-tablet', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT_TABLET);
+    await page.goto(`${APP_BASE_URL}/indexeddb`);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+    await screenshotPageComponent(page, pages.indexedDbPage, 'page-indexeddb-tablet.png');
+  });
+
+  test('page-notifications-phone', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT_PHONE);
+    await page.goto(`${APP_BASE_URL}/notifications`);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+    await screenshotPageComponent(page, pages.notificationsPage, 'page-notifications-phone.png');
+  });
+
+  test('page-notifications-tablet', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT_TABLET);
+    await page.goto(`${APP_BASE_URL}/notifications`);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+    await screenshotPageComponent(page, pages.notificationsPage, 'page-notifications-tablet.png');
+  });
+
+  test('page-privacy-phone', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT_PHONE);
+    await page.goto(`${APP_BASE_URL}/privacy`, { waitUntil: 'networkidle' });
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+    await page.locator(pages.privacyPage).waitFor({ state: 'visible', timeout: 30000 });
+    await screenshotPageComponent(page, pages.privacyPage, 'page-privacy-phone.png');
+  });
+
+  test('page-privacy-tablet', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT_TABLET);
+    await page.goto(`${APP_BASE_URL}/privacy`, { waitUntil: 'networkidle' });
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+    await page.locator(pages.privacyPage).waitFor({ state: 'visible', timeout: 30000 });
+    await screenshotPageComponent(page, pages.privacyPage, 'page-privacy-tablet.png');
+  });
+
+  test('page-profile-phone', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT_PHONE);
+
+    // Login first
+    await page.goto(APP_BASE_URL);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+
+    await page.click(menus.authMenuButton);
+    await page.click(auth.loginTab);
+    await page.fill(auth.loginIdentifier, testUser.email);
+    await page.fill(auth.loginPassword, testUser.password);
+    await page.click(auth.loginSubmit);
+    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+
+    // Navigate to profile page
+    await page.goto(`${APP_BASE_URL}/profile`);
+    await waitForAngular(page);
+
+    // Replace dynamic content
+    await page.evaluate(() => {
+      const headerInfo = document.querySelector('.profile-header-info');
+      if (headerInfo) {
+        const h2 = headerInfo.querySelector('h2');
+        const p = headerInfo.querySelector('p');
+        if (h2) h2.textContent = "User's Profile";
+        if (p) p.textContent = 'user@example.com';
+      }
+      const infoList = document.querySelector('.info-list');
+      if (infoList) {
+        const ddElements = infoList.querySelectorAll('dd');
+        ddElements.forEach((dd) => {
+          const text = dd.textContent || '';
+          if (text.includes('@')) dd.textContent = 'user@example.com';
+          if (text.match(/^[a-f0-9-]{36}$/i)) dd.textContent = '00000000-0000-0000-0000-000000000000';
+        });
+      }
+      const timestamps = document.querySelectorAll('app-relative-time');
+      timestamps.forEach((el) => (el.textContent = 'Jan 1, 2024'));
+    });
+
+    await screenshotPageComponent(page, pages.profilePage, 'page-profile-phone.png');
+
+    // Logout
+    await page.click(menus.authMenuButton);
+    await page.locator(auth.logoutButton).click();
+  });
+
+  test('page-profile-tablet', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT_TABLET);
+
+    // Login first
+    await page.goto(APP_BASE_URL);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+
+    await page.click(menus.authMenuButton);
+    await page.click(auth.loginTab);
+    await page.fill(auth.loginIdentifier, testUser.email);
+    await page.fill(auth.loginPassword, testUser.password);
+    await page.click(auth.loginSubmit);
+    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+
+    // Navigate to profile page
+    await page.goto(`${APP_BASE_URL}/profile`);
+    await waitForAngular(page);
+
+    // Replace dynamic content
+    await page.evaluate(() => {
+      const headerInfo = document.querySelector('.profile-header-info');
+      if (headerInfo) {
+        const h2 = headerInfo.querySelector('h2');
+        const p = headerInfo.querySelector('p');
+        if (h2) h2.textContent = "User's Profile";
+        if (p) p.textContent = 'user@example.com';
+      }
+      const infoList = document.querySelector('.info-list');
+      if (infoList) {
+        const ddElements = infoList.querySelectorAll('dd');
+        ddElements.forEach((dd) => {
+          const text = dd.textContent || '';
+          if (text.includes('@')) dd.textContent = 'user@example.com';
+          if (text.match(/^[a-f0-9-]{36}$/i)) dd.textContent = '00000000-0000-0000-0000-000000000000';
+        });
+      }
+      const timestamps = document.querySelectorAll('app-relative-time');
+      timestamps.forEach((el) => (el.textContent = 'Jan 1, 2024'));
+    });
+
+    await screenshotPageComponent(page, pages.profilePage, 'page-profile-tablet.png');
+
+    // Logout
+    await page.click(menus.authMenuButton);
+    await page.locator(auth.logoutButton).click();
   });
 });

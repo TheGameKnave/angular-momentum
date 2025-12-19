@@ -1,9 +1,10 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal, computed, inject, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { createClient, SupabaseClient, User, Session, AuthError } from '@supabase/supabase-js';
 import { TranslocoService } from '@jsverse/transloco';
 import { PlatformService } from './platform.service';
 import { LogService } from './log.service';
+import { ConnectivityService } from './connectivity.service';
 import { ENVIRONMENT } from 'src/environments/environment';
 import { AUTH_TIMING } from '@app/constants/service.constants';
 
@@ -63,6 +64,7 @@ export class AuthService {
   private readonly logService = inject(LogService);
   private readonly router = inject(Router);
   private readonly translocoService = inject(TranslocoService);
+  private readonly connectivityService = inject(ConnectivityService);
 
   private supabase: SupabaseClient | null = null;
 
@@ -106,6 +108,38 @@ export class AuthService {
 
   constructor() {
     this.initializeSupabase();
+    this.setupConnectivityHandling();
+  }
+
+  /**
+   * Set up connectivity-aware token refresh handling.
+   * Stops auto-refresh when offline to prevent error spam.
+   * Resumes auto-refresh when connectivity is restored.
+   */
+  private setupConnectivityHandling(): void {
+    // Don't set up connectivity handling on SSR
+    if (this.platformService.isSSR()) {
+      return;
+    }
+
+    // Use effect to react to connectivity changes
+    effect(() => {
+      const isOnline = this.connectivityService.isOnline();
+
+      if (!this.supabase) {
+        return;
+      }
+
+      if (isOnline) {
+        // Resume auto-refresh when online
+        this.supabase.auth.startAutoRefresh();
+        this.logService.log('Auth: Auto-refresh resumed (online)');
+      } else {
+        // Stop auto-refresh when offline to prevent error spam
+        this.supabase.auth.stopAutoRefresh();
+        this.logService.log('Auth: Auto-refresh paused (offline)');
+      }
+    });
   }
 
   /**

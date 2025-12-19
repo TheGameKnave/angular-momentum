@@ -88,6 +88,8 @@ export const pages = {
   profilePage: 'app-profile',
   profileEmail: 'app-profile input[type="email"]',
   profileTimezone: 'app-profile p-select',
+  profileThemeToggle: 'app-profile .theme-toggle p-toggleswitch',
+  profileThemeToggleInput: 'app-profile .theme-toggle p-toggleswitch input',
   profileExportButton: 'app-profile p-button:has-text("Export Data")',
   profileDeleteDataButton: 'app-profile p-button:has-text("Clear Data")',
   profileDeleteAccountButton: 'app-profile p-button:has-text("Delete Account")',

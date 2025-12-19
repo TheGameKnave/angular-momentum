@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { NotificationsComponent } from './notifications.component';
 import { NotificationService } from '@app/services/notification.service';
 import { GraphqlService, NotificationResult } from '@app/services/graphql.service';
+import { AuthService } from '@app/services/auth.service';
 import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
@@ -13,6 +14,7 @@ describe('NotificationsComponent', () => {
   let fixture: ComponentFixture<NotificationsComponent>;
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
   let graphqlServiceSpy: jasmine.SpyObj<GraphqlService>;
+  let authServiceSpy: jasmine.SpyObj<AuthService>;
 
   beforeEach(waitForAsync(() => {
     notificationServiceSpy = jasmine.createSpyObj('NotificationService', [
@@ -22,11 +24,16 @@ describe('NotificationsComponent', () => {
       'isSupported'
     ]);
     graphqlServiceSpy = jasmine.createSpyObj('GraphqlService', ['sendLocalizedNotification']);
+    authServiceSpy = jasmine.createSpyObj('AuthService', ['getAccessToken']);
 
-    // Create signal spies
+    // Create signal spies for NotificationService
     (notificationServiceSpy as any).permissionGranted = signal(false);
     (notificationServiceSpy as any).unreadCount = signal(0);
     (notificationServiceSpy as any).notifications = signal([]);
+
+    // Create signal spies for AuthService
+    (authServiceSpy as any).isAuthenticated = signal(false);
+    (authServiceSpy as any).currentUser = signal(null);
 
     TestBed.configureTestingModule({
       imports: [
@@ -36,7 +43,8 @@ describe('NotificationsComponent', () => {
       providers: [
         provideNoopAnimations(),
         { provide: NotificationService, useValue: notificationServiceSpy },
-        { provide: GraphqlService, useValue: graphqlServiceSpy }
+        { provide: GraphqlService, useValue: graphqlServiceSpy },
+        { provide: AuthService, useValue: authServiceSpy },
       ]
     }).compileComponents();
 

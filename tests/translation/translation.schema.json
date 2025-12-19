@@ -1035,6 +1035,10 @@
           "type": "string",
           "description": "Profile: Email change process explanation"
         },
+        "Dark": {
+          "type": "string",
+          "description": "Profile: Dark theme option"
+        },
         "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.": {
           "type": "string",
           "description": "Profile: Account deletion confirmation dialog"
@@ -1099,6 +1103,10 @@
           "type": "string",
           "description": "Profile: Last login timestamp label"
         },
+        "Light": {
+          "type": "string",
+          "description": "Profile: Light theme option"
+        },
         "Member Since": {
           "type": "string",
           "description": "Profile: Account creation date label"
@@ -1134,6 +1142,10 @@
         "Set Username": {
           "type": "string",
           "description": "Profile: Username section header (when no username)"
+        },
+        "Theme": {
+          "type": "string",
+          "description": "Profile: Theme preference label"
         },
         "Timezone": {
           "type": "string",
@@ -1172,6 +1184,7 @@
         "Change Username",
         "Clear All Data",
         "Clear Data",
+        "Dark",
         "Data & Privacy",
         "Delete Account",
         "Email address updated successfully!",
@@ -1182,6 +1195,7 @@
         "Export Data",
         "Export Your Data",
         "Last Sign In",
+        "Light",
         "Member Since",
         "New Email Address",
         "Permanently delete your account and all associated data. This action cannot be undone.",
@@ -1191,6 +1205,7 @@
         "Remove all stored preferences, notifications, and settings. Your account will remain active.",
         "Select timezone",
         "Set Username",
+        "Theme",
         "Timezone",
         "Update Email",
         "User ID",

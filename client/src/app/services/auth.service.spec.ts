@@ -4,8 +4,10 @@ import { TranslocoService } from '@jsverse/transloco';
 import { AuthService, AuthResult, LoginCredentials } from './auth.service';
 import { PlatformService } from './platform.service';
 import { LogService } from './log.service';
+import { ConnectivityService } from './connectivity.service';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { ENVIRONMENT } from 'src/environments/environment';
+import { signal } from '@angular/core';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -13,6 +15,7 @@ describe('AuthService', () => {
   let mockLogService: jasmine.SpyObj<LogService>;
   let mockRouter: jasmine.SpyObj<Router>;
   let mockTranslocoService: jasmine.SpyObj<TranslocoService>;
+  let mockConnectivityService: { isOnline: ReturnType<typeof signal<boolean>> };
   let mockSupabaseClient: any;
   let mockSupabaseAuth: any;
 
@@ -52,6 +55,8 @@ describe('AuthService', () => {
       setSession: jasmine.createSpy('setSession'),
       resetPasswordForEmail: jasmine.createSpy('resetPasswordForEmail'),
       updateUser: jasmine.createSpy('updateUser'),
+      startAutoRefresh: jasmine.createSpy('startAutoRefresh'),
+      stopAutoRefresh: jasmine.createSpy('stopAutoRefresh'),
     };
 
     // Mock Supabase client
@@ -87,6 +92,11 @@ describe('AuthService', () => {
     mockTranslocoService = jasmine.createSpyObj('TranslocoService', ['getActiveLang']);
     mockTranslocoService.getActiveLang.and.returnValue('en-US');
 
+    // Mock ConnectivityService with a signal that starts online
+    mockConnectivityService = {
+      isOnline: signal(true),
+    };
+
     // Mock global fetch
     spyOn(window, 'fetch');
 
@@ -96,7 +106,8 @@ describe('AuthService', () => {
         { provide: PlatformService, useValue: mockPlatformService },
         { provide: LogService, useValue: mockLogService },
         { provide: Router, useValue: mockRouter },
-        { provide: TranslocoService, useValue: mockTranslocoService }
+        { provide: TranslocoService, useValue: mockTranslocoService },
+        { provide: ConnectivityService, useValue: mockConnectivityService },
       ]
     });
 
@@ -138,6 +149,47 @@ describe('AuthService', () => {
       expect(mockLogService.log).toHaveBeenCalledWith('Supabase not configured');
 
       (ENVIRONMENT as any).supabase = originalSupabase;
+    });
+  });
+
+  describe('connectivity handling', () => {
+    it('should stop auto-refresh when going offline', () => {
+      // Simulate going offline
+      mockConnectivityService.isOnline.set(false);
+      TestBed.flushEffects();
+
+      expect(mockSupabaseAuth.stopAutoRefresh).toHaveBeenCalled();
+    });
+
+    it('should start auto-refresh when coming back online', () => {
+      // First go offline
+      mockConnectivityService.isOnline.set(false);
+      TestBed.flushEffects();
+      mockSupabaseAuth.startAutoRefresh.calls.reset();
+
+      // Then come back online
+      mockConnectivityService.isOnline.set(true);
+      TestBed.flushEffects();
+
+      expect(mockSupabaseAuth.startAutoRefresh).toHaveBeenCalled();
+    });
+
+    it('should not call auto-refresh methods when supabase is null', () => {
+      // Set supabase to null
+      (service as any).supabase = null;
+      mockSupabaseAuth.startAutoRefresh.calls.reset();
+      mockSupabaseAuth.stopAutoRefresh.calls.reset();
+
+      // Trigger connectivity change
+      mockConnectivityService.isOnline.set(false);
+      TestBed.flushEffects();
+
+      expect(mockSupabaseAuth.stopAutoRefresh).not.toHaveBeenCalled();
+
+      mockConnectivityService.isOnline.set(true);
+      TestBed.flushEffects();
+
+      expect(mockSupabaseAuth.startAutoRefresh).not.toHaveBeenCalled();
     });
   });
 

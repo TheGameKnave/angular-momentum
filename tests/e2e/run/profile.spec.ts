@@ -128,6 +128,126 @@ test.describe('Profile Tests', () => {
   });
 
   // ============================================================================
+  // THEME TESTS
+  // ============================================================================
+
+  test('Theme toggle is available', async ({ page }) => {
+    await loginWithSharedUser(page);
+
+    // Navigate to profile
+    await page.goto(`${APP_BASE_URL}/profile`);
+    await page.waitForSelector(pages.profilePage, { timeout: 5000 });
+
+    // Check theme toggle exists
+    await expect(page.locator(pages.profileThemeToggle)).toBeVisible();
+
+    // Logout via auth menu
+    await page.click(menus.authMenuButton);
+    await page.waitForTimeout(300);
+    const logoutBtn = page.locator(auth.logoutButton);
+    await logoutBtn.waitFor({ state: 'visible' });
+    await logoutBtn.click();
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 10000 });
+  });
+
+  test('Theme toggle switches between light and dark mode', async ({ page }) => {
+    await loginWithSharedUser(page);
+
+    // Navigate to profile
+    await page.goto(`${APP_BASE_URL}/profile`);
+    await page.waitForSelector(pages.profilePage, { timeout: 5000 });
+
+    // Wait for the toggle input to be enabled (not loading from server)
+    const themeToggleInput = page.locator('app-profile .theme-toggle p-toggleswitch input');
+    await expect(themeToggleInput).toBeEnabled({ timeout: 5000 });
+
+    // Wait for settings to fully load from server (there's round-tripping with local/remote)
+    await page.waitForTimeout(1000);
+
+    // Get initial theme state (default is dark, so html should have app-dark class)
+    const htmlElement = page.locator('html');
+    const initialHasDarkClass = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
+
+    // Click the switch element directly using role selector
+    const themeSwitch = page.getByRole('switch', { name: 'Light Dark' });
+    await themeSwitch.click();
+    await page.waitForTimeout(1000); // Wait for theme to apply and sync
+
+    // Check that the theme class changed
+    const afterToggleHasDarkClass = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
+    expect(afterToggleHasDarkClass).not.toBe(initialHasDarkClass);
+
+    // Click switch again to toggle back
+    await themeSwitch.click();
+    await page.waitForTimeout(500);
+
+    // Should be back to original state
+    const finalHasDarkClass = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
+    expect(finalHasDarkClass).toBe(initialHasDarkClass);
+
+    // Logout via auth menu
+    await page.click(menus.authMenuButton);
+    await page.waitForTimeout(300);
+    const logoutBtn = page.locator(auth.logoutButton);
+    await logoutBtn.waitFor({ state: 'visible' });
+    await logoutBtn.click();
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 10000 });
+  });
+
+  test('Theme preference persists after page reload', async ({ page }) => {
+    await loginWithSharedUser(page);
+
+    // Navigate to profile
+    await page.goto(`${APP_BASE_URL}/profile`);
+    await page.waitForSelector(pages.profilePage, { timeout: 5000 });
+
+    // Wait for the toggle input to be enabled (not loading from server)
+    const themeToggleInput = page.locator('app-profile .theme-toggle p-toggleswitch input');
+    await expect(themeToggleInput).toBeEnabled({ timeout: 5000 });
+
+    // Wait for settings to fully load from server (there's round-tripping with local/remote)
+    await page.waitForTimeout(1000);
+
+    // Get initial theme state
+    const htmlElement = page.locator('html');
+    const initialHasDarkClass = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
+
+    // Click the switch element directly using role selector
+    const themeSwitch = page.getByRole('switch', { name: 'Light Dark' });
+    await themeSwitch.click();
+    await page.waitForTimeout(1000); // Wait for theme to apply and sync
+
+    // Verify toggle happened
+    const afterToggleHasDarkClass = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
+    expect(afterToggleHasDarkClass).not.toBe(initialHasDarkClass);
+
+    // Reload page
+    await page.reload();
+    await page.waitForSelector(pages.profilePage, { timeout: 5000 });
+
+    // Wait for toggle to be enabled again after reload
+    await expect(themeToggleInput).toBeEnabled({ timeout: 5000 });
+
+    // Check that theme persisted
+    const afterReloadHasDarkClass = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
+    expect(afterReloadHasDarkClass).toBe(afterToggleHasDarkClass);
+
+    // Toggle back to original state for cleanup
+    if (afterReloadHasDarkClass !== initialHasDarkClass) {
+      await themeSwitch.click();
+      await page.waitForTimeout(500);
+    }
+
+    // Logout via auth menu
+    await page.click(menus.authMenuButton);
+    await page.waitForTimeout(300);
+    const logoutBtn = page.locator(auth.logoutButton);
+    await logoutBtn.waitFor({ state: 'visible' });
+    await logoutBtn.click();
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 10000 });
+  });
+
+  // ============================================================================
   // DATA EXPORT TESTS
   // ============================================================================
 

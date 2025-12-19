@@ -396,14 +396,36 @@
       <h3>{{ t('profile.Preferences') }}</h3>
 
       <dl class="info-list">
+        <!-- Theme -->
+        <div class="info-row">
+          <dt>{{ t('profile.Theme') }}:</dt>
+          <dd class="theme-toggle">
+            <label
+              for="theme-toggle"
+              class="theme-label"
+              [class.active]="userSettingsService.themePreference() === 'light'"
+            >{{ t('profile.Light') }}</label>
+            <p-toggleswitch
+              inputId="theme-toggle"
+              [ngModel]="userSettingsService.themePreference() === 'dark'"
+              (ngModelChange)="onThemeChange($event)"
+              [disabled]="themeLoading()"
+            />
+            <label
+              for="theme-toggle"
+              class="theme-label"
+              [class.active]="userSettingsService.themePreference() === 'dark'"
+            >{{ t('profile.Dark') }}</label>
+          </dd>
+        </div>
+
         <!-- Timezone -->
         <div class="info-row">
           <dt>{{ t('profile.Timezone') }}:</dt>
           <dd class="timezone-select">
             <p-select
               [options]="commonTimezones"
-              [ngModel]="selectedTimezone()"
-              (ngModelChange)="selectedTimezone.set($event)"
+              [ngModel]="userSettingsService.timezonePreference()"
               (onChange)="onTimezoneChange($event)"
               [loading]="timezoneLoading()"
               optionLabel="label"
