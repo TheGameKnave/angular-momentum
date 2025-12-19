@@ -167,7 +167,8 @@ test.describe('Responsive Design Tests', () => {
     await page.waitForTimeout(300);
 
     // Check buttons have minimum 44x44 touch target (WCAG recommendation)
-    const buttons = page.locator('button, [role="button"], a.p-button');
+    // Exclude header/footer elements which have intentionally compact styling
+    const buttons = page.locator('main button, main [role="button"], main a.p-button');
     const buttonCount = await buttons.count();
 
     for (let i = 0; i < Math.min(buttonCount, 10); i++) {

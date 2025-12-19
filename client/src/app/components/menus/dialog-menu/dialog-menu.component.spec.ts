@@ -1,19 +1,19 @@
 import { ComponentFixture, TestBed, fakeAsync, tick, flush } from '@angular/core/testing';
-import { AnchorMenuComponent } from './anchor-menu.component';
+import { DialogMenuComponent } from './dialog-menu.component';
 import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
 import { Component } from '@angular/core';
 import { Subject } from 'rxjs';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 
-// Test host component to use the anchor-menu with content projection
+// Test host component to use the dialog-menu with content projection
 @Component({
   template: `
-    <app-anchor-menu [position]="position" [width]="width" [zIndex]="zIndex" [showCloseButton]="showCloseButton">
+    <app-dialog-menu [position]="position" [width]="width" [zIndex]="zIndex" [showCloseButton]="showCloseButton">
       <button menu-trigger>Open Menu</button>
       <div menu-content>Menu Content</div>
-    </app-anchor-menu>
+    </app-dialog-menu>
   `,
-  imports: [AnchorMenuComponent]
+  imports: [DialogMenuComponent]
 })
 class TestHostComponent {
   position: 'top' | 'bottom' | 'left' | 'right' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | '' = '';
@@ -22,9 +22,9 @@ class TestHostComponent {
   showCloseButton = true;
 }
 
-describe('AnchorMenuComponent', () => {
-  let component: AnchorMenuComponent;
-  let fixture: ComponentFixture<AnchorMenuComponent>;
+describe('DialogMenuComponent', () => {
+  let component: DialogMenuComponent;
+  let fixture: ComponentFixture<DialogMenuComponent>;
   let overlayRefSpy: jasmine.SpyObj<OverlayRef>;
   let backdropClickSubject: Subject<MouseEvent>;
   let overlaySpy: jasmine.SpyObj<Overlay>;
@@ -54,13 +54,13 @@ describe('AnchorMenuComponent', () => {
     overlaySpy.create.and.returnValue(overlayRefSpy);
 
     await TestBed.configureTestingModule({
-      imports: [AnchorMenuComponent, getTranslocoModule()],
+      imports: [DialogMenuComponent, getTranslocoModule()],
       providers: [
         { provide: Overlay, useValue: overlaySpy }
       ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AnchorMenuComponent);
+    fixture = TestBed.createComponent(DialogMenuComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
@@ -154,7 +154,7 @@ describe('AnchorMenuComponent', () => {
 
 });
 
-describe('AnchorMenuComponent with host', () => {
+describe('DialogMenuComponent with host', () => {
   let hostFixture: ComponentFixture<TestHostComponent>;
   let hostComponent: TestHostComponent;
 
@@ -177,31 +177,31 @@ describe('AnchorMenuComponent with host', () => {
     hostComponent.position = 'top-right';
     hostFixture.detectChanges();
 
-    const anchorMenu = hostFixture.debugElement.children[0].componentInstance;
-    expect(anchorMenu.position()).toBe('top-right');
+    const dialogMenu = hostFixture.debugElement.children[0].componentInstance;
+    expect(dialogMenu.position()).toBe('top-right');
   });
 
   it('should apply custom width', () => {
     hostComponent.width = '500px';
     hostFixture.detectChanges();
 
-    const anchorMenu = hostFixture.debugElement.children[0].componentInstance;
-    expect(anchorMenu.width()).toBe('500px');
+    const dialogMenu = hostFixture.debugElement.children[0].componentInstance;
+    expect(dialogMenu.width()).toBe('500px');
   });
 
   it('should apply custom zIndex', () => {
     hostComponent.zIndex = 2000;
     hostFixture.detectChanges();
 
-    const anchorMenu = hostFixture.debugElement.children[0].componentInstance;
-    expect(anchorMenu.zIndex()).toBe(2000);
+    const dialogMenu = hostFixture.debugElement.children[0].componentInstance;
+    expect(dialogMenu.zIndex()).toBe(2000);
   });
 
   it('should hide close button when showCloseButton is false', () => {
     hostComponent.showCloseButton = false;
     hostFixture.detectChanges();
 
-    const anchorMenu = hostFixture.debugElement.children[0].componentInstance;
-    expect(anchorMenu.showCloseButton()).toBe(false);
+    const dialogMenu = hostFixture.debugElement.children[0].componentInstance;
+    expect(dialogMenu.showCloseButton()).toBe(false);
   });
 });

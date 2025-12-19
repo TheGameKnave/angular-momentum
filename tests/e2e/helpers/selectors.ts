@@ -5,12 +5,12 @@
 export const menus = {
   // Auth menu
   authMenuButton: 'app-menu-auth .auth-menu-button',
-  authMenuContent: '.anchor-menu-panel',
+  authMenuContent: '.dialog-menu-panel',
 
   // Language menu (in footer)
   languageMenuButton: 'app-menu-language',
-  languageMenuContent: '.anchor-menu-panel',
-  languageOption: (lang: string) => `.anchor-menu-panel .i18n-${lang} a`,
+  languageMenuContent: '.dialog-menu-panel',
+  languageOption: (lang: string) => `.dialog-menu-panel .i18n-${lang} button`,
 
   // Feature sidebar (navigation, not a menu)
   featureSidebar: 'app-menu-feature',
@@ -18,17 +18,17 @@ export const menus = {
 
   // Changelog menu (version number in footer)
   changelogMenuButton: 'app-menu-change-log .change-log-button',
-  changelogMenuContent: '.anchor-menu-panel',
+  changelogMenuContent: '.dialog-menu-panel',
 
   // Notification center
-  notificationCenterButton: 'app-notification-center .anchor-menu-trigger',
-  notificationCenterContent: '.anchor-menu-panel',
+  notificationCenterButton: 'app-notification-center .dialog-menu-trigger',
+  notificationCenterContent: '.dialog-menu-panel',
   notificationBadge: 'app-notification-center .notification-badge',
-  notificationMarkAllRead: '.anchor-menu-panel button:has-text(/mark all read/i)',
-  notificationClearAll: '.anchor-menu-panel button:has-text(/clear all/i)',
-  notificationList: '.anchor-menu-panel .notification-list',
-  notificationItem: '.anchor-menu-panel .notification-item',
-  notificationEmpty: '.anchor-menu-panel .notification-empty',
+  notificationMarkAllRead: '.dialog-menu-panel button:has-text(/mark all read/i)',
+  notificationClearAll: '.dialog-menu-panel button:has-text(/clear all/i)',
+  notificationList: '.dialog-menu-panel .notification-list',
+  notificationItem: '.dialog-menu-panel .notification-item',
+  notificationEmpty: '.dialog-menu-panel .notification-empty',
 };
 
 // ============================================================================
@@ -66,11 +66,11 @@ export const auth = {
   resetEmail: 'app-auth-reset input[formControlName="email"]',
   resetSubmit: 'app-auth-reset button[type="submit"]',
 
-  // Profile (when logged in - inside anchor-menu-panel)
+  // Profile (when logged in - inside dialog-menu-panel)
   profileMenu: 'app-auth-profile',
   profileViewButton: 'app-auth-profile .profile-info',
   // Logout button in the auth menu panel - target inner button element for reliable click
-  logoutButton: '.anchor-menu-panel app-auth-profile p-button:has-text("Logout") button',
+  logoutButton: '.dialog-menu-panel app-auth-profile p-button:has-text("Logout") button',
 };
 
 // ============================================================================
@@ -165,5 +165,5 @@ export function getFeatureToggleByName(name: string): string {
  * Gets a language option by language code.
  */
 export function getLanguageOption(langCode: string): string {
-  return `.anchor-menu-panel .i18n-${langCode} a`;
+  return `.dialog-menu-panel .i18n-${langCode} button`;
 }

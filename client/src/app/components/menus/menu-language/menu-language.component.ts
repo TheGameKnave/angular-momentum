@@ -4,7 +4,7 @@ import { LANGUAGES } from 'i18n-l10n-flags';
 import { NgClass } from '@angular/common';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
-import { AnchorMenuComponent } from '../anchor-menu/anchor-menu.component';
+import { DialogMenuComponent } from '../dialog-menu/dialog-menu.component';
 import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
 import { MenuCloseDirective } from '@app/directives/menu-close.directive';
 import { UserSettingsService } from '@app/services/user-settings.service';
@@ -14,7 +14,7 @@ import { UserSettingsService } from '@app/services/user-settings.service';
  *
  * This component displays a button that opens an overlay menu showing all supported
  * languages with their flags. Users can click on a language to switch the application's
- * active language. Uses the shared AnchorMenuComponent for overlay behavior.
+ * active language. Uses the shared DialogMenuComponent for overlay behavior.
  */
 @Component({
   selector: 'app-menu-language',
@@ -23,7 +23,7 @@ import { UserSettingsService } from '@app/services/user-settings.service';
   imports: [
     TranslocoDirective,
     NgClass,
-    AnchorMenuComponent,
+    DialogMenuComponent,
     ScrollIndicatorDirective,
     MenuCloseDirective,
   ],

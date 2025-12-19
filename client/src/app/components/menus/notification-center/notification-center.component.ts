@@ -3,7 +3,7 @@ import { Component, inject } from '@angular/core';
 import { NotificationService } from '../../../services/notification.service';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { AnchorMenuComponent } from '../anchor-menu/anchor-menu.component';
+import { DialogMenuComponent } from '../dialog-menu/dialog-menu.component';
 import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
 import { RelativeTimeComponent } from '@app/components/ui/relative-time/relative-time.component';
 import { RelativeTimePipe } from '@app/pipes/relative-time.pipe';
@@ -18,12 +18,12 @@ import { LocalizedStrings, Notification } from '@app/models/data.model';
  * to mark as read, delete individual notifications, or clear all. It also provides
  * a button to request notification permissions if not already granted.
  *
- * Uses the shared AnchorMenuComponent for overlay behavior.
+ * Uses the shared DialogMenuComponent for overlay behavior.
  */
 @Component({
   selector: 'app-notification-center',
   standalone: true,
-  imports: [ButtonModule, CardModule, AnchorMenuComponent, ScrollIndicatorDirective, TranslocoDirective, RelativeTimeComponent, RelativeTimePipe],
+  imports: [ButtonModule, CardModule, DialogMenuComponent, ScrollIndicatorDirective, TranslocoDirective, RelativeTimeComponent, RelativeTimePipe],
   templateUrl: './notification-center.component.html'
 })
 export class NotificationCenterComponent {

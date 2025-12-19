@@ -103,6 +103,7 @@ $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono',
   src: url('/assets/fonts/Raleway-VariableFont_wght.ttf') format('truetype');
   font-weight: 100 900; /* Variable font range */
   font-style: normal;
+  font-display: swap;
 }
 /* Raleway Italic */
 @font-face {
@@ -110,6 +111,7 @@ $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono',
   src: url('/assets/fonts/Raleway-Italic-VariableFont_wght.ttf') format('truetype');
   font-weight: 100 900;
   font-style: italic;
+  font-display: swap;
 }
 
 html {
@@ -538,7 +540,7 @@ footer {
   app-menu-change-log {
     display: contents;
 
-    a {
+    a, button {
       font-size: 2rem;
     }
   }
@@ -671,26 +673,40 @@ app-menu-feature {
 }
 
 // -----------------------------------------------------------------------------
-// Anchor Menu System (shared styles)
+// Dialog Menu System (shared styles)
 // -----------------------------------------------------------------------------
 
-app-anchor-menu {
+app-dialog-menu {
   display: flex;
 }
 
-.anchor-menu-overlay-panel {
+.dialog-menu-overlay-panel {
   z-index: 1000;
 }
 
-.anchor-menu-trigger {
+.dialog-menu-trigger {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   white-space: nowrap;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+
+  // Ensure flag icons and other inline elements are vertically centered
+  .fi, i {
+    vertical-align: middle;
+  }
+
+  &:hover, &:focus {
+    color: var(--color-link-hover);
+  }
 }
 
-.anchor-menu-close-button {
+.dialog-menu-close-button {
   position: absolute;
   top: 0.6rem;
   right: 0.6rem;
@@ -714,7 +730,7 @@ app-anchor-menu {
   }
 }
 
-.anchor-menu-panel {
+.dialog-menu-panel {
   position: fixed;
   border: 0px solid var(--color-border-primary);
   overflow: hidden;
@@ -1007,12 +1023,18 @@ app-anchor-menu {
       break-inside: avoid;
       display: inline-block;
       width: max-content;
-      a {
+      button {
         padding: 0.4rem 0;
         display: block;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        background: none;
+        border: none;
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+        text-align: left;
 
         &:hover, &.selected {
           color: var(--color-active);
@@ -2101,8 +2123,8 @@ app-indexeddb p-card {
     }
   }
 
-  // Anchor menus become scrollable centered modals
-  .cdk-overlay-pane:has(.anchor-menu-panel) {
+  // Dialog menus become scrollable centered modals
+  .cdk-overlay-pane:has(.dialog-menu-panel) {
     inset: 0 !important;
     overflow-y: auto;
     display: block;
@@ -2111,7 +2133,7 @@ app-indexeddb p-card {
     width: 100%;
   }
 
-  .anchor-menu-panel[class*="position-"] {
+  .dialog-menu-panel[class*="position-"] {
     position: relative !important;
     top: auto !important;
     left: auto !important;

@@ -11,7 +11,7 @@ import { StoragePromotionService } from '@app/services/storage-promotion.service
 import { NotificationService } from '@app/services/notification.service';
 import { ConfirmDialogService } from '@app/services/confirm-dialog.service';
 import { AuthGuard } from '@app/guards/auth.guard';
-import { AnchorMenuComponent } from '@app/components/menus/anchor-menu/anchor-menu.component';
+import { DialogMenuComponent } from '@app/components/menus/dialog-menu/dialog-menu.component';
 import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
 import { AuthLoginComponent } from './auth/auth-login/auth-login.component';
 import { AuthSignupComponent } from './auth/auth-signup/auth-signup.component';
@@ -40,7 +40,7 @@ import { LogService } from '@app/services/log.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     TranslocoDirective,
-    AnchorMenuComponent,
+    DialogMenuComponent,
     ScrollIndicatorDirective,
     AuthLoginComponent,
     AuthSignupComponent,
@@ -60,7 +60,7 @@ export class MenuAuthComponent implements AfterViewInit {
   private readonly router = inject(Router);
   private readonly logService = inject(LogService);
 
-  @ViewChild(AnchorMenuComponent) anchorMenu!: AnchorMenuComponent;
+  @ViewChild(DialogMenuComponent) dialogMenu!: DialogMenuComponent;
 
   /**
    * Callback for storage promotion that runs before auth signals update.
@@ -143,7 +143,7 @@ export class MenuAuthComponent implements AfterViewInit {
     // Check if auth service has a returnUrl (set by auth guard)
     if (this.authService.hasReturnUrl() && !this.authService.isAuthenticated()) {
       this.authUiState.setMode('login'); // Switch to login mode for protected routes
-      setTimeout(() => this.anchorMenu.open(), 0); // Open menu after view init
+      setTimeout(() => this.dialogMenu.open(), 0); // Open menu after view init
     }
   }
 
@@ -173,7 +173,7 @@ export class MenuAuthComponent implements AfterViewInit {
     this.autoCloseTimer.set(AUTO_CLOSE_TIMERS.LOGIN);
     setTimeout(() => {
       this.autoCloseTimer.set(AUTO_CLOSE_TIMERS.NONE);
-      this.anchorMenu.close();
+      this.dialogMenu.close();
     }, AUTO_CLOSE_TIMERS.LOGIN * 1000);
   }
 
@@ -224,7 +224,7 @@ export class MenuAuthComponent implements AfterViewInit {
     setTimeout(() => {
       this.logService.log('Timeout fired - closing menu now');
       this.autoCloseTimer.set(AUTO_CLOSE_TIMERS.NONE);
-      this.anchorMenu.close();
+      this.dialogMenu.close();
     }, AUTO_CLOSE_TIMERS.OTP_VERIFICATION * 1000);
   }
 
@@ -247,7 +247,7 @@ export class MenuAuthComponent implements AfterViewInit {
     await this.usernameService.loadUsername();
 
     // Close menu immediately (user is being navigated to profile)
-    this.anchorMenu.close();
+    this.dialogMenu.close();
   }
 
   /**
@@ -262,7 +262,7 @@ export class MenuAuthComponent implements AfterViewInit {
    * Handle view profile - close menu and navigate to profile page
    */
   onViewProfile(): void {
-    this.anchorMenu.close();
+    this.dialogMenu.close();
     this.router.navigate(['/profile']);
   }
 
@@ -271,7 +271,7 @@ export class MenuAuthComponent implements AfterViewInit {
    * Only redirects to home if currently on an auth-guarded route
    */
   async onLogout(): Promise<void> {
-    this.anchorMenu.close();
+    this.dialogMenu.close();
     this.usernameService.clear();
     this.authUiState.reset();
 

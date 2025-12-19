@@ -1,17 +1,17 @@
 <!-- Trigger Button -->
-<a
-  href="javascript:void(0)"
-  class="anchor-menu-trigger"
+<button
+  type="button"
+  class="dialog-menu-trigger"
   (click)="toggle()"
   [attr.aria-label]="ariaLabelOpen()"
 >
   <ng-content select="[menu-trigger]"></ng-content>
-</a>
+</button>
 
 <!-- Menu Overlay Template -->
 <ng-template #menuTemplate>
   <div
-    class="anchor-menu-panel"
+    class="dialog-menu-panel"
     [ngClass]="'position-' + position()"
     [style.width]="width()"
     [style.z-index]="zIndex()"
@@ -19,7 +19,7 @@
     @if (showCloseButton()) {
       <button
         type="button"
-        class="anchor-menu-close-button close"
+        class="dialog-menu-close-button close"
         (click)="close()"
         [attr.aria-label]="ariaLabelClose()"
       >

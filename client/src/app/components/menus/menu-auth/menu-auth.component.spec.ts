@@ -129,14 +129,14 @@ describe('MenuAuthComponent', () => {
       mockAuthService.hasReturnUrl.and.returnValue(true);
       mockAuthService.isAuthenticated.and.returnValue(false);
 
-      // Mock anchorMenu
-      component.anchorMenu = jasmine.createSpyObj('AnchorMenuComponent', ['open', 'close']);
+      // Mock dialogMenu
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
 
       component.ngAfterViewInit();
 
       setTimeout(() => {
         expect(mockAuthUiState.setMode).toHaveBeenCalledWith('login');
-        expect(component.anchorMenu.open).toHaveBeenCalled();
+        expect(component.dialogMenu.open).toHaveBeenCalled();
         done();
       }, 10);
     });
@@ -145,7 +145,7 @@ describe('MenuAuthComponent', () => {
       mockAuthService.hasReturnUrl.and.returnValue(true);
       mockAuthService.isAuthenticated.and.returnValue(true);
 
-      component.anchorMenu = jasmine.createSpyObj('AnchorMenuComponent', ['open', 'close']);
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
 
       component.ngAfterViewInit();
 
@@ -155,7 +155,7 @@ describe('MenuAuthComponent', () => {
     it('should not open menu if no returnUrl', () => {
       mockAuthService.hasReturnUrl.and.returnValue(false);
 
-      component.anchorMenu = jasmine.createSpyObj('AnchorMenuComponent', ['open', 'close']);
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
 
       component.ngAfterViewInit();
 
@@ -173,7 +173,7 @@ describe('MenuAuthComponent', () => {
   describe('onLoginSuccess', () => {
     beforeEach(() => {
       jasmine.clock().install();
-      component.anchorMenu = jasmine.createSpyObj('AnchorMenuComponent', ['open', 'close']);
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
     });
 
     afterEach(() => {
@@ -195,7 +195,7 @@ describe('MenuAuthComponent', () => {
       jasmine.clock().tick(4000);
 
       expect(component.autoCloseTimer()).toBe(0);
-      expect(component.anchorMenu.close).toHaveBeenCalled();
+      expect(component.dialogMenu.close).toHaveBeenCalled();
     });
   });
 
@@ -218,7 +218,7 @@ describe('MenuAuthComponent', () => {
   describe('onVerifySuccess', () => {
     beforeEach(() => {
       jasmine.clock().install();
-      component.anchorMenu = jasmine.createSpyObj('AnchorMenuComponent', ['open', 'close']);
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
       // Set pendingUsername signal value
       (mockAuthUiState.pendingUsername as any).set('testuser');
     });
@@ -254,7 +254,7 @@ describe('MenuAuthComponent', () => {
       jasmine.clock().tick(6000);
 
       expect(component.autoCloseTimer()).toBe(0);
-      expect(component.anchorMenu.close).toHaveBeenCalled();
+      expect(component.dialogMenu.close).toHaveBeenCalled();
     });
   });
 
@@ -267,7 +267,7 @@ describe('MenuAuthComponent', () => {
 
   describe('onResetSuccess', () => {
     beforeEach(() => {
-      component.anchorMenu = jasmine.createSpyObj('AnchorMenuComponent', ['open', 'close']);
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
     });
 
     it('should initialize user settings and close menu', async () => {
@@ -275,7 +275,7 @@ describe('MenuAuthComponent', () => {
 
       expect(mockUserSettingsService.initialize).toHaveBeenCalled();
       expect(mockUsernameService.loadUsername).toHaveBeenCalled();
-      expect(component.anchorMenu.close).toHaveBeenCalled();
+      expect(component.dialogMenu.close).toHaveBeenCalled();
     });
   });
 
@@ -290,26 +290,26 @@ describe('MenuAuthComponent', () => {
 
   describe('onViewProfile', () => {
     beforeEach(() => {
-      component.anchorMenu = jasmine.createSpyObj('AnchorMenuComponent', ['open', 'close']);
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
     });
 
     it('should close menu and navigate to profile', () => {
       component.onViewProfile();
 
-      expect(component.anchorMenu.close).toHaveBeenCalled();
+      expect(component.dialogMenu.close).toHaveBeenCalled();
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/profile']);
     });
   });
 
   describe('onLogout', () => {
     beforeEach(() => {
-      component.anchorMenu = jasmine.createSpyObj('AnchorMenuComponent', ['open', 'close']);
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
     });
 
     it('should clear services and logout', async () => {
       await component.onLogout();
 
-      expect(component.anchorMenu.close).toHaveBeenCalled();
+      expect(component.dialogMenu.close).toHaveBeenCalled();
       expect(mockUserSettingsService.clear).toHaveBeenCalled();
       expect(mockUsernameService.clear).toHaveBeenCalled();
       expect(mockAuthUiState.reset).toHaveBeenCalled();

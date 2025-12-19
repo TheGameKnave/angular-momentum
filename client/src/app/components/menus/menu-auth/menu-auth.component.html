@@ -1,9 +1,8 @@
-<app-anchor-menu position="top-right" width="38rem" (closed)="onMenuClosed()">
+<app-dialog-menu position="top-right" width="38rem" (closed)="onMenuClosed()">
   <!-- Auth Menu Button -->
   <span
     menu-trigger
     class="auth-menu-button"
-    [attr.aria-label]="authService.isAuthenticated() ? 'Profile' : 'Log in'"
   >
     @if (authService.isAuthenticated()) {
       <i class="pi pi-user" [class.active-route]="isProfileRoute()"></i>
@@ -91,4 +90,4 @@
       </div>
     }
   </div>
-</app-anchor-menu>
+</app-dialog-menu>

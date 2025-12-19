@@ -289,7 +289,7 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForTimeout(300);
 
     // Make background opaque to prevent content pollution
-    await makeBackgroundOpaque(page, '.anchor-menu-panel');
+    await makeBackgroundOpaque(page, '.dialog-menu-panel');
 
     const signupForm = page.locator(auth.signupForm);
     await expect(signupForm).toHaveScreenshot('menu-auth-signup.png', {
@@ -308,7 +308,7 @@ test.describe('Visual Regression Tests', () => {
     await page.click(auth.loginTab);
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.anchor-menu-panel');
+    await makeBackgroundOpaque(page, '.dialog-menu-panel');
 
     const loginForm = page.locator(auth.loginForm);
     await expect(loginForm).toHaveScreenshot('menu-auth-login.png', {
@@ -328,7 +328,7 @@ test.describe('Visual Regression Tests', () => {
     await page.click(auth.loginForgotPassword);
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.anchor-menu-panel');
+    await makeBackgroundOpaque(page, '.dialog-menu-panel');
 
     const resetForm = page.locator(auth.resetForm);
     await expect(resetForm).toHaveScreenshot('menu-auth-reset.png', {
@@ -353,7 +353,7 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForSelector('.profile-username:not(:empty)', { timeout: 10000 });
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.anchor-menu-panel');
+    await makeBackgroundOpaque(page, '.dialog-menu-panel');
 
     const profileMenu = page.locator(auth.profileMenu);
     const box = await profileMenu.boundingBox();
@@ -403,9 +403,9 @@ test.describe('Visual Regression Tests', () => {
     await page.click(menus.languageMenuButton);
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.anchor-menu-panel');
+    await makeBackgroundOpaque(page, '.dialog-menu-panel');
 
-    const menuPanel = page.locator('.anchor-menu-panel');
+    const menuPanel = page.locator('.dialog-menu-panel');
     await expect(menuPanel).toHaveScreenshot('menu-language.png', {
       maxDiffPixelRatio: 0.001,
       animations: 'disabled',
@@ -420,9 +420,9 @@ test.describe('Visual Regression Tests', () => {
     await page.click(menus.notificationCenterButton);
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.anchor-menu-panel');
+    await makeBackgroundOpaque(page, '.dialog-menu-panel');
 
-    const menuPanel = page.locator('.anchor-menu-panel');
+    const menuPanel = page.locator('.dialog-menu-panel');
     await expect(menuPanel).toHaveScreenshot('menu-notification.png', {
       maxDiffPixelRatio: 0.001,
       animations: 'disabled',
@@ -437,9 +437,9 @@ test.describe('Visual Regression Tests', () => {
     await page.click(menus.changelogMenuButton);
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.anchor-menu-panel');
+    await makeBackgroundOpaque(page, '.dialog-menu-panel');
 
-    const menuPanel = page.locator('.anchor-menu-panel');
+    const menuPanel = page.locator('.dialog-menu-panel');
     await expect(menuPanel).toHaveScreenshot('menu-changelog.png', {
       maxDiffPixelRatio: 0.001,
       animations: 'disabled',

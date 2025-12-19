@@ -7,7 +7,7 @@ import { OVERLAY_CONFIG } from '@app/constants/ui.constants';
 import { TranslocoService } from '@jsverse/transloco';
 
 /**
- * Reusable anchor menu component that provides consistent overlay behavior.
+ * Reusable dialog menu component that provides consistent overlay behavior.
  *
  * Features:
  * - Flexible positioning (edges, corners, or centered modal)
@@ -24,39 +24,39 @@ import { TranslocoService } from '@jsverse/transloco';
  * Usage:
  * ```html
  * <!-- Centered modal -->
- * <app-anchor-menu width="40rem">
+ * <app-dialog-menu width="40rem">
  *   <button menu-trigger>Open Modal</button>
  *   <div menu-content>Centered content</div>
- * </app-anchor-menu>
+ * </app-dialog-menu>
  *
  * <!-- Right edge (notifications, auth) -->
- * <app-anchor-menu position="top-right" width="38rem">
+ * <app-dialog-menu position="top-right" width="38rem">
  *   <button menu-trigger>Notifications</button>
  *   <div menu-content>Notification list</div>
- * </app-anchor-menu>
+ * </app-dialog-menu>
  *
  * <!-- Left edge (changelog) -->
- * <app-anchor-menu position="left" width="42rem">
+ * <app-dialog-menu position="left" width="42rem">
  *   <button menu-trigger>Changelog</button>
  *   <div menu-content>Version history</div>
- * </app-anchor-menu>
+ * </app-dialog-menu>
  *
  * <!-- Bottom drawer -->
- * <app-anchor-menu position="bottom">
+ * <app-dialog-menu position="bottom">
  *   <button menu-trigger>Open Drawer</button>
  *   <div menu-content>Drawer content</div>
- * </app-anchor-menu>
+ * </app-dialog-menu>
  * ```
  */
 @Component({
-  selector: 'app-anchor-menu',
-  templateUrl: './anchor-menu.component.html',
+  selector: 'app-dialog-menu',
+  templateUrl: './dialog-menu.component.html',
   imports: [
     OverlayModule,
     NgClass,
   ],
 })
-export class AnchorMenuComponent {
+export class DialogMenuComponent {
   private readonly overlay = inject(Overlay);
   private readonly viewContainerRef = inject(ViewContainerRef);
   private readonly destroyRef = inject(DestroyRef);
@@ -139,7 +139,7 @@ export class AnchorMenuComponent {
         hasBackdrop: true,
         backdropClass: 'app-overlay-backdrop',
         scrollStrategy: this.overlay.scrollStrategies.noop(),
-        panelClass: 'anchor-menu-overlay-panel'
+        panelClass: 'dialog-menu-overlay-panel'
       });
 
       // Close on backdrop click
