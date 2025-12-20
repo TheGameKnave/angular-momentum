@@ -139,10 +139,11 @@ export const common = {
   // Errors
   errorMessage: '.error-message, .p-error, [class*="error"]',
 
-  // Storage promotion dialog (uses p-dialog with "Import Local Data" title)
-  storagePromotionDialog: 'p-dialog:has-text("Import Local Data")',
-  storagePromotionImport: 'p-dialog button:has-text(/import/i)',
-  storagePromotionSkip: 'p-dialog button:has-text(/skip/i)',
+  // Storage promotion dialog - uses custom dialog-confirm component
+  // The dialog has cancel (first) and confirm/import (last) buttons in the footer
+  storagePromotionDialog: '.dialog-confirm-panel',
+  storagePromotionImport: '.dialog-confirm-footer p-button:last-child button',
+  storagePromotionSkip: '.dialog-confirm-footer p-button:first-child button',
 
   // Cookie consent banner
   cookieBanner: 'app-cookie-banner aside',

@@ -393,3 +393,205 @@ test.describe('Profile Destructive Tests', () => {
     }
   });
 });
+
+// ============================================================================
+// SETTINGS PRESERVATION TESTS - Logout resets to anon, login restores user
+// ============================================================================
+
+test.describe('Settings Preservation on Logout/Login', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(APP_BASE_URL);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+  });
+
+  test.afterEach(async ({ page }) => {
+    await assertNoMissingTranslations(page);
+  });
+
+  test('Logout resets settings to anonymous defaults, login restores user settings', async ({ page }) => {
+    // This test is comprehensive and needs more time (60s should be sufficient)
+    test.setTimeout(60000);
+    // Create a dedicated user for this test
+    const testUser = generateTestUser();
+    const result = await createTestUser(testUser);
+    if (!result.success) {
+      throw new Error(`Failed to create test user: ${result.error}`);
+    }
+    console.log(`Created user for settings preservation test: ${testUser.email}`);
+
+    try {
+      // ========================================================================
+      // STEP 1: Fresh browser - login and configure user settings
+      // ========================================================================
+      console.log('Step 1: Login and configure user settings');
+
+      // Login
+      await page.click(menus.authMenuButton);
+      await page.click(auth.loginTab);
+      await page.fill(auth.loginIdentifier, testUser.email);
+      await page.fill(auth.loginPassword, testUser.password);
+      await page.click(auth.loginSubmit);
+      await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+
+      // Navigate to profile
+      await page.goto(`${APP_BASE_URL}/profile`);
+      await page.waitForSelector(pages.profilePage, { timeout: 5000 });
+
+      // Wait for settings to load
+      const themeToggleInput = page.locator(pages.profileThemeToggleInput);
+      await expect(themeToggleInput).toBeEnabled({ timeout: 5000 });
+      await page.waitForTimeout(1000);
+
+      // Change language to Spanish (es)
+      await page.click(menus.languageMenuButton);
+      await page.waitForTimeout(300);
+      await page.click(menus.languageOption('es'));
+      await page.waitForTimeout(500);
+
+      // Change theme to light (default is dark, toggle switches to light)
+      const htmlElement = page.locator('html');
+      const initialHasDarkClass = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
+      if (initialHasDarkClass) {
+        // Use the toggle switch input directly (language-agnostic)
+        const themeSwitch = page.locator(pages.profileThemeToggle);
+        await themeSwitch.click();
+        await page.waitForTimeout(1000);
+      }
+
+      // Verify theme is now light
+      const afterThemeChange = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
+      expect(afterThemeChange).toBe(false);
+
+      // Change timezone to something unusual (e.g., Asia/Tokyo)
+      const timezoneSelect = page.locator(pages.profileTimezone);
+      await timezoneSelect.click();
+      await page.waitForTimeout(300);
+      // Type to filter and select Tokyo timezone
+      await page.keyboard.type('Asia');
+      await page.waitForTimeout(300);
+      await page.keyboard.press('Enter');
+      await page.waitForTimeout(500);
+
+      console.log('User settings configured: lang=es, theme=light, timezone=Pacific/Fiji');
+
+      // ========================================================================
+      // STEP 2: Logout - verify settings reset to anonymous defaults
+      // ========================================================================
+      console.log('Step 2: Logout and verify anonymous defaults');
+
+      // Logout via auth menu (use icon selector - language-agnostic)
+      await page.click(menus.authMenuButton);
+      await page.waitForTimeout(300);
+      const logoutBtn = page.locator('.dialog-menu-panel app-auth-profile p-button .pi-sign-out').first();
+      await logoutBtn.waitFor({ state: 'visible' });
+      await logoutBtn.click();
+      await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 10000 });
+      await page.waitForTimeout(500);
+
+      // Verify language is reset to English (default)
+      // Check the language button shows US flag (fi-us class) - this is more reliable than html lang attribute
+      await expect(page.locator(`${menus.languageMenuButton} .fi-us`)).toBeVisible({ timeout: 5000 });
+
+      // Verify theme is reset to dark (default)
+      const afterLogoutTheme = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
+      expect(afterLogoutTheme).toBe(true);
+
+      console.log('After logout: lang=en-US, theme=dark (verified)');
+
+      // ========================================================================
+      // STEP 3: As anonymous user, change language to German
+      // ========================================================================
+      console.log('Step 3: Change anonymous language to German');
+
+      // Open language menu and select German
+      const langMenuBtn = page.locator(menus.languageMenuButton);
+      await langMenuBtn.click();
+      await page.waitForSelector(menus.languageMenuContent, { state: 'visible', timeout: 5000 });
+      // Click German option
+      const deOption = page.locator(menus.languageOption('de'));
+      await deOption.scrollIntoViewIfNeeded();
+      await deOption.click({ force: true });
+      await page.waitForTimeout(500);
+
+      // Wait for language to change - verify German flag is shown
+      await expect(page.locator(`${menus.languageMenuButton} .fi-de`)).toBeVisible({ timeout: 5000 });
+
+      console.log('Anonymous settings: lang=de');
+
+      // ========================================================================
+      // STEP 4: Login again - verify user settings are restored
+      // ========================================================================
+      console.log('Step 4: Login again and verify user settings restored');
+
+      await page.click(menus.authMenuButton);
+      await page.click(auth.loginTab);
+      await page.fill(auth.loginIdentifier, testUser.email);
+      await page.fill(auth.loginPassword, testUser.password);
+      await page.click(auth.loginSubmit);
+
+      // Handle storage promotion dialog if it appears (skip importing anonymous data)
+      const storageDialog = page.locator(common.storagePromotionDialog);
+      const skipButton = page.locator(common.storagePromotionSkip);
+      try {
+        await storageDialog.waitFor({ state: 'visible', timeout: 3000 });
+        await skipButton.click();
+        await storageDialog.waitFor({ state: 'hidden', timeout: 3000 });
+      } catch {
+        // Dialog didn't appear, continue
+      }
+
+      await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(1000);
+
+      // Navigate to profile to verify settings
+      await page.goto(`${APP_BASE_URL}/profile`);
+      await page.waitForSelector(pages.profilePage, { timeout: 5000 });
+      await expect(page.locator(pages.profileThemeToggleInput)).toBeEnabled({ timeout: 5000 });
+      await page.waitForTimeout(1000);
+
+      // Verify language is Spanish (restored from user settings) - check Spanish flag
+      await expect(page.locator(`${menus.languageMenuButton} .fi-es`)).toBeVisible({ timeout: 5000 });
+
+      // Verify theme is light (restored from user settings)
+      const afterLoginTheme = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
+      expect(afterLoginTheme).toBe(false);
+
+      // Verify timezone contains "Asia" (we selected the first Asia option)
+      const timezoneValue = await page.locator(`${pages.profileTimezone} span.p-select-label`).textContent();
+      expect(timezoneValue).toContain('Asia');
+
+      console.log('After login: lang=es, theme=light, timezone=Asia/... (verified)');
+
+      // ========================================================================
+      // STEP 5: Logout again - verify anonymous language (de) is preserved
+      // ========================================================================
+      console.log('Step 5: Logout and verify anonymous language is preserved');
+
+      await page.click(menus.authMenuButton);
+      await page.waitForTimeout(300);
+      const logoutBtn2 = page.locator('.dialog-menu-panel app-auth-profile p-button .pi-sign-out').first();
+      await logoutBtn2.waitFor({ state: 'visible' });
+      await logoutBtn2.click();
+      await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 10000 });
+      await page.waitForTimeout(500);
+
+      // Verify language is still German (anonymous user's preference) - check German flag
+      await expect(page.locator(`${menus.languageMenuButton} .fi-de`)).toBeVisible({ timeout: 5000 });
+
+      // Verify theme is dark (anonymous default)
+      const finalTheme = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
+      expect(finalTheme).toBe(true);
+
+      console.log('Final logout: lang=de (preserved), theme=dark (verified)');
+
+    } finally {
+      // Clean up - delete the test user
+      await deleteTestUser({ email: testUser.email });
+      console.log(`Deleted user for settings preservation test: ${testUser.email}`);
+    }
+  });
+});

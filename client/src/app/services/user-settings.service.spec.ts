@@ -1,5 +1,6 @@
 import { TestBed, fakeAsync, tick, flush } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { signal } from '@angular/core';
 import { UserSettingsService, UserSettings } from './user-settings.service';
 import { LogService } from './log.service';
 import { IndexedDbService } from './indexeddb.service';
@@ -22,21 +23,26 @@ describe('UserSettingsService', () => {
 
   beforeEach(() => {
     mockLogService = jasmine.createSpyObj('LogService', ['log']);
-    mockIndexedDbService = jasmine.createSpyObj('IndexedDbService', ['get', 'set', 'delete']);
+    mockIndexedDbService = jasmine.createSpyObj('IndexedDbService', ['get', 'set', 'delete', 'getRaw']);
     mockIndexedDbService.get.and.returnValue(Promise.resolve(undefined));
     mockIndexedDbService.set.and.returnValue(Promise.resolve('key' as unknown as IDBValidKey));
+    mockIndexedDbService.getRaw.and.returnValue(Promise.resolve(undefined));
 
-    mockUserStorageService = jasmine.createSpyObj('UserStorageService', ['isAuthenticated']);
+    mockUserStorageService = jasmine.createSpyObj('UserStorageService', ['isAuthenticated', 'prefixKeyForAnonymous']);
     mockUserStorageService.isAuthenticated.and.returnValue(false);
+    mockUserStorageService.prefixKeyForAnonymous.and.callFake((key: string) => `anonymous_${key}`);
 
     mockSocketService = jasmine.createSpyObj('SocketIoService', ['listen', 'emit']);
     mockSocketService.listen.and.returnValue(EMPTY);
 
-    mockAuthService = jasmine.createSpyObj('AuthService', ['getToken']);
+    mockAuthService = jasmine.createSpyObj('AuthService', ['getToken'], {
+      currentUser: signal(null)
+    });
     mockAuthService.getToken.and.returnValue(Promise.resolve(null));
 
-    mockTranslocoService = jasmine.createSpyObj('TranslocoService', ['setActiveLang', 'getActiveLang']);
+    mockTranslocoService = jasmine.createSpyObj('TranslocoService', ['setActiveLang', 'getActiveLang', 'getAvailableLangs']);
     mockTranslocoService.getActiveLang.and.returnValue('en-US');
+    mockTranslocoService.getAvailableLangs.and.returnValue(['en', 'es', 'fr', 'sv', 'zh']);
 
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
@@ -647,18 +653,171 @@ describe('UserSettingsService', () => {
   });
 
   describe('clear', () => {
-    it('should clear settings state and reload local preferences', async () => {
-      service.settings.set({
-        id: '123',
-        timezone: 'America/New_York'
+    it('should load anonymous preferences when they exist', async () => {
+      // Set up anonymous preferences in IndexedDB
+      mockIndexedDbService.getRaw.and.callFake((key: string) => {
+        if (key === 'anonymous_preferences_theme') return Promise.resolve({ value: 'light', updatedAt: Date.now() });
+        if (key === 'anonymous_preferences_timezone') return Promise.resolve({ value: 'Europe/Paris', updatedAt: Date.now() });
+        if (key === 'anonymous_preferences_language') return Promise.resolve({ value: 'fr', updatedAt: Date.now() });
+        return Promise.resolve(undefined);
       });
+
+      service.settings.set({ id: '123', timezone: 'America/New_York' });
+      service.themePreference.set('dark');
+      service.languagePreference.set('es');
 
       await service.clear();
 
       expect(service.settings()).toBeNull();
-      // Should have called get to reload local preferences
-      expect(mockIndexedDbService.get).toHaveBeenCalled();
+      expect(service.themePreference()).toBe('light'); // From anonymous storage
+      expect(service.timezonePreference()).toBe('Europe/Paris'); // From anonymous storage
+      expect(service.languagePreference()).toBe('fr'); // From anonymous storage
+      expect(mockTranslocoService.setActiveLang).toHaveBeenCalledWith('fr');
     });
+
+    it('should fall back to defaults when no anonymous preferences exist', async () => {
+      // No anonymous preferences
+      mockIndexedDbService.getRaw.and.returnValue(Promise.resolve(undefined));
+
+      service.settings.set({ id: '123', timezone: 'America/New_York' });
+      service.themePreference.set('light');
+      service.languagePreference.set('es');
+
+      await service.clear();
+
+      expect(service.settings()).toBeNull();
+      expect(service.themePreference()).toBe('dark'); // Default
+      expect(service.languagePreference()).toBeNull(); // Default
+      expect(mockTranslocoService.setActiveLang).toHaveBeenCalledWith('en-US');
+    });
+
+    it('should use prefixKeyForAnonymous to read from anonymous storage', async () => {
+      mockIndexedDbService.getRaw.and.returnValue(Promise.resolve(undefined));
+
+      await service.clear();
+
+      // Should have called getRaw with anonymous-prefixed keys
+      expect(mockIndexedDbService.getRaw).toHaveBeenCalledWith('anonymous_preferences_theme', 'settings');
+      expect(mockIndexedDbService.getRaw).toHaveBeenCalledWith('anonymous_preferences_timezone', 'settings');
+      expect(mockIndexedDbService.getRaw).toHaveBeenCalledWith('anonymous_preferences_language', 'settings');
+    });
+  });
+
+  describe('setupLogoutHandler', () => {
+    it('should call clear when user transitions from authenticated to unauthenticated', fakeAsync(() => {
+      // Create a writable signal for testing
+      const userSignal = signal<any>({ id: 'user-123' });
+
+      // Reset TestBed with the new mock
+      TestBed.resetTestingModule();
+      const testAuthService = jasmine.createSpyObj('AuthService', ['getToken'], {
+        currentUser: userSignal
+      });
+      testAuthService.getToken.and.returnValue(Promise.resolve(null));
+
+      TestBed.configureTestingModule({
+        imports: [HttpClientTestingModule],
+        providers: [
+          UserSettingsService,
+          { provide: LogService, useValue: mockLogService },
+          { provide: IndexedDbService, useValue: mockIndexedDbService },
+          { provide: UserStorageService, useValue: mockUserStorageService },
+          { provide: SocketIoService, useValue: mockSocketService },
+          { provide: AuthService, useValue: testAuthService },
+          { provide: TranslocoService, useValue: mockTranslocoService },
+        ]
+      });
+
+      const testService = TestBed.inject(UserSettingsService);
+      const testHttpMock = TestBed.inject(HttpTestingController);
+      tick(); // Let effect run initially
+
+      // Set wasAuthenticated to true by triggering effect with authenticated user
+      // The effect should have run and set wasAuthenticated = true
+
+      // Now simulate logout by setting user to null
+      userSignal.set(null);
+      tick(); // Trigger effect
+
+      // Should have logged the logout
+      expect(mockLogService.log).toHaveBeenCalledWith('User logged out, resetting to anonymous settings');
+
+      testHttpMock.verify();
+    }));
+
+    it('should not call clear when user was not previously authenticated', fakeAsync(() => {
+      // Create a writable signal starting with null (not authenticated)
+      const userSignal = signal<any>(null);
+
+      // Reset TestBed with the new mock
+      TestBed.resetTestingModule();
+      const testAuthService = jasmine.createSpyObj('AuthService', ['getToken'], {
+        currentUser: userSignal
+      });
+      testAuthService.getToken.and.returnValue(Promise.resolve(null));
+      mockLogService.log.calls.reset();
+
+      TestBed.configureTestingModule({
+        imports: [HttpClientTestingModule],
+        providers: [
+          UserSettingsService,
+          { provide: LogService, useValue: mockLogService },
+          { provide: IndexedDbService, useValue: mockIndexedDbService },
+          { provide: UserStorageService, useValue: mockUserStorageService },
+          { provide: SocketIoService, useValue: mockSocketService },
+          { provide: AuthService, useValue: testAuthService },
+          { provide: TranslocoService, useValue: mockTranslocoService },
+        ]
+      });
+
+      TestBed.inject(UserSettingsService);
+      const testHttpMock = TestBed.inject(HttpTestingController);
+      tick(); // Let effect run initially
+
+      // User is still null - no logout should be detected
+      expect(mockLogService.log).not.toHaveBeenCalledWith('User logged out, resetting to anonymous settings');
+
+      testHttpMock.verify();
+    }));
+
+    it('should not call clear when user transitions from unauthenticated to authenticated', fakeAsync(() => {
+      // Create a writable signal starting with null (not authenticated)
+      const userSignal = signal<any>(null);
+
+      // Reset TestBed with the new mock
+      TestBed.resetTestingModule();
+      const testAuthService = jasmine.createSpyObj('AuthService', ['getToken'], {
+        currentUser: userSignal
+      });
+      testAuthService.getToken.and.returnValue(Promise.resolve(null));
+      mockLogService.log.calls.reset();
+
+      TestBed.configureTestingModule({
+        imports: [HttpClientTestingModule],
+        providers: [
+          UserSettingsService,
+          { provide: LogService, useValue: mockLogService },
+          { provide: IndexedDbService, useValue: mockIndexedDbService },
+          { provide: UserStorageService, useValue: mockUserStorageService },
+          { provide: SocketIoService, useValue: mockSocketService },
+          { provide: AuthService, useValue: testAuthService },
+          { provide: TranslocoService, useValue: mockTranslocoService },
+        ]
+      });
+
+      TestBed.inject(UserSettingsService);
+      const testHttpMock = TestBed.inject(HttpTestingController);
+      tick(); // Let effect run initially
+
+      // Now simulate login by setting user
+      userSignal.set({ id: 'user-123' });
+      tick(); // Trigger effect
+
+      // Should NOT have logged logout (this is a login, not logout)
+      expect(mockLogService.log).not.toHaveBeenCalledWith('User logged out, resetting to anonymous settings');
+
+      testHttpMock.verify();
+    }));
   });
 
   describe('deleteSettings', () => {

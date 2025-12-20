@@ -1,4 +1,4 @@
-import { Injectable, signal, inject, DestroyRef } from '@angular/core';
+import { Injectable, signal, inject, DestroyRef, effect } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { TranslocoService } from '@jsverse/transloco';
@@ -88,8 +88,30 @@ export class UserSettingsService {
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
+  /** Track previous auth state to detect logout */
+  private wasAuthenticated = false;
+
   constructor() {
     this.setupWebSocketListeners();
+    this.setupLogoutHandler();
+  }
+
+  /**
+   * Sets up an effect to detect logout and reset settings to anonymous defaults.
+   */
+  private setupLogoutHandler(): void {
+    effect(() => {
+      const user = this.authService.currentUser();
+      const isAuthenticated = !!user;
+
+      // Detect transition from authenticated to unauthenticated (logout)
+      if (this.wasAuthenticated && !isAuthenticated) {
+        this.logService.log('User logged out, resetting to anonymous settings');
+        this.clear();
+      }
+
+      this.wasAuthenticated = isAuthenticated;
+    });
   }
 
   /**
@@ -752,14 +774,40 @@ export class UserSettingsService {
   }
 
   /**
-   * Clears server settings from local state and reloads preferences for new scope.
-   * Called on logout. Loads anonymous preferences from IndexedDB.
+   * Clears server settings and loads anonymous user preferences.
+   * Called on logout. Reads from anonymous storage directly (bypassing user-scoped prefixing).
    */
   async clear(): Promise<void> {
     this.settings.set(null);
 
-    // Reload preferences for new scope (anonymous after logout)
-    await this.loadLocalPreferences();
+    // Read anonymous preferences directly using raw keys (bypasses user-scoped prefixing)
+    const anonThemeKey = this.userStorageService.prefixKeyForAnonymous(STORAGE_KEYS.THEME);
+    const anonTimezoneKey = this.userStorageService.prefixKeyForAnonymous(STORAGE_KEYS.TIMEZONE);
+    const anonLanguageKey = this.userStorageService.prefixKeyForAnonymous(STORAGE_KEYS.LANGUAGE);
+
+    const anonTheme = await this.indexedDbService.getRaw(anonThemeKey, IDB_STORES.SETTINGS) as LocalPreference<ThemePreference> | undefined;
+    const anonTimezone = await this.indexedDbService.getRaw(anonTimezoneKey, IDB_STORES.SETTINGS) as LocalPreference<string> | undefined;
+    const anonLanguage = await this.indexedDbService.getRaw(anonLanguageKey, IDB_STORES.SETTINGS) as LocalPreference<string> | undefined;
+
+    // Use anonymous prefs or fall back to defaults
+    const theme = anonTheme?.value ?? 'dark';
+    const timezone = anonTimezone?.value ?? this.detectTimezone();
+    const language = anonLanguage?.value ?? null;
+
+    this.themePreference.set(theme);
+    this.applyTheme(theme);
+    this.timezonePreference.set(timezone);
+    this.languagePreference.set(language);
+
+    // Apply language to Transloco
+    if (language) {
+      this.translocoService.setActiveLang(language);
+    } else {
+      // No stored anonymous language - use default
+      this.translocoService.setActiveLang('en-US');
+    }
+
+    this.logService.log('Settings cleared, loaded anonymous preferences', { theme, timezone, language });
   }
 
   /**

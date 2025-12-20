@@ -37,8 +37,8 @@ $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono',
   --color-bg-primary: #f4f4f4;
   --color-bg-secondary: #f2f2f2;
   --color-bg-tertiary: #eee;
-  --color-bg-overlay: #fff;
-  --color-bg-backdrop: rgba(0, 0, 0, 0.5);
+  --color-bg-overlay: #fff8;
+  --color-bg-backdrop: #fff8;
   --p-card-background: #eee !important;
   --p-panel-background: #eee !important;
 
@@ -302,6 +302,8 @@ ul {
   --color-bg-secondary: #333;
   --color-bg-tertiary: #444;
   --color-bg-overlay: rgba(0, 0, 0, 0.5);
+  --color-bg-backdrop: rgba(0, 0, 0, 0.5);
+
 
   // Text
   --color-text-primary: #f4f4f4;
@@ -470,6 +472,20 @@ p-card {
     margin: 0.6rem 0;
     padding: 0;
     font-size: 2rem;
+  }
+}
+p-floatlabel {
+  label {
+    z-index: 1;
+  }
+}
+.p-floatlabel-on {
+  &:has(input:focus), &:has(input.p-filled), &:has(input:-webkit-autofill), &:has(textarea:focus), &:has(textarea.p-filled), &:has(.p-inputwrapper-focus), &:has(.p-inputwrapper-filled), &:has(input[placeholder]), &:has(textarea[placeholder]) {
+   label {
+      border: 0 solid var(--p-textarea-border-color);
+      border-width: 1px 1px 0 1px;
+      border-radius: 2px 2px 0 0 !important;
+   }
   }
 }
 
@@ -738,6 +754,7 @@ app-dialog-menu {
   flex-direction: column;
   z-index: 1000;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(3px);
   background-color: var(--color-bg-overlay) !important;
   color: var(--color-text-primary);
 
@@ -1689,6 +1706,8 @@ app-cookie-banner {
 
 .privacy-content {
   line-height: 1.6;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 
   p {
     margin-bottom: 1.6rem;
@@ -1696,6 +1715,7 @@ app-cookie-banner {
 
   a {
     text-decoration: underline;
+    word-break: break-all;
 
     &:hover {
       opacity: 0.8;
@@ -1873,6 +1893,19 @@ app-profile {
         font-size: 1.5rem;
       }
     }
+
+    @media (max-width: 480px) {
+      flex-wrap: wrap;
+
+      dt {
+        min-width: auto;
+        width: 100%;
+      }
+
+      dd {
+        width: 100%;
+      }
+    }
   }
 
   .timezone-select {
@@ -1892,6 +1925,7 @@ app-profile {
       font-size: 1.4rem;
       padding: 0.5rem 1rem;
       cursor: pointer;
+      white-space: nowrap;
 
       &.active {
         color: var(--color-active);

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, ViewChild, AfterViewInit, signal, c
 import { Router, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '@app/services/auth.service';
 import { AuthUiStateService } from '@app/services/auth-ui-state.service';
 import { UserSettingsService } from '@app/services/user-settings.service';
@@ -10,6 +10,8 @@ import { UsernameService } from '@app/services/username.service';
 import { StoragePromotionService } from '@app/services/storage-promotion.service';
 import { NotificationService } from '@app/services/notification.service';
 import { ConfirmDialogService } from '@app/services/confirm-dialog.service';
+import { IndexedDbService, IDB_STORES } from '@app/services/indexeddb.service';
+import { UserStorageService } from '@app/services/user-storage.service';
 import { AuthGuard } from '@app/guards/auth.guard';
 import { DialogMenuComponent } from '@app/components/menus/dialog-menu/dialog-menu.component';
 import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
@@ -22,6 +24,9 @@ import { AUTO_CLOSE_TIMERS } from '@app/constants/auth.constants';
 
 import type { AuthMode } from '@app/services/auth-ui-state.service';
 import { LogService } from '@app/services/log.service';
+
+/** Storage key for language preference (must match user-settings.service.ts) */
+const STORAGE_KEY_LANGUAGE = 'preferences_language';
 
 /**
  * Auth menu component that coordinates authentication flows.
@@ -57,6 +62,9 @@ export class MenuAuthComponent implements AfterViewInit {
   private readonly storagePromotionService = inject(StoragePromotionService);
   private readonly notificationService = inject(NotificationService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
+  private readonly indexedDbService = inject(IndexedDbService);
+  private readonly userStorageService = inject(UserStorageService);
+  private readonly translocoService = inject(TranslocoService);
   private readonly router = inject(Router);
   private readonly logService = inject(LogService);
 
@@ -69,6 +77,8 @@ export class MenuAuthComponent implements AfterViewInit {
    * If anonymous data exists, prompts user to confirm import.
    * On confirm: promotes data to user scope, then clears anonymous data.
    * On skip: leaves anonymous data untouched (may belong to someone else on shared device).
+   *
+   * The dialog is displayed in the target user's language (if they have one set).
    */
   readonly storagePromotionCallback = async (userId: string): Promise<void> => {
     const hasData = await this.storagePromotionService.hasAnonymousData();
@@ -76,6 +86,25 @@ export class MenuAuthComponent implements AfterViewInit {
     if (!hasData) {
       this.logService.log('No anonymous data to promote');
       return;
+    }
+
+    // Check if target user has a stored language preference
+    const targetUserLangKey = this.userStorageService.prefixKeyForUser(userId, STORAGE_KEY_LANGUAGE);
+    const targetUserLangPref = await this.indexedDbService.getRaw(targetUserLangKey, IDB_STORES.SETTINGS) as { value: string } | string | undefined;
+
+    // Extract language value from either new format (object with value) or old format (raw string)
+    let targetUserLang: string | null = null;
+    if (typeof targetUserLangPref === 'object' && targetUserLangPref?.value) {
+      targetUserLang = targetUserLangPref.value;
+    } else if (typeof targetUserLangPref === 'string') {
+      targetUserLang = targetUserLangPref;
+    }
+
+    // Switch to target user's language for the dialog (if different from current)
+    const currentLang = this.translocoService.getActiveLang();
+    if (targetUserLang && targetUserLang !== currentLang) {
+      this.logService.log('Switching to target user language for import dialog', { from: currentLang, to: targetUserLang });
+      this.translocoService.setActiveLang(targetUserLang);
     }
 
     // Show confirmation dialog and wait for user response

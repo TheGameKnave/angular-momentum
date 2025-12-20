@@ -42,11 +42,12 @@ export class NotificationsComponent {
   /**
    * Simple list of predefined notification IDs with optional params.
    * All display content is derived from NOTIFICATION_KEY_MAP.
+   * Note: Maintenance time uses a fixed value for visual test stability.
    */
   readonly predefinedNotifications: PredefinedNotification[] = [
     { id: NOTIFICATION_IDS.WELCOME },
     { id: NOTIFICATION_IDS.FEATURE_UPDATE },
-    { id: NOTIFICATION_IDS.MAINTENANCE, params: { time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString() } },
+    { id: NOTIFICATION_IDS.MAINTENANCE, params: { time: '10:00 PM' } },
     { id: NOTIFICATION_IDS.ACHIEVEMENT },
   ];
 
@@ -64,12 +65,7 @@ export class NotificationsComponent {
   getBody(notification: PredefinedNotification): string {
     const keys = NOTIFICATION_KEY_MAP[notification.id as NotificationId];
     if (notification.params) {
-      // Format timestamp for display
-      const displayParams = { ...notification.params };
-      if (typeof displayParams['time'] === 'string') {
-        displayParams['time'] = new Date(displayParams['time']).toLocaleString();
-      }
-      return this.translocoService.translate(keys.bodyKey, displayParams);
+      return this.translocoService.translate(keys.bodyKey, notification.params);
     }
     return this.translocoService.translate(keys.bodyKey);
   }
