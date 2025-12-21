@@ -21,23 +21,24 @@ app.use(compression());
 
 const commonEngine = new CommonEngine();
 
-// Proxy API and GraphQL requests to backend server
-app.use(
-  ['/api', '/gql'],
-  createProxyMiddleware({
-    target: `http://localhost:${API_PORT}`,
-    changeOrigin: true,
-    on: {
-      error: (err, req, res) => {
-        console.error(`Proxy error for ${req.url}:`, err.message);
-        const response = res as express.Response;
-        if (!response.headersSent) {
-          response.status(502).json({ error: 'API server unavailable' });
-        }
-      },
+/**
+ * Proxy /api, /gql, and /socket.io requests to the backend server.
+ * Note: We use pathFilter instead of app.use('/path') to preserve the full path
+ */
+app.use(createProxyMiddleware({
+  target: `http://localhost:${API_PORT}`,
+  changeOrigin: true,
+  ws: true,
+  pathFilter: ['/api', '/gql', '/socket.io'],
+  on: {
+    error: (err, _req, res) => {
+      console.error('[Proxy Error]', err.message);
+      if ('headersSent' in res && !res.headersSent) {
+        (res as express.Response).status(502).json({ error: 'Backend unavailable' });
+      }
     },
-  })
-);
+  },
+}));
 
 // Serve static files from browser dist folder
 app.use(
