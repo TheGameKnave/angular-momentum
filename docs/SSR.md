@@ -12,16 +12,48 @@ SSR is configured differently per environment:
 | Staging | Yes | Mirrors production |
 | Production | Yes | Full SSR with Express server |
 
+## Architecture
+
+The production deployment uses two servers:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         Heroku                              │
+│                                                             │
+│  ┌─────────────────────┐      ┌─────────────────────────┐  │
+│  │   SSR Server        │      │   API Server            │  │
+│  │   (PORT from env)   │─────▶│   (API_PORT=4201)       │  │
+│  │                     │      │                         │  │
+│  │  • Angular SSR      │      │  • REST API             │  │
+│  │  • Static files     │      │  • GraphQL              │  │
+│  │  • Proxies /api,/gql│      │  • WebSocket            │  │
+│  └─────────────────────┘      └─────────────────────────┘  │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+- **SSR Server** (`client/server.ts`): Handles all incoming HTTP requests on the main port
+  - Serves SSR-rendered pages for anonymous users (SEO)
+  - Serves CSR fallback for authenticated users
+  - Proxies `/api` and `/gql` requests to the API server
+- **API Server** (`server/index.ts`): Runs on port 4201
+  - REST API endpoints
+  - GraphQL endpoint
+  - WebSocket connections
+
 ## Testing SSR Locally
 
 Since SSR is disabled for development, use a production build to test SSR locally:
 
 ```bash
 # Build with production config (SSR enabled)
-npm run build
+cd client && npm run build
 
-# Run the SSR server (from the client directory)
-node dist/angular-momentum/server/server.mjs
+# Terminal 1: Start API server on port 4201
+cd server && API_PORT=4201 ts-node index.ts
+
+# Terminal 2: Start SSR server on port 4000
+cd client && node dist/angular-momentum/server/server.mjs
 ```
 
 The SSR server runs on port 4000 by default (configurable via `PORT` or `SSR_PORT` env vars). It proxies API requests to port 4201.

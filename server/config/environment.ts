@@ -23,7 +23,8 @@ interface Config {
  * @description Loads configuration from .env file using dotenv
  */
 const config: Config = {
-  server_port: process.env.PORT,
+  // API_PORT takes precedence for the API server, PORT is for SSR server on Heroku
+  server_port: process.env.API_PORT || process.env.PORT,
   server_id: process.env.SERVER_ID,
   data_key: process.env.DATA_KEY,
   turnstile_secret_key: process.env.TURNSTILE_SECRET_KEY,
