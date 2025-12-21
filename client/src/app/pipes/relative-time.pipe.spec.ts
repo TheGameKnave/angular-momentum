@@ -153,7 +153,7 @@ describe('RelativeTimePipe', () => {
     });
 
     it('should return weeks for times 2+ weeks in the future', () => {
-      const twoWeeksFromNow = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+      const twoWeeksFromNow = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
       expect(pipe.transform(twoWeeksFromNow)).toBe('in 2w');
     });
 

@@ -6,7 +6,9 @@ import {
   effect,
   inject,
   input,
+  PLATFORM_ID,
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 /**
  * Directive that adds a visual timer indicator bar to any element.
@@ -24,6 +26,8 @@ import {
 })
 export class TimerIndicatorDirective implements OnInit, OnDestroy {
   private readonly el = inject(ElementRef);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   /** Duration in seconds for the timer. Set to 0 or negative to hide. */
   readonly appTimerIndicator = input<number>(0);
@@ -46,6 +50,9 @@ export class TimerIndicatorDirective implements OnInit, OnDestroy {
    * Initialize the directive and create the indicator element.
    */
   ngOnInit(): void {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
+
     this.hostElement = this.el.nativeElement;
     this.createIndicator();
   }

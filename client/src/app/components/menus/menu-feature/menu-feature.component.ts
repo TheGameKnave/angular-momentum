@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, HostListener, signal, ElementRef, AfterViewInit, DestroyRef, ViewChild, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, signal, ElementRef, AfterViewInit, DestroyRef, ViewChild, OnInit, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { filter } from 'rxjs';
 import { TranslocoDirective } from '@jsverse/transloco';
@@ -36,6 +37,8 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly host = inject(ElementRef);
   protected readonly connectivity = inject(ConnectivityService);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   @ViewChild('scrollArea') scrollArea?: ElementRef<HTMLElement>;
 
@@ -44,11 +47,15 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
 
   @HostListener('window:resize')
   onResize() {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
     this.scrollToCenter();
     this.isMobile.set(window.innerWidth < SCREEN_SIZES.sm);
   }
 
-  isMobile = signal(window.innerWidth < SCREEN_SIZES.sm);
+  // istanbul ignore next - SSR guard
+  private readonly windowWidth = this.isBrowser ? window.innerWidth : 0;
+  isMobile = signal(this.windowWidth < SCREEN_SIZES.sm);
   tooltipShowDelay = TOOLTIP_CONFIG.SHOW_DELAY;
   tooltipHideDelay = TOOLTIP_CONFIG.HIDE_DELAY;
 
@@ -96,6 +103,8 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
    * @returns True if running on Chrome Mobile, false otherwise
    */
   isChromeMobile(): boolean {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return false;
     return /Chrome/.test(navigator.userAgent) && /Mobile/.test(navigator.userAgent);
   }
 
@@ -108,6 +117,9 @@ export class MenuFeatureComponent implements OnInit, AfterViewInit {
    * Fully zoneless and Chrome-safe (no setTimeout).
    */
   scrollToCenter(): void {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
+
     const container = this.scrollArea?.nativeElement;
     if (!container) return;
 

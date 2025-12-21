@@ -1,7 +1,7 @@
 import { importProvidersFrom, isDevMode, provideZonelessChangeDetection, SecurityContext } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+import { BrowserModule, provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
-import { provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
 
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 import { provideTransloco, TRANSLOCO_MISSING_HANDLER, TranslocoMissingHandler } from '@jsverse/transloco';
@@ -25,10 +25,11 @@ import Lara from '@primeng/themes/lara';
 import { authInterceptor } from '@app/interceptors/auth.interceptor';
 import { platformAwareStorageFactory } from '@app/helpers/transloco-storage';
 import { getLangFn } from '@app/helpers/language.helper';
+import { provideSsrLanguage } from '@app/providers/ssr-language.provider';
 
 export const isTestEnvironment = ENVIRONMENT.env === 'testing'; // TODO figure out how to mock this in test environment without putting it in the code!!
 
-const socketIoConfig: SocketIoConfig = { url: ENVIRONMENT.baseUrl, options: {} };
+const socketIoConfig: SocketIoConfig = { url: ENVIRONMENT.baseUrl, options: { autoConnect: false } };
 
 /**
  * Handler for missing translation keys.
@@ -58,6 +59,7 @@ export const appProviders = [
     SocketIoModule.forRoot(socketIoConfig),
   ),
   provideHttpClient(
+    withFetch(),
     withInterceptors([authInterceptor]),
     withInterceptorsFromDi()
   ),
@@ -87,6 +89,8 @@ export const appProviders = [
     },
   }),
   provideTranslocoLocale(),
+  provideSsrLanguage(),
+  provideClientHydration(withEventReplay()),
   providePrimeNG({
     theme: {
       preset: Lara,

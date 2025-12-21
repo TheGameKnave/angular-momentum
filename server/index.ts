@@ -26,7 +26,15 @@ function setupStaticFileServing(app: express.Application, env: string) {
     app.use(express.static(dirname, { maxAge: 3600000 }));
 
     app.get('/{*splat}', (req, res) => {
-      res.sendFile(path.join(dirname, 'index.html'));
+      // SSR builds use index.csr.html, non-SSR builds use index.html
+      const indexFile = path.join(dirname, 'index.csr.html');
+      const fallbackFile = path.join(dirname, 'index.html');
+      res.sendFile(indexFile, (err) => {
+        // istanbul ignore next - fallback only used when index.csr.html missing (non-SSR builds)
+        if (err) {
+          res.sendFile(fallbackFile);
+        }
+      });
     });
   }
 }

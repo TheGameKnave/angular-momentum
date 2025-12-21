@@ -22,6 +22,10 @@
             "outputPath": "dist/angular-momentum",
             "index": "src/index.html",
             "browser": "src/main.ts",
+            "server": "src/main.server.ts",
+            "ssr": {
+              "entry": "server.ts"
+            },
             "polyfills": [],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
@@ -85,6 +89,7 @@
               "serviceWorker": "ngsw-config.json"
             },
             "development": {
+              "ssr": false,
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,

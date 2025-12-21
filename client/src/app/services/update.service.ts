@@ -1,4 +1,5 @@
-import { DestroyRef, Injectable, inject } from '@angular/core';
+import { DestroyRef, Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { SwUpdate, VersionEvent } from '@angular/service-worker';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { interval, startWith } from 'rxjs';
@@ -34,6 +35,9 @@ export class UpdateService {
   private readonly logService = inject(LogService);
   private readonly updateDialogService = inject(UpdateDialogService);
   private readonly changeLogService = inject(ChangeLogService);
+  private readonly platformId = inject(PLATFORM_ID);
+  // istanbul ignore next - SSR guard
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   private confirming = false;
 
@@ -47,6 +51,8 @@ export class UpdateService {
    * Only runs in production, staging, and local environments.
    */
   protected init(): void {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
     if (!['production', 'staging', 'local'].includes(ENVIRONMENT.env)) return;
 
     // Listen for Angular Service Worker version events

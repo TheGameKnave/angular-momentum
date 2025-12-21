@@ -1,4 +1,5 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { UserStorageService } from './user-storage.service';
 import { STORAGE_PREFIXES } from '@app/constants/storage.constants';
 import { IndexedDbService, IDB_STORES, IdbStoreName } from './indexeddb.service';
@@ -39,6 +40,8 @@ export class StoragePromotionService {
   private readonly userStorageService = inject(UserStorageService);
   private readonly indexedDbService = inject(IndexedDbService);
   private readonly logService = inject(LogService);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   /**
    * Promote all anonymous storage data to a user's storage.
@@ -47,6 +50,9 @@ export class StoragePromotionService {
    * @param userId - The user ID to promote data to
    */
   async promoteAnonymousToUser(userId: string): Promise<void> {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
+
     this.logService.log('Starting storage promotion to user', userId);
 
     try {
@@ -264,6 +270,9 @@ export class StoragePromotionService {
    * Used to determine whether to show the import confirmation dialog.
    */
   async hasAnonymousData(): Promise<boolean> {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return false;
+
     if (this.hasAnonymousLocalStorageData()) return true;
 
     const anonymousPrefix = `${STORAGE_PREFIXES.ANONYMOUS}_`;
@@ -286,6 +295,9 @@ export class StoragePromotionService {
    * Called when user declines to import anonymous data.
    */
   async clearAnonymousData(): Promise<void> {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
+
     this.clearAnonymousLocalStorage();
     await this.clearAnonymousIndexedDb();
     this.logService.log('Anonymous data cleared (user declined import)');

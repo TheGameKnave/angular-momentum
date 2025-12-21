@@ -1,4 +1,5 @@
-import { DestroyRef, Injectable, signal, inject } from '@angular/core';
+import { DestroyRef, Injectable, signal, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { sendNotification, isPermissionGranted, requestPermission } from '@tauri-apps/plugin-notification';
 import { TranslocoService } from '@jsverse/transloco';
 import { LogService } from './log.service';
@@ -37,6 +38,8 @@ export class NotificationService {
   private readonly userSettingsService = inject(UserSettingsService);
   private readonly userStorageService = inject(UserStorageService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   permissionGranted = signal<boolean>(false);
   notifications = signal<Notification[]>([]);
@@ -44,6 +47,9 @@ export class NotificationService {
   private readonly isTauri = '__TAURI__' in globalThis;
 
   constructor() {
+    // istanbul ignore next - SSR: skip browser-specific initialization
+    if (!this.isBrowser) return;
+
     this.loadNotificationsFromStorage();
     this.listenForWebSocketNotifications();
     this.listenForLocalizedNotifications();
@@ -219,6 +225,8 @@ export class NotificationService {
    * @returns True if running in Tauri or if browser supports Notification API and Service Workers
    */
   isSupported(): boolean {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return false;
     // istanbul ignore next - Browser API feature detection
     return this.isTauri || ('Notification' in globalThis && 'serviceWorker' in navigator);
   }
@@ -527,6 +535,9 @@ export class NotificationService {
    * Limits storage to the most recent notifications to prevent excessive storage usage.
    */
   private saveNotificationsToStorage(): void {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
+
     try {
       const storageKey = this.userStorageService.prefixKey(NOTIFICATIONS_STORAGE_KEY);
       const notifications = this.notifications();
@@ -544,6 +555,9 @@ export class NotificationService {
    * Converts timestamp strings back to Date objects.
    */
   private loadNotificationsFromStorage(): void {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
+
     try {
       const storageKey = this.userStorageService.prefixKey(NOTIFICATIONS_STORAGE_KEY);
       const stored = localStorage.getItem(storageKey);

@@ -1,27 +1,30 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { LogService } from './log.service';
 import { CONNECTIVITY_CONFIG } from '@app/constants/service.constants';
 
 /**
  * Service for tracking online/offline connectivity status.
- * 
+ *
  * Exposed signals:
  * - `isOnline`: readonly signal, true if last ping succeeded (immediate source-of-truth)
  * - `osOnline`: readonly signal, true if browser reports navigator.onLine
  * - `showOffline`: readonly signal, true if offline banner should be displayed (UI only)
  * - `lastVerifiedOnline`: readonly signal, timestamp of last successful ping
- * 
+ *
  * Public methods:
  * - `stop()`: stops all timers and polling; useful in tests.
  */
 @Injectable({ providedIn: 'root' })
 export class ConnectivityService {
   private readonly logService = inject(LogService);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
-  private readonly _isOnline = signal<boolean>(navigator.onLine);
+  private readonly _isOnline = signal<boolean>(this.isBrowser ? navigator.onLine : true);
   isOnline = this._isOnline.asReadonly();
 
-  private readonly _osOnline = signal<boolean>(navigator.onLine);
+  private readonly _osOnline = signal<boolean>(this.isBrowser ? navigator.onLine : true);
   osOnline = this._osOnline.asReadonly();
 
   private readonly _showOffline = signal<boolean>(false);
@@ -33,8 +36,7 @@ export class ConnectivityService {
   private stopped = false;
   private lastLoggedOnline?: boolean;
 
-  // private readonly pingUrl = 'https://angularmomentum.app/favicon.ico';
-  private readonly pingUrl = window.location.origin + '/favicon.ico';
+  private readonly pingUrl: string;
   private readonly baseInterval = CONNECTIVITY_CONFIG.BASE_INTERVAL_MS;
   private currentInterval: number = this.baseInterval;
   private readonly maxInterval = CONNECTIVITY_CONFIG.MAX_INTERVAL_MS;
@@ -45,6 +47,14 @@ export class ConnectivityService {
   private verifyAbortController?: AbortController;
 
   constructor() {
+    // SSR: skip all browser-specific initialization
+    if (!this.isBrowser) {
+      this.pingUrl = '';
+      return;
+    }
+
+    this.pingUrl = globalThis.location.origin + '/favicon.ico';
+
     window.addEventListener('online', () => {
       this._osOnline.set(true);
       this.logService.log('🔵 OS reports online — verifying...');
@@ -66,6 +76,8 @@ export class ConnectivityService {
    * Triggers an initial connectivity check and updates all signals accordingly.
    */
   async start(): Promise<void> {
+    // istanbul ignore next - SSR branch
+    if (!this.isBrowser) return;
     await this.verify();
   }
 

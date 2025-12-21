@@ -11,6 +11,11 @@ import { ENVIRONMENT } from 'src/environments/environment';
  * @returns User ID or null if not authenticated
  */
 function getUserIdFromToken(): string | null {
+  // istanbul ignore next - SSR guard
+  if (typeof localStorage === 'undefined') {
+    return null;
+  }
+
   try {
     // Extract project ref from Supabase URL (e.g., 'tyoyznpjxppchdyydbnf' from 'https://tyoyznpjxppchdyydbnf.supabase.co')
     const projectRef = new URL(ENVIRONMENT.supabase.url).hostname.split('.')[0];

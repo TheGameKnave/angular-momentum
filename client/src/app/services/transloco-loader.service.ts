@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, makeStateKey, PLATFORM_ID, TransferState } from '@angular/core';
+import { isPlatformBrowser, isPlatformServer } from '@angular/common';
 import { Translation, TranslocoLoader } from '@jsverse/transloco';
-import { catchError, Observable, of } from 'rxjs';
+import { catchError, Observable, of, tap } from 'rxjs';
 import { LANGUAGES } from 'i18n-l10n-flags';
 
 /**
@@ -32,29 +33,47 @@ const LANGUAGE_OVERRIDES: Record<string, { flag: string; name: string }> = {
 })
 export class TranslocoHttpLoader implements TranslocoLoader {
   readonly http = inject(HttpClient);
+  private readonly transferState = inject(TransferState);
+  private readonly platformId = inject(PLATFORM_ID);
 
   languages = LANGUAGES;
 
   /**
    * Load translation file for a specific language.
    * Required method for TranslocoLoader interface.
+   * Uses TransferState for SSR hydration to avoid duplicate HTTP requests.
    *
    * @param lang - Language code (e.g., 'en', 'es', 'en-US')
    * @returns Observable of translation object, or empty object on error
    */
   getTranslation(lang: string): Observable<Translation> {
-  const url = `/assets/i18n/${lang}.json`;
+    const stateKey = makeStateKey<Translation>(`transloco-${lang}`);
 
-  return this.http.get<Translation>(url).pipe(
-    catchError((error: unknown) => {
-      // Malformed JSON, network error, or 404
-      console.error(`[i18n] Failed to load or parse ${url}:`, error);
+    // On browser, check if translation was transferred from SSR
+    if (isPlatformBrowser(this.platformId) && this.transferState.hasKey(stateKey)) {
+      const translation = this.transferState.get(stateKey, {});
+      this.transferState.remove(stateKey);
+      return of(translation);
+    }
 
-      // Return empty translation object to prevent app crash
-      return of({});
-    })
-  );
-}
+    const url = `/assets/i18n/${lang}.json`;
+
+    return this.http.get<Translation>(url).pipe(
+      tap((translation) => {
+        // On server, store translation in TransferState for hydration
+        if (isPlatformServer(this.platformId)) {
+          this.transferState.set(stateKey, translation);
+        }
+      }),
+      catchError((error: unknown) => {
+        // Malformed JSON, network error, or 404
+        console.error(`[i18n] Failed to load or parse ${url}:`, error);
+
+        // Return empty translation object to prevent app crash
+        return of({});
+      })
+    );
+  }
 
   /**
    * Get country/flag code for a language.

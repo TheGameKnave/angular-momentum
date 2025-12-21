@@ -1,4 +1,5 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { LogService } from './log.service';
 import { PlatformService } from './platform.service';
 
@@ -15,6 +16,8 @@ export type CookieConsentStatus = 'pending' | 'accepted' | 'declined';
 export class CookieConsentService {
   private readonly logService = inject(LogService);
   private readonly platformService = inject(PlatformService);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   private readonly CONSENT_KEY = 'cookie_consent_status';
   private readonly GA_ID = 'G-NZS60CFH48';
@@ -25,6 +28,9 @@ export class CookieConsentService {
   readonly consentStatus = signal<CookieConsentStatus>(this.loadConsentStatus());
 
   constructor() {
+    // istanbul ignore next - SSR: skip browser-specific initialization
+    if (!this.isBrowser) return;
+
     const logService = this.logService;
 
     logService.log('Service initialized');
@@ -42,6 +48,9 @@ export class CookieConsentService {
    * In Tauri apps, skip consent entirely (no cookies in native apps).
    */
   private loadConsentStatus(): CookieConsentStatus {
+    // istanbul ignore next - SSR: return declined (no analytics during server render)
+    if (!this.isBrowser) return 'declined';
+
     // Skip cookie consent in Tauri apps - no cookies, no banner needed
     if (this.platformService.isTauri()) {
       return 'declined';
@@ -55,6 +64,9 @@ export class CookieConsentService {
    * Accept cookies and load analytics scripts
    */
   acceptCookies(): void {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
+
     this.logService.log('Accepting cookies');
     localStorage.setItem(this.CONSENT_KEY, 'accepted');
     this.logService.log('localStorage set to:', localStorage.getItem(this.CONSENT_KEY));
@@ -67,6 +79,9 @@ export class CookieConsentService {
    * Decline cookies
    */
   declineCookies(): void {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
+
     localStorage.setItem(this.CONSENT_KEY, 'declined');
     this.consentStatus.set('declined');
   }
@@ -75,6 +90,9 @@ export class CookieConsentService {
    * Reset consent (for testing or user preference change)
    */
   resetConsent(): void {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
+
     localStorage.removeItem(this.CONSENT_KEY);
     this.consentStatus.set('pending');
   }
