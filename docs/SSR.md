@@ -83,4 +83,4 @@ ngOnInit(): void {
 
 ## E2E Tests
 
-E2E tests run against the development server (CSR only) to avoid SSR complexity during testing. The Playwright config starts `npm run dev` which uses the development configuration.
+E2E tests run against the development server (CSR only) to avoid SSR complexity during testing. The Playwright config starts `npm start` which uses the development configuration.
