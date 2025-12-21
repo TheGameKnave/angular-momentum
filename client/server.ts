@@ -1,6 +1,7 @@
 import { CommonEngine } from '@angular/ssr/node';
 import express from 'express';
 import compression from 'compression';
+import { createServer } from 'node:http';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createProxyMiddleware } from 'http-proxy-middleware';
@@ -25,7 +26,7 @@ const commonEngine = new CommonEngine();
  * Proxy /api, /gql, and /socket.io requests to the backend server.
  * Note: We use pathFilter instead of app.use('/path') to preserve the full path
  */
-app.use(createProxyMiddleware({
+const apiProxy = createProxyMiddleware({
   target: `http://localhost:${API_PORT}`,
   changeOrigin: true,
   ws: true,
@@ -38,7 +39,8 @@ app.use(createProxyMiddleware({
       }
     },
   },
-}));
+});
+app.use(apiProxy);
 
 // Serve static files from browser dist folder
 app.use(
@@ -114,8 +116,12 @@ app.get('*', (req, res) => {
 
 const port = process.env['PORT'] || process.env['SSR_PORT'] || 4000;
 
-app.listen(port, () => {
+// Create HTTP server and attach WebSocket upgrade handler for socket.io proxy
+const server = createServer(app);
+server.on('upgrade', apiProxy.upgrade);
+
+server.listen(port, () => {
   /**/console.log(`Node Express server listening on http://localhost:${port}`);
 });
 
-export { app };
+export { app, server };
