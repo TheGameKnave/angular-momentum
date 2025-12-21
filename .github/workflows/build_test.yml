@@ -57,6 +57,10 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Create server .env for E2E tests
+        run: |
+          echo "API_PORT=4201" > server/.env
+
       - name: Run E2E Tests
         run: |
           echo "\nRunning e2e tests\n\n"
