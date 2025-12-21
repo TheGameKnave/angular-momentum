@@ -1,7 +1,6 @@
 # TODO chores/tasks
 
 public vs private/auth api
-debug notifications
 
 performance testing
 security testing

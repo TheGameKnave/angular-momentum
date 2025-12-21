@@ -84,8 +84,8 @@ export class NotificationCenterComponent {
     // Server-sent localized notifications: pick current locale
     if (notification.localizedTitle) {
       const text = this.getLocalizedString(notification.localizedTitle);
-      // Apply ICU formatting if there are params
-      return notification.params ? this.translocoService.translate(text, notification.params) : text;
+      // Apply simple param interpolation (text is already translated, not a key)
+      return notification.params ? this.interpolateParams(text, notification.params) : text;
     }
     // Legacy key-based translations
     if (notification.titleKey) {
@@ -104,14 +104,28 @@ export class NotificationCenterComponent {
     // Server-sent localized notifications: pick current locale
     if (notification.localizedBody) {
       const text = this.getLocalizedString(notification.localizedBody);
-      // Apply ICU formatting if there are params
-      return notification.params ? this.translocoService.translate(text, notification.params) : text;
+      // Apply simple param interpolation (text is already translated, not a key)
+      return notification.params ? this.interpolateParams(text, notification.params) : text;
     }
     // Legacy key-based translations
     if (notification.bodyKey) {
       return this.translocoService.translate(notification.bodyKey, notification.params || {});
     }
     return notification.body;
+  }
+
+  /**
+   * Simple string interpolation for params like {time}.
+   * Replaces {key} placeholders with values from params object.
+   */
+  private interpolateParams(text: string, params: Record<string, unknown>): string {
+    return text.replaceAll(/\{(\w+)\}/g, (_, key: string) => {
+      const value = params[key];
+      if (value === null || value === undefined) return `{${key}}`;
+      if (typeof value === 'object') return JSON.stringify(value);
+      // After null/undefined/object checks, value is a primitive (string, number, boolean, bigint, symbol)
+      return String(value as string | number | boolean | bigint | symbol);
+    });
   }
 
   /**

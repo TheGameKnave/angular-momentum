@@ -3,6 +3,7 @@ import { NotificationsComponent } from './notifications.component';
 import { NotificationService } from '@app/services/notification.service';
 import { GraphqlService, NotificationResult } from '@app/services/graphql.service';
 import { AuthService } from '@app/services/auth.service';
+import { UserSettingsService } from '@app/services/user-settings.service';
 import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
@@ -15,6 +16,7 @@ describe('NotificationsComponent', () => {
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
   let graphqlServiceSpy: jasmine.SpyObj<GraphqlService>;
   let authServiceSpy: jasmine.SpyObj<AuthService>;
+  let userSettingsServiceSpy: jasmine.SpyObj<UserSettingsService>;
 
   beforeEach(waitForAsync(() => {
     notificationServiceSpy = jasmine.createSpyObj('NotificationService', [
@@ -25,6 +27,7 @@ describe('NotificationsComponent', () => {
     ]);
     graphqlServiceSpy = jasmine.createSpyObj('GraphqlService', ['sendLocalizedNotification']);
     authServiceSpy = jasmine.createSpyObj('AuthService', ['getAccessToken']);
+    userSettingsServiceSpy = jasmine.createSpyObj('UserSettingsService', ['detectTimezone']);
 
     // Create signal spies for NotificationService
     (notificationServiceSpy as any).permissionGranted = signal(false);
@@ -34,6 +37,10 @@ describe('NotificationsComponent', () => {
     // Create signal spies for AuthService
     (authServiceSpy as any).isAuthenticated = signal(false);
     (authServiceSpy as any).currentUser = signal(null);
+
+    // Create signal spies for UserSettingsService
+    (userSettingsServiceSpy as any).settings = signal(null);
+    userSettingsServiceSpy.detectTimezone.and.returnValue('America/New_York');
 
     TestBed.configureTestingModule({
       imports: [
@@ -45,6 +52,7 @@ describe('NotificationsComponent', () => {
         { provide: NotificationService, useValue: notificationServiceSpy },
         { provide: GraphqlService, useValue: graphqlServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
+        { provide: UserSettingsService, useValue: userSettingsServiceSpy },
       ]
     }).compileComponents();
 
@@ -60,7 +68,7 @@ describe('NotificationsComponent', () => {
   it('should initialize signals with empty strings', () => {
     expect(component.localNotificationStatus()).toBe('');
     expect(component.serverNotificationStatus()).toBe('');
-    expect(component.loading()).toBe(false);
+    expect(component.loadingId()).toBeNull();
   });
 
   describe('predefinedNotifications', () => {
@@ -89,6 +97,19 @@ describe('NotificationsComponent', () => {
       expect(maintenanceNotification.params).toBeDefined();
       expect(maintenanceNotification.params!['time']).toBeDefined();
     });
+
+    it('should generate valid ISO timestamp for maintenance time', () => {
+      const maintenanceNotification = component.predefinedNotifications[2];
+      const timeParam = maintenanceNotification.params!['time'] as string;
+
+      // Should be a valid ISO date string
+      const parsedDate = new Date(timeParam);
+      expect(Number.isNaN(parsedDate.getTime())).toBe(false);
+
+      // Should be set to 22:00 UTC (10 PM)
+      expect(parsedDate.getUTCHours()).toBe(22);
+      expect(parsedDate.getUTCMinutes()).toBe(0);
+    });
   });
 
   describe('helper methods', () => {
@@ -108,6 +129,24 @@ describe('NotificationsComponent', () => {
 
     it('should return translated body with params for maintenance', () => {
       const notification = component.predefinedNotifications[2]; // maintenance
+      const body = component.getBody(notification);
+      expect(body).toBeDefined();
+      expect(typeof body).toBe('string');
+    });
+
+    it('should format ISO timestamp in body params to localized time', () => {
+      const notification = component.predefinedNotifications[2]; // maintenance
+      const body = component.getBody(notification);
+
+      // Body should not contain the raw ISO timestamp
+      expect(body).not.toContain('T22:00:00');
+      // Should contain some formatted time (varies by locale/timezone)
+      expect(body).toBeDefined();
+    });
+
+    it('should leave non-timestamp params unchanged in body', () => {
+      // This tests that formatParams only converts valid ISO date strings
+      const notification = { id: NOTIFICATION_IDS.WELCOME };
       const body = component.getBody(notification);
       expect(body).toBeDefined();
       expect(typeof body).toBe('string');
@@ -191,7 +230,7 @@ describe('NotificationsComponent', () => {
 
       expect(graphqlServiceSpy.sendLocalizedNotification).toHaveBeenCalledWith(notification.id, undefined);
       expect(component.serverNotificationStatus()).toContain('✅');
-      expect(component.loading()).toBe(false);
+      expect(component.loadingId()).toBeNull();
     });
 
     it('should send notification id to GraphQL service', async () => {
@@ -225,7 +264,7 @@ describe('NotificationsComponent', () => {
       await component.sendServerNotification(notification);
 
       expect(component.serverNotificationStatus()).toContain('❌');
-      expect(component.loading()).toBe(false);
+      expect(component.loadingId()).toBeNull();
     });
 
     it('should include params for maintenance notification', async () => {

@@ -54,7 +54,7 @@
             [label]="t('page.Broadcast')"
             icon="pi pi-megaphone"
             (onClick)="sendServerNotification(notification)"
-            [loading]="loading()"
+            [loading]="loadingId() === notification.id"
             [severity]="getSeverity(notification)"
             size="small"
             [outlined]="true"
