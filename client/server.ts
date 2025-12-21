@@ -27,6 +27,15 @@ app.use(
   createProxyMiddleware({
     target: `http://localhost:${API_PORT}`,
     changeOrigin: true,
+    on: {
+      error: (err, req, res) => {
+        console.error(`Proxy error for ${req.url}:`, err.message);
+        const response = res as express.Response;
+        if (!response.headersSent) {
+          response.status(502).json({ error: 'API server unavailable' });
+        }
+      },
+    },
   })
 );
 
