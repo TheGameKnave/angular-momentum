@@ -78,7 +78,7 @@ Develop against branches from `dev` feature branch using prefix `feature/` or `d
 
 In the project directory, you can run:
 
-### `npm run dev`
+### `npm start`
 
 Runs the front- and back-end concurrently. See above.  
 **This is the preferred method of running a local**

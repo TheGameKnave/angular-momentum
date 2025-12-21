@@ -25,7 +25,7 @@
 
 4. **Run the app**
    ```bash
-   npm run dev
+   npm start
    ```
 
 ## Test the Implementation

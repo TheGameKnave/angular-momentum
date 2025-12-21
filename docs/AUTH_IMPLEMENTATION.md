@@ -65,7 +65,7 @@ export const ENVIRONMENT = {
 
 ```bash
 # Development
-npm run dev
+npm start
 
 # Tauri
 npm run tauri:dev
