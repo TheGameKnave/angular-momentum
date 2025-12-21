@@ -116,6 +116,7 @@ $code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono',
 
 html {
   font-size: 62.5%;
+  background-color: #222;
 
   // Boost interface size on mobile (1rem = 12px instead of 10px)
   @media (max-width: 575px) {
@@ -137,10 +138,10 @@ body {
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   // Set safe area insets
-  padding-bottom: env(safe-area-inset-bottom) !important;
-  padding-top: env(safe-area-inset-top) !important;
-  padding-left: env(safe-area-inset-left) !important;
-  padding-right: env(safe-area-inset-right) !important;
+  margin-bottom: env(safe-area-inset-bottom) !important;
+  margin-top: env(safe-area-inset-top) !important;
+  margin-left: env(safe-area-inset-left) !important;
+  margin-right: env(safe-area-inset-right) !important;
 
   h1 {
     font-weight: 600;
@@ -299,8 +300,8 @@ ul {
 
   // Backgrounds
   --color-bg-primary: #222;
-  --color-bg-secondary: #333;
-  --color-bg-tertiary: #444;
+  --color-bg-secondary: #2228;
+  --color-bg-tertiary: #4448;
   --color-bg-overlay: rgba(0, 0, 0, 0.5);
   --color-bg-backdrop: rgba(0, 0, 0, 0.5);
 
@@ -345,10 +346,10 @@ ul {
   // PrimeNG Custom Properties
   // -----------------------------------------------------------------------------
   --p-card-background: #333 !important;
-  --p-panel-background: #333 !important;
+  --p-panel-background: #2228 !important;
   --p-card-color: #f4f4f4 !important;
   --p-form-field-background: #222 !important;
-  --p-toggleswitch-handle-checked-background: #333 !important;
+  --p-toggleswitch-handle-checked-background: #2228 !important;
 }
 
 // =============================================================================
@@ -361,6 +362,16 @@ ul {
 .p-button,
 .p-button-label {
   font-size: 1.4rem !important;
+}
+
+.p-button-sm .p-button-icon {
+    font-size: inherit !important;
+}
+// Prevent button icon/loading spinner from causing layout shift
+.p-button-icon,
+.p-button-loading-icon {
+  min-width: 2rem;
+  text-align: center;
 }
 
 .p-select,
