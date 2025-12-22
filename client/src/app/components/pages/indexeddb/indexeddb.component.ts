@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, PLATFORM_ID, inject, effect } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
@@ -30,6 +31,8 @@ import { UserStorageService } from '@app/services/user-storage.service';
 ],
 })
 export class IndexedDBComponent implements OnInit {
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly destroyRef = inject(DestroyRef);
   private readonly indexedDbService = inject(IndexedDbService);
   private readonly userStorageService = inject(UserStorageService);
@@ -68,6 +71,9 @@ export class IndexedDBComponent implements OnInit {
    * proper UI state updates (e.g., for floating labels).
    */
   private async loadStoredValue(): Promise<void> {
+    // istanbul ignore next - SSR guard, not testable in browser
+    if (!this.isBrowser) return;
+
     const data = await this.indexedDbService.get(this.storageKey, IDB_STORES.PERSISTENT);
     const value = typeof data === 'string' ? data : '';
     this.textAreaData.setValue(value, { emitEvent: false });

@@ -48,7 +48,7 @@ describe('InstallersService', () => {
     expect(INSTALLERS.map(i => i.url)).toEqual(originalUrls);
   });
 
-  it('should handle Unknown platform gracefully', () => {
+  it('should handle Unknown platform gracefully by returning first installer as fallback', () => {
     const originalUserAgent = navigator.userAgent;
 
     // 🧩 Override the property descriptor safely
@@ -57,8 +57,10 @@ describe('InstallersService', () => {
       configurable: true,
     });
 
+    // Unknown platform falls back to first installer (for SSR compatibility)
     const unknownInstaller = service.getCurrentPlatformInstaller();
-    expect(unknownInstaller).toBeUndefined();
+    expect(unknownInstaller).toBeDefined();
+    expect(unknownInstaller.name).toBe(INSTALLERS[0].name);
 
     const otherInstallers = service.getOtherInstallers();
     expect(Array.isArray(otherInstallers)).toBeTrue();

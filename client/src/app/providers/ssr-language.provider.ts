@@ -1,4 +1,4 @@
-import { inject, InjectionToken, PLATFORM_ID, provideAppInitializer } from '@angular/core';
+import { inject, InjectionToken, PLATFORM_ID, provideAppInitializer, REQUEST } from '@angular/core';
 import { isPlatformServer } from '@angular/common';
 import { TranslocoService } from '@jsverse/transloco';
 import { SUPPORTED_LANGUAGES } from '@app/constants/app.constants';
@@ -42,16 +42,43 @@ function parseAcceptLanguage(acceptLanguage: string): string | null {
 }
 
 /**
+ * Parse cookies from Cookie header and return value for given name.
+ * @param cookieHeader - The Cookie header value
+ * @param name - Cookie name to find
+ * @returns Cookie value or null
+ */
+function parseCookie(cookieHeader: string | null, name: string): string | null {
+  if (!cookieHeader) return null;
+  const pattern = new RegExp(String.raw`(?:^|;\s*)${name}=([^;]+)`);
+  const match = pattern.exec(cookieHeader);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+/**
  * Initialize SSR language based on Accept-Language header.
  * Only runs on server - browser uses persisted user preference.
  */
 function initializeSsrLanguage(): void {
   const platformId = inject(PLATFORM_ID);
 
+  // istanbul ignore next - SSR-only code path
   if (!isPlatformServer(platformId)) return;
 
   const translocoService = inject(TranslocoService);
-  const acceptLanguage = inject(ACCEPT_LANGUAGE, { optional: true }) || '';
+
+  // Try custom ACCEPT_LANGUAGE token first (production server.ts provides this)
+  let acceptLanguage = inject(ACCEPT_LANGUAGE, { optional: true }) || '';
+
+  // Fallback to Angular's REQUEST token for dev server SSR
+  if (!acceptLanguage) {
+    const request = inject(REQUEST, { optional: true });
+    if (request) {
+      // Check lang cookie first, then Accept-Language header
+      const cookieHeader = request.headers.get('cookie');
+      const langCookie = parseCookie(cookieHeader, 'lang');
+      acceptLanguage = langCookie || request.headers.get('accept-language') || '';
+    }
+  }
 
   const detectedLang = parseAcceptLanguage(acceptLanguage);
   if (detectedLang) {

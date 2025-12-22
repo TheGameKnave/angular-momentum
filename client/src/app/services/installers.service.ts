@@ -66,10 +66,13 @@ export class InstallersService {
   /**
    * Computed signal providing the installer for the current platform.
    * Automatically updates when version changes.
+   * Returns a fallback during SSR when platform detection is unavailable.
    */
   public readonly currentPlatformInstaller: Signal<Installer> = computed(() => {
     const platform = this.determinePlatform();
-    return this.installers().find(i => i.name === platform)!;
+    const installers = this.installers();
+    // istanbul ignore next - SSR fallback
+    return installers.find(i => i.name === platform) ?? installers[0];
   });
 
   /**

@@ -7,7 +7,9 @@ phone menu screenshots should be separate from other menu screenshots because th
 
 audit docs to make sure they're accurate
 
-lighthouse optinization for remaining items
+lighthouse optimization for remaining items
+
+smoke test post-deploy
 
 fix-tests.sh cruft. any others?
 
