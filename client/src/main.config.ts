@@ -46,17 +46,15 @@ export class PrefixedMissingHandler implements TranslocoMissingHandler {
   }
 }
 
-export const appProviders = [
+/**
+ * Shared providers for both browser and server (no browser-specific modules).
+ */
+export const serverProviders = [
   provideZonelessChangeDetection(),
   SlugPipe,
   importProvidersFrom(
     BrowserModule,
     MarkdownModule.forRoot({ sanitize: { provide: SANITIZE, useValue: SecurityContext.STYLE } }),
-    ServiceWorkerModule.register('ngsw-worker.js', {
-      enabled: !isDevMode(),
-      registrationStrategy: 'registerImmediately',
-    }),
-    SocketIoModule.forRoot(socketIoConfig),
   ),
   provideHttpClient(
     withFetch(),
@@ -104,4 +102,19 @@ export const appProviders = [
     ripple: true,
   }),
   MessageService,
+];
+
+/**
+ * Browser-only providers (includes Socket.io and Service Worker).
+ * Used for client bootstrap - server uses serverProviders directly.
+ */
+export const appProviders = [
+  ...serverProviders,
+  importProvidersFrom(
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerImmediately',
+    }),
+    SocketIoModule.forRoot(socketIoConfig),
+  ),
 ];

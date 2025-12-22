@@ -30,7 +30,7 @@ import { ChangeLogService } from './change-log.service';
  */
 @Injectable({ providedIn: 'root' })
 export class UpdateService {
-  private readonly updates = inject(SwUpdate);
+  private readonly updates = inject(SwUpdate, { optional: true }); // Optional for SSR
   private readonly destroyRef = inject(DestroyRef);
   private readonly logService = inject(LogService);
   private readonly updateDialogService = inject(UpdateDialogService);
@@ -55,11 +55,13 @@ export class UpdateService {
     if (!this.isBrowser) return;
     if (!['production', 'staging', 'local'].includes(ENVIRONMENT.env)) return;
 
-    // Listen for Angular Service Worker version events
+    // Listen for Angular Service Worker version events (only if SwUpdate is available)
     // istanbul ignore next - SwUpdate observable subscription requires real service worker context
-    this.updates.versionUpdates
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(event => this.handleSwEvent(event));
+    if (this.updates) {
+      this.updates.versionUpdates
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(event => this.handleSwEvent(event));
+    }
 
     // Run immediate and interval-based update checks
     interval(UPDATE_CONFIG.CHECK_INTERVAL_MS)
@@ -81,10 +83,12 @@ export class UpdateService {
   private checkServiceWorkerUpdate(): void {
     // istanbul ignore next - Tauri platform detection, isTauri() always returns false in unit tests
     if (isTauri()) return;
+    // istanbul ignore next - SSR guard, SwUpdate is null during server rendering
+    if (!this.updates) return;
     this.updates.checkForUpdate().then(available => {
       if (available) {
         this.logService.log('SW: Update available, activating...');
-        this.updates.activateUpdate().then(() => {
+        this.updates!.activateUpdate().then(() => {
           this.logService.log('SW: Update activated. Awaiting VERSION_READY...');
           // VERSION_READY will trigger handleSwEvent
         });

@@ -30,7 +30,7 @@ export type FeatureFlagKeys = keyof FeatureFlagResponse;
 @Injectable({ providedIn: 'root' })
 export class FeatureFlagService {
   protected readonly http = inject(HttpClient);
-  protected readonly socket = inject(Socket);
+  protected readonly socket = inject(Socket, { optional: true }); // Optional for SSR
   private readonly transferState = inject(TransferState);
   private readonly platformId = inject(PLATFORM_ID);
 
@@ -49,7 +49,7 @@ export class FeatureFlagService {
     }
 
     // Listen for WebSocket updates (browser only)
-    if (isPlatformBrowser(this.platformId)) {
+    if (isPlatformBrowser(this.platformId) && this.socket) {
       this.socket.on('update-feature-flags', (update: FeatureFlagResponse) => {
         const newFeatures: ArbitraryFeatures = { ...this.features(), ...update };
         this.features.set(newFeatures);

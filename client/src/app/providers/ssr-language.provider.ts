@@ -47,6 +47,7 @@ function parseAcceptLanguage(acceptLanguage: string): string | null {
  * @param name - Cookie name to find
  * @returns Cookie value or null
  */
+// istanbul ignore next - SSR-only utility, only called during server rendering
 function parseCookie(cookieHeader: string | null, name: string): string | null {
   if (!cookieHeader) return null;
   const pattern = new RegExp(String.raw`(?:^|;\s*)${name}=([^;]+)`);
@@ -58,10 +59,10 @@ function parseCookie(cookieHeader: string | null, name: string): string | null {
  * Initialize SSR language based on Accept-Language header.
  * Only runs on server - browser uses persisted user preference.
  */
+// istanbul ignore next - SSR-only function, unit tests run in browser context
 function initializeSsrLanguage(): void {
   const platformId = inject(PLATFORM_ID);
 
-  // istanbul ignore next - SSR-only code path
   if (!isPlatformServer(platformId)) return;
 
   const translocoService = inject(TranslocoService);

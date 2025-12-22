@@ -58,6 +58,7 @@ export class NotificationService {
    * Called from constructor in browser, or can be called manually after hydration.
    */
   private initialize(): void {
+    // istanbul ignore next - re-initialization guard, only triggered if called multiple times
     if (this.initialized) return;
     this.initialized = true;
 

@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, signal, computed, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, OnInit, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators, type ValidatorFn } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
@@ -75,6 +76,7 @@ export class ProfileComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly translocoService = inject(TranslocoService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   // Password change panel state
   readonly passwordPanelExpanded = signal(false);
@@ -182,7 +184,8 @@ export class ProfileComponent implements OnInit {
     const isResetFlow = this.authService.isPasswordRecovery();
 
     // Check for router state from OTP password reset flow
-    const routerState = globalThis.history.state;
+    // istanbul ignore next - SSR guard
+    const routerState = isPlatformBrowser(this.platformId) ? globalThis.history.state : null;
     const expandPasswordPanel = routerState?.['expandPasswordPanel'];
 
     if (isResetFlow || expandPasswordPanel) {
