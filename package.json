@@ -10,10 +10,12 @@
   "scripts": {
     "client": "cd client && NODE_ENV=development npm run start -- --configuration development",
     "client:prod": "cd client && NODE_ENV=production npm run start -- --configuration production",
+    "client:e2e": "cd client && NODE_ENV=development npm run start -- --configuration e2e",
     "server": "cd server && NODE_ENV=development node-env-run --exec nodemon | pino-colada",
     "server:prod": "cd server && NODE_ENV=production node-env-run --exec nodemon",
     "heroku-postbuild": "cd client && npm install && npm run heroku-postbuild",
     "start": "echo \"Run server and client, in parallel, in dev mode\" && run-p client server",
+    "start:e2e": "run-p client:e2e server",
     "prod": "run-p client:prod server:prod",
     "sonar": "sonar-scanner -Dsonar.token=$(grep SONAR_TOKEN server/.env | cut -d '=' -f 2)",
     "test": "./tests/test.sh",

@@ -115,6 +115,18 @@
                 "src/assets",
                 "src/manifest.webmanifest"
               ]
+            },
+            "e2e": {
+              "ssr": false,
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true,
+              "assets": [
+                "src/favicon.ico",
+                "src/assets",
+                "src/manifest.webmanifest"
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -138,6 +150,9 @@
             },
             "tauri-build": {
               "buildTarget": "angular-momentum:build:tauri-build"
+            },
+            "e2e": {
+              "buildTarget": "angular-momentum:build:e2e"
             }
           },
           "defaultConfiguration": "development"

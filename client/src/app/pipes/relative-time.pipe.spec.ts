@@ -138,7 +138,8 @@ describe('RelativeTimePipe', () => {
     });
 
     it('should return minutes for times 1-59 minutes in the future', () => {
-      const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
+      // Add 30s buffer to avoid flaky test when Date.now() shifts between setup and assertion
+      const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000 + 30 * 1000);
       expect(pipe.transform(fiveMinutesFromNow)).toBe('in 5m');
     });
 

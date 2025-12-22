@@ -1,5 +1,5 @@
 import { importProvidersFrom, isDevMode, provideZonelessChangeDetection, SecurityContext } from '@angular/core';
-import { BrowserModule, provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { BrowserModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { provideHttpClient, withFetch, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
 
@@ -90,7 +90,9 @@ export const appProviders = [
   }),
   provideTranslocoLocale(),
   provideSsrLanguage(),
-  provideClientHydration(withEventReplay()),
+  // NOTE: Intentionally NOT using provideClientHydration() - we use destructive hydration
+  // (full client re-render after SSR) to avoid timing issues with component services
+  // that run in constructors. See SSR_PATCH_BREAKDOWN.md for details.
   providePrimeNG({
     theme: {
       preset: Lara,

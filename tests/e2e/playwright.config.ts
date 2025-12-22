@@ -46,7 +46,7 @@ export default defineConfig({
 
   ],
   webServer: {
-    command: 'kill $(lsof -ti:4200) $(lsof -ti:4201) 2>/dev/null || true; npm start',
+    command: 'kill $(lsof -ti:4200) $(lsof -ti:4201) 2>/dev/null || true; npm run start:e2e',
     url: APP_BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120000,

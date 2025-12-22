@@ -9,6 +9,8 @@ audit docs to make sure they're accurate
 
 lighthouse optinization for remaining items
 
+fix-tests.sh cruft. any others?
+
 security testing
 
 deep links and Universal Links / App Links setup for iOS and Android

@@ -1,4 +1,5 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { openDB, IDBPDatabase } from 'idb';
 import { INDEXEDDB_CONFIG } from '@app/constants/ui.constants';
 import { INDEXEDDB_MIGRATIONS, CURRENT_INDEXEDDB_VERSION } from '@app/migrations';
@@ -42,6 +43,8 @@ export type IdbStoreName = typeof IDB_STORES[keyof typeof IDB_STORES];
   providedIn: 'root',
 })
 export class IndexedDbService {
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly userStorageService = inject(UserStorageService);
 
   /** The previous database version before any upgrade (0 for new databases) */
@@ -55,10 +58,11 @@ export class IndexedDbService {
 
   /**
    * Get the current version of the existing database WITHOUT triggering migrations.
-   * Returns 0 if no database exists.
+   * Returns 0 if no database exists or if running on the server (SSR).
    */
   // istanbul ignore next - browser integration, tested via e2e
   async getCurrentVersionWithoutMigrating(): Promise<number> {
+    if (!this.isBrowser) return 0;
     const databases = await indexedDB.databases();
     const existing = databases.find(db => db.name === INDEXEDDB_CONFIG.DB_NAME);
     return existing?.version ?? 0;
@@ -92,9 +96,11 @@ export class IndexedDbService {
   /**
    * Initialize the database and run any pending migrations.
    * Call this AFTER backing up data if migrations are needed.
+   * No-op when running on the server (SSR).
    */
   // istanbul ignore next - browser integration, tested via e2e
   async init(): Promise<void> {
+    if (!this.isBrowser) return;
     if (this.dbPromise) return; // Already initialized
 
     const previousVersion = await this.getCurrentVersionWithoutMigrating();
@@ -125,8 +131,11 @@ export class IndexedDbService {
   /**
    * Ensure the database is initialized before operations.
    * Auto-initializes if not already done (for backwards compatibility).
+   * Returns null during SSR (no IndexedDB available).
    */
-  private async getDb(): Promise<IDBPDatabase> {
+  private async getDb(): Promise<IDBPDatabase | null> {
+    // istanbul ignore next - SSR guard, not testable in browser
+    if (!this.isBrowser) return null;
     // istanbul ignore next - auto-init path for backwards compatibility
     if (!this.dbPromise) {
       await this.init();
@@ -152,21 +161,26 @@ export class IndexedDbService {
 
   /**
    * Get the current database version.
+   * Returns 0 during SSR.
    */
   async getVersion(): Promise<number> {
     const db = await this.getDb();
-    return db.version;
+    // istanbul ignore next - SSR guard, not testable in browser
+    return db?.version ?? 0;
   }
 
   /**
    * Retrieves a value from a store using user-scoped key.
    * @param key - The base key to retrieve (will be prefixed with user scope)
    * @param store - The store to use
-   * @returns Promise that resolves to the stored value, or undefined if not found
+   * @returns Promise that resolves to the stored value, or undefined if not found (or during SSR)
    */
   async get(key: string | number, store: IdbStoreName): Promise<unknown> {
+    const db = await this.getDb();
+    // istanbul ignore next - SSR guard, not testable in browser
+    if (!db) return undefined;
     const prefixedKey = this.userStorageService.prefixKey(String(key));
-    return (await this.getDb()).get(store, prefixedKey);
+    return db.get(store, prefixedKey);
   }
 
   /**
@@ -174,36 +188,45 @@ export class IndexedDbService {
    * @param key - The base key to store the value under (will be prefixed with user scope)
    * @param val - The value to store
    * @param store - The store to use
-   * @returns Promise that resolves when the value is stored
+   * @returns Promise that resolves when the value is stored, or undefined during SSR
    */
-  async set(key: string | number, val: unknown, store: IdbStoreName): Promise<IDBValidKey> {
+  async set(key: string | number, val: unknown, store: IdbStoreName): Promise<IDBValidKey | undefined> {
+    const db = await this.getDb();
+    // istanbul ignore next - SSR guard, not testable in browser
+    if (!db) return undefined;
     const prefixedKey = this.userStorageService.prefixKey(String(key));
-    return (await this.getDb()).put(store, val, prefixedKey);
+    return db.put(store, val, prefixedKey);
   }
 
   /**
    * Deletes a value from a store using user-scoped key.
    * @param key - The base key to delete (will be prefixed with user scope)
    * @param store - The store to use
-   * @returns Promise that resolves when the value is deleted
+   * @returns Promise that resolves when the value is deleted (no-op during SSR)
    */
   async del(key: string | number, store: IdbStoreName): Promise<void> {
+    const db = await this.getDb();
+    // istanbul ignore next - SSR guard, not testable in browser
+    if (!db) return;
     const prefixedKey = this.userStorageService.prefixKey(String(key));
-    return (await this.getDb()).delete(store, prefixedKey);
+    return db.delete(store, prefixedKey);
   }
 
   /**
    * Clears all values from a store for the current user scope.
    * @param store - The store to clear
-   * @returns Promise that resolves when all values are cleared
+   * @returns Promise that resolves when all values are cleared (no-op during SSR)
    */
   async clear(store: IdbStoreName): Promise<void> {
+    const db = await this.getDb();
+    // istanbul ignore next - SSR guard, not testable in browser
+    if (!db) return;
     const prefix = this.userStorageService.storagePrefix();
     const allKeys = await this.keys(store);
 
     for (const key of allKeys) {
       if (typeof key === 'string' && key.startsWith(`${prefix}_`)) {
-        await (await this.getDb()).delete(store, key);
+        await db.delete(store, key);
       }
     }
   }
@@ -222,10 +245,13 @@ export class IndexedDbService {
   /**
    * Retrieves all keys from a store (all scopes).
    * @param store - The store to get keys from
-   * @returns Promise that resolves to an array of all keys
+   * @returns Promise that resolves to an array of all keys, or empty array during SSR
    */
   async keys(store: IdbStoreName): Promise<IDBValidKey[]> {
-    return (await this.getDb()).getAllKeys(store);
+    const db = await this.getDb();
+    // istanbul ignore next - SSR guard, not testable in browser
+    if (!db) return [];
+    return db.getAllKeys(store);
   }
 
   /**
@@ -233,10 +259,13 @@ export class IndexedDbService {
    * Used internally for backup operations.
    * @param key - The exact key to retrieve
    * @param store - The store to use
-   * @returns Promise that resolves to the stored value, or undefined if not found
+   * @returns Promise that resolves to the stored value, or undefined if not found (or during SSR)
    */
   async getRaw(key: string | number, store: IdbStoreName): Promise<unknown> {
-    return (await this.getDb()).get(store, key);
+    const db = await this.getDb();
+    // istanbul ignore next - SSR guard, not testable in browser
+    if (!db) return undefined;
+    return db.get(store, key);
   }
 
   /**
@@ -245,10 +274,13 @@ export class IndexedDbService {
    * @param key - The exact key to store the value under
    * @param val - The value to store
    * @param store - The store to use
-   * @returns Promise that resolves when the value is stored
+   * @returns Promise that resolves when the value is stored, or undefined during SSR
    */
-  async setRaw(key: string | number, val: unknown, store: IdbStoreName): Promise<IDBValidKey> {
-    return (await this.getDb()).put(store, val, key);
+  async setRaw(key: string | number, val: unknown, store: IdbStoreName): Promise<IDBValidKey | undefined> {
+    const db = await this.getDb();
+    // istanbul ignore next - SSR guard, not testable in browser
+    if (!db) return undefined;
+    return db.put(store, val, key);
   }
 
   /**
@@ -256,9 +288,12 @@ export class IndexedDbService {
    * Used internally for backup operations.
    * @param key - The exact key to delete
    * @param store - The store to use
-   * @returns Promise that resolves when the value is deleted
+   * @returns Promise that resolves when the value is deleted (no-op during SSR)
    */
   async delRaw(key: string | number, store: IdbStoreName): Promise<void> {
-    return (await this.getDb()).delete(store, key);
+    const db = await this.getDb();
+    // istanbul ignore next - SSR guard, not testable in browser
+    if (!db) return;
+    return db.delete(store, key);
   }
 }
