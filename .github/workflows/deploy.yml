@@ -7,9 +7,6 @@ on:
     types: [completed]
     branches: [main]
 
-permissions:
-  contents: write
-
 jobs:
   deploy-web:
     runs-on: ubuntu-latest
@@ -37,6 +34,8 @@ jobs:
 
   create-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     # if: github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     outputs:
       release_id: ${{ steps.create_release.outputs.release_id }}
@@ -72,6 +71,8 @@ jobs:
   build-and-release:
     needs: create-release
     runs-on: ${{ matrix.platform }}
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
