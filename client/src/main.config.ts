@@ -29,7 +29,7 @@ import { provideSsrLanguage } from '@app/providers/ssr-language.provider';
 
 export const isTestEnvironment = ENVIRONMENT.env === 'testing'; // TODO figure out how to mock this in test environment without putting it in the code!!
 
-const socketIoConfig: SocketIoConfig = { url: ENVIRONMENT.baseUrl, options: { autoConnect: false } };
+const socketIoConfig: SocketIoConfig = { url: ENVIRONMENT.baseUrl, options: {} };
 
 /**
  * Handler for missing translation keys.

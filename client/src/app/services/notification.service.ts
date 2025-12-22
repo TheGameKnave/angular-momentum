@@ -39,16 +39,27 @@ export class NotificationService {
   private readonly userStorageService = inject(UserStorageService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly isBrowser = isPlatformBrowser(this.platformId);
-
   permissionGranted = signal<boolean>(false);
   notifications = signal<Notification[]>([]);
   unreadCount = signal<number>(0);
   private readonly isTauri = '__TAURI__' in globalThis;
+  private initialized = false;
 
   constructor() {
+    // Initialize immediately if in browser, otherwise defer
     // istanbul ignore next - SSR: skip browser-specific initialization
-    if (!this.isBrowser) return;
+    if (isPlatformBrowser(this.platformId)) {
+      this.initialize();
+    }
+  }
+
+  /**
+   * Initialize browser-specific functionality.
+   * Called from constructor in browser, or can be called manually after hydration.
+   */
+  private initialize(): void {
+    if (this.initialized) return;
+    this.initialized = true;
 
     this.loadNotificationsFromStorage();
     this.listenForWebSocketNotifications();
@@ -226,7 +237,7 @@ export class NotificationService {
    */
   isSupported(): boolean {
     // istanbul ignore next - SSR guard
-    if (!this.isBrowser) return false;
+    if (!isPlatformBrowser(this.platformId)) return false;
     // istanbul ignore next - Browser API feature detection
     return this.isTauri || ('Notification' in globalThis && 'serviceWorker' in navigator);
   }
@@ -536,7 +547,7 @@ export class NotificationService {
    */
   private saveNotificationsToStorage(): void {
     // istanbul ignore next - SSR guard
-    if (!this.isBrowser) return;
+    if (!isPlatformBrowser(this.platformId)) return;
 
     try {
       const storageKey = this.userStorageService.prefixKey(NOTIFICATIONS_STORAGE_KEY);
@@ -556,7 +567,7 @@ export class NotificationService {
    */
   private loadNotificationsFromStorage(): void {
     // istanbul ignore next - SSR guard
-    if (!this.isBrowser) return;
+    if (!isPlatformBrowser(this.platformId)) return;
 
     try {
       const storageKey = this.userStorageService.prefixKey(NOTIFICATIONS_STORAGE_KEY);
