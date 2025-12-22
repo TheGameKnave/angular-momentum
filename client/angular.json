@@ -117,7 +117,7 @@
               ]
             },
             "e2e": {
-              "ssr": false,
+              "ssr": true,
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,

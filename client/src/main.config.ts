@@ -26,6 +26,8 @@ import { authInterceptor } from '@app/interceptors/auth.interceptor';
 import { platformAwareStorageFactory } from '@app/helpers/transloco-storage';
 import { getLangFn } from '@app/helpers/language.helper';
 import { provideSsrLanguage } from '@app/providers/ssr-language.provider';
+import { provideSsrTheme } from '@app/providers/ssr-theme.provider';
+import { provideSsrViewport } from '@app/providers/ssr-viewport.provider';
 
 export const isTestEnvironment = ENVIRONMENT.env === 'testing'; // TODO figure out how to mock this in test environment without putting it in the code!!
 
@@ -88,6 +90,8 @@ export const serverProviders = [
   }),
   provideTranslocoLocale(),
   provideSsrLanguage(),
+  provideSsrTheme(),
+  provideSsrViewport(),
   // NOTE: Intentionally NOT using provideClientHydration() - we use destructive hydration
   // (full client re-render after SSR) to avoid timing issues with component services
   // that run in constructors. See SSR_PATCH_BREAKDOWN.md for details.

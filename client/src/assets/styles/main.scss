@@ -1839,6 +1839,7 @@ app-profile {
   .profile-avatar {
     background-color: var(--p-primary-color);
     color: var(--p-primary-contrast-color);
+    min-width: 3rem;
   }
 
   .profile-header {
@@ -1846,9 +1847,11 @@ app-profile {
     align-items: center;
     gap: 1.6rem;
     padding: 1.6rem;
+    overflow: hidden;
 
     .profile-header-info {
       flex: 1;
+      overflow: hidden;
 
       h2 {
         margin: 0;
@@ -1856,6 +1859,9 @@ app-profile {
 
       p {
         margin: 0.4rem 0 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
   }
@@ -2093,7 +2099,8 @@ app-indexeddb p-card {
   // Layout overrides
   .main {
     padding-left: 0;
-    height: calc(100dvh - 4rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    padding-bottom: 4rem;
   }
   .main > header,
   .main > footer {
@@ -2108,7 +2115,7 @@ app-indexeddb p-card {
   // Feature menu becomes bottom bar
   app-menu-feature {
     position: fixed;
-    bottom: env(safe-area-inset-bottom);
+    bottom: calc(env(safe-area-inset-bottom) - 1px);
     left: env(safe-area-inset-left);
     right: env(safe-area-inset-right);
     top: auto;

@@ -18,27 +18,56 @@ interface CreateUserResponse {
 /**
  * Creates a test user via the bypass endpoint.
  * Only works in test/development environments.
+ * Includes retry logic for transient network failures.
  */
-export async function createTestUser(user: TestUser): Promise<CreateUserResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/test/create-user`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(user)
-  });
-  return response.json();
+export async function createTestUser(user: TestUser, retries = 3): Promise<CreateUserResponse> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/test/create-user`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(user)
+      });
+      return response.json();
+    } catch (error) {
+      lastError = error as Error;
+      if (attempt < retries) {
+        // Exponential backoff: 500ms, 1000ms, 2000ms
+        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+      }
+    }
+  }
+
+  return { success: false, error: lastError?.message || 'Network request failed after retries' };
 }
 
 /**
  * Deletes a test user via the bypass endpoint.
  * Only works in test/development environments.
+ * Includes retry logic for transient network failures.
  */
-export async function deleteTestUser(emailOrUserId: { email?: string; userId?: string }): Promise<{ success: boolean; error?: string }> {
-  const response = await fetch(`${API_BASE_URL}/api/auth/test/delete-user`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(emailOrUserId)
-  });
-  return response.json();
+export async function deleteTestUser(emailOrUserId: { email?: string; userId?: string }, retries = 3): Promise<{ success: boolean; error?: string }> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/test/delete-user`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emailOrUserId)
+      });
+      return response.json();
+    } catch (error) {
+      lastError = error as Error;
+      if (attempt < retries) {
+        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+      }
+    }
+  }
+
+  return { success: false, error: lastError?.message || 'Network request failed after retries' };
 }
 
 /**

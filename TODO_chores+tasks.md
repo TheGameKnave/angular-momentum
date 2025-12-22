@@ -1,8 +1,6 @@
 # TODO chores/tasks
 
-phone/mobile nomenclature
-taking the phone page screenshots should wait 1s for the menu animation to complete
-phone menu screenshots should be separate from other menu screenshots because they position differently
+
 
 audit docs to make sure they're accurate
 

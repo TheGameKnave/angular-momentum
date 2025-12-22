@@ -5,10 +5,11 @@
 
 SNAPSHOT_DIR="tests/e2e/screenshots/visual.spec.ts-snapshots"
 RESULTS_DIR="tests/e2e/screenshots/test-results"
+ROOT_RESULTS_DIR="test-results"
 
 cd "$(dirname "$0")/../.." || exit 1
 
-if [ ! -d "$RESULTS_DIR" ]; then
+if [ ! -d "$RESULTS_DIR" ] && [ ! -d "$ROOT_RESULTS_DIR" ]; then
   echo "No test-results directory found. Run tests first."
   exit 0
 fi
@@ -59,7 +60,7 @@ while IFS= read -r actual_file; do
   ((count++))
   echo "  Updated: ${target_key}-darwin.png"
 
-done < <(find "$RESULTS_DIR" -name "*-actual.png" -type f 2>/dev/null)
+done < <(find "$RESULTS_DIR" "$ROOT_RESULTS_DIR" -name "*-actual.png" -type f 2>/dev/null)
 
 if [ $count -eq 0 ]; then
   echo "No snapshots needed updating (all up to date)"

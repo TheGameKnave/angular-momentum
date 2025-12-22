@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
+import path from 'path';
 
 const APP_BASE_URL = process.env.APP_BASE_URL || 'http://localhost:4200';
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 export default defineConfig({
   testDir: './run',
@@ -52,6 +54,6 @@ export default defineConfig({
     timeout: 120000,
     cwd: '../..',
   },
-  outputDir: './screenshots/test-results',
-  snapshotDir: './screenshots',
+  outputDir: path.join(__dirname, 'screenshots/test-results'),
+  snapshotDir: path.join(__dirname, 'screenshots'),
 });

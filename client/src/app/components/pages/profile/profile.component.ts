@@ -16,7 +16,6 @@ import { TooltipModule } from 'primeng/tooltip';
 import { SelectModule } from 'primeng/select';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { ConfirmDialogService } from '@app/services/confirm-dialog.service';
-import { DialogConfirmComponent } from '@app/components/dialogs/dialog-confirm/dialog-confirm.component';
 import { AuthService } from '@app/services/auth.service';
 import { UserSettingsService } from '@app/services/user-settings.service';
 import { UsernameService } from '@app/services/username.service';
@@ -59,7 +58,6 @@ import { TOOLTIP_CONFIG } from '@app/constants/ui.constants';
     TooltipModule,
     SelectModule,
     ToggleSwitchModule,
-    DialogConfirmComponent,
     RelativeTimeComponent,
   ],
 })

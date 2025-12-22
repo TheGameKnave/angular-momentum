@@ -372,6 +372,10 @@ test.describe('Profile Destructive Tests', () => {
         const confirmDialog = page.locator(common.confirmDialog);
         if (await confirmDialog.isVisible().catch(() => false)) {
 
+          // Type DELETE to enable the confirmation button
+          await page.fill(common.confirmDialogInput, 'DELETE');
+          await page.waitForTimeout(300);
+
           // Actually delete the account
           await page.click(common.confirmDialogAccept);
           // Wait for redirect after account deletion - profile menu should disappear

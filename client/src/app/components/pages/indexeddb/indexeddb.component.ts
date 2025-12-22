@@ -38,16 +38,21 @@ export class IndexedDBComponent implements OnInit {
   private readonly userStorageService = inject(UserStorageService);
 
   private readonly storageKey = 'key';
+  private lastStoragePrefix = '';
   textAreaData = new FormControl('');
 
   constructor() {
     // Reload stored value when user scope changes (login/logout).
     // Storage promotion happens before auth signals update, so data is already in place.
     effect(() => {
-      // Access signal to create dependency
-      this.userStorageService.storagePrefix();
-      // Reload data from the new user scope
-      this.loadStoredValue();
+      const currentPrefix = this.userStorageService.storagePrefix();
+      // Only reload if the storage prefix actually changed (not just effect re-running)
+      // This prevents overwriting user input during hydration when the signal
+      // emits the same value multiple times
+      if (currentPrefix !== this.lastStoragePrefix) {
+        this.lastStoragePrefix = currentPrefix;
+        this.loadStoredValue();
+      }
     });
   }
 

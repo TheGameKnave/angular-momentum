@@ -90,9 +90,9 @@ export const pages = {
   profileTimezone: 'app-profile p-select',
   profileThemeToggle: 'app-profile .theme-toggle p-toggleswitch',
   profileThemeToggleInput: 'app-profile .theme-toggle p-toggleswitch input',
-  profileExportButton: 'app-profile p-button:has-text("Export Data")',
-  profileDeleteDataButton: 'app-profile p-button:has-text("Clear Data")',
-  profileDeleteAccountButton: 'app-profile p-button:has-text("Delete Account")',
+  profileExportButton: 'app-profile p-button .pi-download',
+  profileClearDataButton: 'app-profile p-button .pi-eraser',
+  profileDeleteAccountButton: 'app-profile p-button .pi-trash',
 
   // Notifications page
   notificationsPage: 'app-notifications',
@@ -128,10 +128,11 @@ export const common = {
   toastSuccess: 'p-toast .p-toast-message-success',
   toastError: 'p-toast .p-toast-message-error',
 
-  // Dialogs
-  confirmDialog: 'p-confirmdialog',
-  confirmDialogAccept: 'p-confirmdialog button:has-text(/yes|ok|confirm/i)',
-  confirmDialogReject: 'p-confirmdialog button:has-text(/no|cancel/i)',
+  // Custom confirmation dialog (app-dialog-confirm)
+  confirmDialog: '.dialog-confirm-panel',
+  confirmDialogAccept: '.dialog-confirm-footer p-button:last-child button',
+  confirmDialogReject: '.dialog-confirm-footer p-button:first-child button',
+  confirmDialogInput: '.dialog-confirm-input input',
 
   // Loading states
   spinner: 'p-progressspinner',

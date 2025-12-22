@@ -510,6 +510,7 @@ export class UserSettingsService {
 
   /**
    * Applies the theme to the document by toggling the app-dark class.
+   * Also sets a cookie for SSR to read on subsequent page loads.
    *
    * @param theme - 'light' or 'dark'
    */
@@ -535,6 +536,10 @@ export class UserSettingsService {
     if (metaColorScheme) {
       metaColorScheme.setAttribute('content', theme);
     }
+
+    // Set cookie for SSR to read on next page load (1 year expiry)
+    const maxAge = 365 * 24 * 60 * 60;
+    document.cookie = `theme=${theme}; path=/; max-age=${maxAge}; SameSite=Lax`;
   }
 
   /**

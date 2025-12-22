@@ -13,6 +13,8 @@ let sharedUserId: string;
 async function navigateToIndexedDB(page: any): Promise<void> {
   await page.goto(`${APP_BASE_URL}/indexeddb`);
   await page.waitForSelector(pages.indexedDbPage, { timeout: 5000 });
+  // Wait for hydration and initial effects to settle (IndexedDB loads data async)
+  await page.waitForTimeout(500);
 }
 
 test.describe('IndexedDB Tests', () => {
@@ -97,6 +99,9 @@ test.describe('IndexedDB Tests', () => {
     await waitForAngular(page);
     await page.waitForSelector(pages.indexedDbTextarea, { timeout: 5000 });
 
+    // Wait for IndexedDB data to load (async operation after component init)
+    await page.waitForTimeout(500);
+
     // Verify data persisted
     const textareaValue = await page.locator(pages.indexedDbTextarea).inputValue();
     expect(textareaValue).toContain(testText);
@@ -115,6 +120,10 @@ test.describe('IndexedDB Tests', () => {
     await page.fill(pages.indexedDbTextarea, anonText);
     await page.waitForTimeout(1200); // Wait for debounce save
 
+    // Verify anonymous data was saved
+    const savedAnonText = await page.locator(pages.indexedDbTextarea).inputValue();
+    expect(savedAnonText).toBe(anonText);
+
     // Login
     await page.click(menus.authMenuButton);
     await page.click(auth.loginTab);
@@ -122,45 +131,65 @@ test.describe('IndexedDB Tests', () => {
     await page.fill(auth.loginPassword, sharedUser.password);
     await page.click(auth.loginSubmit);
 
-    // Wait for login response
-    await page.waitForTimeout(3000);
+    // Wait for login to complete - either profile menu or storage dialog appears
+    await Promise.race([
+      page.waitForSelector(auth.profileMenu, { timeout: 15000 }),
+      page.waitForSelector(common.storagePromotionDialog, { timeout: 15000 }),
+    ]);
 
     // Handle storage promotion dialog if it appears
     const storageDialog = page.locator(common.storagePromotionDialog);
-    if (await storageDialog.isVisible({ timeout: 2000 }).catch(() => false)) {
+    if (await storageDialog.isVisible({ timeout: 1000 }).catch(() => false)) {
       // Skip importing the anonymous data for this test
       await page.click(common.storagePromotionSkip);
       await page.waitForTimeout(600);
     }
 
+    // Now wait for profile menu to confirm login complete
+    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+
     // Close the menu after login
     await page.keyboard.press('Escape');
     await page.waitForTimeout(600);
 
-    // Navigate back to IndexedDB page
+    // Navigate back to IndexedDB page - should now be in user scope
     await navigateToIndexedDB(page);
+
+    // User scope should be empty or different from anonymous data
+    const userInitialText = await page.locator(pages.indexedDbTextarea).inputValue();
+    // The user's data store should NOT contain the anonymous data (we skipped import)
+    expect(userInitialText).not.toBe(anonText);
 
     // Save some user-specific data
     const userText = `User data ${Date.now()}`;
     await page.fill(pages.indexedDbTextarea, userText);
     await page.waitForTimeout(1200); // Wait for debounce save
 
+    // Verify user data was saved while still logged in
+    const savedUserText = await page.locator(pages.indexedDbTextarea).inputValue();
+    expect(savedUserText).toBe(userText);
 
-    // Logout - check if we're still logged in (session may persist across navigation)
-    const isLoggedIn = await page.locator(auth.profileMenu).isVisible({ timeout: 2000 }).catch(() => false);
+    // Logout
+    await page.click(menus.authMenuButton);
+    await page.waitForTimeout(600);
+    await page.click(auth.logoutButton);
+    // Wait for profile menu to disappear (indicates logged out state)
+    await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 5000 });
 
-    if (isLoggedIn) {
-      await page.click(menus.authMenuButton);
-      await page.waitForTimeout(600);
-      await page.click(auth.logoutButton);
-      // Wait for profile menu to disappear (indicates logged out state)
-      await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 5000 });
-    }
+    // Wait for logout to fully complete (session cookies to clear)
+    await page.waitForTimeout(1000);
 
-    // The key assertion: user data should have been saved while logged in
-    // Verify the text was actually saved with user scope
-    const currentText = await page.locator(pages.indexedDbTextarea).inputValue();
-    expect(currentText).toBe(userText);
+    // Navigate back to IndexedDB page - should now be back in anonymous scope
+    await navigateToIndexedDB(page);
+
+    // Verify we're still logged out after page navigation (no auto-login from cached session)
+    await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 3000 });
+    await page.waitForTimeout(1000); // Wait for data to load
+
+    // After logout, should see the ANONYMOUS data, not the user data
+    const afterLogoutText = await page.locator(pages.indexedDbTextarea).inputValue();
+    // Should see the original anonymous data
+    expect(afterLogoutText).toBe(anonText);
 
   });
 });

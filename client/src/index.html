@@ -30,6 +30,25 @@
   <!-- Preload fonts to prevent FOUT (Flash of Unstyled Text) -->
   <link rel="preload" href="assets/fonts/Raleway-VariableFont_wght.ttf" as="font" type="font/ttf" crossorigin />
   <link rel="preload" href="assets/fonts/Raleway-Italic-VariableFont_wght.ttf" as="font" type="font/ttf" crossorigin />
+
+  <!-- Set responsive classes immediately to prevent layout flash (CSR fallback) -->
+  <script>
+    (function() {
+      var w = window.innerWidth;
+      var c = 'screen-xs';
+      if (w >= 576) c += ' screen-sm'; else c += ' not-sm';
+      if (w >= 768) c += ' screen-md'; else c += ' not-md';
+      if (w >= 992) c += ' screen-lg'; else c += ' not-lg';
+      if (w >= 1200) c += ' screen-xl'; else c += ' not-xl';
+      // Only set if body has no screen classes yet (SSR already set them)
+      document.addEventListener('DOMContentLoaded', function() {
+        if (!document.body.classList.contains('screen-sm') &&
+            !document.body.classList.contains('not-sm')) {
+          document.body.className = c;
+        }
+      });
+    })();
+  </script>
 </head>
 <body id="body">
   <!-- Turn on JavaScript like a normal person to be able to use this. -->

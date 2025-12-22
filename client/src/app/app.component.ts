@@ -229,10 +229,8 @@ export class AppComponent implements OnInit {
   bodyClasses(): void {
     // istanbul ignore next - SSR fallback branch can't be tested in browser context
     if (!this.isBrowser) return;
-    // remove all classes from body
-    document.body.className = 'screen-xs';
-    if (this.routePath) document.body.classList.add(this.routePath);
-    // set class of body to reflect screen sizes
+
+    // Update screen size classes (don't reset - preserves classes set by index.html script)
     for (const size in SCREEN_SIZES) {
       if (window.innerWidth >= SCREEN_SIZES[size as keyof typeof SCREEN_SIZES]) {
         document.body.classList.add('screen-' + size);
@@ -242,5 +240,16 @@ export class AppComponent implements OnInit {
         document.body.classList.add('not-' + size);
       }
     }
+    // Ensure base class exists
+    document.body.classList.add('screen-xs');
+
+    // Update route class
+    // Remove old route classes (any single-word class that's not a screen-* or not-* class)
+    const routeClasses = Array.from(document.body.classList).filter(
+      (c) => !c.startsWith('screen-') && !c.startsWith('not-')
+    );
+    // istanbul ignore next - callback only runs when stale route classes exist
+    routeClasses.forEach((c) => document.body.classList.remove(c));
+    if (this.routePath) document.body.classList.add(this.routePath);
   }
 }

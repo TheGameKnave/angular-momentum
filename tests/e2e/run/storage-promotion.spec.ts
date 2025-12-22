@@ -106,11 +106,15 @@ test.describe('Storage Promotion Tests', () => {
         // Verify data was imported by checking IndexedDB page
         await page.goto(`${APP_BASE_URL}/indexeddb`);
         await page.waitForSelector(pages.indexedDbPage, { timeout: 5000 });
+        await waitForAngular(page);
 
         const textareaAfter = page.locator(pages.indexedDbTextarea);
         if (await textareaAfter.isVisible().catch(() => false)) {
-          const importedData = await textareaAfter.inputValue();
-          expect(importedData).toContain(anonData);
+          // Wait for IndexedDB data to load (async after hydration)
+          await expect(async () => {
+            const importedData = await textareaAfter.inputValue();
+            expect(importedData).toContain(anonData);
+          }).toPass({ timeout: 5000 });
         }
       }
 
@@ -162,6 +166,9 @@ test.describe('Storage Promotion Tests', () => {
         // Verify data was NOT imported
         await page.goto(`${APP_BASE_URL}/indexeddb`);
         await page.waitForSelector(pages.indexedDbPage, { timeout: 5000 });
+        await waitForAngular(page);
+        // Wait for any potential data load to complete
+        await page.waitForTimeout(500);
 
         const textareaAfter = page.locator(pages.indexedDbTextarea);
         if (await textareaAfter.isVisible().catch(() => false)) {
