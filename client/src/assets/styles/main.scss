@@ -189,7 +189,7 @@ hr {
     position: absolute;
     left: 0;
     border: 0;
-    height: 1.5px;
+    height: 0.15rem;
     background-image: var(--hr-gradient);
   }
 }
@@ -445,7 +445,7 @@ p-panel {
 // Toast sizing
 .p-toast {
   width: 36rem !important;
-  max-width: calc(100vw - 40px);
+  max-width: calc(100vw - 4rem);
   overflow-y: auto;
 
   .p-toast-message-content {
@@ -495,7 +495,7 @@ p-floatlabel {
    label {
       border: 0 solid var(--p-textarea-border-color);
       border-width: 1px 1px 0 1px;
-      border-radius: 2px 2px 0 0 !important;
+      border-radius: 0.2rem 0.2rem 0 0 !important;
    }
   }
 }
@@ -764,7 +764,7 @@ app-dialog-menu {
   display: flex;
   flex-direction: column;
   z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0.4rem 1.2rem rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(3px);
   background-color: var(--color-bg-overlay) !important;
   color: var(--color-text-primary);
@@ -897,7 +897,7 @@ app-dialog-menu {
   background-color: var(--color-bg-backdrop);
   border: 1px solid var(--color-border-primary);
   border-radius: 0.8rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0.4rem 1.2rem rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(3px);
   display: flex;
   flex-direction: column;
@@ -1567,7 +1567,7 @@ app-dialog-menu {
 
     &.clickable:hover .profile-chevron {
       opacity: 0.6;
-      transform: translateX(4px);
+      transform: translateX(0.4rem);
     }
   }
 
@@ -1661,8 +1661,6 @@ app-cookie-banner {
     left: 0;
     right: 0;
     width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
     background-color: var(--color-bg-overlay);
     color: var(--color-text-primary);
     backdrop-filter: blur(3px);
@@ -2051,7 +2049,7 @@ app-notifications {
     border-radius: 0.4rem;
     margin-top: 1rem;
     font-size: 1.4rem;
-    border-left: 4px solid;
+    border-left: 0.4rem solid;
     color: var(--color-text-primary);
 
     &.local {
@@ -2099,8 +2097,8 @@ app-indexeddb p-card {
   // Layout overrides
   .main {
     padding-left: 0;
-    height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-    padding-bottom: 4rem;
+    height: calc(100dvh - 3.9rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    overscroll-behavior-y: contain;
   }
   .main > header,
   .main > footer {
@@ -2154,7 +2152,7 @@ app-indexeddb p-card {
         top: 0;
         bottom: 0;
         height: 100%;
-        width: 1.5px;
+        width: 0.15rem;
         background-image: var(--hr-gradient-vertical);
       }
     }
@@ -2268,8 +2266,8 @@ app-indexeddb p-card {
 .scroll-indicator-vertical,
 .scroll-indicator-horizontal {
   position: absolute;
-  bottom: calc(-1 * var(--si-offset-bottom, 0px) + 4px);
-  right: calc(-1 * var(--si-offset-right, 0px) + 4px);
+  bottom: calc(-1 * var(--si-offset-bottom, 0) + 0.4rem);
+  right: calc(-1 * var(--si-offset-right, 0) + 0.4rem);
   background-color: var(--color-text-muted);
   border-radius: 0.2rem;
   opacity: 0;
@@ -2280,13 +2278,13 @@ app-indexeddb p-card {
 // Vertical indicator: thin bar extending upward from bottom-right
 .scroll-indicator-vertical {
   width: 0.4rem;
-  height: var(--si-height, 0px);
+  height: var(--si-height, 0);
   background: var(--scroll-indicator-gradient-v);
 }
 
 // Horizontal indicator: thin bar extending leftward from bottom-right
 .scroll-indicator-horizontal {
   height: 0.4rem;
-  width: var(--si-width, 0px);
+  width: var(--si-width, 0);
   background: var(--scroll-indicator-gradient-h);
 }
