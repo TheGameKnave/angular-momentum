@@ -22,7 +22,8 @@ export function broadcastUserSettingsUpdate(
   userId: string,
   settings: UserSettingsPayload
 ): void {
-  io.to(`user:${userId}`).emit('user-settings-updated', settings);
+  const room = `user:${userId}`;
+  io.to(room).emit('user-settings-updated', settings);
 }
 
 /**

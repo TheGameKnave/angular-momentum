@@ -701,6 +701,15 @@ describe('UserSettingsService', () => {
       expect(mockIndexedDbService.getRaw).toHaveBeenCalledWith('anonymous_preferences_timezone', 'settings');
       expect(mockIndexedDbService.getRaw).toHaveBeenCalledWith('anonymous_preferences_language', 'settings');
     });
+
+    it('should deauthenticate WebSocket when clear is called', async () => {
+      mockIndexedDbService.getRaw.and.returnValue(Promise.resolve(undefined));
+
+      await service.clear();
+
+      // Should emit deauthenticate to leave user's WebSocket room
+      expect(mockSocketService.emit).toHaveBeenCalledWith('deauthenticate');
+    });
   });
 
   describe('setupLogoutHandler', () => {
@@ -1381,8 +1390,15 @@ describe('UserSettingsService', () => {
       expect(mockSocketService.emit).toHaveBeenCalledWith('authenticate', 'test-token');
     });
 
+    it('should emit deauthenticate event when deauthenticateWebSocket is called', () => {
+      service.deauthenticateWebSocket();
+
+      expect(mockSocketService.emit).toHaveBeenCalledWith('deauthenticate');
+    });
+
     it('should handle remote theme update via WebSocket', fakeAsync(async () => {
-      // Set up initial state
+      // Set up initial state - user must be authenticated for WebSocket updates
+      mockUserStorageService.isAuthenticated.and.returnValue(true);
       service['themePreference'].set('dark');
 
       // Simulate receiving remote settings update
@@ -1403,7 +1419,8 @@ describe('UserSettingsService', () => {
     }));
 
     it('should handle remote timezone update via WebSocket', fakeAsync(async () => {
-      // Set up initial state
+      // Set up initial state - user must be authenticated for WebSocket updates
+      mockUserStorageService.isAuthenticated.and.returnValue(true);
       service['timezonePreference'].set('UTC');
 
       // Simulate receiving remote settings update
@@ -1424,7 +1441,8 @@ describe('UserSettingsService', () => {
     }));
 
     it('should handle remote language update via WebSocket', fakeAsync(async () => {
-      // Set up initial state
+      // Set up initial state - user must be authenticated for WebSocket updates
+      mockUserStorageService.isAuthenticated.and.returnValue(true);
       service['languagePreference'].set('en-US');
 
       // Simulate receiving remote settings update
@@ -1446,7 +1464,8 @@ describe('UserSettingsService', () => {
     }));
 
     it('should not update theme if payload matches current value', fakeAsync(async () => {
-      // Set up initial state
+      // Set up initial state - user must be authenticated for WebSocket updates
+      mockUserStorageService.isAuthenticated.and.returnValue(true);
       service['themePreference'].set('dark');
       mockLogService.log.calls.reset();
 
@@ -1467,6 +1486,29 @@ describe('UserSettingsService', () => {
       expect(mockLogService.log).not.toHaveBeenCalledWith('Theme updated from remote device', jasmine.anything());
     }));
 
+    it('should ignore WebSocket updates for anonymous users', fakeAsync(async () => {
+      // Ensure user is not authenticated
+      mockUserStorageService.isAuthenticated.and.returnValue(false);
+      service['themePreference'].set('dark');
+
+      // Simulate receiving remote settings update
+      const payload = {
+        theme_preference: 'light' as const,
+        timezone: 'America/New_York',
+        language: 'es',
+        updated_at: new Date().toISOString()
+      };
+
+      // Call the private handler directly
+      await (service as any).handleRemoteSettingsUpdate(payload);
+      tick();
+      flush();
+
+      // Settings should NOT be updated for anonymous users
+      expect(service.themePreference()).toBe('dark');
+      expect(mockLogService.log).toHaveBeenCalledWith('Ignoring remote settings update for anonymous user');
+    }));
+
     it('should handle settings update via WebSocket subscription', fakeAsync(() => {
       // Create a subject to emit WebSocket updates
       const wsSubject = new Subject<any>();
@@ -1474,6 +1516,8 @@ describe('UserSettingsService', () => {
       // Reset TestBed and configure with the Subject before service creation
       TestBed.resetTestingModule();
       mockSocketService.listen.and.returnValue(wsSubject.asObservable());
+      // User must be authenticated for WebSocket updates to be processed
+      mockUserStorageService.isAuthenticated.and.returnValue(true);
       TestBed.configureTestingModule({
         imports: [HttpClientTestingModule],
         providers: [

@@ -72,6 +72,15 @@ export function setupWebSocket(server: HTTPServer, supabase?: SupabaseClient | n
       }
     });
 
+    // Handle user logout - leave the user room but keep socket connected
+    socket.on('deauthenticate', () => {
+      if (authenticatedUserId) {
+        leaveUserRoom(socket, authenticatedUserId);
+        authenticatedUserId = null;
+        socket.emit('deauthenticated');
+      }
+    });
+
     /* eslint-disable @typescript-eslint/no-empty-function */
     // istanbul ignore next
     socket.onAny((_event, ..._args) => {});

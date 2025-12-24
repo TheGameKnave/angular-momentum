@@ -129,8 +129,16 @@ export class UserSettingsService {
   /**
    * Handles settings updates received from the server via WebSocket.
    * Applies changes from other devices to this device.
+   * Only processes updates for authenticated users.
    */
   private async handleRemoteSettingsUpdate(payload: SettingsUpdatePayload): Promise<void> {
+    // Ignore WebSocket updates for anonymous users - they shouldn't receive these
+    // but guard against it to prevent writing to anonymous storage
+    if (!this.userStorageService.isAuthenticated()) {
+      this.logService.log('Ignoring remote settings update for anonymous user');
+      return;
+    }
+
     const serverTimestamp = new Date(payload.updated_at).getTime();
     this.logService.log('Received remote settings update', payload);
 
@@ -164,6 +172,15 @@ export class UserSettingsService {
    */
   authenticateWebSocket(token: string): void {
     this.socketService.emit('authenticate', token);
+  }
+
+  /**
+   * Deauthenticates the WebSocket connection.
+   * Call this on user logout to leave the user's settings room
+   * while keeping the socket connected for other updates (e.g., feature flags).
+   */
+  deauthenticateWebSocket(): void {
+    this.socketService.emit('deauthenticate');
   }
 
   /**
@@ -784,6 +801,9 @@ export class UserSettingsService {
    */
   async clear(): Promise<void> {
     this.settings.set(null);
+
+    // Leave the user's WebSocket room to stop receiving their settings updates
+    this.deauthenticateWebSocket();
 
     // Read anonymous preferences directly using raw keys (bypasses user-scoped prefixing)
     const anonThemeKey = this.userStorageService.prefixKeyForAnonymous(STORAGE_KEYS.THEME);

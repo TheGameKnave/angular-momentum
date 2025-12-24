@@ -1364,4 +1364,256 @@ describe('AuthService', () => {
       expect(result.error).toBeTruthy();
     });
   });
+
+  describe('session refresh on resume', () => {
+    it('should refresh session on visibilitychange when visible', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const expiresAt = Math.floor(Date.now() / 1000) + 300; // Expires in 5 minutes
+      const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+
+      // Trigger visibilitychange event
+      Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+
+      // Wait for async operations
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      expect(mockSupabaseAuth.refreshSession).toHaveBeenCalled();
+    });
+
+    it('should not refresh session on visibilitychange when hidden', async () => {
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession');
+
+      // Trigger visibilitychange event when hidden
+      Object.defineProperty(document, 'visibilityState', { value: 'hidden', writable: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      expect(mockSupabaseAuth.refreshSession).not.toHaveBeenCalled();
+    });
+
+    it('should refresh session on window focus', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const expiresAt = Math.floor(Date.now() / 1000) + 300; // Expires in 5 minutes
+      const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+
+      // Trigger focus event
+      window.dispatchEvent(new Event('focus'));
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      expect(mockSupabaseAuth.refreshSession).toHaveBeenCalled();
+    });
+
+    it('should refresh session on pageshow with persisted flag (bfcache)', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const expiresAt = Math.floor(Date.now() / 1000) + 300; // Expires in 5 minutes
+      const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+
+      // Trigger pageshow event with persisted=true (bfcache)
+      const pageshowEvent = new PageTransitionEvent('pageshow', { persisted: true });
+      window.dispatchEvent(pageshowEvent);
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      expect(mockSupabaseAuth.refreshSession).toHaveBeenCalled();
+    });
+
+    it('should not refresh on pageshow without persisted flag', async () => {
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession');
+
+      // Trigger pageshow event with persisted=false (normal navigation)
+      const pageshowEvent = new PageTransitionEvent('pageshow', { persisted: false });
+      window.dispatchEvent(pageshowEvent);
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      expect(mockSupabaseAuth.refreshSession).not.toHaveBeenCalled();
+    });
+
+    it('should not refresh when session is not expiring soon', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const expiresAt = Math.floor(Date.now() / 1000) + 3600; // Expires in 1 hour
+      const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession');
+
+      // Call the private method directly
+      await (service as any).refreshSessionOnResume('test');
+
+      expect(mockSupabaseAuth.refreshSession).not.toHaveBeenCalled();
+    });
+
+    it('should logout when refresh fails and token is expired', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const expiresAt = Math.floor(Date.now() / 1000) - 60; // Expired 1 minute ago
+      const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+        Promise.resolve({ error: { message: 'Refresh failed' } })
+      );
+      mockSupabaseAuth.signOut.and.returnValue(Promise.resolve({ error: null }));
+
+      await (service as any).refreshSessionOnResume('test');
+
+      expect(mockSupabaseAuth.signOut).toHaveBeenCalled();
+    });
+
+    it('should not logout when refresh fails but token is not expired', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const expiresAt = Math.floor(Date.now() / 1000) + 300; // Expires in 5 minutes
+      const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+        Promise.resolve({ error: { message: 'Refresh failed' } })
+      );
+
+      await (service as any).refreshSessionOnResume('test');
+
+      expect(mockSupabaseAuth.signOut).not.toHaveBeenCalled();
+    });
+
+    it('should handle no session gracefully', async () => {
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: null }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession');
+
+      await (service as any).refreshSessionOnResume('test');
+
+      expect(mockSupabaseAuth.refreshSession).not.toHaveBeenCalled();
+    });
+
+    it('should handle exception during refresh', async () => {
+      mockSupabaseAuth.getSession.and.returnValue(Promise.reject(new Error('Network error')));
+
+      // Should not throw
+      await expectAsync((service as any).refreshSessionOnResume('test')).toBeResolved();
+    });
+
+    it('should do nothing when supabase is null', async () => {
+      (service as any).supabase = null;
+
+      // Should not throw
+      await expectAsync((service as any).refreshSessionOnResume('test')).toBeResolved();
+    });
+  });
+
+  describe('getToken with refresh', () => {
+    it('should refresh token when expiring within 60 seconds', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const expiresAt = Math.floor(Date.now() / 1000) + 30; // Expires in 30 seconds
+      const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
+      const refreshedSession = { ...mockSession, access_token: 'refreshed-token' };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+        Promise.resolve({ data: { session: refreshedSession }, error: null })
+      );
+
+      const token = await service.getToken();
+
+      expect(mockSupabaseAuth.refreshSession).toHaveBeenCalled();
+      expect(token).toBe('refreshed-token');
+    });
+
+    it('should return existing token when not expiring soon', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const expiresAt = Math.floor(Date.now() / 1000) + 3600; // Expires in 1 hour
+      const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession');
+
+      const token = await service.getToken();
+
+      expect(mockSupabaseAuth.refreshSession).not.toHaveBeenCalled();
+      expect(token).toBe('mock-access-token');
+    });
+
+    it('should logout when token expired and refresh fails', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const expiresAt = Math.floor(Date.now() / 1000) - 60; // Expired 1 minute ago
+      const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+        Promise.resolve({ data: { session: null }, error: { message: 'Token expired' } })
+      );
+      mockSupabaseAuth.signOut.and.returnValue(Promise.resolve({ error: null }));
+
+      const token = await service.getToken();
+
+      expect(mockSupabaseAuth.signOut).toHaveBeenCalled();
+      expect(token).toBeNull();
+    });
+
+    it('should return existing token when refresh fails but not expired', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const expiresAt = Math.floor(Date.now() / 1000) + 30; // Expires in 30 seconds (within threshold but not expired)
+      const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+        Promise.resolve({ data: { session: null }, error: { message: 'Refresh failed' } })
+      );
+
+      const token = await service.getToken();
+
+      expect(token).toBe('mock-access-token');
+      expect(mockSupabaseAuth.signOut).not.toHaveBeenCalled();
+    });
+
+    it('should return token when expires_at is not set', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const mockSession = { ...createMockSession(mockUser), expires_at: undefined };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+
+      const token = await service.getToken();
+
+      expect(token).toBe('mock-access-token');
+    });
+  });
 });

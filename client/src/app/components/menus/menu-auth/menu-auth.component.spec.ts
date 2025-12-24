@@ -379,6 +379,29 @@ describe('MenuAuthComponent', () => {
       component.onMenuClosed();
       expect(mockAuthUiState.reset).toHaveBeenCalled();
     });
+
+    it('should clear auto-close timer when menu is closed during timer', async () => {
+      jasmine.clock().install();
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
+
+      // Trigger login success which starts the auto-close timer
+      await component.onLoginSuccess();
+      expect(component.autoCloseTimer()).toBe(4);
+
+      // Close the menu before timer fires (simulating user navigating away)
+      component.onMenuClosed();
+
+      // Timer should be cleared
+      expect(component.autoCloseTimer()).toBe(0);
+
+      // Advance clock past when timer would have fired
+      jasmine.clock().tick(5000);
+
+      // Menu close should NOT have been called again (timer was cleared)
+      expect(component.dialogMenu.close).not.toHaveBeenCalled();
+
+      jasmine.clock().uninstall();
+    });
   });
 
   describe('storagePromotionCallback', () => {

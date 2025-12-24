@@ -199,6 +199,7 @@ describe('setupWebSocket', () => {
 
   describe('authentication', () => {
     let authenticateHandler: Function;
+    let deauthenticateHandler: Function;
     let disconnectHandler: Function;
     let mockSupabase: any;
 
@@ -213,6 +214,8 @@ describe('setupWebSocket', () => {
       mockSocket.on.mockImplementation((event: string, handler: Function) => {
         if (event === 'authenticate') {
           authenticateHandler = handler;
+        } else if (event === 'deauthenticate') {
+          deauthenticateHandler = handler;
         } else if (event === 'disconnect') {
           disconnectHandler = handler;
         }
@@ -376,6 +379,50 @@ describe('setupWebSocket', () => {
       disconnectHandler();
 
       expect(leaveUserRoom).toHaveBeenCalledWith(mockSocket, userId);
+    });
+
+    it('should leave user room on deauthenticate and emit deauthenticated', async () => {
+      const userId = 'user-123';
+      mockSupabase.auth.getUser.mockResolvedValue({ data: { user: { id: userId } }, error: null });
+
+      setupWebSocket(mockServer, mockSupabase);
+
+      const connectionHandler = io.on.mock.calls.find(
+        ([event]) => event === 'connection'
+      )?.[1];
+
+      if (connectionHandler) {
+        await connectionHandler(mockSocket);
+      }
+
+      // First authenticate
+      await authenticateHandler('valid-token');
+      (leaveUserRoom as jest.Mock).mockClear();
+
+      // Then deauthenticate (logout)
+      deauthenticateHandler();
+
+      expect(leaveUserRoom).toHaveBeenCalledWith(mockSocket, userId);
+      expect(mockSocket.emit).toHaveBeenCalledWith('deauthenticated');
+    });
+
+    it('should do nothing on deauthenticate when not authenticated', async () => {
+      setupWebSocket(mockServer, mockSupabase);
+
+      const connectionHandler = io.on.mock.calls.find(
+        ([event]) => event === 'connection'
+      )?.[1];
+
+      if (connectionHandler) {
+        await connectionHandler(mockSocket);
+      }
+
+      // Deauthenticate without ever authenticating
+      mockSocket.emit.mockClear();
+      deauthenticateHandler();
+
+      expect(leaveUserRoom).not.toHaveBeenCalled();
+      expect(mockSocket.emit).not.toHaveBeenCalledWith('deauthenticated');
     });
   });
 });

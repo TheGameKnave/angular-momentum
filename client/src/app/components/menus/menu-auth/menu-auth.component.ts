@@ -152,6 +152,9 @@ export class MenuAuthComponent implements AfterViewInit {
   /** Auto-close timer in seconds (0 = no timer) */
   readonly autoCloseTimer = signal<number>(AUTO_CLOSE_TIMERS.NONE);
 
+  /** Reference to the auto-close timeout so it can be cleared */
+  private autoCloseTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
   /** Current route URL as a signal */
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -200,8 +203,9 @@ export class MenuAuthComponent implements AfterViewInit {
 
     // Show timer and delay before closing
     this.autoCloseTimer.set(AUTO_CLOSE_TIMERS.LOGIN);
-    setTimeout(() => {
+    this.autoCloseTimeoutId = setTimeout(() => {
       this.autoCloseTimer.set(AUTO_CLOSE_TIMERS.NONE);
+      this.autoCloseTimeoutId = null;
       this.dialogMenu.close();
     }, AUTO_CLOSE_TIMERS.LOGIN * 1000);
   }
@@ -250,9 +254,10 @@ export class MenuAuthComponent implements AfterViewInit {
     // Show timer and delay before closing (to read any warnings)
     this.logService.log(`Setting timer and auto-close in ${AUTO_CLOSE_TIMERS.OTP_VERIFICATION} seconds`);
     this.autoCloseTimer.set(AUTO_CLOSE_TIMERS.OTP_VERIFICATION);
-    setTimeout(() => {
+    this.autoCloseTimeoutId = setTimeout(() => {
       this.logService.log('Timeout fired - closing menu now');
       this.autoCloseTimer.set(AUTO_CLOSE_TIMERS.NONE);
+      this.autoCloseTimeoutId = null;
       this.dialogMenu.close();
     }, AUTO_CLOSE_TIMERS.OTP_VERIFICATION * 1000);
   }
@@ -322,9 +327,17 @@ export class MenuAuthComponent implements AfterViewInit {
   }
 
   /**
-   * Handle menu closed - reset UI state to clear any error messages
+   * Handle menu closed - reset UI state and clear any pending auto-close timer.
+   * This prevents the timer from closing the menu if it's reopened before the timer fires.
    */
   onMenuClosed(): void {
+    // Clear any pending auto-close timer
+    if (this.autoCloseTimeoutId !== null) {
+      clearTimeout(this.autoCloseTimeoutId);
+      this.autoCloseTimeoutId = null;
+      this.autoCloseTimer.set(AUTO_CLOSE_TIMERS.NONE);
+    }
+
     this.authUiState.reset();
   }
 

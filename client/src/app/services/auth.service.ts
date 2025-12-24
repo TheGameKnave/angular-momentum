@@ -140,6 +140,68 @@ export class AuthService {
         this.logService.log('Auth: Auto-refresh paused (offline)');
       }
     });
+
+    // Refresh session when app returns from background (iOS Safari suspends JS timers)
+    // Safari is aggressive about suspending tabs and may not fire auto-refresh timers
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && this.supabase) {
+        this.refreshSessionOnResume('visibilitychange');
+      }
+    });
+
+    // Also handle focus event - sometimes fires when visibility doesn't
+    window.addEventListener('focus', () => {
+      if (this.supabase) {
+        this.refreshSessionOnResume('focus');
+      }
+    });
+
+    // Handle pageshow for Safari's bfcache (back-forward cache)
+    // When user navigates back to cached page, session may be stale
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted && this.supabase) {
+        this.refreshSessionOnResume('pageshow-bfcache');
+      }
+    });
+  }
+
+  /**
+   * Refresh session when app resumes from background.
+   * Always attempts refresh for authenticated sessions to handle Safari's
+   * aggressive timer suspension. Uses Supabase's built-in token validation.
+   *
+   * @param trigger - What triggered the refresh (for logging)
+   */
+  private async refreshSessionOnResume(trigger: string): Promise<void> {
+    if (!this.supabase) return;
+
+    try {
+      const { data } = await this.supabase.auth.getSession();
+      if (!data.session) return;
+
+      const expiresAt = data.session.expires_at;
+      const expiresIn = expiresAt ? expiresAt - Math.floor(Date.now() / 1000) : 0;
+
+      // Always refresh if expired, or proactively if expiring within 10 minutes
+      // Safari can suspend for long periods, so be aggressive about refreshing
+      if (expiresIn < 600) {
+        this.logService.log(`Session refresh on ${trigger}`, {
+          expiresIn,
+          expired: expiresIn <= 0
+        });
+        const { error } = await this.supabase.auth.refreshSession();
+        if (error) {
+          this.logService.log(`Session refresh failed on ${trigger}`, error.message);
+          // If refresh fails and token is expired, log out
+          if (expiresIn <= 0) {
+            this.logService.log('Session expired and refresh failed, logging out');
+            await this.logout();
+          }
+        }
+      }
+    } catch (error) {
+      this.logService.log(`Error refreshing session on ${trigger}`, error);
+    }
   }
 
   /**
@@ -674,6 +736,9 @@ export class AuthService {
    * Get current access token for API requests.
    * Platform-aware: works with both cookie and localStorage storage.
    *
+   * Proactively refreshes if token expires within 60 seconds to prevent
+   * 401 errors when devices wake from sleep/background.
+   *
    * @returns Access token or null if not authenticated
    */
   async getToken(): Promise<string | null> {
@@ -686,6 +751,28 @@ export class AuthService {
 
       if (error || !data.session) {
         return null;
+      }
+
+      // Check if token expires within 60 seconds and proactively refresh
+      // This prevents 401 errors when devices wake from sleep/background
+      const expiresAt = data.session.expires_at;
+      if (expiresAt) {
+        const expiresIn = expiresAt - Math.floor(Date.now() / 1000);
+        if (expiresIn < 60) {
+          this.logService.log('Token expiring soon, refreshing...', { expiresIn });
+          const { data: refreshed, error: refreshError } = await this.supabase.auth.refreshSession();
+          if (!refreshError && refreshed.session) {
+            return refreshed.session.access_token;
+          }
+          // If refresh fails and token is already expired, session is invalid
+          if (expiresIn <= 0) {
+            this.logService.log('Session expired and refresh failed, logging out', refreshError);
+            await this.logout();
+            return null;
+          }
+          // If refresh fails but token not yet expired, return existing token
+          this.logService.log('Token refresh failed, using existing', refreshError);
+        }
       }
 
       return data.session.access_token;

@@ -30,20 +30,21 @@ export class AuthGuard implements CanActivate {
 
   /**
    * Determines if a route can be activated based on authentication status.
-   * During SSR, allows access since auth state isn't available server-side.
+   * During SSR, redirects to home since auth state isn't available server-side.
    *
    * @param route - Activated route snapshot
    * @param state - Router state snapshot
-   * @returns True if authenticated or during SSR, UrlTree for redirect if not
+   * @returns True if authenticated, UrlTree for redirect if not or during SSR
    */
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): boolean | UrlTree {
-    // During SSR, allow access - client will re-check after hydration
+    // During SSR, redirect to home - we can't verify auth server-side
+    // Client will handle proper auth after hydration
     // istanbul ignore next - SSR guard, not testable in browser
     if (!isPlatformBrowser(this.platformId)) {
-      return true;
+      return this.router.createUrlTree(['/']);
     }
 
     // Check if user is authenticated
