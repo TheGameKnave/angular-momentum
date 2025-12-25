@@ -97,9 +97,8 @@ jobs:
           npm install -g --ignore-scripts @lhci/cli
           # Start the API server in background (SSR proxies to it)
           # Server needs to run from server/ directory for data/db.json path
-          cd server && node build/server/index.js &
+          (cd server && node build/server/index.js) &
           API_PID=$!
-          cd ..
           sleep 2
           # Start the SSR server in background
           node client/dist/angular-momentum/server/server.mjs &
