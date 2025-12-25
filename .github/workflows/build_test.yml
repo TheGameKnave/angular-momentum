@@ -60,6 +60,8 @@ jobs:
       - name: Create server .env for E2E tests
         run: |
           echo "API_PORT=4201" > server/.env
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> server/.env
+          echo "SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}" >> server/.env
 
       - name: Run E2E Tests
         run: |
@@ -91,10 +93,17 @@ jobs:
           # Start the SSR server in background
           cd client && node dist/angular-momentum/server/server.mjs &
           SSR_PID=$!
-          # Wait for server to be ready
-          sleep 5
-          # Run Lighthouse against SSR server
-          lhci autorun --collect.url=http://localhost:4000 --collect.numberOfRuns=3 || true
+          # Wait for server to be ready (check if it's actually responding)
+          for i in {1..30}; do
+            if curl -s http://localhost:4000 > /dev/null; then
+              echo "SSR server is ready"
+              break
+            fi
+            echo "Waiting for SSR server... ($i/30)"
+            sleep 1
+          done
+          # Run Lighthouse using config file (no command-line overrides)
+          lhci autorun || true
           # Cleanup
           kill $SSR_PID 2>/dev/null || true
 
