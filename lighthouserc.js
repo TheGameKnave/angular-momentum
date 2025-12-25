@@ -3,7 +3,6 @@ module.exports = {
     collect: {
       numberOfRuns: 3,
       url: ['http://localhost:4000'],
-      staticDistDir: './client/dist/angular-momentum/browser',
     },
     assert: {
       assertions: {
