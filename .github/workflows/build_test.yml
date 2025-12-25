@@ -96,7 +96,7 @@ jobs:
         run: |
           npm install -g --ignore-scripts @lhci/cli
           # Start the API server in background (SSR proxies to it)
-          node server/build/index.js &
+          node server/build/server/index.js &
           API_PID=$!
           sleep 2
           # Start the SSR server in background
