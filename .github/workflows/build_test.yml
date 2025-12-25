@@ -103,16 +103,14 @@ jobs:
           # Start the SSR server in background
           node client/dist/angular-momentum/server/server.mjs &
           SSR_PID=$!
-          # Wait for SSR server to be ready (check HTTP status code)
-          for i in {1..30}; do
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4000 2>/dev/null || echo "000")
-            if [ "$HTTP_CODE" = "200" ]; then
-              echo "SSR server is ready (HTTP $HTTP_CODE)"
-              break
-            fi
-            echo "Waiting for SSR server... ($i/30, HTTP $HTTP_CODE)"
-            sleep 1
-          done
+          sleep 3
+          # Verify servers are running and responding
+          echo "API server PID: $API_PID, SSR server PID: $SSR_PID"
+          echo "Testing API server:"
+          curl -s http://localhost:4201/api/tasks | head -c 200 || echo "API not responding"
+          echo -e "\nTesting SSR server:"
+          curl -s http://localhost:4000 | head -c 500 || echo "SSR not responding"
+          echo -e "\n"
           # Run Lighthouse using config file
           lhci autorun || true
           # Cleanup
