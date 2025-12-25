@@ -43,6 +43,11 @@ jobs:
           echo "\nBuilding the client\n\n"
           cd client && npm run build
 
+      - name: Build the Server
+        run: |
+          echo "\nBuilding the server\n\n"
+          cd server && npx tsc
+
       - name: Run Server Tests
         run: |
           echo "\nRunning server tests\n\n"
@@ -90,22 +95,26 @@ jobs:
       - name: Run Lighthouse CI
         run: |
           npm install -g --ignore-scripts @lhci/cli
+          # Start the API server in background (SSR proxies to it)
+          cd server && node build/index.js &
+          API_PID=$!
           # Start the SSR server in background
           cd client && node dist/angular-momentum/server/server.mjs &
           SSR_PID=$!
-          # Wait for server to be ready (check if it's actually responding)
+          # Wait for SSR server to be ready
           for i in {1..30}; do
-            if curl -s http://localhost:4000 > /dev/null; then
+            if curl -s http://localhost:4000 > /dev/null 2>&1; then
               echo "SSR server is ready"
               break
             fi
             echo "Waiting for SSR server... ($i/30)"
             sleep 1
           done
-          # Run Lighthouse using config file (no command-line overrides)
+          # Run Lighthouse using config file
           lhci autorun || true
           # Cleanup
           kill $SSR_PID 2>/dev/null || true
+          kill $API_PID 2>/dev/null || true
 
       - name: Upload Lighthouse Report
         uses: actions/upload-artifact@v4
