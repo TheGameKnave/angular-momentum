@@ -104,8 +104,8 @@ jobs:
           echo "=== API server log ==="
           cat /tmp/api.log || true
           echo "=== End API log ==="
-          # Start the SSR server in background
-          node client/dist/angular-momentum/server/server.mjs > /tmp/ssr.log 2>&1 &
+          # Start the SSR server in background (PORT=4000 to avoid conflict with API_PORT in .env)
+          PORT=4000 node client/dist/angular-momentum/server/server.mjs > /tmp/ssr.log 2>&1 &
           SSR_PID=$!
           sleep 3
           echo "=== SSR server log ==="
