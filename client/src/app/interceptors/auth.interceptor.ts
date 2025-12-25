@@ -48,11 +48,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         });
         return next(authReq).pipe(
           tap({
-            error: (error: HttpErrorResponse) => {
+            error: (error: unknown) => {
               // If we sent a token but got 401, the session is invalid - log out and redirect
               // Always redirect to home since user was attempting authenticated content
               // Navigate FIRST to prevent brief flash of logged-out state on auth-protected pages
-              if (error.status === 401 && authService.isAuthenticated()) {
+              if (error instanceof HttpErrorResponse && error.status === 401 && authService.isAuthenticated()) {
                 router.navigate(['/']);
                 authService.logout();
               }
