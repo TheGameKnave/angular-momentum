@@ -11,7 +11,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 1, // Retry once locally to catch flaky tests
-  workers: process.env.CI ? 4 : undefined, // undefined = use all available CPUs locally
+  workers: process.env.CI ? 2 : undefined, // Reduce CI workers to avoid Supabase rate limiting
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
     ['list'],

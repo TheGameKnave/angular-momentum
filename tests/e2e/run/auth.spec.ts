@@ -22,6 +22,8 @@ test.describe('Authentication Tests', () => {
     }
     sharedUserId = result.userId!;
     console.log(`Created shared test user: ${sharedUser.email}`);
+    // Brief delay to ensure user is fully propagated in Supabase
+    await new Promise(resolve => setTimeout(resolve, 500));
   });
 
   test.afterAll(async () => {
@@ -71,15 +73,30 @@ test.describe('Authentication Tests', () => {
 
     // Submit and wait for logged in state (profile view appears in menu)
     await page.click(auth.loginSubmit);
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    // Wait for either profile (success) or error toast (failure)
+    const result = await Promise.race([
+      page.waitForSelector(auth.profileMenu, { timeout: 15000 }).then(() => 'success'),
+      page.waitForSelector('.p-toast-message-error', { timeout: 15000 }).then(() => 'error')
+    ]);
+    if (result === 'error') {
+      const errorText = await page.locator('.p-toast-message-error').textContent();
+      throw new Error(`Login failed with error: ${errorText}`);
+    }
 
-    // Menu might auto-close after login, so ensure it's open to verify profile
+    // Verify profile is visible (confirms login succeeded)
     await expect(page.locator(auth.profileMenu)).toBeVisible();
 
-    // Logout for next test - click logout button
+    // Menu auto-closes after 4 seconds - reopen it for logout
+    await page.waitForTimeout(500);
+    const menuVisible = await page.locator(menus.authMenuContent).isVisible();
+    if (!menuVisible) {
+      await page.click(menus.authMenuButton);
+      await page.waitForSelector(auth.profileMenu, { timeout: 5000 });
+    }
+
+    // Logout for next test
     const logoutBtn = page.locator(auth.logoutButton);
     await logoutBtn.click();
-    // Wait for menu panel to close (logout triggers menu close)
     await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 5000 });
   });
 
@@ -94,15 +111,30 @@ test.describe('Authentication Tests', () => {
 
     // Submit and wait for logged in state (profile view appears in menu)
     await page.click(auth.loginSubmit);
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    // Wait for either profile (success) or error toast (failure)
+    const result = await Promise.race([
+      page.waitForSelector(auth.profileMenu, { timeout: 15000 }).then(() => 'success'),
+      page.waitForSelector('.p-toast-message-error', { timeout: 15000 }).then(() => 'error')
+    ]);
+    if (result === 'error') {
+      const errorText = await page.locator('.p-toast-message-error').textContent();
+      throw new Error(`Login failed with error: ${errorText}`);
+    }
 
-    // Menu might auto-close after login, so ensure it's open to verify profile
+    // Verify profile is visible (confirms login succeeded)
     await expect(page.locator(auth.profileMenu)).toBeVisible();
 
-    // Logout for next test - click logout button
+    // Menu auto-closes after 4 seconds - reopen it for logout
+    await page.waitForTimeout(500);
+    const menuVisible = await page.locator(menus.authMenuContent).isVisible();
+    if (!menuVisible) {
+      await page.click(menus.authMenuButton);
+      await page.waitForSelector(auth.profileMenu, { timeout: 5000 });
+    }
+
+    // Logout for next test
     const logoutBtn = page.locator(auth.logoutButton);
     await logoutBtn.click();
-    // Wait for menu panel to close (logout triggers menu close)
     await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 5000 });
   });
 

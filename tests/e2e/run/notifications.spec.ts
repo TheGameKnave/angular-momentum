@@ -25,6 +25,8 @@ test.describe('Notifications Tests', () => {
     }
     sharedUserId = result.userId!;
     console.log(`Created shared test user for notifications: ${sharedUser.email}`);
+    // Brief delay to ensure user is fully propagated in Supabase
+    await new Promise(resolve => setTimeout(resolve, 500));
   });
 
   test.afterAll(async () => {
@@ -132,8 +134,8 @@ test.describe('Notifications Tests', () => {
     await page.click(auth.loginSubmit);
 
     // Wait for login to complete (profile view appears in menu)
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
-    // Close the menu
+    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    // Close the menu (or let it auto-close)
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
 
@@ -155,8 +157,9 @@ test.describe('Notifications Tests', () => {
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
 
-    // Logout
+    // Logout - open menu and wait for profile to appear
     await page.click(menus.authMenuButton);
+    await page.waitForSelector(auth.profileMenu, { timeout: 5000 });
     const logoutBtn = page.locator(auth.logoutButton);
     await logoutBtn.click();
     // Wait for menu panel to close (logout triggers menu close)
