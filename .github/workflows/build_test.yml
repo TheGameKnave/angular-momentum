@@ -96,18 +96,20 @@ jobs:
         run: |
           npm install -g --ignore-scripts @lhci/cli
           # Start the API server in background (SSR proxies to it)
-          cd server && node build/index.js &
+          node server/build/index.js &
           API_PID=$!
+          sleep 2
           # Start the SSR server in background
-          cd client && node dist/angular-momentum/server/server.mjs &
+          node client/dist/angular-momentum/server/server.mjs &
           SSR_PID=$!
-          # Wait for SSR server to be ready
+          # Wait for SSR server to be ready (check HTTP status code)
           for i in {1..30}; do
-            if curl -s http://localhost:4000 > /dev/null 2>&1; then
-              echo "SSR server is ready"
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4000 2>/dev/null || echo "000")
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "SSR server is ready (HTTP $HTTP_CODE)"
               break
             fi
-            echo "Waiting for SSR server... ($i/30)"
+            echo "Waiting for SSR server... ($i/30, HTTP $HTTP_CODE)"
             sleep 1
           done
           # Run Lighthouse using config file
