@@ -96,22 +96,29 @@ jobs:
         run: |
           npm install -g --ignore-scripts @lhci/cli
           # Start the API server in background (SSR proxies to it)
-          # Server needs to run from server/ directory for data/db.json path
-          (cd server && node build/server/index.js) &
+          cd server
+          NODE_ENV=production node build/server/index.js > /tmp/api.log 2>&1 &
           API_PID=$!
+          cd ..
           sleep 2
+          echo "=== API server log ==="
+          cat /tmp/api.log || true
+          echo "=== End API log ==="
           # Start the SSR server in background
-          node client/dist/angular-momentum/server/server.mjs &
+          node client/dist/angular-momentum/server/server.mjs > /tmp/ssr.log 2>&1 &
           SSR_PID=$!
           sleep 3
-          # Verify servers are running and responding
-          echo "API server PID: $API_PID, SSR server PID: $SSR_PID"
-          echo "Testing API server:"
+          echo "=== SSR server log ==="
+          cat /tmp/ssr.log || true
+          echo "=== End SSR log ==="
+          # Verify servers are running
+          echo "API PID: $API_PID (running: $(kill -0 $API_PID 2>/dev/null && echo yes || echo no))"
+          echo "SSR PID: $SSR_PID (running: $(kill -0 $SSR_PID 2>/dev/null && echo yes || echo no))"
+          echo "Testing API:"
           curl -s http://localhost:4201/api/tasks | head -c 200 || echo "API not responding"
-          echo -e "\nTesting SSR server:"
+          echo -e "\nTesting SSR:"
           curl -s http://localhost:4000 | head -c 500 || echo "SSR not responding"
-          echo -e "\n"
-          # Run Lighthouse using config file
+          # Run Lighthouse
           lhci autorun || true
           # Cleanup
           kill $SSR_PID 2>/dev/null || true
