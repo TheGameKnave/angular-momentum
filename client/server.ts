@@ -17,6 +17,28 @@ const API_PORT = process.env['API_PORT'] || 4201;
 const app = express();
 app.disable('x-powered-by');
 
+// Security headers middleware
+app.use((_req, res, next) => {
+  // Prevent MIME type sniffing
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  // Prevent clickjacking
+  res.setHeader('X-Frame-Options', 'DENY');
+  // Disable XSS auditor (CSP is preferred)
+  res.setHeader('X-XSS-Protection', '0');
+  // Control referrer information
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  // Restrict browser features
+  res.setHeader(
+    'Permissions-Policy',
+    'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()'
+  );
+  // HSTS - production only (Heroku handles SSL termination)
+  if (process.env['NODE_ENV'] === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+});
+
 // Enable gzip compression for all responses
 app.use(compression());
 

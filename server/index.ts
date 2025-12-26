@@ -12,6 +12,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { UsernameService } from './services/usernameService';
 import turnstileService from './services/turnstileService';
 import { ALLOWED_ORIGINS } from './constants/server.constants';
+import { securityHeaders } from './middleware/security';
 
 /**
  * Configures static file serving for the Angular application based on the environment.
@@ -88,6 +89,13 @@ export function setupApp(): express.Application {
     credentials: true,
   }));
   app.set('trust proxy', 1);
+
+  // Security headers - CSP handled by Angular's meta tag, HSTS only in production
+  app.use(securityHeaders({
+    contentSecurityPolicy: 'none', // CSP defined in Angular index.html meta tag
+    enableHSTS: process.env.NODE_ENV === 'production',
+  }));
+
   app.use(logger);
   app.use(express.json());
 
