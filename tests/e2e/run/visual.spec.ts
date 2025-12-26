@@ -25,18 +25,31 @@ import { auth, common, menus, pages } from '../helpers/selectors';
 // Shared test user for authenticated screenshots
 let testUser: { email: string; password: string; username: string };
 
+
 /**
- * Helper to make translucent backgrounds opaque before screenshot.
- * Prevents content pollution from elements behind translucent panels.
+ * Helper to make backdrop opaque for screenshots.
  */
-async function makeBackgroundOpaque(page: Page, selector: string): Promise<void> {
-  await page.evaluate((sel) => {
-    const el = document.querySelector(sel) as HTMLElement;
-    if (el) {
-      el.style.backgroundColor = 'var(--surface-ground, #1a1a2e)';
-      el.style.backdropFilter = 'none';
+async function fixBackdropForScreenshot(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const backdrop = document.querySelector('.app-overlay-backdrop') as HTMLElement;
+    if (backdrop) {
+      backdrop.style.backgroundColor = 'var(--color-bg-primary)';
+      backdrop.style.backdropFilter = 'none';
     }
-  }, selector);
+  });
+}
+
+/**
+ * Helper to make cookie banner opaque for screenshots.
+ */
+async function fixCookieBannerForScreenshot(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const banner = document.querySelector('app-cookie-banner aside') as HTMLElement;
+    if (banner) {
+      banner.style.backgroundColor = 'var(--color-bg-primary)';
+      banner.style.backdropFilter = 'none';
+    }
+  });
 }
 
 /**
@@ -60,6 +73,27 @@ async function hideTooltipsForScreenshot(page: Page): Promise<void> {
 }
 
 /**
+ * Helper to screenshot a menu panel.
+ * Fixes backdrop and hides tooltips before taking screenshot.
+ */
+async function screenshotMenu(
+  page: Page,
+  selector: string,
+  name: string
+): Promise<void> {
+  const element = page.locator(selector);
+  await element.waitFor({ state: 'visible' });
+
+  await fixBackdropForScreenshot(page);
+  await hideTooltipsForScreenshot(page);
+
+  await expect(element).toHaveScreenshot(name, {
+    maxDiffPixelRatio: 0.001,
+    animations: 'disabled',
+  });
+}
+
+/**
  * Helper to screenshot a menu panel clipped to viewport.
  * Menus on phone can extend beyond viewport; this clips to visible area.
  */
@@ -71,6 +105,7 @@ async function screenshotMenuClipped(
   const element = page.locator(selector);
   await element.waitFor({ state: 'visible' });
 
+  await fixBackdropForScreenshot(page);
   await hideTooltipsForScreenshot(page);
 
   const box = await element.boundingBox();
@@ -106,6 +141,7 @@ test.describe('Visual Regression Tests', () => {
     // Delay to ensure user is fully propagated in Supabase
     await new Promise(resolve => setTimeout(resolve, 1000));
   });
+
 
   test.afterAll(async () => {
     if (testUser) {
@@ -349,14 +385,7 @@ test.describe('Visual Regression Tests', () => {
     await page.click(menus.authMenuButton);
     await page.waitForTimeout(300);
 
-    // Make background opaque to prevent content pollution
-    await makeBackgroundOpaque(page, '.dialog-menu-panel');
-
-    const signupForm = page.locator(auth.signupForm);
-    await expect(signupForm).toHaveScreenshot('menu-auth-signup.png', {
-      maxDiffPixelRatio: 0.001,
-      animations: 'disabled',
-    });
+    await screenshotMenu(page, auth.signupForm, 'menu-auth-signup.png');
   });
 
   test('menu-auth-login', async ({ page }) => {
@@ -369,13 +398,7 @@ test.describe('Visual Regression Tests', () => {
     await page.click(auth.loginTab);
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.dialog-menu-panel');
-
-    const loginForm = page.locator(auth.loginForm);
-    await expect(loginForm).toHaveScreenshot('menu-auth-login.png', {
-      maxDiffPixelRatio: 0.001,
-      animations: 'disabled',
-    });
+    await screenshotMenu(page, auth.loginForm, 'menu-auth-login.png');
   });
 
   test('menu-auth-reset', async ({ page }) => {
@@ -389,13 +412,7 @@ test.describe('Visual Regression Tests', () => {
     await page.click(auth.loginForgotPassword);
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.dialog-menu-panel');
-
-    const resetForm = page.locator(auth.resetForm);
-    await expect(resetForm).toHaveScreenshot('menu-auth-reset.png', {
-      maxDiffPixelRatio: 0.001,
-      animations: 'disabled',
-    });
+    await screenshotMenu(page, auth.resetForm, 'menu-auth-reset.png');
   });
 
   test('menu-auth-profile', async ({ page }) => {
@@ -414,7 +431,8 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForSelector('.profile-username:not(:empty)', { timeout: 10000 });
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.dialog-menu-panel');
+    await fixBackdropForScreenshot(page);
+    await hideTooltipsForScreenshot(page);
 
     const profileMenu = page.locator(auth.profileMenu);
     const box = await profileMenu.boundingBox();
@@ -464,13 +482,7 @@ test.describe('Visual Regression Tests', () => {
     await page.click(menus.languageMenuButton);
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.dialog-menu-panel');
-
-    const menuPanel = page.locator('.dialog-menu-panel');
-    await expect(menuPanel).toHaveScreenshot('menu-language.png', {
-      maxDiffPixelRatio: 0.001,
-      animations: 'disabled',
-    });
+    await screenshotMenu(page, '.dialog-menu-panel', 'menu-language.png');
   });
 
   test('menu-notification', async ({ page }) => {
@@ -481,13 +493,7 @@ test.describe('Visual Regression Tests', () => {
     await page.click(menus.notificationCenterButton);
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.dialog-menu-panel');
-
-    const menuPanel = page.locator('.dialog-menu-panel');
-    await expect(menuPanel).toHaveScreenshot('menu-notification.png', {
-      maxDiffPixelRatio: 0.001,
-      animations: 'disabled',
-    });
+    await screenshotMenu(page, '.dialog-menu-panel', 'menu-notification.png');
   });
 
   test('menu-changelog', async ({ page }) => {
@@ -498,13 +504,7 @@ test.describe('Visual Regression Tests', () => {
     await page.click(menus.changelogMenuButton);
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.dialog-menu-panel');
-
-    const menuPanel = page.locator('.dialog-menu-panel');
-    await expect(menuPanel).toHaveScreenshot('menu-changelog.png', {
-      maxDiffPixelRatio: 0.001,
-      animations: 'disabled',
-    });
+    await screenshotMenu(page, '.dialog-menu-panel', 'menu-changelog.png');
   });
 
   test('banner-cookie', async ({ page }) => {
@@ -516,8 +516,7 @@ test.describe('Visual Regression Tests', () => {
     const cookieBanner = page.locator('app-cookie-banner aside');
     await expect(cookieBanner).toBeVisible({ timeout: 5000 });
 
-    await makeBackgroundOpaque(page, 'app-cookie-banner aside');
-
+    await fixCookieBannerForScreenshot(page);
     await expect(cookieBanner).toHaveScreenshot('banner-cookie.png', {
       maxDiffPixelRatio: 0.001,
       animations: 'disabled',
@@ -575,7 +574,6 @@ test.describe('Visual Regression Tests', () => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
     await dismissCookieBanner(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
     await screenshotPageComponent(page, pages.landingPage, 'page-landing-phone.png');
   });
 
@@ -592,7 +590,6 @@ test.describe('Visual Regression Tests', () => {
     await page.goto(`${APP_BASE_URL}/features`);
     await waitForAngular(page);
     await dismissCookieBanner(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
     await screenshotPageComponent(page, pages.featuresPage, 'page-features-phone.png');
   });
 
@@ -609,7 +606,6 @@ test.describe('Visual Regression Tests', () => {
     await page.goto(`${APP_BASE_URL}/graphql-api`);
     await waitForAngular(page);
     await dismissCookieBanner(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
     await screenshotPageComponent(page, pages.graphqlPage, 'page-graphql-phone.png');
   });
 
@@ -626,7 +622,6 @@ test.describe('Visual Regression Tests', () => {
     await page.goto(`${APP_BASE_URL}/indexeddb`);
     await waitForAngular(page);
     await dismissCookieBanner(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
     await screenshotPageComponent(page, pages.indexedDbPage, 'page-indexeddb-phone.png');
   });
 
@@ -643,7 +638,6 @@ test.describe('Visual Regression Tests', () => {
     await page.goto(`${APP_BASE_URL}/notifications`);
     await waitForAngular(page);
     await dismissCookieBanner(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
     await screenshotPageComponent(page, pages.notificationsPage, 'page-notifications-phone.png');
   });
 
@@ -661,7 +655,6 @@ test.describe('Visual Regression Tests', () => {
     await waitForAngular(page);
     await dismissCookieBanner(page);
     await page.locator(pages.privacyPage).waitFor({ state: 'visible', timeout: 30000 });
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
     await screenshotPageComponent(page, pages.privacyPage, 'page-privacy-phone.png');
   });
 
@@ -694,7 +687,6 @@ test.describe('Visual Regression Tests', () => {
     // Navigate to profile page
     await page.goto(`${APP_BASE_URL}/profile`);
     await waitForAngular(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
 
     // Replace dynamic content
     await page.evaluate(() => {
@@ -785,13 +777,11 @@ test.describe('Visual Regression Tests', () => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
     await dismissCookieBanner(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
 
     // Open auth menu (signup is default tab)
     await page.click(menus.authMenuButton);
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.dialog-menu-panel');
     await screenshotMenuClipped(page, auth.signupForm, 'menu-auth-signup-phone.png');
   });
 
@@ -800,14 +790,12 @@ test.describe('Visual Regression Tests', () => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
     await dismissCookieBanner(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
 
     // Open auth menu and switch to login tab
     await page.click(menus.authMenuButton);
     await page.click(auth.loginTab);
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.dialog-menu-panel');
     await screenshotMenuClipped(page, auth.loginForm, 'menu-auth-login-phone.png');
   });
 
@@ -816,7 +804,6 @@ test.describe('Visual Regression Tests', () => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
     await dismissCookieBanner(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
 
     // Open auth menu, go to login, click forgot password
     await page.click(menus.authMenuButton);
@@ -824,7 +811,6 @@ test.describe('Visual Regression Tests', () => {
     await page.click(auth.loginForgotPassword);
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.dialog-menu-panel');
     await screenshotMenuClipped(page, auth.resetForm, 'menu-auth-reset-phone.png');
   });
 
@@ -833,7 +819,6 @@ test.describe('Visual Regression Tests', () => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
     await dismissCookieBanner(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
 
     // Login
     await page.click(menus.authMenuButton);
@@ -845,8 +830,6 @@ test.describe('Visual Regression Tests', () => {
     // Wait for username to load (prevents flaky screenshots)
     await page.waitForSelector('.profile-username:not(:empty)', { timeout: 10000 });
     await page.waitForTimeout(300);
-
-    await makeBackgroundOpaque(page, '.dialog-menu-panel');
 
     // Replace dynamic content with stable placeholders for screenshot
     await page.evaluate(() => {
@@ -873,12 +856,10 @@ test.describe('Visual Regression Tests', () => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
     await dismissCookieBanner(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
 
     await page.click(menus.languageMenuButton);
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.dialog-menu-panel');
     await screenshotMenuClipped(page, '.dialog-menu-panel', 'menu-language-phone.png');
   });
 
@@ -887,12 +868,10 @@ test.describe('Visual Regression Tests', () => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
     await dismissCookieBanner(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
 
     await page.click(menus.notificationCenterButton);
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.dialog-menu-panel');
     await screenshotMenuClipped(page, '.dialog-menu-panel', 'menu-notification-phone.png');
   });
 
@@ -901,12 +880,10 @@ test.describe('Visual Regression Tests', () => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
     await dismissCookieBanner(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
 
     await page.click(menus.changelogMenuButton);
     await page.waitForTimeout(300);
 
-    await makeBackgroundOpaque(page, '.dialog-menu-panel');
     await screenshotMenuClipped(page, '.dialog-menu-panel', 'menu-changelog-phone.png');
   });
 
@@ -939,11 +916,7 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForSelector(common.confirmDialog, { timeout: 5000 });
     await page.waitForTimeout(300); // Wait for dialog animation
 
-    const dialog = page.locator(common.confirmDialog);
-    await expect(dialog).toHaveScreenshot('dialog-profile-clear-data.png', {
-      maxDiffPixelRatio: 0.001,
-      animations: 'disabled',
-    });
+    await screenshotMenu(page, common.confirmDialog, 'dialog-profile-clear-data.png');
 
     // Close dialog
     await page.click(common.confirmDialogReject);
@@ -978,11 +951,7 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForSelector(common.confirmDialog, { timeout: 5000 });
     await page.waitForTimeout(300); // Wait for dialog animation
 
-    const dialog = page.locator(common.confirmDialog);
-    await expect(dialog).toHaveScreenshot('dialog-profile-delete-account.png', {
-      maxDiffPixelRatio: 0.001,
-      animations: 'disabled',
-    });
+    await screenshotMenu(page, common.confirmDialog, 'dialog-profile-delete-account.png');
 
     // Close dialog
     await page.click(common.confirmDialogReject);
@@ -1000,7 +969,6 @@ test.describe('Visual Regression Tests', () => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
     await dismissCookieBanner(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
 
     await page.click(menus.authMenuButton);
     await page.click(auth.loginTab);
@@ -1014,18 +982,13 @@ test.describe('Visual Regression Tests', () => {
     // Navigate to profile page
     await page.goto(`${APP_BASE_URL}/profile`);
     await waitForAngular(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
 
     // Click Clear Data button to open dialog
     await page.click(pages.profileClearDataButton);
     await page.waitForSelector(common.confirmDialog, { timeout: 5000 });
     await page.waitForTimeout(300); // Wait for dialog animation
 
-    const dialog = page.locator(common.confirmDialog);
-    await expect(dialog).toHaveScreenshot('dialog-profile-clear-data-phone.png', {
-      maxDiffPixelRatio: 0.001,
-      animations: 'disabled',
-    });
+    await screenshotMenu(page, common.confirmDialog, 'dialog-profile-clear-data-phone.png');
 
     // Close dialog
     await page.click(common.confirmDialogReject);
@@ -1043,7 +1006,6 @@ test.describe('Visual Regression Tests', () => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
     await dismissCookieBanner(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
 
     await page.click(menus.authMenuButton);
     await page.click(auth.loginTab);
@@ -1057,18 +1019,13 @@ test.describe('Visual Regression Tests', () => {
     // Navigate to profile page
     await page.goto(`${APP_BASE_URL}/profile`);
     await waitForAngular(page);
-    await page.waitForTimeout(1000); // Wait for mobile menu animations
 
     // Click Delete Account button to open dialog
     await page.click(pages.profileDeleteAccountButton);
     await page.waitForSelector(common.confirmDialog, { timeout: 5000 });
     await page.waitForTimeout(300); // Wait for dialog animation
 
-    const dialog = page.locator(common.confirmDialog);
-    await expect(dialog).toHaveScreenshot('dialog-profile-delete-account-phone.png', {
-      maxDiffPixelRatio: 0.001,
-      animations: 'disabled',
-    });
+    await screenshotMenu(page, common.confirmDialog, 'dialog-profile-delete-account-phone.png');
 
     // Close dialog
     await page.click(common.confirmDialogReject);
