@@ -6,6 +6,7 @@ const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 export default defineConfig({
   testDir: './run',
+  testIgnore: /smoke\.spec\.ts/, // Smoke tests run separately against deployed environments
   globalSetup: './global-setup.ts',
   globalTeardown: './global-teardown.ts',
   fullyParallel: true,
