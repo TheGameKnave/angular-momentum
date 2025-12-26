@@ -43,6 +43,7 @@
   "devDependencies": {
     "@formatjs/icu-messageformat-parser": "^2.11.4",
     "@jirutka/ajv-cli": "^6.0.0-beta.5",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.57.0",
     "@types/compression": "^1.8.1",
     "@types/express-serve-static-core": "^5.1.0",

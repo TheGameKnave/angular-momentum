@@ -94,35 +94,23 @@ jobs:
       # Lighthouse CI - runs against SSR production build
       - name: Run Lighthouse CI
         run: |
-          npm install -g --ignore-scripts @lhci/cli
           # Start the API server in background (SSR proxies to it)
           cd server
-          NODE_ENV=production node build/server/index.js > /tmp/api.log 2>&1 &
+          NODE_ENV=production node build/server/index.js &
           API_PID=$!
           cd ..
           sleep 2
-          echo "=== API server log ==="
-          cat /tmp/api.log || true
-          echo "=== End API log ==="
           # Start the SSR server in background (PORT=4000 to avoid conflict with API_PORT in .env)
-          PORT=4000 node client/dist/angular-momentum/server/server.mjs > /tmp/ssr.log 2>&1 &
+          PORT=4000 node client/dist/angular-momentum/server/server.mjs &
           SSR_PID=$!
           sleep 3
-          echo "=== SSR server log ==="
-          cat /tmp/ssr.log || true
-          echo "=== End SSR log ==="
-          # Verify servers are running
-          echo "API PID: $API_PID (running: $(kill -0 $API_PID 2>/dev/null && echo yes || echo no))"
-          echo "SSR PID: $SSR_PID (running: $(kill -0 $SSR_PID 2>/dev/null && echo yes || echo no))"
-          echo "Testing API:"
-          curl -s http://localhost:4201/api/tasks | head -c 200 || echo "API not responding"
-          echo -e "\nTesting SSR:"
-          curl -s http://localhost:4000 | head -c 500 || echo "SSR not responding"
           # Run Lighthouse
-          lhci autorun || true
+          npx lhci autorun
+          LHCI_EXIT=$?
           # Cleanup
           kill $SSR_PID 2>/dev/null || true
           kill $API_PID 2>/dev/null || true
+          exit $LHCI_EXIT
 
       - name: Upload Lighthouse Report
         uses: actions/upload-artifact@v4
@@ -130,6 +118,7 @@ jobs:
         with:
           name: lighthouse-report
           path: .lighthouseci/
+          if-no-files-found: ignore
           retention-days: 30
 
       - name: Install SonarScanner

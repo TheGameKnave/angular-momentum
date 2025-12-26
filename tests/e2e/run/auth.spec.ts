@@ -22,8 +22,8 @@ test.describe('Authentication Tests', () => {
     }
     sharedUserId = result.userId!;
     console.log(`Created shared test user: ${sharedUser.email}`);
-    // Brief delay to ensure user is fully propagated in Supabase
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Delay to ensure user is fully propagated in Supabase
+    await new Promise(resolve => setTimeout(resolve, 1000));
   });
 
   test.afterAll(async () => {

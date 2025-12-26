@@ -103,6 +103,8 @@ test.describe('Visual Regression Tests', () => {
       throw new Error(`Failed to create test user: ${result.error}`);
     }
     testUser = user;
+    // Delay to ensure user is fully propagated in Supabase
+    await new Promise(resolve => setTimeout(resolve, 1000));
   });
 
   test.afterAll(async () => {

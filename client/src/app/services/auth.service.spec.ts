@@ -1515,6 +1515,23 @@ describe('AuthService', () => {
       expect(mockSupabaseAuth.refreshSession).not.toHaveBeenCalled();
     });
 
+    it('should refresh when session has no expires_at', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const mockSession = { ...createMockSession(mockUser), expires_at: undefined };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+
+      await (service as any).refreshSessionOnResume('test');
+
+      // expiresIn would be 0 when expires_at is undefined, which is < 600
+      expect(mockSupabaseAuth.refreshSession).toHaveBeenCalled();
+    });
+
     it('should handle exception during refresh', async () => {
       mockSupabaseAuth.getSession.and.returnValue(Promise.reject(new Error('Network error')));
 

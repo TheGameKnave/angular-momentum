@@ -149,3 +149,6 @@ test-results/
 tests/e2e/screenshots/test-results/
 tests/e2e/playwright-report/
 playwright-report/
+
+# Lighthouse CI
+.lighthouseci/
