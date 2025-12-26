@@ -152,3 +152,6 @@ playwright-report/
 
 # Lighthouse CI
 .lighthouseci/
+
+# Dynamic screenshot cache
+.screenshots-cache/
