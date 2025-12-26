@@ -198,6 +198,33 @@ describe('AppComponent', () => {
       expect(document.body.classList.contains('not-md')).toBeFalse();
       expect(document.body.classList.contains('screen-md')).toBeTrue();
     });
+
+    it('should preserve viewport-ready class when updating route classes', () => {
+      document.body.classList.add('viewport-ready');
+      component.routePath = 'test-route';
+      component.bodyClasses();
+      expect(document.body.classList.contains('viewport-ready')).toBeTrue();
+      expect(document.body.classList.contains('test-route')).toBeTrue();
+    });
+
+    it('should preserve app- prefixed classes when updating route classes', () => {
+      document.body.classList.add('app-theme-dark');
+      component.routePath = 'new-route';
+      component.bodyClasses();
+      expect(document.body.classList.contains('app-theme-dark')).toBeTrue();
+      expect(document.body.classList.contains('new-route')).toBeTrue();
+    });
+
+    it('should remove old route class when route changes', () => {
+      component.routePath = 'old-route';
+      component.bodyClasses();
+      expect(document.body.classList.contains('old-route')).toBeTrue();
+
+      component.routePath = 'new-route';
+      component.bodyClasses();
+      expect(document.body.classList.contains('old-route')).toBeFalse();
+      expect(document.body.classList.contains('new-route')).toBeTrue();
+    });
   });
 
   describe('onResize', () => {
