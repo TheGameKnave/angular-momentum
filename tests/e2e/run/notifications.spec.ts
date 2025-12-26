@@ -13,6 +13,7 @@ let sharedUserId: string;
 async function navigateToNotifications(page: any): Promise<void> {
   await page.goto(`${APP_BASE_URL}/notifications`);
   await page.waitForSelector(pages.notificationsPage, { timeout: 5000 });
+  await waitForAngular(page);
 }
 
 test.describe('Notifications Tests', () => {
