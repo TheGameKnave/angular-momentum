@@ -78,17 +78,16 @@ test.describe('Smoke Tests', () => {
   // ==========================================================================
 
   test('Feature navigation works', async ({ page }) => {
-    // Click first feature link in sidebar
-    const firstFeatureLink = page.locator(`${menus.featureSidebar} a`).first();
-    await firstFeatureLink.click();
-
-    // Should navigate away from landing page
+    // Navigate to features page via sidebar
+    const featuresLink = page.locator(`${menus.featureSidebar} a[href="/features"]`);
+    await featuresLink.click();
     await waitForAngular(page);
-    await expect(page.locator(pages.landingPage)).not.toBeVisible();
 
-    // URL should have changed
-    expect(page.url()).not.toBe(APP_BASE_URL);
-    expect(page.url()).not.toBe(`${APP_BASE_URL}/`);
+    // Features page should be visible
+    await expect(page.locator(pages.featuresPage)).toBeVisible();
+
+    // URL should be /features
+    expect(page.url()).toContain('/features');
   });
 
   test('Privacy page loads', async ({ page }) => {
