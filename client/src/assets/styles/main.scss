@@ -2078,6 +2078,21 @@ app-indexeddb p-card {
 // RESPONSIVE OVERRIDES (screen sizes)
 // =============================================================================
 
+// -----------------------------------------------------------------------------
+// Viewport-ready gate: Prevent CLS on desktop by hiding menu until JS determines viewport
+// Mobile (detected via User-Agent in SSR) shows immediately; desktop animates in after hydration
+// -----------------------------------------------------------------------------
+body:not(.viewport-ready):not(.not-sm) {
+  app-menu-feature {
+    width: 0;
+    opacity: 0;
+    overflow: hidden;
+  }
+  .main {
+    padding-left: 0;
+  }
+}
+
 .screen-xl {
   body.index footer {
     left: 18rem;

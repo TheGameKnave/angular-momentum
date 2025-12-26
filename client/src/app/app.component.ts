@@ -240,13 +240,13 @@ export class AppComponent implements OnInit {
         document.body.classList.add('not-' + size);
       }
     }
-    // Ensure base class exists
-    document.body.classList.add('screen-xs');
+    // Ensure base class exists and mark viewport as determined (allows CSS to show menu with animation)
+    document.body.classList.add('screen-xs', 'viewport-ready');
 
     // Update route class
-    // Remove old route classes (any single-word class that's not a screen-* or not-* class)
+    // Remove old route classes (preserve screen-*, not-*, viewport-ready, and theme classes)
     const routeClasses = Array.from(document.body.classList).filter(
-      (c) => !c.startsWith('screen-') && !c.startsWith('not-')
+      (c) => !c.startsWith('screen-') && !c.startsWith('not-') && c !== 'viewport-ready' && !c.startsWith('app-')
     );
     // istanbul ignore next - callback only runs when stale route classes exist
     routeClasses.forEach((c) => document.body.classList.remove(c));

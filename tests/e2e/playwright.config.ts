@@ -24,6 +24,12 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
+  // Disable animations for deterministic screenshots
+  expect: {
+    toHaveScreenshot: {
+      animations: 'disabled',
+    },
+  },
   projects: [
     // ==========================================================================
     // CHROMIUM - Full test suite (functional + visual)
