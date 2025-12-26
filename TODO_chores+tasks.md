@@ -5,8 +5,6 @@ audit docs to make sure they're accurate
 twain native language name
 add turkish because why not
 
-smoke test post-deploy
-
 security testing
 
 SSR snapshots should be handled dynamically
