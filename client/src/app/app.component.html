@@ -31,7 +31,7 @@
         <app-menu-change-log />
       }
       @if (showEnvironment()) {
-        <h4 [pTooltip]="isXsScreen() ? t('menu.{environmentName} environment', { environmentName: t(isDevMode ? 'menu.Development' : 'menu.Production') }) : null" tooltipPosition="top" [showDelay]="tooltipShowDelay" [hideDelay]="tooltipHideDelay">
+        <span class="footer-item" [pTooltip]="isXsScreen() ? t('menu.{environmentName} environment', { environmentName: t(isDevMode ? 'menu.Development' : 'menu.Production') }) : null" tooltipPosition="top" [showDelay]="tooltipShowDelay" [hideDelay]="tooltipHideDelay">
           @if (isXsScreen()) {
             <i class="pi" [class.pi-code]="isDevMode" [class.pi-globe]="!isDevMode"></i>
           } @else if (isNarrowScreen()) {
@@ -39,9 +39,9 @@
           } @else {
             {{ t('menu.{environmentName} environment', { environmentName: t(isDevMode ? 'menu.Development' : 'menu.Production') }) }}
           }
-        </h4>
+        </span>
       }
-      <h4><a routerLink="/privacy" class="privacy-link">{{ t(isNarrowScreen() ? 'privacy.Privacy' : 'privacy.Privacy Policy') }}</a></h4>
+      <span class="footer-item"><a routerLink="/privacy" class="privacy-link">{{ t(isNarrowScreen() ? 'privacy.Privacy' : 'privacy.Privacy Policy') }}</a></span>
       @if (showLanguage()) {
         <app-menu-language />
       }

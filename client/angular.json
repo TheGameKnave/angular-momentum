@@ -38,7 +38,8 @@
               "assets": [
                 "src/favicon.ico",
                 "src/assets",
-                "src/manifest.webmanifest"
+                "src/manifest.webmanifest",
+                "src/robots.txt"
               ],
               "fileReplacements": [
                 {
@@ -65,7 +66,8 @@
               "assets": [
                 "src/favicon.ico",
                 "src/assets",
-                "src/manifest.webmanifest"
+                "src/manifest.webmanifest",
+                "src/robots.txt"
               ],
               "fileReplacements": [
                 {
@@ -96,7 +98,8 @@
               "assets": [
                 "src/favicon.ico",
                 "src/assets",
-                "src/manifest.webmanifest"
+                "src/manifest.webmanifest",
+                "src/robots.txt"
               ]
             },
             "tauri-local": {
@@ -113,7 +116,8 @@
               "assets": [
                 "src/favicon.ico",
                 "src/assets",
-                "src/manifest.webmanifest"
+                "src/manifest.webmanifest",
+                "src/robots.txt"
               ]
             },
             "e2e": {
@@ -125,7 +129,8 @@
               "assets": [
                 "src/favicon.ico",
                 "src/assets",
-                "src/manifest.webmanifest"
+                "src/manifest.webmanifest",
+                "src/robots.txt"
               ]
             }
           },
@@ -177,7 +182,8 @@
             "assets": [
               "src/assets",
               "src/favicon.ico",
-              "src/manifest.webmanifest"
+              "src/manifest.webmanifest",
+              "src/robots.txt"
             ],
             "styles": [
               "src/assets/styles/main.scss"

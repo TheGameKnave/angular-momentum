@@ -86,6 +86,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "karma-sabarivka-reporter": "^3.3.1",
+    "source-map-explorer": "^2.5.3",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.1",
     "zone.js": "~0.15.1"
