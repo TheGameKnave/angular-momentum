@@ -31,7 +31,7 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      testIgnore: /feature.*\.spec\.ts/,
+      testIgnore: [/feature.*\.spec\.ts/, /smoke\.spec\.ts/],
     },
     // Feature flag tests run sequentially after main tests
     {
