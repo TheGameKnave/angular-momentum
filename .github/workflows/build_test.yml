@@ -63,10 +63,13 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Create server .env for E2E tests
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           echo "API_PORT=4201" > server/.env
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> server/.env
-          echo "SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}" >> server/.env
+          echo "SUPABASE_URL=$SUPABASE_URL" >> server/.env
+          echo "SUPABASE_SERVICE_KEY=$SUPABASE_SERVICE_KEY" >> server/.env
 
       - name: Run E2E Tests
         run: |
