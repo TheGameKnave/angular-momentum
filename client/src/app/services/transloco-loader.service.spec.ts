@@ -111,7 +111,7 @@ describe('TranslocoHttpLoader', () => {
     });
 
     it('should return custom native name for en-MT (Twain)', () => {
-      expect(loader.getNativeName('en-MT')).toEqual('English (Twain)');
+      expect(loader.getNativeName('en-MT')).toEqual('Inglish (Twayn)');
     });
 
     it('should return custom flag code for sv-BO (Bork)', () => {

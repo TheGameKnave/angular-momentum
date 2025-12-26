@@ -11,7 +11,7 @@ import { LANGUAGES } from 'i18n-l10n-flags';
  * i18n-l10n-flags metadata doesn't match desired presentation.
  */
 const LANGUAGE_OVERRIDES: Record<string, { flag: string; name: string }> = {
-  'en-MT': { flag: 'twain', name: 'English (Twain)' }, // Mark Twain's phonetic reform
+  'en-MT': { flag: 'twain', name: 'Inglish (Twayn)' }, // Mark Twain's phonetic reform
   'sv-BO': { flag: 'bork', name: 'Svenska (Bork Bork!)' }, // Swedish Chef
 };
 

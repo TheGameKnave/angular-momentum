@@ -10,8 +10,9 @@ export const SUPPORTED_LANGUAGES = [
   'en-GB',
   'en-MT', // for English (Twain) - Mark Twain's phonetic reform
   'de',
-  'fr',
   'es',
+  'fr',
+  'tr',
   'zh-CN',
   'zh-TW',
   'sv-BO', // for Swedish (Bork) - Swedish Chef variant

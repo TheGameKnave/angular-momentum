@@ -1,8 +1,5 @@
 # TODO chores/tasks
 
-twain native language name
-add turkish because why not
-
 security testing
 
 SSR snapshots should be handled dynamically
