@@ -53,7 +53,8 @@ tests/e2e/
 │   ├── responsive.spec.ts      # Viewport adaptation
 │   ├── visual.spec.ts          # Screenshot comparisons
 │   ├── features.spec.ts        # Feature flag UI
-│   └── feature-toggles.spec.ts # Feature enable/disable behavior
+│   ├── feature-toggles.spec.ts # Feature enable/disable behavior
+│   └── smoke.spec.ts           # Post-deploy smoke tests (run separately)
 └── screenshots/
     └── visual.spec.ts-snapshots/   # Visual regression baselines
         ├── banner-cookie-chromium-darwin.png
@@ -68,9 +69,9 @@ tests/e2e/
 
 | Browser | Tests | Purpose |
 |---------|-------|---------|
-| **Chromium** | Full suite (~77 tests) | Functional + visual regression |
-| **Firefox** | Visual only (17 tests) | Catch rendering differences |
-| **WebKit** | Visual only (17 tests) | Catch Safari-specific issues |
+| **Chromium** | Full suite (~110 tests) | Functional + visual regression |
+| **Firefox** | Visual only | Catch rendering differences |
+| **WebKit** | Visual only | Catch Safari-specific issues |
 
 This approach recognizes that:
 - Functional behavior (clicks, forms, navigation) is consistent across modern browsers
@@ -239,6 +240,39 @@ npx playwright test -g "Landing page visual" --config=tests/e2e/playwright.confi
 ```bash
 npx playwright test --debug --config=tests/e2e/playwright.config.ts
 ```
+
+## Smoke Tests (Post-Deploy)
+
+Smoke tests verify critical functionality after deployment to dev/staging environments.
+
+### Running Smoke Tests
+
+Smoke tests run automatically after `./deploy.sh dev` or `./deploy.sh staging`. To run manually:
+
+```bash
+# Against dev environment
+APP_BASE_URL=https://dev.angularmomentum.app npx playwright test -c tests/e2e/playwright.smoke.config.ts
+
+# Against staging environment
+APP_BASE_URL=https://staging.angularmomentum.app npx playwright test -c tests/e2e/playwright.smoke.config.ts
+```
+
+### What's Tested
+
+- SSR hydration (app loads without console errors)
+- API connectivity (changelog loads)
+- Navigation (feature sidebar works)
+- Auth UI (login form renders)
+- Language switching
+- Notification center (if enabled)
+
+### Configuration
+
+Smoke tests use a separate config (`playwright.smoke.config.ts`) that:
+- Requires `APP_BASE_URL` environment variable
+- Has no `webServer` (tests against deployed environment)
+- Runs sequentially with 1 worker
+- Uses shorter timeout (30s)
 
 ## Common Issues
 

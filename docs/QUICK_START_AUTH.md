@@ -30,11 +30,10 @@
 
 ## Test the Implementation
 
-1. Navigate to http://localhost:4200/login
-2. Sign up in Supabase dashboard or use Supabase auth UI
-3. Login with credentials
-4. You should be redirected to http://localhost:4200/profile
-5. Click logout to return to home
+1. Navigate to http://localhost:4200 and click the user icon in the header
+2. Use the signup tab to create an account, or login with existing credentials
+3. After logging in, navigate to http://localhost:4200/profile
+4. Click logout to return to home
 
 ## What's Been Implemented
 
@@ -47,7 +46,7 @@
 - [public.guard.ts](client/src/app/guards/public.guard.ts) - Redirect logged-in users
 
 ✅ **Components**
-- [login/](client/src/app/components/pages/login/) - Login page
+- [menu-auth/](client/src/app/components/menus/menu-auth/) - Auth menu (login, signup, password reset, OTP verification)
 - [profile/](client/src/app/components/pages/profile/) - User profile page
 
 ✅ **Infrastructure**
@@ -108,8 +107,6 @@ constructor(private platform: PlatformService) {
 ## Next Steps
 
 - Add social auth providers (Google, GitHub)
-- Implement password reset flow
-- Add email verification
 - Create user settings page
 - Add avatar upload
 

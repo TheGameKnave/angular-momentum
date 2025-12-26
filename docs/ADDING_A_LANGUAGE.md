@@ -8,12 +8,14 @@ This guide covers the 3 files that need updates when adding a new language.
 export const SUPPORTED_LANGUAGES = [
   'en-US',
   'en-GB',
+  'en-MT',  // Mark Twain phonetic reform variant
   'de',
   'fr',
   'es',
   'zh-CN',
   'zh-TW',
-  'sv-SE',  // <-- add new language here
+  'sv-BO',  // Swedish Chef variant
+  // <-- add new language here
 ] as const;
 ```
 

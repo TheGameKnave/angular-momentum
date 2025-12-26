@@ -25,6 +25,8 @@ Allow users to change their email address from the profile page. This requires:
 
 **File**: `client/src/app/components/pages/profile/profile.component.html`
 
+> Note: The profile component exists at this path. Email change functionality may need to be added.
+
 Add after username section:
 
 ```html
