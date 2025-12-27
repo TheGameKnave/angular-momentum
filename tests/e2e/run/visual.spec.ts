@@ -496,17 +496,6 @@ test.describe('Visual Regression Tests', () => {
     await screenshotMenu(page, '.dialog-menu-panel', 'menu-notification.png');
   });
 
-  test('menu-changelog', async ({ page }) => {
-    await page.goto(APP_BASE_URL);
-    await waitForAngular(page);
-    await dismissCookieBanner(page);
-
-    await page.click(menus.changelogMenuButton);
-    await page.waitForTimeout(300);
-
-    await screenshotMenu(page, '.dialog-menu-panel', 'menu-changelog.png');
-  });
-
   test('banner-cookie', async ({ page }) => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
@@ -873,18 +862,6 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForTimeout(300);
 
     await screenshotMenuClipped(page, '.dialog-menu-panel', 'menu-notification-phone.png');
-  });
-
-  test('menu-changelog-phone', async ({ page }) => {
-    await page.setViewportSize(VIEWPORT_PHONE);
-    await page.goto(APP_BASE_URL);
-    await waitForAngular(page);
-    await dismissCookieBanner(page);
-
-    await page.click(menus.changelogMenuButton);
-    await page.waitForTimeout(300);
-
-    await screenshotMenuClipped(page, '.dialog-menu-panel', 'menu-changelog-phone.png');
   });
 
   // ============================================================================
