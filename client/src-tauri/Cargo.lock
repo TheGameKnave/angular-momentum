@@ -43,7 +43,7 @@ dependencies = [
 
 [[package]]
 name = "angular-momentum"
-version = "21.1.0"
+version = "21.1.1"
 dependencies = [
  "serde",
  "serde_json",
