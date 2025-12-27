@@ -342,17 +342,50 @@ export class AuthService {
 
   /**
    * Initialize session on service startup.
+   * Attempts to refresh expired sessions before clearing them.
    */
-  // istanbul ignore next - Async method called in constructor without await; testing requires complex timing and SDK mocking
-  private async initializeSession(): Promise<void> {
+  async initializeSession(): Promise<void> {
+    if (!this.supabase) {
+      this.loading.set(false);
+      return;
+    }
+
     try {
-      const { data, error } = await this.supabase!.auth.getSession();
+      const { data, error } = await this.supabase.auth.getSession();
 
       if (error) {
         this.logService.log('Error getting session', error);
       } else if (data.session) {
-        this.currentSession.set(data.session);
-        this.currentUser.set(data.session.user);
+        // Check if the session has expired
+        const expiresAt = data.session.expires_at;
+        const now = Math.floor(Date.now() / 1000);
+
+        if (expiresAt && expiresAt <= now) {
+          // Session is expired - attempt to refresh it
+          this.logService.log('Session expired on init, attempting refresh', {
+            expiresAt,
+            now,
+            expiredAgo: now - expiresAt
+          });
+
+          const { data: refreshed, error: refreshError } = await this.supabase.auth.refreshSession();
+
+          if (refreshError || !refreshed.session) {
+            // Refresh failed - clear the stale session
+            this.logService.log('Session refresh failed, clearing stale session', refreshError);
+            await this.supabase.auth.signOut();
+            // User stays null, so anonymous preferences will be used
+          } else {
+            // Refresh succeeded - use the new session
+            this.logService.log('Session refreshed successfully');
+            this.currentSession.set(refreshed.session);
+            this.currentUser.set(refreshed.session.user);
+          }
+        } else {
+          // Session is valid
+          this.currentSession.set(data.session);
+          this.currentUser.set(data.session.user);
+        }
       }
     } catch (error) {
       this.logService.log('Error initializing session', error);

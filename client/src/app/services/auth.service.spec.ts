@@ -152,6 +152,148 @@ describe('AuthService', () => {
     });
   });
 
+  describe('initializeSession', () => {
+    it('should set user and session for valid non-expired session', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const expiresAt = Math.floor(Date.now() / 1000) + 3600; // Expires in 1 hour
+      const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+
+      await service.initializeSession();
+
+      expect(service.currentUser()).toEqual(mockUser);
+      expect(service.currentSession()).toEqual(mockSession);
+      expect(service.loading()).toBe(false);
+    });
+
+    it('should refresh expired session and set user on success', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const expiresAt = Math.floor(Date.now() / 1000) - 3600; // Expired 1 hour ago
+      const expiredSession = { ...createMockSession(mockUser), expires_at: expiresAt };
+      const refreshedSession = { ...createMockSession(mockUser), expires_at: Math.floor(Date.now() / 1000) + 3600 };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: expiredSession }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+        Promise.resolve({ data: { session: refreshedSession }, error: null })
+      );
+
+      await service.initializeSession();
+
+      expect(service.currentUser()).toEqual(mockUser);
+      expect(service.currentSession()).toEqual(refreshedSession);
+      expect(mockSupabaseAuth.refreshSession).toHaveBeenCalled();
+      expect(mockLogService.log).toHaveBeenCalledWith('Session refreshed successfully');
+    });
+
+    it('should clear expired session when refresh fails', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const expiresAt = Math.floor(Date.now() / 1000) - 3600; // Expired 1 hour ago
+      const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+        Promise.resolve({ data: { session: null }, error: { message: 'Refresh token expired' } })
+      );
+      mockSupabaseAuth.signOut.and.returnValue(Promise.resolve({ error: null }));
+
+      await service.initializeSession();
+
+      expect(service.currentUser()).toBeNull();
+      expect(service.currentSession()).toBeNull();
+      expect(mockSupabaseAuth.signOut).toHaveBeenCalled();
+      expect(mockLogService.log).toHaveBeenCalledWith(
+        'Session refresh failed, clearing stale session',
+        jasmine.objectContaining({ message: 'Refresh token expired' })
+      );
+    });
+
+    it('should clear expired session when refresh returns no session', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const expiresAt = Math.floor(Date.now() / 1000) - 3600; // Expired 1 hour ago
+      const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+        Promise.resolve({ data: { session: null }, error: null })
+      );
+      mockSupabaseAuth.signOut.and.returnValue(Promise.resolve({ error: null }));
+
+      await service.initializeSession();
+
+      expect(service.currentUser()).toBeNull();
+      expect(service.currentSession()).toBeNull();
+      expect(mockSupabaseAuth.signOut).toHaveBeenCalled();
+    });
+
+    it('should handle session without expires_at as valid', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const mockSession = { ...createMockSession(mockUser), expires_at: undefined };
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+
+      await service.initializeSession();
+
+      // Session without expires_at should be treated as valid
+      expect(service.currentUser()).toEqual(mockUser);
+      expect(service.currentSession()).toEqual(mockSession);
+    });
+
+    it('should handle null session', async () => {
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: null }, error: null })
+      );
+
+      await service.initializeSession();
+
+      expect(service.currentUser()).toBeNull();
+      expect(service.currentSession()).toBeNull();
+      expect(service.loading()).toBe(false);
+    });
+
+    it('should handle getSession error', async () => {
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: null }, error: { message: 'Error' } })
+      );
+
+      await service.initializeSession();
+
+      expect(service.currentUser()).toBeNull();
+      expect(mockLogService.log).toHaveBeenCalledWith('Error getting session', jasmine.anything());
+      expect(service.loading()).toBe(false);
+    });
+
+    it('should handle exception during initialization', async () => {
+      mockSupabaseAuth.getSession.and.throwError('Network error');
+
+      await service.initializeSession();
+
+      expect(service.currentUser()).toBeNull();
+      expect(mockLogService.log).toHaveBeenCalledWith('Error initializing session', jasmine.anything());
+      expect(service.loading()).toBe(false);
+    });
+
+    it('should return early when supabase is null', async () => {
+      (service as any).supabase = null;
+      service['loading'].set(true);
+
+      await service.initializeSession();
+
+      expect(service.loading()).toBe(false);
+      expect(mockSupabaseAuth.getSession).not.toHaveBeenCalled();
+    });
+  });
+
   describe('connectivity handling', () => {
     it('should stop auto-refresh when going offline', () => {
       // Simulate going offline
