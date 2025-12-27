@@ -1,4 +1,5 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router, UrlTree } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
@@ -22,21 +23,30 @@ import { AuthService } from '../services/auth.service';
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
 
   /**
    * Determines if a route can be activated based on authentication status.
+   * During SSR, redirects to home since auth state isn't available server-side.
    *
    * @param route - Activated route snapshot
    * @param state - Router state snapshot
-   * @returns True if authenticated, UrlTree for redirect if not
+   * @returns True if authenticated, UrlTree for redirect if not or during SSR
    */
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): boolean | UrlTree {
+    // During SSR, redirect to home - we can't verify auth server-side
+    // Client will handle proper auth after hydration
+    // istanbul ignore next - SSR guard, not testable in browser
+    if (!isPlatformBrowser(this.platformId)) {
+      return this.router.createUrlTree(['/']);
+    }
+
     // Check if user is authenticated
     if (this.authService.isAuthenticated()) {
       return true;

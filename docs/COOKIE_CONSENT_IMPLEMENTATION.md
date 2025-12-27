@@ -100,7 +100,7 @@ export class CookieConsentService {
 
 ### 3. Create Cookie Banner Component
 
-**File**: `client/src/app/components/cookie-banner/cookie-banner.component.ts`
+**File**: `client/src/app/components/privacy/cookie-banner/cookie-banner.component.ts`
 
 ```typescript
 import { Component, signal } from '@angular/core';
@@ -228,7 +228,7 @@ Add at the end of the file:
 
 Add to imports:
 ```typescript
-import { CookieBannerComponent } from './components/cookie-banner/cookie-banner.component';
+import { CookieBannerComponent } from './components/privacy/cookie-banner/cookie-banner.component';
 
 @Component({
   // ...

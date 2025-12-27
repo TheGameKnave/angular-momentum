@@ -24,10 +24,19 @@ export class  FeatureMonitorService {
   private readonly helpersService = inject(HelpersService);
   private readonly slugPipe = inject(SlugPipe);
 
+  // Static routes that are not feature-flagged
+  private readonly staticRoutes = ['', 'profile', 'privacy'];
+
   constructor() {
     effect(() => {
       const url = this.router.url;
       const currentSegment = url.split('/').filter(Boolean)[0] ?? '';
+
+      // Skip check for static routes (home, profile, privacy)
+      if (this.staticRoutes.includes(currentSegment)) {
+        return;
+      }
+
       const allowed = this.helpersService.enabledComponents().map(c =>
         this.slugPipe.transform(c.name)
       );

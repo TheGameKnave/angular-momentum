@@ -1,23 +1,21 @@
-<div class="flex flex-col gap-4" *transloco="let t">
+<ng-container *transloco="let t">
   <!-- Summary Card -->
   <p-card>
     <ng-template pTemplate="header">
-      <div class="p-6">
-        <h1 class="text-3xl font-bold">{{ t('privacy.Privacy Policy') }}</h1>
-        <p class="text-sm text-muted-foreground mt-2">{{ t('privacy.Last updated {date}', { date: privacyUpdatedDate }) }}</p>
-      </div>
+      <h1>{{ t('privacy.Privacy Policy') }}</h1>
+      <p class="updated-date">{{ t('privacy.Last updated {date}', { date: privacyUpdatedDate }) }}</p>
     </ng-template>
 
     <div class="privacy-content">
-      <p class="mb-4">
+      <p>
         {{ t('privacy.This privacy notice for {companyName} describes how and why we might collect, store, use, and/or share your information when you use our services.', { companyName: companyName }) }}
       </p>
 
-      <p class="mb-4">
-        <strong>{{ t('privacy.Questions or concerns?') }}</strong> {{ t('privacy.Please contact us at') }} <a href="mailto:admin@gameknave.com" class="text-primary">admin@gameknave.com</a>.
+      <p>
+        <strong>{{ t('privacy.Questions or concerns?') }}</strong> {{ t('privacy.Please contact us at') }} <a href="mailto:admin@gameknave.com">admin@gameknave.com</a>.
       </p>
 
-      <p class="mb-6 p-4 bg-surface-100 rounded">
+      <p class="summary-box">
         <strong>{{ t('privacy.Summary') }}:</strong> {{ t('privacy.We collect minimal personal information (email, username, password) to provide authentication services…') }}
       </p>
     </div>
@@ -26,26 +24,24 @@
   <!-- Cookie Preferences -->
   <p-card>
     <ng-template pTemplate="header">
-      <div class="p-6">
-        <h2 class="text-2xl font-bold">{{ t('privacy.Cookie Preferences') }}</h2>
-      </div>
+      <h2>{{ t('privacy.Cookie Preferences') }}</h2>
     </ng-template>
 
     <div class="privacy-content">
-      <p class="mb-4">{{ t('privacy.We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.') }}</p>
+      <p>{{ t('privacy.We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.') }}</p>
 
-      <div class="flex items-center gap-4 mb-4">
-        <span class="font-medium">{{ t('privacy.Current status') }}:</span>
+      <div class="cookie-status">
+        <span class="label">{{ t('privacy.Current status') }}:</span>
         @if (cookieConsentService.consentStatus() === 'accepted') {
-          <span class="text-green-600">{{ t('privacy.Analytics cookies enabled') }}</span>
+          <span class="status-enabled">{{ t('privacy.Analytics cookies enabled') }}</span>
         } @else if (cookieConsentService.consentStatus() === 'declined') {
-          <span class="text-gray-600">{{ t('privacy.Analytics cookies disabled') }}</span>
+          <span class="status-disabled">{{ t('privacy.Analytics cookies disabled') }}</span>
         } @else {
-          <span class="text-yellow-600">{{ t('privacy.Cookie preference not set') }}</span>
+          <span class="status-pending">{{ t('privacy.Cookie preference not set') }}</span>
         }
       </div>
 
-      <div class="flex gap-2">
+      <div class="cookie-actions">
         <p-button
           [label]="t('Accept')"
           (onClick)="onAcceptCookies()"
@@ -67,30 +63,28 @@
   <!-- Third-Party Services -->
   <p-card>
     <ng-template pTemplate="header">
-      <div class="p-6">
-        <h2 class="text-2xl font-bold">{{ t('privacy.Third-Party Services') }}</h2>
-      </div>
+      <h2>{{ t('privacy.Third-Party Services') }}</h2>
     </ng-template>
 
     <div class="privacy-content">
-      <p class="mb-4">{{ t('privacy.We use the following third-party services. Please review their privacy policies:') }}</p>
+      <p>{{ t('privacy.We use the following third-party services. Please review their privacy policies:') }}</p>
 
-      <ul class="list-disc list-inside space-y-2">
+      <ul class="service-list">
         <li>
           <strong>Supabase</strong> ({{ t('privacy.Authentication & Database') }}) —
-          <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer" class="text-primary">supabase.com/privacy</a>
+          <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">supabase.com/privacy</a>
         </li>
         <li>
           <strong>Google Analytics</strong> ({{ t('privacy.Usage Analytics') }}) —
-          <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" class="text-primary">policies.google.com/privacy</a>
+          <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">policies.google.com/privacy</a>
         </li>
         <li>
           <strong>Hotjar</strong> ({{ t('privacy.Behavior Analytics') }}) —
-          <a href="https://www.hotjar.com/legal/policies/privacy/" target="_blank" rel="noopener noreferrer" class="text-primary">hotjar.com/privacy</a>
+          <a href="https://www.hotjar.com/legal/policies/privacy/" target="_blank" rel="noopener noreferrer">hotjar.com/privacy</a>
         </li>
         <li>
           <strong>Cloudflare Turnstile</strong> ({{ t('privacy.Bot Protection') }}) —
-          <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer" class="text-primary">cloudflare.com/privacypolicy</a>
+          <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer">cloudflare.com/privacypolicy</a>
         </li>
       </ul>
     </div>
@@ -99,13 +93,11 @@
   <!-- Full Privacy Policy -->
   <p-card>
     <ng-template pTemplate="header">
-      <div class="p-6">
-        <h2 class="text-2xl font-bold">{{ t('privacy.Complete Privacy Policy') }}</h2>
-      </div>
+      <h2>{{ t('privacy.Complete Privacy Policy') }}</h2>
     </ng-template>
 
     <div class="privacy-content">
       <markdown [src]="privacyPolicyUrl"></markdown>
     </div>
   </p-card>
-</div>
+</ng-container>

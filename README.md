@@ -4,7 +4,6 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 
 ## Current features
 * Angular 21 w/ Zoneless change detection &  Node 24.11.1
-* Angular 20 (with)
 * Parallel server/client execution
 * Bare-bones api proxy to the back-end *
 * Frontend environment detection *
@@ -19,7 +18,7 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Internationalization (i18n) with Transloco *
 * IndexedDB for offline storage *
 * Documentation enforced via husky
-* e2e testing with TestCafe + snapshots
+* e2e testing with Playwright + snapshots
 * 100% coverage in unit tests (jasmine for client and jest for server)
 * Feature flags *
 * CI/CD (github actions, sonar)
@@ -34,13 +33,11 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 * Supabase(?) user management (emails and password resetting, etc) *
 * timezone detection AND user-setting *
 * Push notifications (WebSocket-based) for Web, PWA, and all Tauri platforms *
-
-(* indicates a feature that’s visible in the sample app)
-
-## Future features
-* toast notifications
+* toast notifications *
 * Server-side rendering
 * Lighthouse CI to mitigate performance slip
+
+(* indicates a feature that’s visible in the sample app)
 
 ## License
 This project is licensed under the MIT License (see [LICENSE](https://github.com/TheGameKnave/angular-momentum/blob/main/LICENSE) file for details).
@@ -78,7 +75,7 @@ Develop against branches from `dev` feature branch using prefix `feature/` or `d
 
 In the project directory, you can run:
 
-### `npm run dev`
+### `npm start`
 
 Runs the front- and back-end concurrently. See above.  
 **This is the preferred method of running a local**
@@ -109,23 +106,22 @@ This will display the API responses.
 
 * from root, run `npm run test-server` and `npm run test-client` to execute each unit test suite independently
 
-### TestCafe end-to-end testing
+### Playwright end-to-end testing
 
-* from root, run `npm run test-e2e`
-Runs e2e tests and takes new "tested" screenshots.
+* from root, run `npm run test:e2e`
+Runs e2e tests including visual regression tests.
 
-#### Visual regression testing in Testcafe via testcafe-blink-diff
-Run the Testcafe command with more parameters, since with this one we're taking screenshots and prepping to compare them.
+* from root, run `npm run test:e2e:ui`
+Opens the Playwright UI for interactive test running and debugging.
 
-* from root, run `npm run accept <directory>`
-Accept all screenshot diffs and overwrite accepted comparisons. Optional argument is a directory to traverse, for targeting specific test cases.
+* from root, run `npm run test:e2e:headed`
+Runs e2e tests with browser visible.
 
-* from `tests/e2e`, run `node test_runner accepted`
-Runs e2e tests and takes the base screenshots if they don't exist. (will overwrite existing screenshots)
+#### Visual regression testing
+Playwright captures screenshots during tests and compares them against baseline snapshots.
 
-* from `tests/e2e`, run `npx testcafe-blink-diff tests/e2e/screenshots --compare accepted:tested --open --threshold 0.005`
-The CLI command to compare accepted:tested screenshots for differences. If a test case's screenshots have not been created, this will fail when looking for the "accepted.png"
-The report will be in generated/index.html.
+* from root, run `npm run test:e2e:accept`
+Accept all screenshot diffs and overwrite baseline snapshots.
 
 ### SonarQube code hygeine testing
 
@@ -209,74 +205,12 @@ The app includes a complete push notification system that works across all platf
 ### Architecture
 
 - **NotificationService** - Main service for managing notifications, permissions, and notification history
-- **NotificationBellComponent** - UI component with bell icon, badge, and dropdown notification center
+- **NotificationCenterComponent** - UI component with bell icon, badge, and dropdown notification center
 - **WebSocket Delivery** - Real-time notification delivery via Socket.IO
 - **GraphQL API** - Backend mutations for sending notifications
 - **Platform Support**:
   - **Web/PWA**: Uses Web Notifications API + Service Worker
   - **Tauri (Desktop/Mobile)**: Uses `tauri-plugin-notification` for native OS notifications
-
-### Quick Start
-
-#### 1. Add Notification Bell to Your App
-
-```typescript
-import { NotificationBellComponent } from './components/notification-bell/notification-bell.component';
-
-@Component({
-  imports: [NotificationBellComponent],
-  template: `
-    <nav>
-      <app-notification-bell />
-    </nav>
-  `
-})
-```
-
-#### 2. Request Permission
-
-```typescript
-constructor(private notificationService: NotificationService) {}
-
-async enableNotifications() {
-  const granted = await this.notificationService.requestPermission();
-}
-```
-
-#### 3. Send Notifications
-
-**From Angular:**
-```typescript
-await this.notificationService.show({
-  title: 'New Message',
-  body: 'You have a new message',
-  icon: '/assets/icons/icon.png'
-});
-```
-
-**From Backend (GraphQL):**
-```graphql
-mutation {
-  sendNotification(
-    title: "System Update"
-    body: "Update available"
-  ) {
-    success
-    message
-  }
-}
-```
-
-**From Backend (Node.js):**
-```typescript
-import { broadcastNotification } from './services/notificationService';
-
-const io = app.get('io');
-broadcastNotification(io, {
-  title: 'Alert',
-  body: 'Maintenance tonight'
-});
-```
 
 ### API Reference
 

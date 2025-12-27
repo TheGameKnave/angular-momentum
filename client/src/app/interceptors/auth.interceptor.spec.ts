@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpInterceptorFn, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { HttpInterceptorFn, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
+import { of, throwError } from 'rxjs';
 import { authInterceptor } from './auth.interceptor';
 import { AuthService } from '../services/auth.service';
 import { PlatformService } from '../services/platform.service';
@@ -12,7 +12,7 @@ describe('authInterceptor', () => {
   let mockRequest: HttpRequest<unknown>;
 
   beforeEach(() => {
-    mockAuthService = jasmine.createSpyObj('AuthService', ['getToken']);
+    mockAuthService = jasmine.createSpyObj('AuthService', ['getToken', 'isAuthenticated', 'logout']);
     mockPlatformService = jasmine.createSpyObj('PlatformService', ['isSSR']);
 
     mockHandler = {
@@ -118,6 +118,72 @@ describe('authInterceptor', () => {
         expect(callArgs.headers.get('Authorization')).toBe(`Bearer ${testToken}`);
         expect(callArgs).not.toBe(mockRequest); // Should be a clone
         done();
+      });
+    });
+  });
+
+  it('should logout user on 401 response when authenticated', (done) => {
+    const testToken = 'expired-token';
+    mockPlatformService.isSSR.and.returnValue(false);
+    mockAuthService.getToken.and.returnValue(Promise.resolve(testToken));
+    mockAuthService.isAuthenticated.and.returnValue(true);
+    mockAuthService.logout.and.returnValue(Promise.resolve());
+
+    const error401 = new HttpErrorResponse({ status: 401, statusText: 'Unauthorized' });
+    mockHandler.handle = jasmine.createSpy('handle').and.returnValue(throwError(() => error401));
+
+    TestBed.runInInjectionContext(() => {
+      const result = authInterceptor(mockRequest, mockHandler.handle);
+
+      result.subscribe({
+        error: () => {
+          expect(mockAuthService.isAuthenticated).toHaveBeenCalled();
+          expect(mockAuthService.logout).toHaveBeenCalled();
+          done();
+        }
+      });
+    });
+  });
+
+  it('should not logout user on 401 response when not authenticated', (done) => {
+    const testToken = 'some-token';
+    mockPlatformService.isSSR.and.returnValue(false);
+    mockAuthService.getToken.and.returnValue(Promise.resolve(testToken));
+    mockAuthService.isAuthenticated.and.returnValue(false);
+
+    const error401 = new HttpErrorResponse({ status: 401, statusText: 'Unauthorized' });
+    mockHandler.handle = jasmine.createSpy('handle').and.returnValue(throwError(() => error401));
+
+    TestBed.runInInjectionContext(() => {
+      const result = authInterceptor(mockRequest, mockHandler.handle);
+
+      result.subscribe({
+        error: () => {
+          expect(mockAuthService.isAuthenticated).toHaveBeenCalled();
+          expect(mockAuthService.logout).not.toHaveBeenCalled();
+          done();
+        }
+      });
+    });
+  });
+
+  it('should not logout user on non-401 errors', (done) => {
+    const testToken = 'valid-token';
+    mockPlatformService.isSSR.and.returnValue(false);
+    mockAuthService.getToken.and.returnValue(Promise.resolve(testToken));
+    mockAuthService.isAuthenticated.and.returnValue(true);
+
+    const error500 = new HttpErrorResponse({ status: 500, statusText: 'Internal Server Error' });
+    mockHandler.handle = jasmine.createSpy('handle').and.returnValue(throwError(() => error500));
+
+    TestBed.runInInjectionContext(() => {
+      const result = authInterceptor(mockRequest, mockHandler.handle);
+
+      result.subscribe({
+        error: () => {
+          expect(mockAuthService.logout).not.toHaveBeenCalled();
+          done();
+        }
       });
     });
   });

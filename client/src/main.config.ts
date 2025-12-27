@@ -1,7 +1,7 @@
 import { importProvidersFrom, isDevMode, provideZonelessChangeDetection, SecurityContext } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
-import { provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
 
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 import { provideTransloco, TRANSLOCO_MISSING_HANDLER, TranslocoMissingHandler } from '@jsverse/transloco';
@@ -25,6 +25,9 @@ import Lara from '@primeng/themes/lara';
 import { authInterceptor } from '@app/interceptors/auth.interceptor';
 import { platformAwareStorageFactory } from '@app/helpers/transloco-storage';
 import { getLangFn } from '@app/helpers/language.helper';
+import { provideSsrLanguage } from '@app/providers/ssr-language.provider';
+import { provideSsrTheme } from '@app/providers/ssr-theme.provider';
+import { provideSsrViewport } from '@app/providers/ssr-viewport.provider';
 
 export const isTestEnvironment = ENVIRONMENT.env === 'testing'; // TODO figure out how to mock this in test environment without putting it in the code!!
 
@@ -45,19 +48,18 @@ export class PrefixedMissingHandler implements TranslocoMissingHandler {
   }
 }
 
-export const appProviders = [
+/**
+ * Shared providers for both browser and server (no browser-specific modules).
+ */
+export const serverProviders = [
   provideZonelessChangeDetection(),
   SlugPipe,
   importProvidersFrom(
     BrowserModule,
     MarkdownModule.forRoot({ sanitize: { provide: SANITIZE, useValue: SecurityContext.STYLE } }),
-    ServiceWorkerModule.register('ngsw-worker.js', {
-      enabled: !isDevMode(),
-      registrationStrategy: 'registerImmediately',
-    }),
-    SocketIoModule.forRoot(socketIoConfig),
   ),
   provideHttpClient(
+    withFetch(),
     withInterceptors([authInterceptor]),
     withInterceptorsFromDi()
   ),
@@ -87,6 +89,12 @@ export const appProviders = [
     },
   }),
   provideTranslocoLocale(),
+  provideSsrLanguage(),
+  provideSsrTheme(),
+  provideSsrViewport(),
+  // NOTE: Intentionally NOT using provideClientHydration() - we use destructive hydration
+  // (full client re-render after SSR) to avoid timing issues with component services
+  // that run in constructors. See SSR_PATCH_BREAKDOWN.md for details.
   providePrimeNG({
     theme: {
       preset: Lara,
@@ -98,4 +106,19 @@ export const appProviders = [
     ripple: true,
   }),
   MessageService,
+];
+
+/**
+ * Browser-only providers (includes Socket.io and Service Worker).
+ * Used for client bootstrap - server uses serverProviders directly.
+ */
+export const appProviders = [
+  ...serverProviders,
+  importProvidersFrom(
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerImmediately',
+    }),
+    SocketIoModule.forRoot(socketIoConfig),
+  ),
 ];

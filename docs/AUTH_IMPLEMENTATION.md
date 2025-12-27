@@ -65,7 +65,7 @@ export const ENVIRONMENT = {
 
 ```bash
 # Development
-npm run dev
+npm start
 
 # Tauri
 npm run tauri:dev
@@ -91,12 +91,15 @@ client/src/app/
 │   ├── auth.guard.ts                 # Protect authenticated routes
 │   └── public.guard.ts               # Redirect logged-in users from login
 │
-├── components/pages/
-│   ├── login/
-│   │   ├── login.component.ts
-│   │   └── login.component.html
+├── components/
+│   ├── menus/menu-auth/           # Auth dropdown menu
+│   │   └── auth/                  # Auth form components
+│   │       ├── auth-login/        # Login form
+│   │       ├── auth-signup/       # Signup form with CAPTCHA
+│   │       ├── auth-otp/          # OTP verification
+│   │       └── auth-reset/        # Password reset
 │   │
-│   └── profile/
+│   └── pages/profile/
 │       ├── profile.component.ts
 │       └── profile.component.html
 │
@@ -115,10 +118,10 @@ client/src/app/
 
 ### 1. Login Flow
 
-Users navigate to `/login` and enter credentials:
+Users click the user icon in the header to open the auth menu and enter credentials:
 
 ```typescript
-// LoginComponent handles the form submission
+// AuthLoginComponent handles the form submission
 async onSubmit() {
   const result = await this.authService.login({
     email: 'user@example.com',

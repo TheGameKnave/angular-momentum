@@ -10,8 +10,6 @@
       type="text"
       [placeholder]="t('auth.Enter your email or username')"
       autocomplete="username"
-      class="w-full"
-      style="padding: 1rem; font-size: 1rem;"
     />
     @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
       <small class="error-message">{{ t('auth.Email or username is required') }}</small>
@@ -31,17 +29,17 @@
         [attr.type]="showPassword() ? 'text' : 'password'"
         [placeholder]="t('auth.Enter your password')"
         autocomplete="current-password"
-        class="w-full"
-        style="padding: 1rem; font-size: 1rem;"
       />
       <p-inputicon
-        [styleClass]="'pi ' + (showPassword() ? 'pi-eye-slash' : 'pi-eye') + ' cursor-pointer text-2xl'"
+        styleClass="password-toggle-icon"
         (mousedown)="onPasswordPeekStart()"
         (mouseup)="onPasswordPeekEnd()"
         (mouseleave)="onPasswordPeekEnd()"
         (touchstart)="onPasswordPeekStart()"
         (touchend)="onPasswordPeekEnd()"
-      />
+      >
+        <i [class]="'pi ' + (showPassword() ? 'pi-eye-slash' : 'pi-eye')"></i>
+      </p-inputicon>
     </p-iconfield>
     @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
       <small class="error-message">{{ t('auth.Password is required') }}</small>
@@ -50,7 +48,7 @@
 
   <!-- Error Message -->
   @if (errorMessage()) {
-    <p-message severity="error" [text]="t(errorMessage()!)" styleClass="w-full" />
+    <p-message severity="error" [text]="t(errorMessage()!)" />
   }
 
   <!-- Submit Button -->
@@ -59,7 +57,6 @@
     type="submit"
     [loading]="loading()"
     [disabled]="loginForm.invalid"
-    class="w-full"
   >
     {{ t('auth.Log in') }}
   </button>
@@ -68,7 +65,6 @@
   <div class="forgot-password">
     <button
       type="button"
-      class="text-sm text-gray-600 hover:underline"
       (click)="onForgotPassword()"
     >
       {{ t('auth.Forgot your password?') }}

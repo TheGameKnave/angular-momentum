@@ -269,9 +269,10 @@ export const ENVIRONMENT_KEYS = [
 
 /**
  * Relative time formatting translation keys.
- * Used by RelativeTimePipe for time display.
+ * Used by RelativeTimePipe for time display (past and future).
  */
 export const TIME_KEYS = [
+  // Past times
   "time.years ago",
   "time.months ago",
   "time.weeks ago",
@@ -279,6 +280,14 @@ export const TIME_KEYS = [
   "time.hours ago",
   "time.minutes ago",
   "time.Just now",
+  // Future times
+  "time.in years",
+  "time.in months",
+  "time.in weeks",
+  "time.in days",
+  "time.in hours",
+  "time.in minutes",
+  "time.Momentarily",
 ] as const;
 
 /**
@@ -363,8 +372,10 @@ export const PROFILE_PAGE_KEYS = [
   "profile.Permanently delete your account and all associated data. This action cannot be undone.",
   "profile.Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.",
   "privacy.We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.",
-  "profile.A verification link will be sent to your new email address. You must click the link to complete the change.",
-  "profile.Verification email sent! Please check your new email address and click the confirmation link.",
+  "profile.A verification code will be sent to your new email address. You must enter the code to complete the change.",
+  "profile.Verification email sent! Please check your new email address and enter the confirmation code.",
+  "profile.Email address updated successfully!",
+  "profile.Type {text} to confirm",
 ] as const;
 
 /**
@@ -377,6 +388,7 @@ export const DIALOG_DEFAULT_LABELS = {
 } as const;
 
 export const DIALOG_LABEL_KEYS = Object.values(DIALOG_DEFAULT_LABELS);
+
 
 /**
  * All programmatically-used translation keys combined.

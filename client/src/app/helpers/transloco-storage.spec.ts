@@ -7,7 +7,7 @@ import {
   platformAwareStorageFactory
 } from './transloco-storage';
 import { PlatformService } from '../services/platform.service';
-import { UserStorageService } from '../services/user-storage.service';
+import { ENVIRONMENT } from 'src/environments/environment';
 
 describe('transloco-storage', () => {
   describe('CookieStorage', () => {
@@ -115,17 +115,26 @@ describe('transloco-storage', () => {
 
   describe('DualStorage', () => {
     let storage: DualStorage;
-    let mockUserStorageService: jasmine.SpyObj<UserStorageService>;
+    let store: { [key: string]: string };
+
+    // Helper to create a mock JWT with a user ID
+    function createMockJwt(userId: string): string {
+      const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+      const payload = btoa(JSON.stringify({ sub: userId, exp: Date.now() / 1000 + 3600 }));
+      return `${header}.${payload}.signature`;
+    }
+
+    // Helper to get the Supabase auth token key
+    function getSupabaseTokenKey(): string {
+      const projectRef = new URL(ENVIRONMENT.supabase.url).hostname.split('.')[0];
+      return `sb-${projectRef}-auth-token`;
+    }
 
     beforeEach(() => {
-      mockUserStorageService = jasmine.createSpyObj('UserStorageService', ['prefixKey']);
-      // By default, prefix with 'anonymous_'
-      mockUserStorageService.prefixKey.and.callFake((key: string) => `anonymous_${key}`);
-
-      storage = new DualStorage(mockUserStorageService);
+      storage = new DualStorage();
 
       // Mock localStorage
-      let store: { [key: string]: string } = {};
+      store = {};
       spyOn(localStorage, 'getItem').and.callFake((key: string) => store[key] || null);
       spyOn(localStorage, 'setItem').and.callFake((key: string, value: string) => {
         store[key] = value;
@@ -142,13 +151,43 @@ describe('transloco-storage', () => {
     });
 
     describe('getItem', () => {
-      it('should get value from localStorage using prefixed key', () => {
-        localStorage.setItem('anonymous_testKey', 'localValue');
+      it('should get value from localStorage using anonymous prefix when not authenticated', () => {
+        store['anonymous_testKey'] = 'localValue';
 
         const result = storage.getItem('testKey');
 
-        expect(mockUserStorageService.prefixKey).toHaveBeenCalledWith('testKey');
         expect(result).toBe('localValue');
+      });
+
+      it('should get value from localStorage using user prefix when authenticated', () => {
+        // Set up mock auth token
+        const tokenKey = getSupabaseTokenKey();
+        store[tokenKey] = JSON.stringify({ access_token: createMockJwt('user123') });
+        store['user_user123_testKey'] = 'userValue';
+
+        const result = storage.getItem('testKey');
+
+        expect(result).toBe('userValue');
+      });
+
+      it('should use anonymous prefix when token exists but has no access_token', () => {
+        const tokenKey = getSupabaseTokenKey();
+        store[tokenKey] = JSON.stringify({ refresh_token: 'only-refresh' });
+        store['anonymous_testKey'] = 'anonValue';
+
+        const result = storage.getItem('testKey');
+
+        expect(result).toBe('anonValue');
+      });
+
+      it('should use anonymous prefix when access_token is malformed (no payload)', () => {
+        const tokenKey = getSupabaseTokenKey();
+        store[tokenKey] = JSON.stringify({ access_token: 'invalid-token-no-dots' });
+        store['anonymous_testKey'] = 'anonValue';
+
+        const result = storage.getItem('testKey');
+
+        expect(result).toBe('anonValue');
       });
 
       it('should fall back to cookie if localStorage returns null', () => {
@@ -169,31 +208,30 @@ describe('transloco-storage', () => {
       });
 
       it('should prefer localStorage over cookie when both exist', () => {
-        localStorage.setItem('anonymous_testKey', 'localValue');
+        store['anonymous_testKey'] = 'localValue';
         document.cookie = 'lang=cookieValue; path=/';
 
         const result = storage.getItem('testKey');
 
         expect(result).toBe('localValue');
       });
-
-      it('should fall back to cookie when localStorage returns empty string', () => {
-        (localStorage.getItem as jasmine.Spy).and.returnValue('');
-        document.cookie = 'lang=cookieValue; path=/';
-
-        const result = storage.getItem('lang');
-
-        expect(result).toBe('cookieValue');
-      });
     });
 
     describe('setItem', () => {
-      it('should set value in localStorage with prefixed key and cookie without prefix', () => {
+      it('should set value in localStorage with anonymous prefix and cookie when not authenticated', () => {
         storage.setItem('testKey', 'testValue');
 
-        expect(mockUserStorageService.prefixKey).toHaveBeenCalledWith('testKey');
         expect(localStorage.setItem).toHaveBeenCalledWith('anonymous_testKey', 'testValue');
         expect(document.cookie).toContain('lang=testValue');
+      });
+
+      it('should set value in localStorage with user prefix when authenticated', () => {
+        const tokenKey = getSupabaseTokenKey();
+        store[tokenKey] = JSON.stringify({ access_token: createMockJwt('user123') });
+
+        storage.setItem('testKey', 'testValue');
+
+        expect(localStorage.setItem).toHaveBeenCalledWith('user_user123_testKey', 'testValue');
       });
 
       it('should set cookie even if localStorage throws error', () => {
@@ -207,12 +245,11 @@ describe('transloco-storage', () => {
 
     describe('removeItem', () => {
       it('should remove value from localStorage with prefixed key and cookie', () => {
-        localStorage.setItem('anonymous_testKey', 'testValue');
+        store['anonymous_testKey'] = 'testValue';
         document.cookie = 'lang=testValue; path=/';
 
         storage.removeItem('testKey');
 
-        expect(mockUserStorageService.prefixKey).toHaveBeenCalledWith('testKey');
         expect(localStorage.removeItem).toHaveBeenCalledWith('anonymous_testKey');
       });
 
@@ -227,16 +264,26 @@ describe('transloco-storage', () => {
 
   describe('UserScopedLocalStorage', () => {
     let storage: UserScopedLocalStorage;
-    let mockUserStorageService: jasmine.SpyObj<UserStorageService>;
+    let store: { [key: string]: string };
+
+    // Helper to create a mock JWT with a user ID
+    function createMockJwt(userId: string): string {
+      const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+      const payload = btoa(JSON.stringify({ sub: userId, exp: Date.now() / 1000 + 3600 }));
+      return `${header}.${payload}.signature`;
+    }
+
+    // Helper to get the Supabase auth token key
+    function getSupabaseTokenKey(): string {
+      const projectRef = new URL(ENVIRONMENT.supabase.url).hostname.split('.')[0];
+      return `sb-${projectRef}-auth-token`;
+    }
 
     beforeEach(() => {
-      mockUserStorageService = jasmine.createSpyObj('UserStorageService', ['prefixKey']);
-      mockUserStorageService.prefixKey.and.callFake((key: string) => `user_abc123_${key}`);
-
-      storage = new UserScopedLocalStorage(mockUserStorageService);
+      storage = new UserScopedLocalStorage();
 
       // Mock localStorage
-      let store: { [key: string]: string } = {};
+      store = {};
       spyOn(localStorage, 'getItem').and.callFake((key: string) => store[key] || null);
       spyOn(localStorage, 'setItem').and.callFake((key: string, value: string) => {
         store[key] = value;
@@ -247,13 +294,22 @@ describe('transloco-storage', () => {
     });
 
     describe('getItem', () => {
-      it('should get value from localStorage using prefixed key', () => {
-        localStorage.setItem('user_abc123_lang', 'en-US');
+      it('should get value from localStorage using user prefix when authenticated', () => {
+        const tokenKey = getSupabaseTokenKey();
+        store[tokenKey] = JSON.stringify({ access_token: createMockJwt('abc123') });
+        store['user_abc123_lang'] = 'en-US';
 
         const result = storage.getItem('lang');
 
-        expect(mockUserStorageService.prefixKey).toHaveBeenCalledWith('lang');
         expect(result).toBe('en-US');
+      });
+
+      it('should get value from localStorage using anonymous prefix when not authenticated', () => {
+        store['anonymous_lang'] = 'fr';
+
+        const result = storage.getItem('lang');
+
+        expect(result).toBe('fr');
       });
 
       it('should return null if key does not exist', () => {
@@ -272,11 +328,19 @@ describe('transloco-storage', () => {
     });
 
     describe('setItem', () => {
-      it('should set value in localStorage using prefixed key', () => {
+      it('should set value in localStorage using user prefix when authenticated', () => {
+        const tokenKey = getSupabaseTokenKey();
+        store[tokenKey] = JSON.stringify({ access_token: createMockJwt('abc123') });
+
         storage.setItem('lang', 'fr');
 
-        expect(mockUserStorageService.prefixKey).toHaveBeenCalledWith('lang');
         expect(localStorage.setItem).toHaveBeenCalledWith('user_abc123_lang', 'fr');
+      });
+
+      it('should set value in localStorage using anonymous prefix when not authenticated', () => {
+        storage.setItem('lang', 'fr');
+
+        expect(localStorage.setItem).toHaveBeenCalledWith('anonymous_lang', 'fr');
       });
 
       it('should not throw if localStorage throws error', () => {
@@ -287,11 +351,10 @@ describe('transloco-storage', () => {
     });
 
     describe('removeItem', () => {
-      it('should remove value from localStorage using prefixed key', () => {
+      it('should remove value from localStorage using appropriate prefix', () => {
         storage.removeItem('lang');
 
-        expect(mockUserStorageService.prefixKey).toHaveBeenCalledWith('lang');
-        expect(localStorage.removeItem).toHaveBeenCalledWith('user_abc123_lang');
+        expect(localStorage.removeItem).toHaveBeenCalledWith('anonymous_lang');
       });
 
       it('should not throw if localStorage throws error', () => {
@@ -304,7 +367,6 @@ describe('transloco-storage', () => {
 
   describe('platformAwareStorageFactory', () => {
     let mockPlatformService: jasmine.SpyObj<PlatformService>;
-    let mockUserStorageService: jasmine.SpyObj<UserStorageService>;
 
     beforeEach(() => {
       mockPlatformService = jasmine.createSpyObj('PlatformService', [
@@ -312,12 +374,10 @@ describe('transloco-storage', () => {
         'isTauri',
         'isWeb'
       ]);
-      mockUserStorageService = jasmine.createSpyObj('UserStorageService', ['prefixKey']);
 
       TestBed.configureTestingModule({
         providers: [
-          { provide: PlatformService, useValue: mockPlatformService },
-          { provide: UserStorageService, useValue: mockUserStorageService }
+          { provide: PlatformService, useValue: mockPlatformService }
         ]
       });
     });

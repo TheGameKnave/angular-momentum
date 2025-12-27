@@ -5,7 +5,9 @@ import {
   OnDestroy,
   Input,
   inject,
+  PLATFORM_ID,
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 /**
  * Scroll state for header/footer updates.
@@ -29,6 +31,8 @@ interface ScrollState {
 })
 export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
   private readonly el = inject(ElementRef);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   @Input() appScrollIndicator: 'vertical' | 'horizontal' | 'both' | '' = 'both';
 
@@ -70,6 +74,9 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
    * Stores the host element reference and begins polling for a scrollable ancestor.
    */
   ngAfterViewInit(): void {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
+
     this.hostElement = this.el.nativeElement;
     this.pollForScrollableAncestor();
   }

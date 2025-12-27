@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, ViewChild, AfterViewInit, signal, c
 import { Router, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '@app/services/auth.service';
 import { AuthUiStateService } from '@app/services/auth-ui-state.service';
 import { UserSettingsService } from '@app/services/user-settings.service';
@@ -10,8 +10,10 @@ import { UsernameService } from '@app/services/username.service';
 import { StoragePromotionService } from '@app/services/storage-promotion.service';
 import { NotificationService } from '@app/services/notification.service';
 import { ConfirmDialogService } from '@app/services/confirm-dialog.service';
+import { IndexedDbService, IDB_STORES } from '@app/services/indexeddb.service';
+import { UserStorageService } from '@app/services/user-storage.service';
 import { AuthGuard } from '@app/guards/auth.guard';
-import { AnchorMenuComponent } from '@app/components/menus/anchor-menu/anchor-menu.component';
+import { DialogMenuComponent } from '@app/components/menus/dialog-menu/dialog-menu.component';
 import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
 import { AuthLoginComponent } from './auth/auth-login/auth-login.component';
 import { AuthSignupComponent } from './auth/auth-signup/auth-signup.component';
@@ -22,6 +24,9 @@ import { AUTO_CLOSE_TIMERS } from '@app/constants/auth.constants';
 
 import type { AuthMode } from '@app/services/auth-ui-state.service';
 import { LogService } from '@app/services/log.service';
+
+/** Storage key for language preference (must match user-settings.service.ts) */
+const STORAGE_KEY_LANGUAGE = 'preferences_language';
 
 /**
  * Auth menu component that coordinates authentication flows.
@@ -40,7 +45,7 @@ import { LogService } from '@app/services/log.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     TranslocoDirective,
-    AnchorMenuComponent,
+    DialogMenuComponent,
     ScrollIndicatorDirective,
     AuthLoginComponent,
     AuthSignupComponent,
@@ -57,10 +62,13 @@ export class MenuAuthComponent implements AfterViewInit {
   private readonly storagePromotionService = inject(StoragePromotionService);
   private readonly notificationService = inject(NotificationService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
+  private readonly indexedDbService = inject(IndexedDbService);
+  private readonly userStorageService = inject(UserStorageService);
+  private readonly translocoService = inject(TranslocoService);
   private readonly router = inject(Router);
   private readonly logService = inject(LogService);
 
-  @ViewChild(AnchorMenuComponent) anchorMenu!: AnchorMenuComponent;
+  @ViewChild(DialogMenuComponent) dialogMenu!: DialogMenuComponent;
 
   /**
    * Callback for storage promotion that runs before auth signals update.
@@ -69,6 +77,8 @@ export class MenuAuthComponent implements AfterViewInit {
    * If anonymous data exists, prompts user to confirm import.
    * On confirm: promotes data to user scope, then clears anonymous data.
    * On skip: leaves anonymous data untouched (may belong to someone else on shared device).
+   *
+   * The dialog is displayed in the target user's language (if they have one set).
    */
   readonly storagePromotionCallback = async (userId: string): Promise<void> => {
     const hasData = await this.storagePromotionService.hasAnonymousData();
@@ -76,6 +86,25 @@ export class MenuAuthComponent implements AfterViewInit {
     if (!hasData) {
       this.logService.log('No anonymous data to promote');
       return;
+    }
+
+    // Check if target user has a stored language preference
+    const targetUserLangKey = this.userStorageService.prefixKeyForUser(userId, STORAGE_KEY_LANGUAGE);
+    const targetUserLangPref = await this.indexedDbService.getRaw(targetUserLangKey, IDB_STORES.SETTINGS) as { value: string } | string | undefined;
+
+    // Extract language value from either new format (object with value) or old format (raw string)
+    let targetUserLang: string | null = null;
+    if (typeof targetUserLangPref === 'object' && targetUserLangPref?.value) {
+      targetUserLang = targetUserLangPref.value;
+    } else if (typeof targetUserLangPref === 'string') {
+      targetUserLang = targetUserLangPref;
+    }
+
+    // Switch to target user's language for the dialog (if different from current)
+    const currentLang = this.translocoService.getActiveLang();
+    if (targetUserLang && targetUserLang !== currentLang) {
+      this.logService.log('Switching to target user language for import dialog', { from: currentLang, to: targetUserLang });
+      this.translocoService.setActiveLang(targetUserLang);
     }
 
     // Show confirmation dialog and wait for user response
@@ -123,6 +152,9 @@ export class MenuAuthComponent implements AfterViewInit {
   /** Auto-close timer in seconds (0 = no timer) */
   readonly autoCloseTimer = signal<number>(AUTO_CLOSE_TIMERS.NONE);
 
+  /** Reference to the auto-close timeout so it can be cleared */
+  private autoCloseTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
   /** Current route URL as a signal */
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -143,7 +175,7 @@ export class MenuAuthComponent implements AfterViewInit {
     // Check if auth service has a returnUrl (set by auth guard)
     if (this.authService.hasReturnUrl() && !this.authService.isAuthenticated()) {
       this.authUiState.setMode('login'); // Switch to login mode for protected routes
-      setTimeout(() => this.anchorMenu.open(), 0); // Open menu after view init
+      setTimeout(() => this.dialogMenu.open(), 0); // Open menu after view init
     }
   }
 
@@ -171,9 +203,10 @@ export class MenuAuthComponent implements AfterViewInit {
 
     // Show timer and delay before closing
     this.autoCloseTimer.set(AUTO_CLOSE_TIMERS.LOGIN);
-    setTimeout(() => {
+    this.autoCloseTimeoutId = setTimeout(() => {
       this.autoCloseTimer.set(AUTO_CLOSE_TIMERS.NONE);
-      this.anchorMenu.close();
+      this.autoCloseTimeoutId = null;
+      this.dialogMenu.close();
     }, AUTO_CLOSE_TIMERS.LOGIN * 1000);
   }
 
@@ -221,10 +254,11 @@ export class MenuAuthComponent implements AfterViewInit {
     // Show timer and delay before closing (to read any warnings)
     this.logService.log(`Setting timer and auto-close in ${AUTO_CLOSE_TIMERS.OTP_VERIFICATION} seconds`);
     this.autoCloseTimer.set(AUTO_CLOSE_TIMERS.OTP_VERIFICATION);
-    setTimeout(() => {
+    this.autoCloseTimeoutId = setTimeout(() => {
       this.logService.log('Timeout fired - closing menu now');
       this.autoCloseTimer.set(AUTO_CLOSE_TIMERS.NONE);
-      this.anchorMenu.close();
+      this.autoCloseTimeoutId = null;
+      this.dialogMenu.close();
     }, AUTO_CLOSE_TIMERS.OTP_VERIFICATION * 1000);
   }
 
@@ -247,7 +281,7 @@ export class MenuAuthComponent implements AfterViewInit {
     await this.usernameService.loadUsername();
 
     // Close menu immediately (user is being navigated to profile)
-    this.anchorMenu.close();
+    this.dialogMenu.close();
   }
 
   /**
@@ -262,7 +296,7 @@ export class MenuAuthComponent implements AfterViewInit {
    * Handle view profile - close menu and navigate to profile page
    */
   onViewProfile(): void {
-    this.anchorMenu.close();
+    this.dialogMenu.close();
     this.router.navigate(['/profile']);
   }
 
@@ -271,8 +305,7 @@ export class MenuAuthComponent implements AfterViewInit {
    * Only redirects to home if currently on an auth-guarded route
    */
   async onLogout(): Promise<void> {
-    this.anchorMenu.close();
-    this.userSettingsService.clear();
+    this.dialogMenu.close();
     this.usernameService.clear();
     this.authUiState.reset();
 
@@ -280,6 +313,9 @@ export class MenuAuthComponent implements AfterViewInit {
     const requiresAuth = this.isCurrentRouteAuthGuarded();
 
     await this.authService.logout();
+
+    // Clear user settings and reload preferences for anonymous scope
+    await this.userSettingsService.clear();
 
     // Reload notifications from anonymous storage (will be empty or have anonymous notifications)
     this.notificationService.reloadFromStorage();
@@ -291,9 +327,17 @@ export class MenuAuthComponent implements AfterViewInit {
   }
 
   /**
-   * Handle menu closed - reset UI state to clear any error messages
+   * Handle menu closed - reset UI state and clear any pending auto-close timer.
+   * This prevents the timer from closing the menu if it's reopened before the timer fires.
    */
   onMenuClosed(): void {
+    // Clear any pending auto-close timer
+    if (this.autoCloseTimeoutId !== null) {
+      clearTimeout(this.autoCloseTimeoutId);
+      this.autoCloseTimeoutId = null;
+      this.autoCloseTimer.set(AUTO_CLOSE_TIMERS.NONE);
+    }
+
     this.authUiState.reset();
   }
 

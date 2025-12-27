@@ -1100,3 +1100,13 @@
 .fi-xk {
   background-image: url(../../icons/vendor/flags/xk.svg);
 }
+
+/* Custom flag for Svenska (Bork Bork!) - inverted Swedish flag */
+.fi-bork {
+  background-image: url(../../icons/vendor/flags/bork.svg);
+}
+
+/* Custom flag for English (Twain) - Mark Twain's phonetic reform */
+.fi-twain {
+  background-image: url(../../icons/vendor/flags/twain.svg);
+}

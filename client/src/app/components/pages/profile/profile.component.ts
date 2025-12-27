@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, signal, computed, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, OnInit, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators, type ValidatorFn } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
@@ -13,8 +14,8 @@ import { InputIconModule } from 'primeng/inputicon';
 import { MessageModule } from 'primeng/message';
 import { TooltipModule } from 'primeng/tooltip';
 import { SelectModule } from 'primeng/select';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { ConfirmDialogService } from '@app/services/confirm-dialog.service';
-import { DialogConfirmComponent } from '@app/components/dialogs/dialog-confirm/dialog-confirm.component';
 import { AuthService } from '@app/services/auth.service';
 import { UserSettingsService } from '@app/services/user-settings.service';
 import { UsernameService } from '@app/services/username.service';
@@ -22,7 +23,7 @@ import { DataExportService } from '@app/services/data-export.service';
 import { DataMigrationService } from '@app/services/data-migration.service';
 import { IndexedDbService } from '@app/services/indexeddb.service';
 import { NotificationService } from '@app/services/notification.service';
-import { DatePipe } from '@angular/common';
+import { RelativeTimeComponent } from '@app/components/ui/relative-time/relative-time.component';
 import { passwordComplexityValidator, PASSWORD_REQUIREMENT_KEYS, USERNAME_REQUIREMENT_KEYS } from '@app/helpers/validation';
 import { getUserInitials } from '@app/helpers/user.helper';
 import { TOOLTIP_CONFIG } from '@app/constants/ui.constants';
@@ -56,8 +57,8 @@ import { TOOLTIP_CONFIG } from '@app/constants/ui.constants';
     MessageModule,
     TooltipModule,
     SelectModule,
-    DialogConfirmComponent,
-    DatePipe,
+    ToggleSwitchModule,
+    RelativeTimeComponent,
   ],
 })
 export class ProfileComponent implements OnInit {
@@ -73,6 +74,7 @@ export class ProfileComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly translocoService = inject(TranslocoService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   // Password change panel state
   readonly passwordPanelExpanded = signal(false);
@@ -84,9 +86,11 @@ export class ProfileComponent implements OnInit {
   readonly showCurrentPassword = signal(false);
   readonly isPasswordResetFlow = signal(false); // True when coming from password reset email
 
-  // Timezone state
+  // Timezone state - use service signal directly
   readonly timezoneLoading = signal(false);
-  readonly selectedTimezone = signal<string>('UTC');
+
+  // Theme state - use service signal directly
+  readonly themeLoading = signal(false);
 
   // Username state
   readonly usernamePanelExpanded = signal(false);
@@ -102,6 +106,10 @@ export class ProfileComponent implements OnInit {
   readonly emailLoading = signal(false);
   readonly emailError = signal<string | null>(null);
   readonly emailSuccess = signal(false);
+  readonly emailOtpSent = signal(false); // True when OTP has been sent
+  readonly emailChangeComplete = signal(false); // True when email change is fully completed
+  readonly pendingNewEmail = signal<string | null>(null); // Email awaiting OTP verification
+  readonly emailOtp = signal(''); // OTP input value
 
   // Common timezones for the dropdown
   readonly commonTimezones = [
@@ -174,7 +182,8 @@ export class ProfileComponent implements OnInit {
     const isResetFlow = this.authService.isPasswordRecovery();
 
     // Check for router state from OTP password reset flow
-    const routerState = globalThis.history.state;
+    // istanbul ignore next - SSR guard
+    const routerState = isPlatformBrowser(this.platformId) ? globalThis.history.state : null;
     const expandPasswordPanel = routerState?.['expandPasswordPanel'];
 
     if (isResetFlow || expandPasswordPanel) {
@@ -187,14 +196,8 @@ export class ProfileComponent implements OnInit {
       );
     }
 
-    // Load user settings (timezone)
-    const settings = this.userSettingsService.settings();
-    if (settings?.timezone) {
-      this.selectedTimezone.set(settings.timezone);
-    } else {
-      // Use detected timezone as fallback
-      this.selectedTimezone.set(this.userSettingsService.detectTimezone());
-    }
+    // Preferences are loaded from userSettingsService signals
+    // (themePreference and timezonePreference are already reactive)
 
     // Load username asynchronously
     this.loadUsernameAsync();
@@ -229,11 +232,14 @@ export class ProfileComponent implements OnInit {
    */
   async onLogout(): Promise<void> {
     // Clear user data
-    this.userSettingsService.clear();
     this.usernameService.clear();
 
     // Logout and navigate to home (required since /profile is auth-guarded)
     await this.authService.logout();
+
+    // Clear user settings and reload preferences for anonymous scope
+    await this.userSettingsService.clear();
+
     await this.router.navigate(['/']);
   }
 
@@ -332,7 +338,7 @@ export class ProfileComponent implements OnInit {
   }
 
   /**
-   * Handle email change form submission
+   * Handle email change form submission (step 1: send OTP)
    */
   async onSubmitEmailChange(): Promise<void> {
     if (this.emailForm.invalid) {
@@ -345,7 +351,7 @@ export class ProfileComponent implements OnInit {
 
     const { newEmail } = this.emailForm.value;
 
-    // Update email (sends verification to new email)
+    // Update email (sends verification OTP to new email)
     const { error } = await this.authService.updateEmail(newEmail);
 
     this.emailLoading.set(false);
@@ -355,9 +361,108 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
-    // Success! User needs to verify new email
+    // OTP sent! Show OTP input form
+    this.pendingNewEmail.set(newEmail);
+    this.emailOtpSent.set(true);
     this.emailSuccess.set(true);
+  }
+
+  /**
+   * Handle OTP input for email change verification
+   */
+  onEmailOtpInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const filtered = input.value.replaceAll(/\D/g, '');
+    if (input.value !== filtered) {
+      input.value = filtered;
+    }
+    this.emailOtp.set(filtered);
+
+    // Auto-submit when 6 digits entered
+    if (filtered.length === 6) {
+      this.onVerifyEmailOtp();
+    }
+  }
+
+  /**
+   * Handle paste for OTP input
+   */
+  onEmailOtpPaste(event: ClipboardEvent): void {
+    event.preventDefault();
+    const pastedText = event.clipboardData?.getData('text') ?? '';
+    const filtered = pastedText.replaceAll(/\D/g, '').slice(0, 6);
+    this.emailOtp.set(filtered);
+
+    // Auto-submit when 6 digits pasted
+    if (filtered.length === 6) {
+      this.onVerifyEmailOtp();
+    }
+  }
+
+  /**
+   * Handle OTP verification for email change (step 2: verify OTP)
+   */
+  async onVerifyEmailOtp(): Promise<void> {
+    const otp = this.emailOtp();
+    const newEmail = this.pendingNewEmail();
+
+    if (otp?.length !== 6 || !newEmail) {
+      return;
+    }
+
+    this.emailLoading.set(true);
+    this.emailError.set(null);
+
+    const { error } = await this.authService.verifyEmailChangeOtp(newEmail, otp);
+
+    this.emailLoading.set(false);
+
+    if (error) {
+      this.emailError.set(error.message);
+      return;
+    }
+
+    // Success! Email has been changed
+    this.emailChangeComplete.set(true);
+    this.emailOtpSent.set(false);
+    this.pendingNewEmail.set(null);
+    this.emailOtp.set('');
     this.emailForm.reset();
+  }
+
+  /**
+   * Cancel email change and go back to email input
+   */
+  onCancelEmailChange(): void {
+    this.emailOtpSent.set(false);
+    this.emailChangeComplete.set(false);
+    this.pendingNewEmail.set(null);
+    this.emailOtp.set('');
+    this.emailError.set(null);
+    this.emailSuccess.set(false);
+  }
+
+  /**
+   * Resend OTP for email change
+   */
+  async onResendEmailOtp(): Promise<void> {
+    const newEmail = this.pendingNewEmail();
+    if (!newEmail) return;
+
+    this.emailLoading.set(true);
+    this.emailError.set(null);
+
+    const { error } = await this.authService.updateEmail(newEmail);
+
+    this.emailLoading.set(false);
+
+    if (error) {
+      this.emailError.set(error.message);
+      return;
+    }
+
+    // Show success message for resend
+    this.emailSuccess.set(true);
   }
 
   /**
@@ -406,13 +511,18 @@ export class ProfileComponent implements OnInit {
    * Handle timezone change
    */
   async onTimezoneChange(event: { value: string }): Promise<void> {
-    const newTimezone = event.value;
     this.timezoneLoading.set(true);
-
-    await this.userSettingsService.updateTimezone(newTimezone);
-    this.selectedTimezone.set(newTimezone);
-
+    await this.userSettingsService.updateTimezone(event.value);
     this.timezoneLoading.set(false);
+  }
+
+  /**
+   * Handle theme toggle change
+   */
+  async onThemeChange(isDark: boolean): Promise<void> {
+    this.themeLoading.set(true);
+    await this.userSettingsService.updateThemePreference(isDark ? 'dark' : 'light');
+    this.themeLoading.set(false);
   }
 
   /**
@@ -538,8 +648,8 @@ export class ProfileComponent implements OnInit {
       confirmIcon: 'pi pi-trash',
       confirmSeverity: 'danger',
       onConfirm: async () => {
-        // Clear IndexedDB data for current user
-        await this.indexedDbService.clear();
+        // Clear IndexedDB data for current user (all stores)
+        await this.indexedDbService.clearAll();
 
         // Clear notification service local state
         this.notificationService.clearAll();
@@ -547,15 +657,15 @@ export class ProfileComponent implements OnInit {
         // Delete user settings from server and clear local state
         await this.userSettingsService.deleteSettings();
 
-        // Reset timezone UI to detected timezone (since saved preference was cleared)
-        this.selectedTimezone.set(this.userSettingsService.detectTimezone());
+        // Reload preferences (will use detected timezone since server settings cleared)
+        await this.userSettingsService.loadLocalPreferences();
       },
     });
   }
 
   /**
    * Delete account with confirmation.
-   * Uses CDK dialog for confirmation.
+   * Uses CDK dialog for confirmation with required text input.
    */
   onDeleteAccount(): void {
     this.confirmDialogService.show({
@@ -566,6 +676,7 @@ export class ProfileComponent implements OnInit {
       confirmLabel: 'profile.Delete Account',
       confirmIcon: 'pi pi-trash',
       confirmSeverity: 'danger',
+      requireConfirmationText: 'DELETE',
       onConfirm: async () => {
         const { error } = await this.authService.deleteAccount();
 

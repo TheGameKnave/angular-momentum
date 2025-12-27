@@ -10,6 +10,7 @@ describe('RelativeTimePipe', () => {
     translocoService = jasmine.createSpyObj('TranslocoService', ['translate']);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     translocoService.translate.and.callFake(((key: string, params?: Record<string, unknown>) => {
+      // Past times
       if (key === 'time.Just now') return 'Just now';
       if (key === 'time.minutes ago') return `${params?.['count']}m ago`;
       if (key === 'time.hours ago') return `${params?.['count']}h ago`;
@@ -17,6 +18,14 @@ describe('RelativeTimePipe', () => {
       if (key === 'time.weeks ago') return `${params?.['count']}w ago`;
       if (key === 'time.months ago') return `${params?.['count']}mo ago`;
       if (key === 'time.years ago') return `${params?.['count']}y ago`;
+      // Future times
+      if (key === 'time.Momentarily') return 'Momentarily';
+      if (key === 'time.in minutes') return `in ${params?.['count']}m`;
+      if (key === 'time.in hours') return `in ${params?.['count']}h`;
+      if (key === 'time.in days') return `in ${params?.['count']}d`;
+      if (key === 'time.in weeks') return `in ${params?.['count']}w`;
+      if (key === 'time.in months') return `in ${params?.['count']}mo`;
+      if (key === 'time.in years') return `in ${params?.['count']}y`;
       return key;
     }) as typeof translocoService.translate);
 
@@ -122,9 +131,54 @@ describe('RelativeTimePipe', () => {
     expect(pipe.transform(twoHoursAgo)).toBe('2h ago');
   });
 
-  it('should return "Just now" for future dates', () => {
-    const future = new Date(Date.now() + 60 * 60 * 1000);
-    expect(pipe.transform(future)).toBe('Just now');
+  describe('future dates', () => {
+    it('should return "Momentarily" for times less than 1 minute in the future', () => {
+      const thirtySecondsFromNow = new Date(Date.now() + 30 * 1000);
+      expect(pipe.transform(thirtySecondsFromNow)).toBe('Momentarily');
+    });
+
+    it('should return minutes for times 1-59 minutes in the future', () => {
+      // Add 30s buffer to avoid flaky test when Date.now() shifts between setup and assertion
+      const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000 + 30 * 1000);
+      expect(pipe.transform(fiveMinutesFromNow)).toBe('in 5m');
+    });
+
+    it('should return hours for times 2+ hours in the future', () => {
+      const threeHoursFromNow = new Date(Date.now() + 3 * 60 * 60 * 1000);
+      expect(pipe.transform(threeHoursFromNow)).toBe('in 3h');
+    });
+
+    it('should return days for times 2+ days in the future', () => {
+      const twoDaysFromNow = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+      expect(pipe.transform(twoDaysFromNow)).toBe('in 2d');
+    });
+
+    it('should return weeks for times 2+ weeks in the future', () => {
+      const twoWeeksFromNow = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+      expect(pipe.transform(twoWeeksFromNow)).toBe('in 2w');
+    });
+
+    it('should return months for times 2+ months in the future', () => {
+      const threeMonthsFromNow = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+      expect(pipe.transform(threeMonthsFromNow)).toBe('in 3mo');
+    });
+
+    it('should return years for times 2+ years in the future', () => {
+      const twoYearsFromNow = new Date(Date.now() + 730 * 24 * 60 * 60 * 1000);
+      expect(pipe.transform(twoYearsFromNow)).toBe('in 2y');
+    });
+
+    it('should call translate with correct params for future days', () => {
+      const twoDaysFromNow = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+      pipe.transform(twoDaysFromNow);
+      expect(translocoService.translate).toHaveBeenCalledWith('time.in days', { count: 2 });
+    });
+
+    it('should call translate with correct params for future minutes', () => {
+      const tenMinutesFromNow = new Date(Date.now() + 10 * 60 * 1000);
+      pipe.transform(tenMinutesFromNow);
+      expect(translocoService.translate).toHaveBeenCalledWith('time.in minutes', { count: 10 });
+    });
   });
 
   it('should call translate with correct params for days', () => {

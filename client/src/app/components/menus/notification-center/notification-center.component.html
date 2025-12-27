@@ -1,9 +1,8 @@
-<app-anchor-menu position="top-right" width="38rem" *transloco="let t">
+<app-dialog-menu position="top-right" width="38rem" *transloco="let t">
   <!-- Trigger: Notification Center Button -->
   <span
     menu-trigger
     class="notification-center-button"
-    [attr.aria-label]="t('nav.Notifications') + (notificationService.unreadCount() > 0 ? ' (' + notificationService.unreadCount() + ' ' + t('a11y.unread') + ')' : '')"
     [attr.title]="t('nav.Notifications')"
   >
     <i class="pi pi-bell"></i>
@@ -56,15 +55,18 @@
                   <div class="notification-header">
                     <div class="notification-content">
                       @if (notification.icon) {
-                        <img [src]="notification.icon" alt="" class="notification-icon" />
+                        <img [src]="notification.icon" alt="" class="notification-icon" width="64" height="64" loading="lazy" />
                       }
                       <div class="notification-text">
                         <div class="notification-title">{{ getTitle(notification) }}</div>
-                        <div class="notification-time">{{ notification.timestamp | relativeTime }}</div>
+                        <app-relative-time
+                          class="notification-time"
+                          [timestamp]="notification.timestamp"
+                        />
                       </div>
                     </div>
                     <p-button
-                      icon="pi pi-times"
+                      icon="pi pi-trash"
                       (onClick)="deleteNotification($event, notification.id)"
                       [text]="true"
                       [rounded]="true"
@@ -92,4 +94,4 @@
       </div>
     }
   </div>
-</app-anchor-menu>
+</app-dialog-menu>

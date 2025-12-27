@@ -1,0 +1,31 @@
+<!-- Trigger Button -->
+<button
+  type="button"
+  class="dialog-menu-trigger"
+  (click)="toggle()"
+  [attr.aria-label]="ariaLabelOpen()"
+>
+  <ng-content select="[menu-trigger]"></ng-content>
+</button>
+
+<!-- Menu Overlay Template -->
+<ng-template #menuTemplate>
+  <div
+    class="dialog-menu-panel"
+    [ngClass]="'position-' + position()"
+    [style.width]="width()"
+    [style.z-index]="zIndex()"
+  >
+    @if (showCloseButton()) {
+      <button
+        type="button"
+        class="dialog-menu-close-button close"
+        (click)="close()"
+        [attr.aria-label]="ariaLabelClose()"
+      >
+        <i class="pi pi-times"></i>
+      </button>
+    }
+    <ng-content select="[menu-content]"></ng-content>
+  </div>
+</ng-template>

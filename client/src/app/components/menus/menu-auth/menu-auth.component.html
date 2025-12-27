@@ -1,14 +1,13 @@
-<app-anchor-menu position="top-right" width="38rem" (closed)="onMenuClosed()">
+<app-dialog-menu position="top-right" width="38rem" (closed)="onMenuClosed()">
   <!-- Auth Menu Button -->
   <span
     menu-trigger
     class="auth-menu-button"
-    [attr.aria-label]="authService.isAuthenticated() ? 'Profile' : 'Log in'"
   >
     @if (authService.isAuthenticated()) {
-      <i class="pi pi-user text-xl" [class.active-route]="isProfileRoute()"></i>
+      <i class="pi pi-user" [class.active-route]="isProfileRoute()"></i>
     } @else {
-      <i class="pi pi-sign-in text-xl"></i>
+      <i class="pi pi-sign-in"></i>
     }
   </span>
 
@@ -17,11 +16,11 @@
     @if (authService.isAuthenticated()) {
       <!-- Profile View (when authenticated) -->
       <div menu-header class="menu-auth-header">
-        <h3 class="text-lg font-semibold">{{ t('profile.Profile') }}</h3>
+        <h3>{{ t('profile.Profile') }}</h3>
         <hr />
       </div>
 
-      <div menu-body appScrollIndicator class="menu-auth-body profile-menu">
+      <div menu-body appScrollIndicator class="menu-auth-body">
         <app-auth-profile
           [autoCloseSeconds]="autoCloseTimer()"
           (profileClick)="onViewProfile()"
@@ -91,4 +90,4 @@
       </div>
     }
   </div>
-</app-anchor-menu>
+</app-dialog-menu>

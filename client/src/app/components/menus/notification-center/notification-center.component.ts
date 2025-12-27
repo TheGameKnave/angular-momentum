@@ -3,8 +3,9 @@ import { Component, inject } from '@angular/core';
 import { NotificationService } from '../../../services/notification.service';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { AnchorMenuComponent } from '../anchor-menu/anchor-menu.component';
+import { DialogMenuComponent } from '../dialog-menu/dialog-menu.component';
 import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
+import { RelativeTimeComponent } from '@app/components/ui/relative-time/relative-time.component';
 import { RelativeTimePipe } from '@app/pipes/relative-time.pipe';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { LocalizedStrings, Notification } from '@app/models/data.model';
@@ -17,18 +18,17 @@ import { LocalizedStrings, Notification } from '@app/models/data.model';
  * to mark as read, delete individual notifications, or clear all. It also provides
  * a button to request notification permissions if not already granted.
  *
- * Uses the shared AnchorMenuComponent for overlay behavior.
+ * Uses the shared DialogMenuComponent for overlay behavior.
  */
 @Component({
   selector: 'app-notification-center',
   standalone: true,
-  imports: [ButtonModule, CardModule, AnchorMenuComponent, ScrollIndicatorDirective, TranslocoDirective, RelativeTimePipe],
+  imports: [ButtonModule, CardModule, DialogMenuComponent, ScrollIndicatorDirective, TranslocoDirective, RelativeTimeComponent, RelativeTimePipe],
   templateUrl: './notification-center.component.html'
 })
 export class NotificationCenterComponent {
   readonly notificationService = inject(NotificationService);
   private readonly translocoService = inject(TranslocoService);
-
 
   /**
    * Marks a specific notification as read.
@@ -84,8 +84,8 @@ export class NotificationCenterComponent {
     // Server-sent localized notifications: pick current locale
     if (notification.localizedTitle) {
       const text = this.getLocalizedString(notification.localizedTitle);
-      // Apply ICU formatting if there are params
-      return notification.params ? this.translocoService.translate(text, notification.params) : text;
+      // Apply simple param interpolation (text is already translated, not a key)
+      return notification.params ? this.interpolateParams(text, notification.params) : text;
     }
     // Legacy key-based translations
     if (notification.titleKey) {
@@ -104,14 +104,28 @@ export class NotificationCenterComponent {
     // Server-sent localized notifications: pick current locale
     if (notification.localizedBody) {
       const text = this.getLocalizedString(notification.localizedBody);
-      // Apply ICU formatting if there are params
-      return notification.params ? this.translocoService.translate(text, notification.params) : text;
+      // Apply simple param interpolation (text is already translated, not a key)
+      return notification.params ? this.interpolateParams(text, notification.params) : text;
     }
     // Legacy key-based translations
     if (notification.bodyKey) {
       return this.translocoService.translate(notification.bodyKey, notification.params || {});
     }
     return notification.body;
+  }
+
+  /**
+   * Simple string interpolation for params like {time}.
+   * Replaces {key} placeholders with values from params object.
+   */
+  private interpolateParams(text: string, params: Record<string, unknown>): string {
+    return text.replaceAll(/\{(\w+)\}/g, (_, key: string) => {
+      const value = params[key];
+      if (value === null || value === undefined) return `{${key}}`;
+      if (typeof value === 'object') return JSON.stringify(value);
+      // After null/undefined/object checks, value is a primitive (string, number, boolean, bigint, symbol)
+      return String(value as string | number | boolean | bigint | symbol);
+    });
   }
 
   /**

@@ -330,9 +330,10 @@ describe('NotificationService', () => {
       expect(id).toContain('notification_');
     });
 
-    it('should not show notification when permission is not granted', async () => {
+    it('should not show notification when permission is not granted and request is denied', async () => {
       service = TestBed.inject(NotificationService);
       spyOn<any>(service, 'checkPermission').and.returnValue(Promise.resolve(false));
+      spyOn<any>(service, 'requestPermission').and.returnValue(Promise.resolve(false));
 
       const options: NotificationOptions = {
         title: 'Test Title',
@@ -342,7 +343,10 @@ describe('NotificationService', () => {
       await service.show(options);
 
       expect(logServiceSpy.log).toHaveBeenCalledWith(
-        'Notification permission not granted'
+        'Notification permission not granted, requesting...'
+      );
+      expect(logServiceSpy.log).toHaveBeenCalledWith(
+        'Notification permission denied by user'
       );
     });
   });
@@ -546,6 +550,35 @@ describe('NotificationService', () => {
       expect(translocoServiceSpy.translate).toHaveBeenCalledWith(
         'notification.title.key',
         jasmine.objectContaining({ time: jasmine.any(String) })
+      );
+    }));
+
+    it('should return original string when time param is not a valid ISO date', fakeAsync(() => {
+      const mockNotification: NotificationOptions = {
+        title: 'notification.title.key',
+        body: 'notification.body.key',
+        data: {
+          params: {
+            time: '10:00 PM' // Not an ISO date, should be returned as-is
+          }
+        }
+      };
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'notification') {
+          return of(mockNotification) as any;
+        }
+        return of() as any;
+      });
+      spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      // The invalid date should be passed through unchanged
+      expect(translocoServiceSpy.translate).toHaveBeenCalledWith(
+        'notification.title.key',
+        jasmine.objectContaining({ time: '10:00 PM' })
       );
     }));
 
@@ -835,11 +868,87 @@ describe('NotificationService', () => {
       service = TestBed.inject(NotificationService);
       tick();
 
-      // Verify translate was called with params
-      expect(translocoServiceSpy.translate).toHaveBeenCalledWith(
-        'Maintenance',
-        jasmine.objectContaining({ time: jasmine.any(String) })
-      );
+      // Verify show was called with interpolated params (no longer uses translate for already-translated text)
+      expect(showSpy).toHaveBeenCalled();
+      const showCallArg = showSpy.calls.mostRecent().args[0];
+      expect(showCallArg.title).toBe('Maintenance');
+      expect(showCallArg.body).toContain('Server maintenance at');
+    }));
+
+    it('should keep placeholder when param is missing', fakeAsync(() => {
+      const mockLocalizedPayload = {
+        title: { 'en-US': 'Hello {name}!', 'en-GB': 'Hello {name}!' },
+        body: { 'en-US': 'Welcome {name}', 'en-GB': 'Welcome {name}' },
+        label: { 'en-US': 'Greeting', 'en-GB': 'Greeting' },
+        params: { other: 'value' } // 'name' is missing
+      };
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return of(mockLocalizedPayload) as any;
+        }
+        return of() as any;
+      });
+      const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+      translocoServiceSpy.getActiveLang.and.returnValue('en-US');
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      const showCallArg = showSpy.calls.mostRecent().args[0];
+      // Placeholder should remain since param is undefined
+      expect(showCallArg.title).toBe('Hello {name}!');
+      expect(showCallArg.body).toBe('Welcome {name}');
+    }));
+
+    it('should handle null param values by keeping placeholder', fakeAsync(() => {
+      const mockLocalizedPayload = {
+        title: { 'en-US': 'Value: {val}', 'en-GB': 'Value: {val}' },
+        body: { 'en-US': 'Data: {val}', 'en-GB': 'Data: {val}' },
+        label: { 'en-US': 'Info', 'en-GB': 'Info' },
+        params: { val: null }
+      };
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return of(mockLocalizedPayload) as any;
+        }
+        return of() as any;
+      });
+      const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+      translocoServiceSpy.getActiveLang.and.returnValue('en-US');
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      const showCallArg = showSpy.calls.mostRecent().args[0];
+      // Null values should keep placeholder
+      expect(showCallArg.title).toBe('Value: {val}');
+    }));
+
+    it('should stringify object param values', fakeAsync(() => {
+      const mockLocalizedPayload = {
+        title: { 'en-US': 'Data: {data}', 'en-GB': 'Data: {data}' },
+        body: { 'en-US': 'Info: {data}', 'en-GB': 'Info: {data}' },
+        label: { 'en-US': 'Info', 'en-GB': 'Info' },
+        params: { data: { key: 'value' } }
+      };
+
+      socketServiceSpy.listen.and.callFake((event) => {
+        if (event === 'localized-notification') {
+          return of(mockLocalizedPayload) as any;
+        }
+        return of() as any;
+      });
+      const showSpy = spyOn(NotificationService.prototype, 'show').and.returnValue(Promise.resolve('test-id'));
+      translocoServiceSpy.getActiveLang.and.returnValue('en-US');
+
+      service = TestBed.inject(NotificationService);
+      tick();
+
+      const showCallArg = showSpy.calls.mostRecent().args[0];
+      // Object should be JSON stringified
+      expect(showCallArg.title).toBe('Data: {"key":"value"}');
     }));
 
     it('should handle localized notifications without params', fakeAsync(() => {

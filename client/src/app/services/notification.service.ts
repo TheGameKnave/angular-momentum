@@ -1,4 +1,5 @@
-import { DestroyRef, Injectable, signal, inject } from '@angular/core';
+import { DestroyRef, Injectable, signal, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { sendNotification, isPermissionGranted, requestPermission } from '@tauri-apps/plugin-notification';
 import { TranslocoService } from '@jsverse/transloco';
 import { LogService } from './log.service';
@@ -37,13 +38,30 @@ export class NotificationService {
   private readonly userSettingsService = inject(UserSettingsService);
   private readonly userStorageService = inject(UserStorageService);
   private readonly destroyRef = inject(DestroyRef);
-
+  private readonly platformId = inject(PLATFORM_ID);
   permissionGranted = signal<boolean>(false);
   notifications = signal<Notification[]>([]);
   unreadCount = signal<number>(0);
   private readonly isTauri = '__TAURI__' in globalThis;
+  private initialized = false;
 
   constructor() {
+    // Initialize immediately if in browser, otherwise defer
+    // istanbul ignore next - SSR: skip browser-specific initialization
+    if (isPlatformBrowser(this.platformId)) {
+      this.initialize();
+    }
+  }
+
+  /**
+   * Initialize browser-specific functionality.
+   * Called from constructor in browser, or can be called manually after hydration.
+   */
+  private initialize(): void {
+    // istanbul ignore next - re-initialization guard, only triggered if called multiple times
+    if (this.initialized) return;
+    this.initialized = true;
+
     this.loadNotificationsFromStorage();
     this.listenForWebSocketNotifications();
     this.listenForLocalizedNotifications();
@@ -130,9 +148,10 @@ export class NotificationService {
           params = { ...params, time: this.formatTimestampWithTimezone(params['time']) };
         }
 
-        // Apply ICU formatting for native OS notifications (which can't re-translate)
-        const formattedTitle = params ? this.translocoService.translate(title, params) : title;
-        const formattedBody = params ? this.translocoService.translate(body, params) : body;
+        // Apply simple param interpolation for native OS notifications (which can't re-translate)
+        // Don't use translocoService.translate() here as the text is already translated, not a key
+        const formattedTitle = params ? this.interpolateParams(title, params) : title;
+        const formattedBody = params ? this.interpolateParams(body, params) : body;
 
         // Store all language variants so notifications update when language changes
         const notificationOptions: NotificationOptions = {
@@ -165,15 +184,40 @@ export class NotificationService {
   }
 
   /**
+   * Simple string interpolation for params like {time}.
+   * Replaces {key} placeholders with values from params object.
+   * @param text - Text with {key} placeholders
+   * @param params - Object with key-value pairs to interpolate
+   * @returns Text with placeholders replaced by values
+   */
+  private interpolateParams(text: string, params: Record<string, unknown>): string {
+    return text.replaceAll(/\{(\w+)\}/g, (_, key: string) => {
+      const value = params[key];
+      if (value === null || value === undefined) return `{${key}}`;
+      if (typeof value === 'object') return JSON.stringify(value);
+      // After null/undefined/object checks, value is a primitive (string, number, boolean, bigint, symbol)
+      return String(value as string | number | boolean | bigint | symbol);
+    });
+  }
+
+  /**
    * Format a timestamp string according to the user's timezone preference.
-   * @param timestamp - ISO timestamp string
-   * @returns Formatted timestamp in the user's preferred timezone
+   * @param timestamp - ISO timestamp string or pre-formatted time string
+   * @returns Formatted timestamp in the user's preferred timezone, or original string if not a valid date
    */
   private formatTimestampWithTimezone(timestamp: string): string {
+    const date = new Date(timestamp);
+
+    // If not a valid ISO date, return the original string (e.g., "10:00 PM")
+    if (Number.isNaN(date.getTime())) {
+      return timestamp;
+    }
+
     const userTimezone = this.userSettingsService.settings()?.timezone ?? this.userSettingsService.detectTimezone();
+    const locale = this.translocoService.getActiveLang();
 
     try {
-      return new Date(timestamp).toLocaleString(undefined, {
+      return date.toLocaleString(locale, {
         timeZone: userTimezone,
         year: 'numeric',
         month: 'short',
@@ -184,7 +228,7 @@ export class NotificationService {
     } catch (error) {
       // Fallback to default formatting if timezone is invalid
       this.logService.log('Error formatting timestamp with timezone', error);
-      return new Date(timestamp).toLocaleString();
+      return date.toLocaleString(locale);
     }
   }
 
@@ -193,6 +237,8 @@ export class NotificationService {
    * @returns True if running in Tauri or if browser supports Notification API and Service Workers
    */
   isSupported(): boolean {
+    // istanbul ignore next - SSR guard
+    if (!isPlatformBrowser(this.platformId)) return false;
     // istanbul ignore next - Browser API feature detection
     return this.isTauri || ('Notification' in globalThis && 'serviceWorker' in navigator);
   }
@@ -278,11 +324,15 @@ export class NotificationService {
 
     this.addNotification(notification);
 
-    // Check permission before showing
-    const hasPermission = await this.checkPermission();
+    // Check permission before showing, request if not granted
+    let hasPermission = await this.checkPermission();
     if (!hasPermission) {
-      this.logService.log('Notification permission not granted');
-      return notificationId;
+      this.logService.log('Notification permission not granted, requesting...');
+      hasPermission = await this.requestPermission();
+      if (!hasPermission) {
+        this.logService.log('Notification permission denied by user');
+        return notificationId;
+      }
     }
 
     // istanbul ignore next - Tauri API, Service Worker, and Browser Notification API integration testing
@@ -497,6 +547,9 @@ export class NotificationService {
    * Limits storage to the most recent notifications to prevent excessive storage usage.
    */
   private saveNotificationsToStorage(): void {
+    // istanbul ignore next - SSR guard
+    if (!isPlatformBrowser(this.platformId)) return;
+
     try {
       const storageKey = this.userStorageService.prefixKey(NOTIFICATIONS_STORAGE_KEY);
       const notifications = this.notifications();
@@ -514,6 +567,9 @@ export class NotificationService {
    * Converts timestamp strings back to Date objects.
    */
   private loadNotificationsFromStorage(): void {
+    // istanbul ignore next - SSR guard
+    if (!isPlatformBrowser(this.platformId)) return;
+
     try {
       const storageKey = this.userStorageService.prefixKey(NOTIFICATIONS_STORAGE_KEY);
       const stored = localStorage.getItem(storageKey);

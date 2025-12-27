@@ -52,10 +52,10 @@ export const routes: Route[] = [
     path: 'privacy',
     loadComponent: loadPrivacyPolicyComponent
   },
-  // Dynamic feature routes
+  // Dynamic feature routes (lazy-loaded)
   ...COMPONENT_LIST.map(component => ({
-    path: slugPipe.transform(component.name),
-    component: component.component,
+    path: component.route ?? slugPipe.transform(component.name),
+    loadComponent: component.loadComponent,
     canActivate: [FeatureFlagGuard]
   })),
   // Fallback route

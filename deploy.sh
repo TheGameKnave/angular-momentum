@@ -15,17 +15,20 @@ case "$ENV" in
   dev)
     GIT_REMOTE="heroku-dev"
     GIT_BRANCH="dev"
+    APP_URL="https://dev.angularmomentum.app"
     USE_LINODE=false
     ;;
   staging)
     GIT_REMOTE="heroku-staging"
     GIT_BRANCH="staging"
+    APP_URL="https://staging.angularmomentum.app"
     LINODE_FOLDER="staging"
     USE_LINODE=true
     ;;
   production)
     GIT_REMOTE="heroku-production"
     GIT_BRANCH="origin/main"
+    APP_URL="https://angularmomentum.app"
     LINODE_FOLDER="production"
     USE_LINODE=true
     ;;
@@ -59,3 +62,44 @@ git push $GIT_REMOTE $GIT_BRANCH:main
 # fi
 
 echo "✅ Deployment to '$ENV' complete."
+
+# Run smoke tests for dev and staging
+if [[ "$ENV" == "dev" || "$ENV" == "staging" ]]; then
+  echo ""
+  echo "⏳ Waiting for Heroku to finish deploying..."
+  sleep 30
+
+  # Purge Cloudflare cache if credentials are set
+  if [[ -n "$CLOUDFLARE_ZONE_ID" && -n "$CLOUDFLARE_API_TOKEN" ]]; then
+    echo "🔄 Purging Cloudflare cache..."
+    PURGE_RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
+      -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+      -H "Content-Type: application/json" \
+      --data '{"purge_everything":true}')
+
+    if echo "$PURGE_RESPONSE" | grep -q '"success":true'; then
+      echo "✅ Cloudflare cache purged successfully"
+    else
+      echo "⚠️ Cloudflare cache purge may have failed: $PURGE_RESPONSE"
+    fi
+
+    # Give Cloudflare a moment to propagate
+    sleep 5
+  else
+    echo "⚠️ Skipping Cloudflare cache purge (CLOUDFLARE_ZONE_ID or CLOUDFLARE_API_TOKEN not set)"
+  fi
+
+  echo "🧪 Running smoke tests against $APP_URL..."
+  cd tests/e2e
+  APP_BASE_URL="$APP_URL" npx playwright test -c playwright.smoke.config.ts --reporter=list
+  SMOKE_EXIT=$?
+  cd ../..
+
+  if [[ $SMOKE_EXIT -ne 0 ]]; then
+    echo ""
+    echo "❌ Smoke tests failed! Check the deployment."
+    exit $SMOKE_EXIT
+  fi
+
+  echo "✅ Smoke tests passed!"
+fi

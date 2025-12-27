@@ -164,7 +164,7 @@ describe('NotificationCenterComponent', () => {
       expect(result).toBe('Localized Welcome!');
     });
 
-    it('should apply ICU formatting when localizedTitle has params', () => {
+    it('should apply param interpolation when localizedTitle has params', () => {
       const notification = {
         id: '1',
         title: 'Fallback Title',
@@ -177,8 +177,8 @@ describe('NotificationCenterComponent', () => {
 
       const result = component.getTitle(notification);
 
-      // TranslocoService.translate is called with the localized text and params
-      expect(result).toBe('Hello {name}!');
+      // Params are interpolated directly (not via Transloco)
+      expect(result).toBe('Hello World!');
     });
   });
 
@@ -263,7 +263,7 @@ describe('NotificationCenterComponent', () => {
       expect(result).toBe('Localized body text!');
     });
 
-    it('should apply ICU formatting when localizedBody has params', () => {
+    it('should apply param interpolation when localizedBody has params', () => {
       const notification = {
         id: '1',
         title: 'Title',
@@ -276,8 +276,58 @@ describe('NotificationCenterComponent', () => {
 
       const result = component.getBody(notification);
 
-      // TranslocoService.translate is called with the localized text and params
-      expect(result).toBe('Maintenance at {time}');
+      // Params are interpolated directly (not via Transloco)
+      expect(result).toBe('Maintenance at 10:00 PM');
+    });
+
+    it('should keep placeholder when param value is undefined', () => {
+      const notification = {
+        id: '1',
+        title: 'Title',
+        body: 'Fallback Body',
+        localizedBody: { 'en-US': 'Hello {name}!', es: '¡Hola {name}!' } as LocalizedStrings,
+        params: { other: 'value' }, // 'name' param is missing
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getBody(notification);
+
+      // Placeholder should remain since param is undefined
+      expect(result).toBe('Hello {name}!');
+    });
+
+    it('should stringify object params', () => {
+      const notification = {
+        id: '1',
+        title: 'Title',
+        body: 'Fallback Body',
+        localizedBody: { 'en-US': 'Data: {data}', es: 'Datos: {data}' } as LocalizedStrings,
+        params: { data: { key: 'value' } },
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getBody(notification);
+
+      // Object should be JSON stringified
+      expect(result).toBe('Data: {"key":"value"}');
+    });
+
+    it('should convert numeric params to string', () => {
+      const notification = {
+        id: '1',
+        title: 'Title',
+        body: 'Fallback Body',
+        localizedBody: { 'en-US': 'Count: {count}', es: 'Cantidad: {count}' } as LocalizedStrings,
+        params: { count: 42 },
+        timestamp: new Date(),
+        read: false
+      };
+
+      const result = component.getBody(notification);
+
+      expect(result).toBe('Count: 42');
     });
   });
 });

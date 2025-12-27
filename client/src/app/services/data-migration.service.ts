@@ -1,7 +1,7 @@
 import { ApplicationRef, Injectable, inject } from '@angular/core';
 import { take } from 'rxjs';
 import { LogService } from './log.service';
-import { IndexedDbService } from './indexeddb.service';
+import { IndexedDbService, IDB_STORES } from './indexeddb.service';
 import { UserStorageService } from './user-storage.service';
 import { LOCALSTORAGE_MIGRATIONS, CURRENT_INDEXEDDB_VERSION } from '@app/migrations';
 import type { DataMigration } from '@app/migrations';
@@ -219,7 +219,7 @@ export class DataMigrationService {
       // Store backup - this will trigger init() if not already done
       // but that's OK since we've already collected the pre-migration data
       const backupKey = this.userStorageService.prefixKey(DATA_BACKUP_KEY);
-      await this.indexedDbService.setRaw(backupKey, backup);
+      await this.indexedDbService.setRaw(backupKey, backup, IDB_STORES.BACKUPS);
 
       this.logService.log('User data backed up before migration', {
         localStorage: Object.keys(backup.localStorage).length,
@@ -317,7 +317,7 @@ export class DataMigrationService {
   async getDataBackup(): Promise<DataBackup | null> {
     try {
       const backupKey = this.userStorageService.prefixKey(DATA_BACKUP_KEY);
-      const backup = await this.indexedDbService.getRaw(backupKey);
+      const backup = await this.indexedDbService.getRaw(backupKey, IDB_STORES.BACKUPS);
       return (backup as DataBackup) ?? null;
     } catch {
       return null;
@@ -337,7 +337,7 @@ export class DataMigrationService {
    */
   async deleteDataBackup(): Promise<void> {
     const backupKey = this.userStorageService.prefixKey(DATA_BACKUP_KEY);
-    await this.indexedDbService.delRaw(backupKey);
+    await this.indexedDbService.delRaw(backupKey, IDB_STORES.BACKUPS);
     this.logService.log('Data backup deleted');
   }
 

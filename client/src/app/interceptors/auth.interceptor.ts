@@ -1,6 +1,7 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { from, switchMap } from 'rxjs';
+import { Router } from '@angular/router';
+import { from, switchMap, tap } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { PlatformService } from '../services/platform.service';
 
@@ -12,8 +13,9 @@ import { PlatformService } from '../services/platform.service';
  * - Tauri: Adds Bearer token to Authorization header
  * - SSR: No-op (server handles auth separately)
  *
- * Note: Does not redirect on 401 errors to avoid interrupting user flows.
- * Auth guards handle access control, not the interceptor.
+ * Also handles 401 responses by logging out the user when the session is invalid.
+ * This catches cases where the token appeared valid locally but was rejected by the server.
+ * Always redirects to home on 401 since the user was attempting authenticated content.
  *
  * @example
  * ```typescript
@@ -26,6 +28,7 @@ import { PlatformService } from '../services/platform.service';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const platformService = inject(PlatformService);
+  const router = inject(Router);
 
   // Skip auth for SSR
   if (platformService.isSSR()) {
@@ -43,7 +46,19 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             Authorization: `Bearer ${token}`
           }
         });
-        return next(authReq);
+        return next(authReq).pipe(
+          tap({
+            error: (error: unknown) => {
+              // If we sent a token but got 401, the session is invalid - log out and redirect
+              // Always redirect to home since user was attempting authenticated content
+              // Navigate FIRST to prevent brief flash of logged-out state on auth-protected pages
+              if (error instanceof HttpErrorResponse && error.status === 401 && authService.isAuthenticated()) {
+                router.navigate(['/']);
+                authService.logout();
+              }
+            }
+          })
+        );
       }
       return next(req);
     })

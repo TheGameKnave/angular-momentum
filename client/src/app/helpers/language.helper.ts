@@ -3,6 +3,14 @@ import { LANGUAGES } from 'i18n-l10n-flags';
 import { GetLangParams } from '@jsverse/transloco-persist-lang';
 
 /**
+ * Custom mappings for bare language codes to novelty/custom locales.
+ * Used when the locale code doesn't exist in i18n-l10n-flags.
+ */
+const CUSTOM_BARE_MAPPINGS: Record<string, string> = {
+  'sv': 'sv-BO', // Swedish Chef "Bork Bork" variant
+};
+
+/**
  * Build a map from bare language codes to their first supported regional variant.
  * Uses the LANGUAGES data from i18n-l10n-flags to derive the mapping.
  * For example, 'en' maps to 'en-US' if 'en-US' is in SUPPORTED_LANGUAGES.
@@ -11,6 +19,15 @@ function buildBareLanguageMap(): Record<string, string> {
   const map: Record<string, string> = {};
 
   for (const bareCode of Object.keys(LANGUAGES)) {
+    // Check for custom mapping first (e.g., sv → sv-BO)
+    if (CUSTOM_BARE_MAPPINGS[bareCode]) {
+      const customLocale = CUSTOM_BARE_MAPPINGS[bareCode];
+      if (SUPPORTED_LANGUAGES.includes(customLocale as typeof SUPPORTED_LANGUAGES[number])) {
+        map[bareCode] = customLocale;
+        continue;
+      }
+    }
+
     const locales = Object.keys(LANGUAGES[bareCode].locales);
     // Find the first locale that's in our supported languages
     const supportedLocale = locales.find(locale =>

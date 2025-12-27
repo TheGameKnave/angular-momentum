@@ -3,6 +3,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
+import { InputTextModule } from 'primeng/inputtext';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { ConfirmDialogService } from '@app/services/confirm-dialog.service';
 import { DIALOG_DEFAULT_LABELS } from '@app/constants/translations.constants';
@@ -24,6 +25,7 @@ import { DialogBaseComponent, OverlayDismissConfig } from '../dialog-base.compon
     TranslocoDirective,
     ButtonModule,
     MessageModule,
+    InputTextModule,
     OverlayModule,
   ],
 })
@@ -41,6 +43,9 @@ export class DialogConfirmComponent extends DialogBaseComponent {
 
   /** Current options */
   readonly options = this.dialogService.options;
+
+  /** User's confirmation text input */
+  readonly confirmationInput = this.dialogService.confirmationInput;
 
   /** Default button labels (exposed for template) */
   protected readonly defaultLabels = DIALOG_DEFAULT_LABELS;
@@ -76,5 +81,20 @@ export class DialogConfirmComponent extends DialogBaseComponent {
   // istanbul ignore next - invoked by overlay dismiss handlers (integration test scope)
   protected onDismiss(): void {
     this.onCancel();
+  }
+
+  /**
+   * Check if the confirm button should be disabled.
+   */
+  isConfirmDisabled(): boolean {
+    return this.loading() || !this.dialogService.isConfirmationValid();
+  }
+
+  /**
+   * Handle confirmation input change.
+   */
+  onConfirmationInputChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.confirmationInput.set(input.value);
   }
 }

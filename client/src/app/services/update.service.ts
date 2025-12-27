@@ -1,4 +1,5 @@
-import { DestroyRef, Injectable, inject } from '@angular/core';
+import { DestroyRef, Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { SwUpdate, VersionEvent } from '@angular/service-worker';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { interval, startWith } from 'rxjs';
@@ -29,11 +30,14 @@ import { ChangeLogService } from './change-log.service';
  */
 @Injectable({ providedIn: 'root' })
 export class UpdateService {
-  private readonly updates = inject(SwUpdate);
+  private readonly updates = inject(SwUpdate, { optional: true }); // Optional for SSR
   private readonly destroyRef = inject(DestroyRef);
   private readonly logService = inject(LogService);
   private readonly updateDialogService = inject(UpdateDialogService);
   private readonly changeLogService = inject(ChangeLogService);
+  private readonly platformId = inject(PLATFORM_ID);
+  // istanbul ignore next - SSR guard
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   private confirming = false;
 
@@ -47,13 +51,17 @@ export class UpdateService {
    * Only runs in production, staging, and local environments.
    */
   protected init(): void {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
     if (!['production', 'staging', 'local'].includes(ENVIRONMENT.env)) return;
 
-    // Listen for Angular Service Worker version events
+    // Listen for Angular Service Worker version events (only if SwUpdate is available)
     // istanbul ignore next - SwUpdate observable subscription requires real service worker context
-    this.updates.versionUpdates
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(event => this.handleSwEvent(event));
+    if (this.updates) {
+      this.updates.versionUpdates
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(event => this.handleSwEvent(event));
+    }
 
     // Run immediate and interval-based update checks
     interval(UPDATE_CONFIG.CHECK_INTERVAL_MS)
@@ -75,10 +83,12 @@ export class UpdateService {
   private checkServiceWorkerUpdate(): void {
     // istanbul ignore next - Tauri platform detection, isTauri() always returns false in unit tests
     if (isTauri()) return;
+    // istanbul ignore next - SSR guard, SwUpdate is null during server rendering
+    if (!this.updates) return;
     this.updates.checkForUpdate().then(available => {
       if (available) {
         this.logService.log('SW: Update available, activating...');
-        this.updates.activateUpdate().then(() => {
+        this.updates!.activateUpdate().then(() => {
           this.logService.log('SW: Update activated. Awaiting VERSION_READY...');
           // VERSION_READY will trigger handleSwEvent
         });

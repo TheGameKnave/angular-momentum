@@ -1,10 +1,14 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { UserStorageService } from './user-storage.service';
 import { STORAGE_PREFIXES } from '@app/constants/storage.constants';
-import { IndexedDbService } from './indexeddb.service';
+import { IndexedDbService, IDB_STORES, IdbStoreName } from './indexeddb.service';
 import { LogService } from './log.service';
 import { Notification } from '../models/data.model';
 import { PROMOTABLE_LOCALSTORAGE_NAMES } from '../constants/ui.constants';
+
+/** All stores to check for promotion */
+const ALL_STORES: IdbStoreName[] = [IDB_STORES.PERSISTENT, IDB_STORES.SETTINGS, IDB_STORES.BACKUPS];
 
 /**
  * Service for promoting storage data from anonymous to user scope.
@@ -36,6 +40,8 @@ export class StoragePromotionService {
   private readonly userStorageService = inject(UserStorageService);
   private readonly indexedDbService = inject(IndexedDbService);
   private readonly logService = inject(LogService);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   /**
    * Promote all anonymous storage data to a user's storage.
@@ -44,6 +50,9 @@ export class StoragePromotionService {
    * @param userId - The user ID to promote data to
    */
   async promoteAnonymousToUser(userId: string): Promise<void> {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
+
     this.logService.log('Starting storage promotion to user', userId);
 
     try {
@@ -131,49 +140,64 @@ export class StoragePromotionService {
   }
 
   /**
+   * Check if a value is empty (null, undefined, or empty string).
+   */
+  private isEmpty(value: unknown): boolean {
+    return value === undefined || value === null || value === '';
+  }
+
+  /**
+   * Promote a single IndexedDB key from anonymous to user scope.
+   * Returns true if promotion occurred, false if skipped.
+   */
+  private async promoteIndexedDbKey(
+    key: string,
+    store: IdbStoreName,
+    anonymousPrefix: string,
+    userPrefix: string
+  ): Promise<void> {
+    const baseKey = key.substring(anonymousPrefix.length);
+    const userKey = `${userPrefix}${baseKey}`;
+
+    const anonymousData = await this.indexedDbService.getRaw(key, store);
+    if (this.isEmpty(anonymousData)) {
+      this.logService.log(`Skipped empty IndexedDB key ${baseKey} in ${store}`);
+      return;
+    }
+
+    const existingUserData = await this.indexedDbService.getRaw(userKey, store);
+    if (!this.isEmpty(existingUserData)) {
+      this.logService.log(`Skipped IndexedDB key ${baseKey} in ${store} - user data exists`);
+      return;
+    }
+
+    await this.indexedDbService.setRaw(userKey, anonymousData, store);
+    this.logService.log(`Promoted IndexedDB key ${baseKey} to ${userKey} in ${store}`);
+  }
+
+  /**
    * Promote IndexedDB keys from anonymous to user scope.
    */
   private async promoteIndexedDb(userId: string): Promise<void> {
-    try {
-      const allKeys = await this.indexedDbService.keys();
-      const anonymousPrefix = `${STORAGE_PREFIXES.ANONYMOUS}_`;
-      const userPrefix = `${STORAGE_PREFIXES.USER}_${userId}_`;
+    const anonymousPrefix = `${STORAGE_PREFIXES.ANONYMOUS}_`;
+    const userPrefix = `${STORAGE_PREFIXES.USER}_${userId}_`;
 
-      for (const key of allKeys) {
-        // Keys in this app are always strings
-        if (typeof key !== 'string' || !key.startsWith(anonymousPrefix)) {
-          continue;
-        }
+    for (const store of ALL_STORES) {
+      try {
+        const allKeys = await this.indexedDbService.keys(store);
 
-        const baseKey = key.substring(anonymousPrefix.length);
-        const userKey = `${userPrefix}${baseKey}`;
+        for (const key of allKeys) {
+          if (typeof key !== 'string' || !key.startsWith(anonymousPrefix)) continue;
 
-        try {
-          // Get anonymous data first
-          const anonymousData = await this.indexedDbService.getRaw(key);
-
-          // Skip if anonymous data is empty/null/undefined
-          if (anonymousData === undefined || anonymousData === '' || anonymousData === null) {
-            this.logService.log(`Skipped empty IndexedDB key ${baseKey}`);
-            continue;
+          try {
+            await this.promoteIndexedDbKey(key, store, anonymousPrefix, userPrefix);
+          } catch (error) {
+            this.logService.log(`Failed to promote IndexedDB key: ${key} in ${store}`, error);
           }
-
-          // Check if user already has meaningful data for this key
-          const existingUserData = await this.indexedDbService.getRaw(userKey);
-          if (existingUserData !== undefined && existingUserData !== '' && existingUserData !== null) {
-            this.logService.log(`Skipped IndexedDB key ${baseKey} - user data exists`);
-            continue;
-          }
-
-          // Promote anonymous data to user scope
-          await this.indexedDbService.setRaw(userKey, anonymousData);
-          this.logService.log(`Promoted IndexedDB key ${baseKey} to ${userKey}`);
-        } catch (error) {
-          this.logService.log(`Failed to promote IndexedDB key: ${key}`, error);
         }
+      } catch (error) {
+        this.logService.log(`Failed to promote IndexedDB store: ${store}`, error);
       }
-    } catch (error) {
-      this.logService.log('Failed to promote IndexedDB', error);
     }
   }
 
@@ -196,20 +220,49 @@ export class StoragePromotionService {
    * Clear all anonymous IndexedDB keys.
    */
   private async clearAnonymousIndexedDb(): Promise<void> {
-    try {
-      const allKeys = await this.indexedDbService.keys();
-      const anonymousPrefix = `${STORAGE_PREFIXES.ANONYMOUS}_`;
+    const anonymousPrefix = `${STORAGE_PREFIXES.ANONYMOUS}_`;
 
-      for (const key of allKeys) {
-        // Keys in this app are always strings
-        if (typeof key === 'string' && key.startsWith(anonymousPrefix)) {
-          await this.indexedDbService.delRaw(key);
-          this.logService.log(`Cleared anonymous IndexedDB key: ${key}`);
+    for (const store of ALL_STORES) {
+      try {
+        const allKeys = await this.indexedDbService.keys(store);
+
+        for (const key of allKeys) {
+          // Keys in this app are always strings
+          if (typeof key === 'string' && key.startsWith(anonymousPrefix)) {
+            await this.indexedDbService.delRaw(key, store);
+            this.logService.log(`Cleared anonymous IndexedDB key: ${key} from ${store}`);
+          }
         }
+      } catch (error) {
+        this.logService.log(`Failed to clear anonymous IndexedDB store: ${store}`, error);
       }
-    } catch (error) {
-      this.logService.log('Failed to clear anonymous IndexedDB', error);
     }
+  }
+
+  /**
+   * Check if localStorage has any anonymous data.
+   */
+  private hasAnonymousLocalStorageData(): boolean {
+    return PROMOTABLE_LOCALSTORAGE_NAMES.some(baseKey => {
+      const anonymousKey = this.userStorageService.prefixKeyForAnonymous(baseKey);
+      const value = localStorage.getItem(anonymousKey);
+      return !this.isEmpty(value);
+    });
+  }
+
+  /**
+   * Check if a store has any anonymous IndexedDB data.
+   */
+  private async hasAnonymousIndexedDbDataInStore(store: IdbStoreName, anonymousPrefix: string): Promise<boolean> {
+    const allKeys = await this.indexedDbService.keys(store);
+
+    for (const key of allKeys) {
+      if (typeof key !== 'string' || !key.startsWith(anonymousPrefix)) continue;
+
+      const value = await this.indexedDbService.getRaw(key, store);
+      if (!this.isEmpty(value)) return true;
+    }
+    return false;
   }
 
   /**
@@ -217,30 +270,21 @@ export class StoragePromotionService {
    * Used to determine whether to show the import confirmation dialog.
    */
   async hasAnonymousData(): Promise<boolean> {
-    // Check localStorage
-    for (const baseKey of PROMOTABLE_LOCALSTORAGE_NAMES) {
-      const anonymousKey = this.userStorageService.prefixKeyForAnonymous(baseKey);
-      const value = localStorage.getItem(anonymousKey);
-      if (value !== null && value !== '') {
-        return true;
-      }
-    }
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return false;
 
-    // Check IndexedDB
-    try {
-      const allKeys = await this.indexedDbService.keys();
-      const anonymousPrefix = `${STORAGE_PREFIXES.ANONYMOUS}_`;
+    if (this.hasAnonymousLocalStorageData()) return true;
 
-      for (const key of allKeys) {
-        if (typeof key === 'string' && key.startsWith(anonymousPrefix)) {
-          const value = await this.indexedDbService.getRaw(key);
-          if (value !== undefined && value !== null && value !== '') {
-            return true;
-          }
+    const anonymousPrefix = `${STORAGE_PREFIXES.ANONYMOUS}_`;
+
+    for (const store of ALL_STORES) {
+      try {
+        if (await this.hasAnonymousIndexedDbDataInStore(store, anonymousPrefix)) {
+          return true;
         }
+      } catch (error) {
+        this.logService.log(`Failed to check anonymous IndexedDB data in ${store}`, error);
       }
-    } catch (error) {
-      this.logService.log('Failed to check anonymous IndexedDB data', error);
     }
 
     return false;
@@ -251,6 +295,9 @@ export class StoragePromotionService {
    * Called when user declines to import anonymous data.
    */
   async clearAnonymousData(): Promise<void> {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
+
     this.clearAnonymousLocalStorage();
     await this.clearAnonymousIndexedDb();
     this.logService.log('Anonymous data cleared (user declined import)');

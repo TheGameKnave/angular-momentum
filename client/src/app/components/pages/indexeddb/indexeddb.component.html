@@ -1,10 +1,10 @@
 <ng-container *transloco="let t">
   <h2>{{ t('nav.IndexedDB') }}</h2>
-  <p-card class="flex-col gap-2 indexeddb">
+  <p-card>
     <p-floatlabel variant="on">
       <label for="indexeddb">{{ t('page.Persistent Text') }}</label>
-      <textarea pTextarea id="indexeddb" aria-describedby="indexeddb-help" [formControl]="textAreaData" rows="5" class="h-full"></textarea>
+      <textarea pTextarea id="indexeddb" aria-describedby="indexeddb-help" [formControl]="textAreaData" rows="5"></textarea>
     </p-floatlabel>
     <p id="indexeddb-help">{{ t('page.Enter some text to have it persist between page reloads (saved in browser storage)') }}</p>
-  </p-card> 
+  </p-card>
 </ng-container>

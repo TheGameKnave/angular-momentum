@@ -5,6 +5,8 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { UpdateService } from '@app/services/update.service';
 import { UpdateDialogService } from '@app/services/update-dialog.service';
 import { DataMigrationService } from '@app/services/data-migration.service';
+import { UserSettingsService } from '@app/services/user-settings.service';
+import { AuthService } from '@app/services/auth.service';
 import { DialogConfirmComponent } from '@app/components/dialogs/dialog-confirm/dialog-confirm.component';
 
 import { TranslocoDirective } from '@jsverse/transloco';
@@ -65,6 +67,8 @@ export class AppComponent implements OnInit {
   readonly changeLogService = inject(ChangeLogService);
   private readonly updateDialogService = inject(UpdateDialogService);
   private readonly dataMigrationService = inject(DataMigrationService);
+  private readonly userSettingsService = inject(UserSettingsService);
+  private readonly authService = inject(AuthService);
   protected translocoLoader = inject(TranslocoHttpLoader);
   protected featureFlagService = inject(FeatureFlagService);
   private readonly slugPipe = inject(SlugPipe);
@@ -85,8 +89,43 @@ export class AppComponent implements OnInit {
 
       // Run data migrations after view is ready (so p-toast is mounted)
       // This runs on all platforms: web, Tauri desktop, and mobile
-      this.dataMigrationService.runMigrations();
+      this.dataMigrationService.runMigrations().then(async () => {
+        // Load local preferences after IndexedDB is initialized
+        // This applies the user's theme immediately (before server sync)
+        await this.userSettingsService.loadLocalPreferences();
+
+        // If user is already authenticated (page refresh), sync with server
+        // This resolves conflicts between local and server data using timestamps
+        if (this.authService.isAuthenticated()) {
+          this.userSettingsService.initialize();
+        }
+      });
+
+      // Promote PrimeNG tooltips to browser's top-layer so they appear above CDK overlays
+      this.setupTooltipPopoverObserver();
     });
+  }
+
+  /**
+   * Sets up a MutationObserver to add popover="manual" to PrimeNG tooltips
+   * and show them in the browser's top-layer. This ensures tooltips appear
+   * above CDK overlay panels which use the popover API.
+   */
+  // istanbul ignore next: only called from afterNextRender which doesn't execute in unit tests
+  private setupTooltipPopoverObserver(): void {
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node instanceof HTMLElement && node.classList.contains('p-tooltip')) {
+            // Add popover attribute and show in top-layer
+            node.setAttribute('popover', 'manual');
+            node.showPopover();
+          }
+        }
+      }
+    });
+
+    observer.observe(document.body, { childList: true });
   }
 
   @HostListener('window:resize')
@@ -190,10 +229,8 @@ export class AppComponent implements OnInit {
   bodyClasses(): void {
     // istanbul ignore next - SSR fallback branch can't be tested in browser context
     if (!this.isBrowser) return;
-    // remove all classes from body
-    document.body.className = 'screen-xs';
-    if (this.routePath) document.body.classList.add(this.routePath);
-    // set class of body to reflect screen sizes
+
+    // Update screen size classes (don't reset - preserves classes set by index.html script)
     for (const size in SCREEN_SIZES) {
       if (window.innerWidth >= SCREEN_SIZES[size as keyof typeof SCREEN_SIZES]) {
         document.body.classList.add('screen-' + size);
@@ -203,5 +240,16 @@ export class AppComponent implements OnInit {
         document.body.classList.add('not-' + size);
       }
     }
+    // Ensure base class exists and mark viewport as determined (allows CSS to show menu with animation)
+    document.body.classList.add('screen-xs', 'viewport-ready');
+
+    // Update route class
+    // Remove old route classes (preserve screen-*, not-*, viewport-ready, and theme classes)
+    const routeClasses = Array.from(document.body.classList).filter(
+      (c) => !c.startsWith('screen-') && !c.startsWith('not-') && c !== 'viewport-ready' && !c.startsWith('app-')
+    );
+    // istanbul ignore next - callback only runs when stale route classes exist
+    routeClasses.forEach((c) => document.body.classList.remove(c));
+    if (this.routePath) document.body.classList.add(this.routePath);
   }
 }

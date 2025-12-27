@@ -1,19 +1,109 @@
 @charset "UTF-8";
 
-// ============================================================================
-// 1. IMPORTS & FONTS
-// ============================================================================
+// =============================================================================
+// MAIN STYLESHEET
+// =============================================================================
 
 @use "tailwindcss";
+
 @import "./vendor/flag-icons.css";
 @import "primeicons/primeicons.css";
 
+// =============================================================================
+// VARIABLES & CSS CUSTOM PROPERTIES
+// =============================================================================
+
+// Font stacks (compile-time only - used in font declarations)
+$text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC', 'Segoe UI', 'Arial Unicode MS', Arial, sans-serif;
+$code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Monaco', monospace;
+
+// =============================================================================
+// CSS Custom Properties - Light Mode Defaults
+// =============================================================================
+:root {
+  // -----------------------------------------------------------------------------
+  // Brand Colors (constant across themes)
+  // -----------------------------------------------------------------------------
+  --color-brand-faint: #9fe;
+  --color-brand-light: #0ca;
+  --color-brand: #1b9;
+  --color-brand-dark: #278;
+
+  // -----------------------------------------------------------------------------
+  // Semantic Colors (theme-aware)
+  // -----------------------------------------------------------------------------
+
+  // Backgrounds
+  --color-bg-primary: #f4f4f4;
+  --color-bg-secondary: #f2f2f2;
+  --color-bg-tertiary: #eee;
+  --color-bg-overlay: #fff8;
+  --color-bg-backdrop: #fff8;
+  --p-card-background: #eee !important;
+  --p-panel-background: #eee !important;
+
+  // Text
+  --color-text-primary: #222;
+  --color-text-secondary: #444;
+  --color-text-muted: #808080;
+
+  // Borders
+  --color-border-primary: #ccc;
+  --color-border-secondary: #808080;
+
+  // States
+  --color-text-warning: #b45309;
+  --color-text-error: #dc2626;
+  --color-text-success: #16a34a;
+  --color-text-info: #0891b2;
+
+  // Interactive
+  --color-link: var(--color-brand-dark);
+  --color-link-hover: var(--color-brand);
+  --color-link-visited: var(--color-brand);
+  --color-active: var(--color-brand);
+
+  // Effects
+  --color-shadow: rgba(0, 0, 0, 0.2);
+  --color-highlight-bg: rgba(102, 126, 234, 0.08);
+  --color-highlight-bg-active: rgba(102, 126, 234, 0.12);
+
+  // UI-specific
+  --color-focus-ring: #667eea;
+  --color-error-red: #e74c3c;
+  --color-action-warning: #ea580c;
+  --color-action-danger: #dc2626;
+
+  // Horizontal rule gradient
+  --hr-gradient: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
+  --hr-gradient-vertical: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
+
+  // Scroll indicator gradient
+  --scroll-indicator-gradient-v: linear-gradient(to bottom, var(--color-brand-dark), var(--color-brand));
+  --scroll-indicator-gradient-h: linear-gradient(to right, var(--color-brand-dark), var(--color-brand));
+
+  // Component-specific
+  --button-bg: var(--color-brand-light);
+  --button-border: var(--color-brand-light);
+  --color-button-text-hover: var(--color-brand-dark);
+  --button-border-hover: var(--color-brand-dark);
+  --tooltip-border-color: var(--color-brand-light);
+  --notification-badge-bg: #f88;
+  --notification-unread-border: var(--color-brand-dark);
+}
+
+// =============================================================================
+// BASE STYLES (html, body, typography, reset)
+// =============================================================================
+
+// Font faces
 /* Raleway Regular */
 @font-face {
   font-family: 'Raleway';
   src: url('/assets/fonts/Raleway-VariableFont_wght.ttf') format('truetype');
   font-weight: 100 900; /* Variable font range */
   font-style: normal;
+  font-display: swap;
 }
 /* Raleway Italic */
 @font-face {
@@ -21,241 +111,12 @@
   src: url('/assets/fonts/Raleway-Italic-VariableFont_wght.ttf') format('truetype');
   font-weight: 100 900;
   font-style: italic;
+  font-display: swap;
 }
-
-/// Regular font family
-/// @type List
-$text-font-stack: 'Raleway', 'Helvetica Neue', 'Noto Sans CJK SC', 'Noto Sans TC', 'Segoe UI', 'Arial Unicode MS', Arial, sans-serif !default;
-
-/// Code (monospace) font family
-/// @type List
-$code-font-stack: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Monaco', monospace !default;
-
-// ============================================================================
-// 2. VARIABLES (THEME)
-// ============================================================================
-
-// Brand colors
-$faint-brand: #9fe !default;
-$light-brand: #0ca !default;
-$brand: #1b9 !default;
-$dark-brand: #278 !default;
-
-// Gray scale
-$faint-gray: #eee !default;
-$light-gray: #ccc !default;
-$high-gray: #aaa !default;
-$mid-gray: #808080 !default;
-$low-gray: #444 !default;
-$dim-gray: #333 !default;
-$dark-gray: #222 !default;
-
-// Effects
-$shadow: rgba(0, 0, 0, 0.2) !default;
-$backdrop: rgba(0, 0, 0, 0.5) !default;
-
-// Text colors
-$text-light: #f4f4f4 !default;
-$text-warning-light: #ffa !default;
-$text-error-light: #f88 !default;
-$text-success-light: #8f8 !default;
-$text-info-light: #8ff !default;
-
-// UI colors
-$error-red: #e74c3c !default;
-$focus-ring: #667eea !default;
-$highlight-bg: rgba(102, 126, 234, 0.08) !default;
-$highlight-bg-active: rgba(102, 126, 234, 0.12) !default;
-$progress-start: #10b981 !default;
-$progress-end: #059669 !default;
-
-// ============================================================================
-// 3. DARK THEME (.app-dark)
-// ============================================================================
-
-.app-dark {
-  // CSS Custom Properties for PrimeNG
-  --p-card-background: #{$dim-gray} !important;
-  --p-panel-background: #{$dim-gray} !important;
-  --p-card-color: #{$text-light} !important;
-  --p-form-field-background: #{$dark-gray} !important;
-  --p-toggleswitch-handle-checked-background: #{$dim-gray} !important;
-
-  // Base colors
-  background-color: $dark-gray;
-  color: $text-light;
-
-  // State colors
-  .warning {
-    color: $text-warning-light;
-  }
-  .error {
-    color: $text-error-light;
-  }
-
-  // Links
-  a {
-    &:hover, &:focus {
-      color: $light-brand;
-    }
-  }
-  p > a {
-    color: $faint-brand;
-    &:hover, &:focus {
-      color: $light-brand;
-    }
-    &:visited {
-      color: $light-brand;
-    }
-  }
-
-  // Borders
-  app-menu-feature, .anchor-menu-panel, .cdk-dialog-panel, header, footer, .cookie-banner {
-    border-color: $mid-gray;
-  }
-  .p-tooltip .p-tooltip-text {
-    border-color: $dark-brand;
-  }
-
-  // Horizontal rules
-  hr:before {
-    background-image: linear-gradient(to right, rgba(200,200,200, 0), rgba(200,200,200, 0.75), rgba(200,200,200, 0));
-  }
-  .screen-xs.not-sm app-menu-feature hr:before {
-    background-image: linear-gradient(to bottom, rgba(200, 200, 200, 0), rgba(200, 200, 200, 0.75), rgba(200, 200, 200, 0));
-  }
-
-  // Overlays
-  .app-overlay-backdrop {
-    background-color: $backdrop;
-  }
-
-  // Menus
-  app-menu-feature {
-    background-color: $dark-gray;
-    color: $text-light;
-    a {
-      color: $text-light;
-    }
-  }
-  .anchor-menu-panel {
-    background-color: $backdrop;
-    color: $text-light;
-    a {
-      color: $text-light;
-      &.close:hover {
-        color: $light-brand;
-      }
-    }
-  }
-
-  // Header & Footer (need explicit background for sticky positioning)
-  header, footer {
-    background-color: $dark-gray;
-    color: $text-light;
-  }
-
-  // Ko-fi button
-  .kofi-button a {
-    color: $text-light;
-    border-color: $dark-brand;
-    &:hover {
-      border-color: $light-brand;
-    }
-  }
-
-  // Feature toggles
-  p-toggleswitch + label:hover {
-    color: $light-brand;
-  }
-
-  // Notification system
-  .notification-badge {
-    color: $text-light;
-  }
-  .notification-center-actions {
-    p-button button {
-      color: $text-light;
-      &:hover {
-        color: $light-brand;
-      }
-    }
-  }
-  .notification-item {
-    &:hover {
-      background-color: $dim-gray;
-    }
-    &.unread {
-      border-left-color: $light-brand;
-    }
-  }
-
-  // Notifications page
-  .notifications-page {
-    .notification-test-card {
-      background-color: $dark-gray;
-      border-color: $low-gray;
-
-      .notification-preview {
-        p {
-          color: $text-light;
-        }
-      }
-    }
-
-    .status-message {
-      &.local {
-        background-color: $low-gray;
-        color: $text-light;
-      }
-      &.server {
-        background-color: $dark-gray;
-        color: $text-light;
-      }
-    }
-
-    .status-item {
-      span {
-        &.granted {
-          color: $text-success-light;
-        }
-        &.denied {
-          color: $text-error-light;
-        }
-      }
-    }
-  }
-
-  // Cookie Banner
-  .cookie-banner {
-    background-color: $backdrop;
-    color: $text-light;
-  }
-  .cookie-banner-text {
-    color: $text-light;
-  }
-  .cookie-banner-link {
-    color: $faint-brand;
-    &:hover {
-      color: $light-brand;
-    }
-  }
-
-  // Scroll indicators
-  .scroll-indicator-vertical {
-    background: linear-gradient(to bottom, $light-brand, $dark-brand);
-  }
-  .scroll-indicator-horizontal {
-    background: linear-gradient(to right, $light-brand, $dark-brand);
-  }
-}
-
-// ============================================================================
-// 4. BASE STYLES (html, body, typography, reset)
-// ============================================================================
 
 html {
   font-size: 62.5%;
+  background-color: #222;
 
   // Boost interface size on mobile (1rem = 12px instead of 10px)
   @media (max-width: 575px) {
@@ -270,14 +131,17 @@ body {
   --p-text-font-size: 1.4rem;
   --p-inputtext-font-size: 1.4rem;
   --p-content-font-size: 1.4rem;
+  --p-tooltip-gutter: 0.6rem;
   font: normal 1.2rem / 1.4 $text-font-stack;
   font-weight: 500;
   font-feature-settings: "lnum";
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
   // Set safe area insets
-  padding-bottom: env(safe-area-inset-bottom) !important;
-  padding-top: env(safe-area-inset-top) !important;
-  padding-left: env(safe-area-inset-left) !important;
-  padding-right: env(safe-area-inset-right) !important;
+  margin-bottom: env(safe-area-inset-bottom) !important;
+  margin-top: env(safe-area-inset-top) !important;
+  margin-left: env(safe-area-inset-left) !important;
+  margin-right: env(safe-area-inset-right) !important;
 
   h1 {
     font-weight: 600;
@@ -315,7 +179,7 @@ hr {
   border: 0;
   margin-block-end: 0;
   margin-block-start: 0;
-  padding: 0.3em 0;
+  padding: 0.6em 0;
   position: relative;
   overflow: hidden;
   min-height: 0.3rem;
@@ -325,7 +189,8 @@ hr {
     position: absolute;
     left: 0;
     border: 0;
-    height: 1.5px;
+    height: 0.15rem;
+    background-image: var(--hr-gradient);
   }
 }
 
@@ -348,11 +213,32 @@ hr {
 
 a {
   text-decoration: none;
+  &:hover, &:focus {
+    color: var(--color-link-hover);
+  }
+}
+
+p > a {
+  color: var(--color-link);
+  &:hover, &:focus {
+    color: var(--color-link-hover);
+  }
+  &:visited {
+    color: var(--color-link-visited);
+  }
 }
 
 p a:hover {
   text-decoration: underline;
   cursor: pointer;
+}
+
+.warning {
+  color: var(--color-text-warning);
+}
+
+.error {
+  color: var(--color-text-error);
 }
 
 .disabled {
@@ -403,9 +289,72 @@ ul {
   }
 }
 
-// ============================================================================
-// 5. PRIMENG OVERRIDES
-// ============================================================================
+// =============================================================================
+// DARK THEME - CSS Custom Property Overrides
+// =============================================================================
+
+.app-dark {
+  // -----------------------------------------------------------------------------
+  // Semantic Color Overrides
+  // -----------------------------------------------------------------------------
+
+  // Backgrounds
+  --color-bg-primary: #222;
+  --color-bg-secondary: #2228;
+  --color-bg-tertiary: #4448;
+  --color-bg-overlay: rgba(0, 0, 0, 0.5);
+  --color-bg-backdrop: rgba(0, 0, 0, 0.5);
+
+
+  // Text
+  --color-text-primary: #f4f4f4;
+  --color-text-secondary: #ccc;
+  --color-text-muted: #808080;
+
+  // Borders
+  --color-border-primary: #808080;
+  --color-border-secondary: #444;
+
+  // States
+  --color-text-warning: #ffa;
+  --color-text-error: #f88;
+  --color-text-success: #8f8;
+  --color-text-info: #8ff;
+
+  // Interactive
+  --color-link: var(--color-brand-faint);
+  --color-link-hover: var(--color-brand);
+  --color-link-visited: var(--color-brand);
+
+  // Horizontal rule gradient
+  --hr-gradient: linear-gradient(to right, rgba(200, 200, 200, 0), rgba(200, 200, 200, 0.75), rgba(200, 200, 200, 0));
+  --hr-gradient-vertical: linear-gradient(to bottom, rgba(200, 200, 200, 0), rgba(200, 200, 200, 0.75), rgba(200, 200, 200, 0));
+
+  // Scroll indicator gradient
+  --scroll-indicator-gradient-v: linear-gradient(to bottom, var(--color-brand-light), var(--color-brand-dark));
+  --scroll-indicator-gradient-h: linear-gradient(to right, var(--color-brand-light), var(--color-brand-dark));
+
+  // Component-specific
+  --button-bg: var(--color-brand-dark);
+  --button-border: var(--color-brand-dark);
+  --button-border-hover: var(--color-brand-light);
+  --color-button-text-hover: var(--color-brand-light);
+  --tooltip-border-color: var(--color-brand-dark);
+  --notification-unread-border: var(--color-brand-light);
+
+  // -----------------------------------------------------------------------------
+  // PrimeNG Custom Properties
+  // -----------------------------------------------------------------------------
+  --p-card-background: #333 !important;
+  --p-panel-background: #2228 !important;
+  --p-card-color: #f4f4f4 !important;
+  --p-form-field-background: #222 !important;
+  --p-toggleswitch-handle-checked-background: #2228 !important;
+}
+
+// =============================================================================
+// PRIMENG OVERRIDES
+// =============================================================================
 
 // PrimeNG font size overrides to compensate for reduced base font size
 // PrimeNG assumes 1rem = 16px, but we set 1rem = 10px for easier math
@@ -415,9 +364,25 @@ ul {
   font-size: 1.4rem !important;
 }
 
+.p-button-sm .p-button-icon {
+    font-size: inherit !important;
+}
+// Prevent button icon/loading spinner from causing layout shift
+.p-button-icon,
+.p-button-loading-icon {
+  min-width: 2rem;
+  text-align: center;
+}
+
+.p-select,
+.p-select-label,
+.p-select-option {
+  font-size: 1.5rem !important;
+}
+
 // Accessible focus indicator for buttons
 .p-button:focus-visible {
-  outline: 2px solid $focus-ring !important;
+  outline: 2px solid var(--color-focus-ring) !important;
   outline-offset: 2px;
 }
 
@@ -444,27 +409,100 @@ p-panel {
   }
 }
 
+.p-message {
+  margin: 1rem 0;
+}
+
+.p-tooltip {
+  max-width: none !important;
+  width: max-content !important;
+  background-color: transparent !important;
+
+  .p-tooltip-text {
+    border: 1px solid var(--tooltip-border-color);
+    max-width: 30rem !important;
+    width: max-content !important;
+    white-space: pre-line !important;
+    text-align: left !important;
+    display: block !important;
+  }
+
+  &.p-tooltip-top .p-tooltip-arrow {
+    border-top-color: var(--tooltip-border-color) !important;
+    border-bottom-color: var(--tooltip-border-color) !important;
+  }
+}
+
 .p-tooltip-top {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
 }
 
-.p-tooltip .p-tooltip-text {
-  border: 1px solid transparent;
-  max-width: 30rem !important;
-  width: max-content !important;
-  white-space: pre-line !important;
-  text-align: left !important;
-  display: block !important;
-}
-
 // fix for prime accordion reserving too much space
 .p-accordioncontent-wrapper {overflow: hidden;}
 
-// ============================================================================
-// 6. LAYOUT (main, header, footer, content)
-// ============================================================================
+// Toast sizing
+.p-toast {
+  width: 36rem !important;
+  max-width: calc(100vw - 4rem);
+  overflow-y: auto;
+
+  .p-toast-message-content {
+    padding: 1.6rem;
+    gap: 1rem;
+  }
+
+  .p-toast-summary {
+    font-size: 1.6rem;
+    font-weight: 600;
+  }
+
+  .p-toast-detail {
+    font-size: 1.4rem;
+    margin-top: 0.4rem;
+  }
+
+  .p-toast-message-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+  .p-toast-close-icon {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+}
+
+p-card {
+  margin-bottom: 1.6rem;
+  .p-card-header {
+    padding: 0.6rem;
+  }
+
+  ul li {
+    margin: 0.6rem 0;
+    padding: 0;
+    font-size: 2rem;
+  }
+}
+p-floatlabel {
+  label {
+    z-index: 1;
+  }
+}
+.p-floatlabel-on {
+  &:has(input:focus), &:has(input.p-filled), &:has(input:-webkit-autofill), &:has(textarea:focus), &:has(textarea.p-filled), &:has(.p-inputwrapper-focus), &:has(.p-inputwrapper-filled), &:has(input[placeholder]), &:has(textarea[placeholder]) {
+   label {
+      border: 0 solid var(--p-textarea-border-color);
+      border-width: 1px 1px 0 1px;
+      border-radius: 0.2rem 0.2rem 0 0 !important;
+   }
+  }
+}
+
+// =============================================================================
+// LAYOUT (main, header, footer, content)
+// =============================================================================
 
 .main {
   display: flex;
@@ -475,8 +513,10 @@ p-panel {
 }
 
 header, footer {
-  border: 0 solid $mid-gray;
+  border: 0 solid var(--color-border-primary);
   flex-shrink: 0;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
 }
 
 header {
@@ -518,7 +558,7 @@ footer {
   padding: 0 1rem;
   transition: transform 0.2s ease-out;
 
-  > h4 {
+  > .footer-item {
     margin: 0;
     font-size: 1.8rem;
   }
@@ -527,7 +567,7 @@ footer {
   app-menu-change-log {
     display: contents;
 
-    a {
+    a, button {
       font-size: 2rem;
     }
   }
@@ -537,13 +577,13 @@ footer {
   }
 }
 
-// ============================================================================
-// 7. COMPONENTS
-// ============================================================================
+// =============================================================================
+// COMPONENTS
+// =============================================================================
 
-// ----------------------------------------------------------------------------
-// 7.1 Feature Menu (app-menu-feature)
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Feature Menu (app-menu-feature)
+// -----------------------------------------------------------------------------
 
 app-menu-feature {
   position: fixed;
@@ -553,14 +593,17 @@ app-menu-feature {
   bottom: 0;
   font-size: 1.6rem;
   overflow-y: auto;
-  padding: 5.2rem 0.6rem 4.3rem;
+  padding: 6.4rem 0.6rem 5.8rem;
   width: 5rem;
   transition: width 0.1s ease-in-out !important;
   border-right-width: 1px;
+  border-color: var(--color-border-primary);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
 
   &:hover {
     width: 18rem;
-    box-shadow: 1rem 0 1rem $shadow;
+    box-shadow: 1rem 0 1rem var(--color-shadow);
   }
 
   .link-home, .kofi-button {
@@ -596,14 +639,19 @@ app-menu-feature {
       display: inline-flex;
       align-items: center;
       gap: 1rem;
-      background-color: $dark-brand;
-      border: 1px solid transparent;
+      background-color: var(--button-bg);
+      border: 1px solid var(--button-border);
       border-radius: 0.6rem;
       padding: 0.4rem 0.6rem;
       font-size: 1.6rem;
       white-space: nowrap;
       cursor: pointer;
       text-decoration: none;
+      
+      &:hover {
+        color: var(--color-button-text-hover);
+        border-color: var(--button-border-hover);
+      }
     }
     img {
       max-width: 2.6rem;
@@ -621,13 +669,15 @@ app-menu-feature {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: var(--color-text-primary);
+
     .label {
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
     }
     &:hover, &.selected {
-      color: $light-brand;
+      color: var(--color-active);
     }
     &.selected {
       cursor: default;
@@ -639,33 +689,51 @@ app-menu-feature {
     vertical-align: middle;
     border-radius: 1rem;
   }
+
+  hr:before {
+    background-image: var(--hr-gradient);
+  }
 }
 
 .movable, .resizable, .menu, .panel, .sidebar, app-menu-feature, app-menu-language, app-menu-change-log {
   transition: all 0.2s ease-in-out;
 }
 
-// ----------------------------------------------------------------------------
-// 7.2 Anchor Menu System (shared styles)
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Dialog Menu System (shared styles)
+// -----------------------------------------------------------------------------
 
-app-anchor-menu {
+app-dialog-menu {
   display: flex;
 }
 
-.anchor-menu-overlay-panel {
+.dialog-menu-overlay-panel {
   z-index: 1000;
 }
 
-.anchor-menu-trigger {
+.dialog-menu-trigger {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   white-space: nowrap;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+
+  // Ensure flag icons and other inline elements are vertically centered
+  .fi, i {
+    vertical-align: middle;
+  }
+
+  &:hover, &:focus {
+    color: var(--color-link-hover);
+  }
 }
 
-.anchor-menu-close-button {
+.dialog-menu-close-button {
   position: absolute;
   top: 0.6rem;
   right: 0.6rem;
@@ -673,23 +741,40 @@ app-anchor-menu {
   cursor: pointer;
   font-size: 2rem;
   line-height: 1;
-  padding: 0.6rem;
-  z-index: 10;
+  padding: 0.8rem;
+  z-index: 100;
+  background: transparent;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+  color: inherit;
+
+  &:hover {
+    background-color: rgba(128, 128, 128, 0.2);
+  }
 
   i {
     display: block;
   }
 }
 
-.anchor-menu-panel {
+.dialog-menu-panel {
   position: fixed;
-  border: 0px solid $mid-gray;
+  border: 0px solid var(--color-border-primary);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  backdrop-filter: blur(2px);
   z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0.4rem 1.2rem rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(3px);
+  background-color: var(--color-bg-overlay) !important;
+  color: var(--color-text-primary);
+
+  a {
+    color: var(--color-text-primary);
+    &.close:hover {
+      color: var(--color-active);
+    }
+  }
 
   // Generic styles for projected content using attribute selectors
   // Menus should use: <div menu-content>, <div menu-header>, <div menu-body>
@@ -795,13 +880,25 @@ app-anchor-menu {
   }
 }
 
+// Overlay backdrop
+.app-overlay-backdrop {
+  background-color: var(--color-bg-backdrop);
+  backdrop-filter: blur(1px);
+  opacity: 1;
+}
+
+// CDK overlay backdrop (ensure visibility)
+.cdk-overlay-backdrop.cdk-overlay-backdrop-showing {
+  opacity: 1;
+}
+
 // CDK Overlay Dialog (generic reusable dialog styles)
 .cdk-dialog-panel {
-  background-color: $backdrop;
-  border: 1px solid $mid-gray;
+  background-color: var(--color-bg-backdrop);
+  border: 1px solid var(--color-border-primary);
   border-radius: 0.8rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(2px);
+  box-shadow: 0 0.4rem 1.2rem rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(3px);
   display: flex;
   flex-direction: column;
   max-width: 95vw;
@@ -818,7 +915,7 @@ app-anchor-menu {
   align-items: center;
   justify-content: space-between;
   padding: 1.6rem;
-  border-bottom: 1px solid $mid-gray;
+  border-bottom: 1px solid var(--color-border-primary);
   flex-shrink: 0;
 }
 
@@ -851,13 +948,13 @@ app-anchor-menu {
   justify-content: flex-end;
   gap: 0.5rem;
   padding: 1.6rem;
-  border-top: 1px solid $mid-gray;
+  border-top: 1px solid var(--color-border-primary);
   flex-shrink: 0;
 }
 
-// ----------------------------------------------------------------------------
-// 7.2.1 Dialog: Update
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Dialog: Update
+// -----------------------------------------------------------------------------
 
 .dialog-update-panel {
   @extend .cdk-dialog-panel;
@@ -878,9 +975,9 @@ app-anchor-menu {
   gap: 0.5rem;
 }
 
-// ----------------------------------------------------------------------------
-// 7.2.2 Dialog: Migration
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Dialog: Migration
+// -----------------------------------------------------------------------------
 
 .dialog-migration-panel {
   @extend .cdk-dialog-panel;
@@ -891,9 +988,9 @@ app-anchor-menu {
 }
 .dialog-migration-footer { @extend .cdk-dialog-footer; }
 
-// ----------------------------------------------------------------------------
-// 7.2.3 Dialog: Clear Data
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Dialog: Clear Data
+// -----------------------------------------------------------------------------
 
 .dialog-clear-data-panel {
   @extend .cdk-dialog-panel;
@@ -908,9 +1005,9 @@ app-anchor-menu {
 }
 .dialog-clear-data-footer { @extend .cdk-dialog-footer; }
 
-// ----------------------------------------------------------------------------
-// 7.2.4 Dialog: Generic Confirm
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Dialog: Generic Confirm
+// -----------------------------------------------------------------------------
 
 .dialog-confirm-panel {
   @extend .cdk-dialog-panel;
@@ -922,11 +1019,26 @@ app-anchor-menu {
 .dialog-confirm-content {
   @extend .cdk-dialog-content;
 }
+.dialog-confirm-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+
+  label {
+    font-size: 1.8rem;
+    color: var(--color-action-warning);
+  }
+
+  input {
+    width: 100%;
+  }
+}
 .dialog-confirm-footer { @extend .cdk-dialog-footer; }
 
-// ----------------------------------------------------------------------------
-// 7.3 Language Menu
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Language Menu
+// -----------------------------------------------------------------------------
 
 .menu-language-body {
   ul {
@@ -939,15 +1051,21 @@ app-anchor-menu {
       break-inside: avoid;
       display: inline-block;
       width: max-content;
-      a {
+      button {
         padding: 0.4rem 0;
         display: block;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        background: none;
+        border: none;
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+        text-align: left;
 
         &:hover, &.selected {
-          color: $light-brand;
+          color: var(--color-active);
         }
         &.selected {
           cursor: default;
@@ -957,9 +1075,9 @@ app-anchor-menu {
   }
 }
 
-// ----------------------------------------------------------------------------
-// 7.4 Change Log Menu
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Change Log Menu
+// -----------------------------------------------------------------------------
 
 .menu-change-log-header {
   h4, p {
@@ -972,17 +1090,12 @@ app-anchor-menu {
     text-overflow: ellipsis;
 
     &:hover {
-      color: $light-brand;
+      color: var(--color-active);
     }
   }
 }
 
 .menu-change-log-body {
-  p-card {
-    display: block;
-    margin-bottom: 1rem;
-  }
-
   ul {
     li {
       font-size: 1.6rem !important;
@@ -990,9 +1103,9 @@ app-anchor-menu {
   }
 }
 
-// ----------------------------------------------------------------------------
-// 7.5 Notification Center
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Notification Center
+// -----------------------------------------------------------------------------
 
 .notification-center-button {
   position: relative;
@@ -1011,7 +1124,8 @@ app-anchor-menu {
   position: absolute;
   top: -0.6rem;
   right: -0.6rem;
-  background-color: $text-error-light;
+  background-color: var(--notification-badge-bg);
+  color: var(--color-text-primary);
   border-radius: 1rem;
   padding: 0.2rem 0.6rem;
   font-size: 1.1rem;
@@ -1047,13 +1161,18 @@ app-anchor-menu {
   p-button button {
     font-size: 1.6rem !important;
     padding: 0.8rem !important;
+    color: var(--color-text-primary);
+
+    &:hover {
+      color: var(--color-active);
+    }
   }
 }
 
 .notification-empty {
   padding: 4.8rem 1.6rem;
   text-align: center;
-  color: $mid-gray;
+  color: var(--color-text-muted);
 
   .pi {
     font-size: 3rem;
@@ -1095,6 +1214,14 @@ app-anchor-menu {
   margin: 0 !important;
   border-left: 3px solid transparent;
 
+  &:hover {
+    background-color: var(--color-bg-secondary);
+  }
+
+  &.unread {
+    border-left-color: var(--notification-unread-border);
+  }
+
   p-button button {
     font-size: 1.4rem !important;
     padding: 0.6rem !important;
@@ -1102,7 +1229,7 @@ app-anchor-menu {
     min-height: 3.2rem !important;
 
     &:hover {
-      color: $light-brand !important;
+      color: var(--color-active) !important;
     }
 
     .pi {
@@ -1135,9 +1262,9 @@ app-anchor-menu {
   opacity: 0.7;
 }
 
-// ----------------------------------------------------------------------------
-// 7.6 Auth Menu (button, header, form, profile, OTP)
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Auth Menu (button, header, form, profile, OTP)
+// -----------------------------------------------------------------------------
 
 .auth-menu-button {
   background: none;
@@ -1158,7 +1285,7 @@ app-anchor-menu {
     transition: color 0.2s ease-in-out;
 
     &.active-route {
-      color: $light-brand;
+      color: var(--color-active);
     }
   }
 }
@@ -1218,7 +1345,7 @@ app-anchor-menu {
     }
 
     .error-message {
-      color: $error-red;
+      color: var(--color-error-red);
       display: block;
       position: absolute;
       bottom: -1.6rem;
@@ -1226,11 +1353,62 @@ app-anchor-menu {
       font-size: 1.2rem;
       margin: 0;
     }
+
+    input, textarea {
+      width: 100%;
+    }
+
+    .hint {
+      font-size: 1.4rem;
+      opacity: 0.7;
+      margin-top: 0.4rem;
+    }
   }
 
   .form-field-optional {
-    color: $mid-gray;
+    color: var(--color-text-muted);
     font-size: 0.9em;
+  }
+
+  .checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.6rem;
+
+    label {
+      cursor: pointer;
+      margin: 0;
+
+      a {
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1.2rem;
+
+    p-button, button {
+      flex: 1;
+    }
+  }
+
+  .error-block {
+    margin-bottom: 1.6rem;
+
+    .retry-hint {
+      font-size: 1.4rem;
+      margin-top: 0.8rem;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 0.8rem;
+    }
   }
 
   // Override PrimeNG panel content width constraints
@@ -1272,12 +1450,40 @@ app-anchor-menu {
       border: none;
       cursor: pointer;
       padding: 0;
+      font-size: 1.4rem;
 
       &:hover {
         text-decoration: underline;
       }
     }
   }
+
+  button[pButton] {
+    width: 100%;
+  }
+}
+
+// Password toggle icon styling
+.password-toggle-icon {
+  cursor: pointer;
+  font-size: 2rem !important;
+
+  i {
+    font-size: 2rem;
+  }
+}
+
+// OTP input styling
+.otp-input {
+  padding: 1rem !important;
+  font-size: 1.6rem !important;
+  text-align: center;
+  letter-spacing: 0.5rem;
+}
+
+// Warning message container
+.warning-message {
+  padding: 1.6rem 1.6rem 0;
 }
 
 .profile-menu {
@@ -1302,15 +1508,15 @@ app-anchor-menu {
       margin-bottom: 0.4rem;
 
       &:hover {
-        background-color: $highlight-bg;
+        background-color: var(--color-highlight-bg);
       }
 
       &:active {
-        background-color: $highlight-bg-active;
+        background-color: var(--color-highlight-bg-active);
       }
 
       &:focus-visible {
-        outline: 2px solid $focus-ring;
+        outline: 2px solid var(--color-focus-ring);
         outline-offset: 2px;
       }
     }
@@ -1334,11 +1540,15 @@ app-anchor-menu {
       flex: 1;
       min-width: 0;
 
+      > * {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
       .profile-email {
         font-size: 1.6rem;
         font-weight: 600;
         margin-bottom: 0.4rem;
-        word-break: break-all;
       }
 
       .profile-username {
@@ -1357,7 +1567,7 @@ app-anchor-menu {
 
     &.clickable:hover .profile-chevron {
       opacity: 0.6;
-      transform: translateX(4px);
+      transform: translateX(0.4rem);
     }
   }
 
@@ -1398,11 +1608,16 @@ app-anchor-menu {
   p {
     margin: 0 0 0.8rem;
     font-size: 1.4rem;
+
+    &.hint {
+      opacity: 0.7;
+      margin-top: 1.2rem;
+    }
   }
 
   .otp-email {
     font-weight: 600;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     word-break: break-all;
   }
 }
@@ -1421,6 +1636,7 @@ app-anchor-menu {
     padding: 0;
     color: inherit;
     opacity: 0.8;
+    font-size: 1.4rem;
 
     &:hover:not(:disabled) {
       text-decoration: underline;
@@ -1434,95 +1650,336 @@ app-anchor-menu {
   }
 }
 
-// ----------------------------------------------------------------------------
-// 7.7 Cookie Banner
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Cookie Banner
+// -----------------------------------------------------------------------------
 
-.cookie-banner {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  backdrop-filter: blur(2px);
-  border-top: 1px solid transparent;
-  padding: 1.5rem 2rem;
-  z-index: 10000;
-  box-shadow: 0 -0.4rem 2rem $shadow;
-}
+app-cookie-banner {
+  aside {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background-color: var(--color-bg-overlay);
+    color: var(--color-text-primary);
+    backdrop-filter: blur(3px);
+    border-top: 1px solid var(--color-border-primary);
+    padding: 1.5rem 2rem;
+    z-index: 10000;
+    box-shadow: 0 -0.4rem 2rem var(--color-shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
 
-.cookie-banner-content {
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-}
+    a {
+      color: var(--color-link);
+      &:hover {
+        color: var(--color-link-hover);
+      }
+    }
+  }
 
-.cookie-banner-text {
-  margin: 0;
-  font-size: 1.6rem;
-  line-height: 1.6;
-  font-weight: 400;
-  text-align: center;
-}
+  p {
+    margin: 0;
+    font-size: 1.6rem;
+    line-height: 1.6;
+    font-weight: 400;
+    text-align: center;
 
-.cookie-banner-link {
-  text-decoration: underline;
-  margin-left: 0.5rem;
-  font-weight: 500;
+    a {
+      text-decoration: underline;
+      margin-left: 0.5rem;
+      font-weight: 500;
 
-  &:hover {
-    text-decoration: none;
+      &:hover {
+        text-decoration: none;
+      }
+    }
+  }
+
+  nav {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
   }
 }
 
-.cookie-banner-actions {
-  display: flex;
-  gap: 1rem;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-}
-
-// ----------------------------------------------------------------------------
-// 7.8 Privacy Policy
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Privacy Policy
+// -----------------------------------------------------------------------------
 
 .privacy-content {
   line-height: 1.6;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+
+  p {
+    margin-bottom: 1.6rem;
+  }
 
   a {
     text-decoration: underline;
+    word-break: break-all;
 
     &:hover {
       opacity: 0.8;
     }
   }
+
+  ul {
+    list-style-type: disc;
+    margin: 0.6em 0 0.6em 2rem;
+
+    li {
+      margin-bottom: 0.8rem;
+      font-size: 1.5rem;
+      line-height: 1.6;
+    }
+  }
 }
 
-// ============================================================================
-// 8. PAGE-SPECIFIC STYLES
-// ============================================================================
+app-privacy-policy {
 
-// ----------------------------------------------------------------------------
-// 8.1 Notifications Page
-// ----------------------------------------------------------------------------
-
-.notifications-page {
-  h2 {
-    margin-bottom: 2rem;
+  .updated-date {
+    font-size: 1.4rem;
+    opacity: 0.7;
+    margin-top: 0.8rem;
   }
 
-  h3 {
-    margin-bottom: 1.5rem;
+  .summary-box {
+    padding: 1.6rem;
+    background-color: var(--color-bg-secondary);
+    border-radius: 0.4rem;
+    margin-bottom: 2.4rem;
   }
 
-  .status-section,
-  .test-section,
-  .info-section {
+  .cookie-status {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    margin-bottom: 1.6rem;
+
+    .label {
+      font-weight: 500;
+    }
+
+    .status-enabled {
+      color: var(--color-text-success);
+    }
+
+    .status-disabled {
+      color: var(--color-text-muted);
+    }
+
+    .status-pending {
+      color: #ca8a04;
+    }
+  }
+
+  .cookie-actions {
+    display: flex;
+    gap: 0.8rem;
+  }
+
+  .service-list {
+    list-style-type: disc;
+    margin-left: 2rem;
+
+    li {
+      margin-bottom: 0.8rem;
+      line-height: 1.6;
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Profile Actions
+// -----------------------------------------------------------------------------
+
+.action-title {
+  &.warning {
+    color: var(--color-action-warning);
+  }
+
+  &.danger {
+    color: var(--color-action-danger);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Toggle switches
+// -----------------------------------------------------------------------------
+
+label:has(+ p-toggleswitch),
+p-toggleswitch + label {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-active);
+  }
+}
+
+// =============================================================================
+// PAGE-SPECIFIC STYLES
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Profile Page
+// -----------------------------------------------------------------------------
+
+app-profile {
+  .profile-avatar {
+    background-color: var(--p-primary-color);
+    color: var(--p-primary-contrast-color);
+    min-width: 3rem;
+  }
+
+  .profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    padding: 1.6rem;
+    overflow: hidden;
+
+    .profile-header-info {
+      flex: 1;
+      overflow: hidden;
+
+      h2 {
+        margin: 0;
+      }
+
+      p {
+        margin: 0.4rem 0 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .profile-section {
+    h3 {
+      margin: 0 0 1.6rem;
+    }
+  }
+
+  .profile-form {
+    width: 100%;
+    max-width: none;
+  }
+
+  .profile-logout {
+    margin-top: 1rem;
+  }
+
+  .info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    margin: 0;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    font-size: 1.6rem;
+
+    dt {
+      font-weight: 500;
+      min-width: 12rem;
+      flex-shrink: 0;
+    }
+
+    dd {
+      margin: 0;
+      flex: 1;
+      word-break: break-all;
+
+      &.monospace {
+        font-family: $code-font-stack;
+        font-size: 1.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      flex-wrap: wrap;
+
+      dt {
+        min-width: auto;
+        width: 100%;
+      }
+
+      dd {
+        width: 100%;
+      }
+    }
+  }
+
+  .timezone-select {
+    flex: 1;
+    max-width: 38.4rem;
+
+    .p-select {
+      width: 100%;
+    }
+  }
+
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+
+    .theme-label {
+      font-size: 1.4rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      white-space: nowrap;
+
+      &.active {
+        color: var(--color-active);
+        font-weight: 500;
+        pointer-events: none;
+      }
+    }
+  }
+
+  .data-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  .action-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+
+    .action-title {
+      font-weight: 500;
+      margin: 0;
+    }
+
+    .action-description {
+      font-size: 1.4rem;
+      opacity: 0.7;
+      margin: 0;
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Notifications Page
+// -----------------------------------------------------------------------------
+
+app-notifications {
+  section {
     margin-bottom: 2rem;
   }
 
@@ -1530,35 +1987,34 @@ app-anchor-menu {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
     gap: 1rem;
-  }
 
-  .status-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    > div {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
 
-    strong {
+    dt {
       font-size: 1.2rem;
-      color: $mid-gray;
+      color: var(--color-text-muted);
       text-transform: uppercase;
     }
 
-    span {
+    dd {
       font-size: 1.6rem;
       font-weight: 600;
-    }
-  }
+      margin: 0;
 
-  .notification-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    margin-top: 1.5rem;
+      &.granted { color: var(--color-text-success); }
+      &.denied { color: var(--color-text-error); }
+    }
   }
 
   .notification-test-card {
     padding: 1.5rem;
-    border: 1px solid transparent;
+    margin: 1rem 0;
+    border: 1px solid var(--color-border-secondary);
+    background-color: var(--color-bg-secondary);
     border-radius: 0.8rem;
     display: flex;
     justify-content: space-between;
@@ -1575,8 +2031,9 @@ app-anchor-menu {
       }
 
       p {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
         margin: 0;
+        color: var(--color-text-primary);
       }
     }
 
@@ -1592,37 +2049,49 @@ app-anchor-menu {
     border-radius: 0.4rem;
     margin-top: 1rem;
     font-size: 1.4rem;
-    border-left: 4px solid;
-  }
+    border-left: 0.4rem solid;
+    color: var(--color-text-primary);
 
-  ul {
-    li {
-      font-size: 1.4rem;
-      line-height: 1.6;
+    &.local {
+      background-color: var(--color-bg-tertiary);
+    }
+
+    &.server {
+      background-color: var(--color-bg-secondary);
     }
   }
 }
 
-// ----------------------------------------------------------------------------
-// 8.2 IndexedDB Demo Card Styles
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// IndexedDB Page
+// -----------------------------------------------------------------------------
 
-p-card ul li, p-card.indexeddb {
-  margin: 0.6rem 0;
-  padding: 0;
+app-indexeddb p-card {
   font-size: 2rem;
-}
-
-p-card.indexeddb {
-  input {
+  input, textarea {
     margin: 0.5rem 0;
     font-size: 1.5rem;
   }
 }
 
-// ============================================================================
-// 9. RESPONSIVE OVERRIDES (screen sizes)
-// ============================================================================
+// =============================================================================
+// RESPONSIVE OVERRIDES (screen sizes)
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Viewport-ready gate: Prevent CLS on desktop by hiding menu until JS determines viewport
+// Mobile (detected via User-Agent in SSR) shows immediately; desktop animates in after hydration
+// -----------------------------------------------------------------------------
+body:not(.viewport-ready):not(.not-sm) {
+  app-menu-feature {
+    width: 0;
+    opacity: 0;
+    overflow: hidden;
+  }
+  .main {
+    padding-left: 0;
+  }
+}
 
 .screen-xl {
   body.index footer {
@@ -1631,6 +2100,8 @@ p-card.indexeddb {
   app-menu-feature {
     width: 18rem;
     box-shadow: none;
+    // Disable transition on wide screens for instant appearance (no animation flicker)
+    transition: none;
   }
   .main {
     padding-left: 18rem;
@@ -1641,12 +2112,14 @@ p-card.indexeddb {
   // Layout overrides
   .main {
     padding-left: 0;
-    height: calc(100dvh - 4rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    height: calc(100dvh - 3.8rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    overscroll-behavior-y: contain;
   }
-  header, footer {
+  .main > header,
+  .main > footer {
     border-left-width: 0;
   }
-  footer {
+  .main > footer {
     > * {
       font-size: 1.6rem;
     }
@@ -1655,7 +2128,7 @@ p-card.indexeddb {
   // Feature menu becomes bottom bar
   app-menu-feature {
     position: fixed;
-    bottom: env(safe-area-inset-bottom);
+    bottom: calc(env(safe-area-inset-bottom) - 1px);
     left: env(safe-area-inset-left);
     right: env(safe-area-inset-right);
     top: auto;
@@ -1683,7 +2156,7 @@ p-card.indexeddb {
         width: calc(50vw - 2.3rem);
       }
       > * {
-        margin: 0 0.6rem;
+        margin: auto 0.6rem;
         flex: 0 0 auto;
       }
     }
@@ -1694,7 +2167,8 @@ p-card.indexeddb {
         top: 0;
         bottom: 0;
         height: 100%;
-        width: 1.5px;
+        width: 0.15rem;
+        background-image: var(--hr-gradient-vertical);
       }
     }
     .kofi-button, .link-home {
@@ -1714,8 +2188,8 @@ p-card.indexeddb {
     }
   }
 
-  // Anchor menus become scrollable centered modals
-  .cdk-overlay-pane:has(.anchor-menu-panel) {
+  // Dialog menus become scrollable centered modals
+  .cdk-overlay-pane:has(.dialog-menu-panel) {
     inset: 0 !important;
     overflow-y: auto;
     display: block;
@@ -1724,7 +2198,7 @@ p-card.indexeddb {
     width: 100%;
   }
 
-  .anchor-menu-panel[class*="position-"] {
+  .dialog-menu-panel[class*="position-"] {
     position: relative !important;
     top: auto !important;
     left: auto !important;
@@ -1746,14 +2220,12 @@ p-card.indexeddb {
     flex: none;
   }
 
-  // IndexedDB card overrides
-  p-card ul li, p-card.indexeddb {
+  p-card ul li {
     margin: 0.4rem 0;
-    padding: 0;
   }
 
   // Notification test cards stack vertically on mobile
-  .notification-test-card {
+  app-notifications .notification-test-card {
     flex-direction: column;
     align-items: stretch;
 
@@ -1765,7 +2237,7 @@ p-card.indexeddb {
 
 // Cookie banner responsive
 @media (max-width: 768px) {
-  .cookie-banner-actions {
+  app-cookie-banner nav {
     width: 100%;
 
     button {
@@ -1774,28 +2246,24 @@ p-card.indexeddb {
   }
 }
 
-// ============================================================================
-// 10. UTILITIES & ANIMATIONS
-// ============================================================================
+// =============================================================================
+// UTILITIES & ANIMATIONS
+// =============================================================================
 
-.auto-close-progress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 6px;
-  width: 0;
-  background: linear-gradient(90deg, $progress-start, $progress-end);
-  animation: fill-progress linear forwards;
+// Timer Indicator Directive
+@keyframes timer-indicator-shrink {
+  from { width: 100%; }
+  to { width: 0; }
 }
 
-@keyframes fill-progress {
-  from { width: 0; }
-  to { width: 100%; }
+.timer-indicator {
+  background: linear-gradient(90deg, var(--color-brand-light), var(--color-brand)) !important;
+  pointer-events: none;
 }
 
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Scroll Indicator
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 // Sticky track: sticks to bottom-left of scroll viewport
 // Width is set via JS to match viewport width
@@ -1813,9 +2281,9 @@ p-card.indexeddb {
 .scroll-indicator-vertical,
 .scroll-indicator-horizontal {
   position: absolute;
-  bottom: calc(-1 * var(--si-offset-bottom, 0px) + 4px);
-  right: calc(-1 * var(--si-offset-right, 0px) + 4px);
-  background-color: $mid-gray;
+  bottom: calc(-1 * var(--si-offset-bottom, 0) + 0.4rem);
+  right: calc(-1 * var(--si-offset-right, 0) + 0.4rem);
+  background-color: var(--color-text-muted);
   border-radius: 0.2rem;
   opacity: 0;
   pointer-events: none;
@@ -1825,11 +2293,13 @@ p-card.indexeddb {
 // Vertical indicator: thin bar extending upward from bottom-right
 .scroll-indicator-vertical {
   width: 0.4rem;
-  height: var(--si-height, 0px);
+  height: var(--si-height, 0);
+  background: var(--scroll-indicator-gradient-v);
 }
 
 // Horizontal indicator: thin bar extending leftward from bottom-right
 .scroll-indicator-horizontal {
   height: 0.4rem;
-  width: var(--si-width, 0px);
+  width: var(--si-width, 0);
+  background: var(--scroll-indicator-gradient-h);
 }

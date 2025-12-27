@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { StoragePromotionService } from './storage-promotion.service';
 import { UserStorageService } from './user-storage.service';
 import { STORAGE_PREFIXES } from '@app/constants/storage.constants';
-import { IndexedDbService } from './indexeddb.service';
+import { IndexedDbService, IDB_STORES } from './indexeddb.service';
 import { LogService } from './log.service';
 import { PROMOTABLE_LOCALSTORAGE_NAMES } from '../constants/ui.constants';
 
@@ -219,7 +219,8 @@ describe('StoragePromotionService', () => {
 
       expect(mockIndexedDbService.setRaw).toHaveBeenCalledWith(
         `${STORAGE_PREFIXES.USER}_user-123_data`,
-        'some value'
+        'some value',
+        jasmine.any(String) // Store name
       );
     });
 
@@ -238,7 +239,7 @@ describe('StoragePromotionService', () => {
       await service.promoteAnonymousToUser('user-123');
 
       expect(mockIndexedDbService.setRaw).not.toHaveBeenCalled();
-      expect(mockLogService.log).toHaveBeenCalledWith('Skipped empty IndexedDB key empty');
+      expect(mockLogService.log).toHaveBeenCalledWith(jasmine.stringMatching(/Skipped empty IndexedDB key empty in/));
     });
 
     it('should skip when empty string anonymous data', async () => {
@@ -270,7 +271,7 @@ describe('StoragePromotionService', () => {
       await service.promoteAnonymousToUser('user-123');
 
       expect(mockIndexedDbService.setRaw).not.toHaveBeenCalled();
-      expect(mockLogService.log).toHaveBeenCalledWith('Skipped IndexedDB key existing - user data exists');
+      expect(mockLogService.log).toHaveBeenCalledWith(jasmine.stringMatching(/Skipped IndexedDB key existing in .* - user data exists/));
     });
 
     it('should handle IndexedDB key promotion errors gracefully', async () => {
@@ -284,7 +285,7 @@ describe('StoragePromotionService', () => {
       await service.promoteAnonymousToUser('user-123');
 
       expect(mockLogService.log).toHaveBeenCalledWith(
-        'Failed to promote IndexedDB key: anonymous_failing',
+        jasmine.stringMatching(/Failed to promote IndexedDB key: anonymous_failing in/),
         jasmine.any(Error)
       );
     });
@@ -294,7 +295,7 @@ describe('StoragePromotionService', () => {
 
       await service.promoteAnonymousToUser('user-123');
 
-      expect(mockLogService.log).toHaveBeenCalledWith('Failed to promote IndexedDB', jasmine.any(Error));
+      expect(mockLogService.log).toHaveBeenCalledWith(jasmine.stringMatching(/Failed to promote IndexedDB store/), jasmine.any(Error));
     });
   });
 
@@ -335,23 +336,24 @@ describe('StoragePromotionService', () => {
 
       await service.promoteAnonymousToUser('user-123');
 
-      expect(mockIndexedDbService.delRaw).toHaveBeenCalledWith('anonymous_key1');
-      expect(mockIndexedDbService.delRaw).toHaveBeenCalledWith('anonymous_key2');
-      expect(mockIndexedDbService.delRaw).not.toHaveBeenCalledWith('user_123_key3');
+      expect(mockIndexedDbService.delRaw).toHaveBeenCalledWith('anonymous_key1', jasmine.any(String));
+      expect(mockIndexedDbService.delRaw).toHaveBeenCalledWith('anonymous_key2', jasmine.any(String));
+      expect(mockIndexedDbService.delRaw).not.toHaveBeenCalledWith('user_123_key3', jasmine.any(String));
     });
 
     it('should handle clearAnonymousIndexedDb keys() error', async () => {
-      // First call succeeds (for promotion), second call fails (for clearing)
+      // First call succeeds (for promotion), subsequent calls fail (for clearing)
       let callCount = 0;
       mockIndexedDbService.keys.and.callFake(() => {
         callCount++;
-        if (callCount === 1) return Promise.resolve([]);
+        // First 3 calls for promotion (one per store), then fail on clear
+        if (callCount <= 3) return Promise.resolve([]);
         return Promise.reject(new Error('Keys failed'));
       });
 
       await service.promoteAnonymousToUser('user-123');
 
-      expect(mockLogService.log).toHaveBeenCalledWith('Failed to clear anonymous IndexedDB', jasmine.any(Error));
+      expect(mockLogService.log).toHaveBeenCalledWith(jasmine.stringMatching(/Failed to clear anonymous IndexedDB store/), jasmine.any(Error));
     });
   });
 
@@ -439,7 +441,7 @@ describe('StoragePromotionService', () => {
       const result = await service.hasAnonymousData();
 
       expect(result).toBeFalse();
-      expect(mockLogService.log).toHaveBeenCalledWith('Failed to check anonymous IndexedDB data', jasmine.any(Error));
+      expect(mockLogService.log).toHaveBeenCalledWith(jasmine.stringMatching(/Failed to check anonymous IndexedDB data in/), jasmine.any(Error));
     });
   });
 
@@ -454,7 +456,7 @@ describe('StoragePromotionService', () => {
 
       expect(localStorage.getItem('anonymous_lang')).toBeNull();
       expect(localStorage.getItem('anonymous_app_notifications')).toBeNull();
-      expect(mockIndexedDbService.delRaw).toHaveBeenCalledWith('anonymous_data');
+      expect(mockIndexedDbService.delRaw).toHaveBeenCalledWith('anonymous_data', jasmine.any(String));
       expect(mockLogService.log).toHaveBeenCalledWith('Anonymous data cleared (user declined import)');
     });
 

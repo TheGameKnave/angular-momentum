@@ -3,6 +3,7 @@ import { SUPPORTED_LANGUAGES } from '@app/constants/app.constants';
 import { MenuLanguageComponent } from './menu-language.component';
 import { TranslocoService } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
+import { UserSettingsService } from '@app/services/user-settings.service';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 
 describe('MenuLanguageComponent', () => {
@@ -10,11 +11,15 @@ describe('MenuLanguageComponent', () => {
   let fixture: ComponentFixture<MenuLanguageComponent>;
   let translocoService: TranslocoService;
   let mockTranslocoLoader: jasmine.SpyObj<TranslocoHttpLoader>;
+  let mockUserSettingsService: jasmine.SpyObj<UserSettingsService>;
 
   beforeEach(async () => {
     mockTranslocoLoader = jasmine.createSpyObj('TranslocoHttpLoader', ['getCountry', 'getNativeName']);
     mockTranslocoLoader.getCountry.and.returnValue('us');
     mockTranslocoLoader.getNativeName.and.returnValue('English');
+
+    mockUserSettingsService = jasmine.createSpyObj('UserSettingsService', ['updateLanguagePreference']);
+    mockUserSettingsService.updateLanguagePreference.and.returnValue(Promise.resolve(null));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -23,6 +28,7 @@ describe('MenuLanguageComponent', () => {
       ],
       providers: [
         { provide: TranslocoHttpLoader, useValue: mockTranslocoLoader },
+        { provide: UserSettingsService, useValue: mockUserSettingsService },
       ]
     }).compileComponents();
 
@@ -42,7 +48,7 @@ describe('MenuLanguageComponent', () => {
     });
   });
 
-  it('should change language if clicked', () => {
+  it('should change language and persist to server if clicked', () => {
     const langClass = 'i18n-de';
     const event = {
       target: {
@@ -55,9 +61,10 @@ describe('MenuLanguageComponent', () => {
     component.onI18n(event);
 
     expect(translocoService.setActiveLang).toHaveBeenCalledWith('de');
+    expect(mockUserSettingsService.updateLanguagePreference).toHaveBeenCalledWith('de');
   });
 
-  it('should change language if key-entered', () => {
+  it('should change language and persist to server if key-entered', () => {
     const langClass = 'i18n-de';
     const target = {
       closest: () => ({ classList: [langClass] })
@@ -70,6 +77,7 @@ describe('MenuLanguageComponent', () => {
     component.onI18n(event);
 
     expect(translocoService.setActiveLang).toHaveBeenCalledWith('de');
+    expect(mockUserSettingsService.updateLanguagePreference).toHaveBeenCalledWith('de');
   });
 
   it('should not change language if no language class is found', () => {

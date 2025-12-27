@@ -61,6 +61,24 @@ function isPartialNamespaceKey(key: string): boolean {
 }
 
 /**
+ * Check if a string looks like an object property access rather than a translation key.
+ * Property access patterns: variable.property, object.nested.property
+ * These are typically all lowercase with no spaces, matching JS identifier patterns.
+ * Translation keys typically have spaces or capitalized words after the namespace.
+ */
+function isPropertyAccess(key: string): boolean {
+  // Property access: all parts are valid JS identifiers (lowercase, no spaces)
+  // e.g., "notification.timestamp", "user.profile.name"
+  const parts = key.split('.');
+  if (parts.length < 2) return false;
+
+  // If ALL parts after the namespace are lowercase identifiers, it's likely property access
+  // Translation keys typically have spaces or capitalization: "notification.No notifications"
+  const afterNamespace = parts.slice(1).join('.');
+  return /^[a-z][a-zA-Z0-9]*(\.[a-z][a-zA-Z0-9]*)*$/.test(afterNamespace);
+}
+
+/**
  * Extracts translation keys from template content.
  * Matches both single and double quoted t('key') and t("key") patterns.
  * @param content - The template file content to extract keys from
@@ -162,7 +180,11 @@ function extractTsKeys(content: string): string[] {
   // Double-quoted strings with namespace prefix
   const nsDoubleRegex = new RegExp(`"((?:${namespacePattern})\\.[^"]+)"`, 'g');
   while ((match = nsDoubleRegex.exec(content)) !== null) {
-    keys.push(match[1]);
+    const key = match[1];
+    // Skip property access patterns (e.g., notification.timestamp)
+    if (!isPropertyAccess(key)) {
+      keys.push(key);
+    }
   }
 
   // Single-quoted strings with namespace prefix (handles escaped apostrophes)
@@ -170,7 +192,10 @@ function extractTsKeys(content: string): string[] {
   while ((match = nsSingleRegex.exec(content)) !== null) {
     // Unescape any escaped apostrophes to get the actual key
     const key = match[1].replace(/\\'/g, "'");
-    keys.push(key);
+    // Skip property access patterns (e.g., notification.timestamp)
+    if (!isPropertyAccess(key)) {
+      keys.push(key);
+    }
   }
 
   return keys;

@@ -1,4 +1,5 @@
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { PLATFORM_ID, TransferState } from '@angular/core';
 import { FeatureFlagService } from './feature-flag.service';
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -108,5 +109,109 @@ describe('FeatureFlagService', () => {
 
   afterEach(() => {
     httpMock.verify();
+  });
+
+  describe('TransferState SSR hydration', () => {
+    it('should restore feature flags from TransferState on browser', () => {
+      const transferState = TestBed.inject(TransferState);
+      const mockFlags = { 'Environment': true, 'GraphQL API': false };
+
+      // Set up TransferState before creating a new service instance
+      TestBed.resetTestingModule();
+      const mockTransferState = jasmine.createSpyObj('TransferState', ['hasKey', 'get', 'remove', 'set']);
+      mockTransferState.hasKey.and.returnValue(true);
+      mockTransferState.get.and.returnValue(mockFlags);
+
+      TestBed.configureTestingModule({
+        providers: [
+          FeatureFlagService,
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          { provide: Socket, useValue: socketSpy },
+          { provide: PLATFORM_ID, useValue: 'browser' },
+          { provide: TransferState, useValue: mockTransferState },
+        ],
+      });
+
+      const newService = TestBed.inject(FeatureFlagService);
+      expect(mockTransferState.hasKey).toHaveBeenCalled();
+      expect(mockTransferState.get).toHaveBeenCalled();
+      expect(mockTransferState.remove).toHaveBeenCalled();
+      expect(newService.features()).toEqual(mockFlags);
+      expect(newService.loaded()).toBe(true);
+    });
+
+    it('should not restore from TransferState if key does not exist', () => {
+      TestBed.resetTestingModule();
+      const mockTransferState = jasmine.createSpyObj('TransferState', ['hasKey', 'get', 'remove', 'set']);
+      mockTransferState.hasKey.and.returnValue(false);
+
+      TestBed.configureTestingModule({
+        providers: [
+          FeatureFlagService,
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          { provide: Socket, useValue: socketSpy },
+          { provide: PLATFORM_ID, useValue: 'browser' },
+          { provide: TransferState, useValue: mockTransferState },
+        ],
+      });
+
+      const newService = TestBed.inject(FeatureFlagService);
+      expect(mockTransferState.hasKey).toHaveBeenCalled();
+      expect(mockTransferState.get).not.toHaveBeenCalled();
+      expect(newService.loaded()).toBe(false);
+    });
+
+    it('should store feature flags in TransferState on server', () => {
+      TestBed.resetTestingModule();
+      const mockTransferState = jasmine.createSpyObj('TransferState', ['hasKey', 'get', 'remove', 'set']);
+      mockTransferState.hasKey.and.returnValue(false);
+
+      TestBed.configureTestingModule({
+        providers: [
+          FeatureFlagService,
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          { provide: Socket, useValue: socketSpy },
+          { provide: PLATFORM_ID, useValue: 'server' },
+          { provide: TransferState, useValue: mockTransferState },
+        ],
+      });
+
+      const newService = TestBed.inject(FeatureFlagService);
+      const newHttpMock = TestBed.inject(HttpTestingController);
+
+      const restResponse = [
+        { key: 'Environment', value: true },
+        { key: 'GraphQL API', value: false },
+      ];
+
+      newService.getFeatureFlags().subscribe();
+
+      const req = newHttpMock.expectOne((request) => request.url.endsWith('/api/feature-flags'));
+      req.flush(restResponse);
+
+      expect(mockTransferState.set).toHaveBeenCalled();
+      expect(newService.loaded()).toBe(true);
+    });
+
+    it('should not register WebSocket listener on server platform', () => {
+      TestBed.resetTestingModule();
+      const serverSocketSpy = jasmine.createSpyObj('Socket', ['on']);
+
+      TestBed.configureTestingModule({
+        providers: [
+          FeatureFlagService,
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          { provide: Socket, useValue: serverSocketSpy },
+          { provide: PLATFORM_ID, useValue: 'server' },
+        ],
+      });
+
+      TestBed.inject(FeatureFlagService);
+      expect(serverSocketSpy.on).not.toHaveBeenCalled();
+    });
   });
 });

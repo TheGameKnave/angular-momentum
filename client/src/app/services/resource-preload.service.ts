@@ -1,4 +1,5 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { SUPPORTED_LANGUAGES } from '@app/constants/app.constants';
 import { TranslocoHttpLoader } from './transloco-loader.service';
 
@@ -62,6 +63,8 @@ function getResourcesToPreload(translocoLoader: TranslocoHttpLoader): PreloadRes
 @Injectable({ providedIn: 'root' })
 export class ResourcePreloadService {
   private readonly translocoLoader = inject(TranslocoHttpLoader);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly preloadedUrls = new Set<string>();
 
   /**
@@ -69,6 +72,9 @@ export class ResourcePreloadService {
    * Called during app initialization to cache resources before use.
    */
   async preloadAll(): Promise<void> {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
+
     const resources = getResourcesToPreload(this.translocoLoader);
     await Promise.allSettled(resources.map(r => this.preload(r)));
   }

@@ -1,29 +1,25 @@
 @if (showBanner()) {
-  <div class="cookie-banner" *transloco="let t">
-    <div class="cookie-banner-content">
-      <p class="cookie-banner-text">
-        {{ t('privacy.We use cookies to improve your experience and analyze site usage.') }}
-        <a [routerLink]="['/privacy']" class="cookie-banner-link">
-          {{ t('privacy.Learn more') }}
-        </a>
-      </p>
-      <div class="cookie-banner-actions">
-        <p-button
-          [label]="t('Accept')"
-          (click)="onAccept()"
-          (keydown.enter)="onAccept()"
-          severity="primary"
-          size="small"
-        />
-        <p-button
-          [label]="t('Decline')"
-          (click)="onDecline()"
-          (keydown.enter)="onDecline()"
-          severity="secondary"
-          [text]="true"
-          size="small"
-        />
-      </div>
-    </div>
-  </div>
+  <aside *transloco="let t">
+    <p>
+      {{ t('privacy.We use cookies to improve your experience and analyze site usage.') }}
+      <a [routerLink]="['/privacy']">{{ t('privacy.Privacy Policy') }}</a>
+    </p>
+    <nav>
+      <p-button
+        [label]="t('Accept')"
+        (click)="onAccept()"
+        (keydown.enter)="onAccept()"
+        severity="primary"
+        size="small"
+      />
+      <p-button
+        [label]="t('Decline')"
+        (click)="onDecline()"
+        (keydown.enter)="onDecline()"
+        severity="secondary"
+        [text]="true"
+        size="small"
+      />
+    </nav>
+  </aside>
 }

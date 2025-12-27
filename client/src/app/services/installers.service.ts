@@ -1,4 +1,5 @@
-import { computed, Injectable, Signal, inject } from '@angular/core';
+import { computed, Injectable, Signal, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { INSTALLERS, PLATFORMS } from '@app/constants/app.constants';
 import { Installer } from '@app/models/data.model';
 import { ChangeLogService } from './change-log.service';
@@ -20,6 +21,8 @@ import { ChangeLogService } from './change-log.service';
 })
 export class InstallersService {
   private readonly changeLogService = inject(ChangeLogService);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   private _cachedInstallers: Installer[] | null = null;
   private _cachedVersion: string | null = null;
@@ -31,6 +34,9 @@ export class InstallersService {
    * @returns Platform name (e.g., 'Windows', 'macOS', 'Linux') or 'Unknown'
    */
   private determinePlatform(): string {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return 'Unknown';
+
     const userAgent = globalThis.navigator.userAgent;
 
     return PLATFORMS.find(p => p.regex.test(userAgent))?.platform ?? 'Unknown';
@@ -60,10 +66,13 @@ export class InstallersService {
   /**
    * Computed signal providing the installer for the current platform.
    * Automatically updates when version changes.
+   * Returns a fallback during SSR when platform detection is unavailable.
    */
   public readonly currentPlatformInstaller: Signal<Installer> = computed(() => {
     const platform = this.determinePlatform();
-    return this.installers().find(i => i.name === platform)!;
+    const installers = this.installers();
+    // istanbul ignore next - SSR fallback
+    return installers.find(i => i.name === platform) ?? installers[0];
   });
 
   /**

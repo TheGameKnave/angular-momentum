@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { MenuCloseDirective } from './menu-close.directive';
-import { AnchorMenuComponent } from '@app/components/menus/anchor-menu/anchor-menu.component';
+import { DialogMenuComponent } from '@app/components/menus/dialog-menu/dialog-menu.component';
 
 @Component({
   template: `<button appMenuClose>Close</button>`,
@@ -11,7 +11,7 @@ import { AnchorMenuComponent } from '@app/components/menus/anchor-menu/anchor-me
 class TestHostComponent {}
 
 describe('MenuCloseDirective', () => {
-  describe('without AnchorMenuComponent', () => {
+  describe('without DialogMenuComponent', () => {
     let fixture: ComponentFixture<TestHostComponent>;
 
     beforeEach(async () => {
@@ -40,17 +40,17 @@ describe('MenuCloseDirective', () => {
     });
   });
 
-  describe('with AnchorMenuComponent', () => {
+  describe('with DialogMenuComponent', () => {
     let fixture: ComponentFixture<TestHostComponent>;
-    let mockMenu: jasmine.SpyObj<AnchorMenuComponent>;
+    let mockMenu: jasmine.SpyObj<DialogMenuComponent>;
 
     beforeEach(async () => {
-      mockMenu = jasmine.createSpyObj('AnchorMenuComponent', ['close']);
+      mockMenu = jasmine.createSpyObj('DialogMenuComponent', ['close']);
 
       await TestBed.configureTestingModule({
         imports: [TestHostComponent],
         providers: [
-          { provide: AnchorMenuComponent, useValue: mockMenu },
+          { provide: DialogMenuComponent, useValue: mockMenu },
         ],
       }).compileComponents();
 

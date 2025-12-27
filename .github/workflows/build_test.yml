@@ -43,6 +43,11 @@ jobs:
           echo "\nBuilding the client\n\n"
           cd client && npm run build
 
+      - name: Build the Server
+        run: |
+          echo "\nBuilding the server\n\n"
+          cd server && npx tsc
+
       - name: Run Server Tests
         run: |
           echo "\nRunning server tests\n\n"
@@ -52,28 +57,72 @@ jobs:
         run: |
           echo "\nRunning client tests\n\n"
           cd client && npm test
-          
-      # #e2e Tests
-      # TODO uncomment once testcafe works with chrome latest
-      # - name: Start Angular server
-      #   run: npm run prod &
 
-      # - name: Wait for Angular server to start
-      #   run: |
-      #     until curl --output /dev/null --silent --head --fail http://localhost:4200; do
-      #       echo 'Waiting for Angular server...'
-      #       sleep 5
-      #     done
+      # E2E Tests with Playwright
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
 
-      # - name: Run E2E Tests
-      #   run: |
-      #     echo "\nRunning e2e tests\n\n"
-      #     cd tests/e2e && node clean_screenshots && node test_runner
+      - name: Create server .env for E2E tests
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          echo "API_PORT=4201" > server/.env
+          echo "SUPABASE_URL=$SUPABASE_URL" >> server/.env
+          echo "SUPABASE_SERVICE_KEY=$SUPABASE_SERVICE_KEY" >> server/.env
 
-      # - name: Run Screenshot Diff Tests
-      #   run: |
-      #     echo "\nRunning screenshot diff tests\n\n"
-      #     cd tests/e2e && npx testcafe-blink-diff screenshots --compare accepted:tested --open --threshold 0.003
+      - name: Run E2E Tests
+        run: |
+          echo "\nRunning e2e tests\n\n"
+          npx playwright test --config=tests/e2e/playwright.config.ts --project=chromium --project=chromium-features --project=chromium-feature-toggles
+        env:
+          CI: true
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: tests/e2e/playwright-report/
+          retention-days: 7
+
+      - name: Upload Visual Diff Artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: visual-diff-results
+          path: tests/e2e/test-results/
+          retention-days: 7
+
+      # Lighthouse CI - runs against SSR production build
+      - name: Run Lighthouse CI
+        run: |
+          # Start the API server in background (SSR proxies to it)
+          cd server
+          NODE_ENV=production node build/server/index.js &
+          API_PID=$!
+          cd ..
+          sleep 2
+          # Start the SSR server in background (PORT=4000 to avoid conflict with API_PORT in .env)
+          PORT=4000 node client/dist/angular-momentum/server/server.mjs &
+          SSR_PID=$!
+          sleep 3
+          # Run Lighthouse
+          npx lhci autorun
+          LHCI_EXIT=$?
+          # Cleanup
+          kill $SSR_PID 2>/dev/null || true
+          kill $API_PID 2>/dev/null || true
+          exit $LHCI_EXIT
+
+      - name: Upload Lighthouse Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-report
+          path: .lighthouseci/
+          if-no-files-found: ignore
+          retention-days: 30
 
       - name: Install SonarScanner
         run: |
@@ -91,6 +140,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Wait for Quality Gate
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           #!/bin/bash
           TASK_FILE=.scannerwork/report-task.txt
@@ -109,7 +160,7 @@ jobs:
 
           while ((TRIES < MAX_RETRIES)); do
             # Fetch task status from SonarCloud
-            RESPONSE=$(curl -s -u "${{ secrets.SONAR_TOKEN }}:" "https://sonarcloud.io/api/ce/task?id=$TASK_ID")
+            RESPONSE=$(curl -s -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/ce/task?id=$TASK_ID")
             echo "Response: $RESPONSE"  # This logs the response from SonarCloud
             
             # Check if the response contains data

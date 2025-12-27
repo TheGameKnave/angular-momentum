@@ -5,7 +5,7 @@ import packageJson from 'src/../package.json';
 import { isTauri } from '@tauri-apps/api/core';
 import { ChangeLogService } from '@app/services/change-log.service';
 import { CardModule } from 'primeng/card';
-import { AnchorMenuComponent } from '../anchor-menu/anchor-menu.component';
+import { DialogMenuComponent } from '../dialog-menu/dialog-menu.component';
 import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
 import { SEMVER_MESSAGE_MAP, CHANGE_LOG_MESSAGES } from '@app/constants/translations.constants';
 
@@ -15,7 +15,7 @@ import { SEMVER_MESSAGE_MAP, CHANGE_LOG_MESSAGES } from '@app/constants/translat
  * This component shows the current application version and provides a changelog overlay
  * when updates are available. It compares the installed version with the latest release
  * and displays semantic version difference messages. The component handles both Tauri
- * (native app) and web/PWA contexts differently. Uses the shared AnchorMenuComponent for overlay behavior.
+ * (native app) and web/PWA contexts differently. Uses the shared DialogMenuComponent for overlay behavior.
  */
 @Component({
   selector: 'app-menu-change-log',
@@ -24,7 +24,7 @@ import { SEMVER_MESSAGE_MAP, CHANGE_LOG_MESSAGES } from '@app/constants/translat
   imports: [
     TranslocoDirective,
     CardModule,
-    AnchorMenuComponent,
+    DialogMenuComponent,
     ScrollIndicatorDirective,
   ],
 })

@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { PLATFORM_ID, TransferState } from '@angular/core';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
 import { ENVIRONMENT } from 'src/environments/environment';
@@ -101,6 +102,142 @@ describe('TranslocoHttpLoader', () => {
     const ln = 'en-US';
     const expectedNativeName = `${LANGUAGES[ln.split('-')[0]].nativeName} (${loader.languages[ln.split('-')[0]].locales[ln].nativeName})`;
     expect(loader.getNativeName(ln)).toEqual(expectedNativeName);
+  });
+
+  // Custom language override tests (novelty/easter egg languages)
+  describe('custom language overrides', () => {
+    it('should return custom flag code for en-MT (Twain)', () => {
+      expect(loader.getCountry('en-MT')).toEqual('twain');
+    });
+
+    it('should return custom native name for en-MT (Twain)', () => {
+      expect(loader.getNativeName('en-MT')).toEqual('Inglish (Twayn)');
+    });
+
+    it('should return custom flag code for sv-BO (Bork)', () => {
+      expect(loader.getCountry('sv-BO')).toEqual('bork');
+    });
+
+    it('should return custom native name for sv-BO (Bork)', () => {
+      expect(loader.getNativeName('sv-BO')).toEqual('Svenska (Bork Bork!)');
+    });
+  });
+
+  describe('TransferState SSR hydration', () => {
+    it('should restore translation from TransferState on browser', () => {
+      const mockTranslation = { hello: 'Hello', world: 'World' };
+      const mockTransferState = jasmine.createSpyObj('TransferState', ['hasKey', 'get', 'remove', 'set']);
+      mockTransferState.hasKey.and.returnValue(true);
+      mockTransferState.get.and.returnValue(mockTranslation);
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          TranslocoHttpLoader,
+          { provide: PLATFORM_ID, useValue: 'browser' },
+          { provide: TransferState, useValue: mockTransferState },
+        ]
+      });
+
+      const newLoader = TestBed.inject(TranslocoHttpLoader);
+      const newHttpMock = TestBed.inject(HttpTestingController);
+
+      newLoader.getTranslation('en-US').subscribe((translation) => {
+        expect(translation).toEqual(mockTranslation);
+      });
+
+      // No HTTP request should be made since TransferState had the translation
+      newHttpMock.expectNone('/assets/i18n/en-US.json');
+      expect(mockTransferState.hasKey).toHaveBeenCalled();
+      expect(mockTransferState.get).toHaveBeenCalled();
+      expect(mockTransferState.remove).toHaveBeenCalled();
+    });
+
+    it('should fetch translation via HTTP if not in TransferState on browser', () => {
+      const mockTranslation = { hello: 'Hello' };
+      const mockTransferState = jasmine.createSpyObj('TransferState', ['hasKey', 'get', 'remove', 'set']);
+      mockTransferState.hasKey.and.returnValue(false);
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          TranslocoHttpLoader,
+          { provide: PLATFORM_ID, useValue: 'browser' },
+          { provide: TransferState, useValue: mockTransferState },
+        ]
+      });
+
+      const newLoader = TestBed.inject(TranslocoHttpLoader);
+      const newHttpMock = TestBed.inject(HttpTestingController);
+
+      newLoader.getTranslation('en-US').subscribe((translation) => {
+        expect(translation).toEqual(mockTranslation);
+      });
+
+      const req = newHttpMock.expectOne('/assets/i18n/en-US.json');
+      req.flush(mockTranslation);
+
+      expect(mockTransferState.hasKey).toHaveBeenCalled();
+      expect(mockTransferState.get).not.toHaveBeenCalled();
+    });
+
+    it('should store translation in TransferState on server', () => {
+      const mockTranslation = { hello: 'Hola' };
+      const mockTransferState = jasmine.createSpyObj('TransferState', ['hasKey', 'get', 'remove', 'set']);
+      mockTransferState.hasKey.and.returnValue(false);
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          TranslocoHttpLoader,
+          { provide: PLATFORM_ID, useValue: 'server' },
+          { provide: TransferState, useValue: mockTransferState },
+        ]
+      });
+
+      const newLoader = TestBed.inject(TranslocoHttpLoader);
+      const newHttpMock = TestBed.inject(HttpTestingController);
+
+      newLoader.getTranslation('es').subscribe();
+
+      const req = newHttpMock.expectOne('/assets/i18n/es.json');
+      req.flush(mockTranslation);
+
+      expect(mockTransferState.set).toHaveBeenCalled();
+    });
+
+    it('should not store in TransferState on browser when fetching via HTTP', () => {
+      const mockTranslation = { hello: 'Bonjour' };
+      const mockTransferState = jasmine.createSpyObj('TransferState', ['hasKey', 'get', 'remove', 'set']);
+      mockTransferState.hasKey.and.returnValue(false);
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          TranslocoHttpLoader,
+          { provide: PLATFORM_ID, useValue: 'browser' },
+          { provide: TransferState, useValue: mockTransferState },
+        ]
+      });
+
+      const newLoader = TestBed.inject(TranslocoHttpLoader);
+      const newHttpMock = TestBed.inject(HttpTestingController);
+
+      newLoader.getTranslation('fr').subscribe();
+
+      const req = newHttpMock.expectOne('/assets/i18n/fr.json');
+      req.flush(mockTranslation);
+
+      expect(mockTransferState.set).not.toHaveBeenCalled();
+    });
   });
 
 });

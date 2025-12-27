@@ -42,6 +42,8 @@ module.exports = function (config) {
       include: [
         'src/**/*.(ts|js)',
         '!src/main.ts',
+        '!src/main.server.ts',
+        '!src/app.config.server.ts',
         '!src/**/*.spec.(ts|js)',
         '!src/**/environment*.(ts|js)',
         '!src/**/*.constants.ts',

@@ -1,9 +1,10 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal, computed, inject, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { createClient, SupabaseClient, User, Session, AuthError } from '@supabase/supabase-js';
 import { TranslocoService } from '@jsverse/transloco';
 import { PlatformService } from './platform.service';
 import { LogService } from './log.service';
+import { ConnectivityService } from './connectivity.service';
 import { ENVIRONMENT } from 'src/environments/environment';
 import { AUTH_TIMING } from '@app/constants/service.constants';
 
@@ -63,6 +64,7 @@ export class AuthService {
   private readonly logService = inject(LogService);
   private readonly router = inject(Router);
   private readonly translocoService = inject(TranslocoService);
+  private readonly connectivityService = inject(ConnectivityService);
 
   private supabase: SupabaseClient | null = null;
 
@@ -106,6 +108,100 @@ export class AuthService {
 
   constructor() {
     this.initializeSupabase();
+    this.setupConnectivityHandling();
+  }
+
+  /**
+   * Set up connectivity-aware token refresh handling.
+   * Stops auto-refresh when offline to prevent error spam.
+   * Resumes auto-refresh when connectivity is restored.
+   */
+  private setupConnectivityHandling(): void {
+    // Don't set up connectivity handling on SSR
+    if (this.platformService.isSSR()) {
+      return;
+    }
+
+    // Use effect to react to connectivity changes
+    effect(() => {
+      const isOnline = this.connectivityService.isOnline();
+
+      if (!this.supabase) {
+        return;
+      }
+
+      if (isOnline) {
+        // Resume auto-refresh when online
+        this.supabase.auth.startAutoRefresh();
+        this.logService.log('Auth: Auto-refresh resumed (online)');
+      } else {
+        // Stop auto-refresh when offline to prevent error spam
+        this.supabase.auth.stopAutoRefresh();
+        this.logService.log('Auth: Auto-refresh paused (offline)');
+      }
+    });
+
+    // Refresh session when app returns from background (iOS Safari suspends JS timers)
+    // Safari is aggressive about suspending tabs and may not fire auto-refresh timers
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && this.supabase) {
+        this.refreshSessionOnResume('visibilitychange');
+      }
+    });
+
+    // Also handle focus event - sometimes fires when visibility doesn't
+    window.addEventListener('focus', () => {
+      if (this.supabase) {
+        this.refreshSessionOnResume('focus');
+      }
+    });
+
+    // Handle pageshow for Safari's bfcache (back-forward cache)
+    // When user navigates back to cached page, session may be stale
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted && this.supabase) {
+        this.refreshSessionOnResume('pageshow-bfcache');
+      }
+    });
+  }
+
+  /**
+   * Refresh session when app resumes from background.
+   * Always attempts refresh for authenticated sessions to handle Safari's
+   * aggressive timer suspension. Uses Supabase's built-in token validation.
+   *
+   * @param trigger - What triggered the refresh (for logging)
+   */
+  private async refreshSessionOnResume(trigger: string): Promise<void> {
+    if (!this.supabase) return;
+
+    try {
+      const { data } = await this.supabase.auth.getSession();
+      if (!data.session) return;
+
+      const expiresAt = data.session.expires_at;
+      const expiresIn = expiresAt ? expiresAt - Math.floor(Date.now() / 1000) : 0;
+
+      // Always refresh if expired, or proactively if expiring within 10 minutes
+      // Safari can suspend for long periods, so be aggressive about refreshing
+      if (expiresIn < 600) {
+        this.logService.log(`Session refresh on ${trigger}`, {
+          expiresIn,
+          expired: expiresIn <= 0
+        });
+        const { error } = await this.supabase.auth.refreshSession();
+        if (error) {
+          this.logService.log(`Session refresh failed on ${trigger}`, error.message);
+          // If refresh fails and token is expired, log out
+          if (expiresIn <= 0) {
+            this.logService.log('Session expired and refresh failed, logging out');
+            await this.logout();
+          }
+        }
+      }
+    } catch (error) {
+      this.logService.log(`Error refreshing session on ${trigger}`, error);
+    }
   }
 
   /**
@@ -246,17 +342,50 @@ export class AuthService {
 
   /**
    * Initialize session on service startup.
+   * Attempts to refresh expired sessions before clearing them.
    */
-  // istanbul ignore next - Async method called in constructor without await; testing requires complex timing and SDK mocking
-  private async initializeSession(): Promise<void> {
+  async initializeSession(): Promise<void> {
+    if (!this.supabase) {
+      this.loading.set(false);
+      return;
+    }
+
     try {
-      const { data, error } = await this.supabase!.auth.getSession();
+      const { data, error } = await this.supabase.auth.getSession();
 
       if (error) {
         this.logService.log('Error getting session', error);
       } else if (data.session) {
-        this.currentSession.set(data.session);
-        this.currentUser.set(data.session.user);
+        // Check if the session has expired
+        const expiresAt = data.session.expires_at;
+        const now = Math.floor(Date.now() / 1000);
+
+        if (expiresAt && expiresAt <= now) {
+          // Session is expired - attempt to refresh it
+          this.logService.log('Session expired on init, attempting refresh', {
+            expiresAt,
+            now,
+            expiredAgo: now - expiresAt
+          });
+
+          const { data: refreshed, error: refreshError } = await this.supabase.auth.refreshSession();
+
+          if (refreshError || !refreshed.session) {
+            // Refresh failed - clear the stale session
+            this.logService.log('Session refresh failed, clearing stale session', refreshError);
+            await this.supabase.auth.signOut();
+            // User stays null, so anonymous preferences will be used
+          } else {
+            // Refresh succeeded - use the new session
+            this.logService.log('Session refreshed successfully');
+            this.currentSession.set(refreshed.session);
+            this.currentUser.set(refreshed.session.user);
+          }
+        } else {
+          // Session is valid
+          this.currentSession.set(data.session);
+          this.currentUser.set(data.session.user);
+        }
       }
     } catch (error) {
       this.logService.log('Error initializing session', error);
@@ -640,6 +769,9 @@ export class AuthService {
    * Get current access token for API requests.
    * Platform-aware: works with both cookie and localStorage storage.
    *
+   * Proactively refreshes if token expires within 60 seconds to prevent
+   * 401 errors when devices wake from sleep/background.
+   *
    * @returns Access token or null if not authenticated
    */
   async getToken(): Promise<string | null> {
@@ -652,6 +784,28 @@ export class AuthService {
 
       if (error || !data.session) {
         return null;
+      }
+
+      // Check if token expires within 60 seconds and proactively refresh
+      // This prevents 401 errors when devices wake from sleep/background
+      const expiresAt = data.session.expires_at;
+      if (expiresAt) {
+        const expiresIn = expiresAt - Math.floor(Date.now() / 1000);
+        if (expiresIn < 60) {
+          this.logService.log('Token expiring soon, refreshing...', { expiresIn });
+          const { data: refreshed, error: refreshError } = await this.supabase.auth.refreshSession();
+          if (!refreshError && refreshed.session) {
+            return refreshed.session.access_token;
+          }
+          // If refresh fails and token is already expired, session is invalid
+          if (expiresIn <= 0) {
+            this.logService.log('Session expired and refresh failed, logging out', refreshError);
+            await this.logout();
+            return null;
+          }
+          // If refresh fails but token not yet expired, return existing token
+          this.logService.log('Token refresh failed, using existing', refreshError);
+        }
       }
 
       return data.session.access_token;
@@ -759,7 +913,7 @@ export class AuthService {
   /**
    * Update user email address.
    * Sends verification email to new address.
-   * User must click link in email to confirm change.
+   * User must enter OTP code from email to confirm change.
    */
   async updateEmail(newEmail: string): Promise<{ error: AuthError | null }> {
     if (!this.supabase) {
@@ -781,6 +935,39 @@ export class AuthService {
     } catch (error) {
       this.logService.log('Email update exception', error);
       return { error: { message: 'error.Email update failed', status: 500 } as AuthError };
+    }
+  }
+
+  /**
+   * Verify email change with OTP code.
+   * Completes the email address update after user enters the 6-digit code.
+   *
+   * @param newEmail - The new email address to verify
+   * @param token - 6-digit OTP code from email
+   * @returns Success/error status
+   */
+  async verifyEmailChangeOtp(newEmail: string, token: string): Promise<{ error: AuthError | null }> {
+    if (!this.supabase) {
+      return { error: { message: 'error.Authentication service not initialized', status: 500 } as AuthError };
+    }
+
+    try {
+      const { error } = await this.supabase.auth.verifyOtp({
+        email: newEmail,
+        token,
+        type: 'email_change'
+      });
+
+      if (error) {
+        this.logService.log('Email change OTP verification error', error);
+        return { error };
+      }
+
+      this.logService.log('Email change verified successfully');
+      return { error: null };
+    } catch (error) {
+      this.logService.log('Email change OTP verification exception', error);
+      return { error: { message: 'error.Verification failed', status: 500 } as AuthError };
     }
   }
 

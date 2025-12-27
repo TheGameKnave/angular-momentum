@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { broadcastUserSettingsUpdate } from '../services/userSettingsSocketService';
 
 /** Extended request with userId from auth middleware */
 interface AuthenticatedRequest extends Request {
@@ -50,6 +51,52 @@ function getErrorMessage(error: unknown): string {
 function validateTimezone(body: Record<string, unknown>): string | null {
   const { timezone } = body;
   return (timezone && typeof timezone === 'string') ? timezone : null;
+}
+
+/**
+ * Validate theme_preference from request body.
+ * @param body - Request body object
+ * @returns Theme preference string or null if invalid
+ */
+function validateThemePreference(body: Record<string, unknown>): 'light' | 'dark' | null {
+  const { theme_preference } = body;
+  if (theme_preference === 'light' || theme_preference === 'dark') {
+    return theme_preference;
+  }
+  return null;
+}
+
+/**
+ * Validate language from request body.
+ * @param body - Request body object
+ * @returns Language code string or null if invalid
+ */
+function validateLanguage(body: Record<string, unknown>): string | null {
+  const { language } = body;
+  return (language && typeof language === 'string') ? language : null;
+}
+
+/**
+ * Extract valid settings fields from request body.
+ * @param body - Request body object
+ * @returns Object with valid settings fields, or null if no valid fields
+ */
+function extractSettingsFields(body: Record<string, unknown>): { timezone?: string; theme_preference?: 'light' | 'dark'; language?: string } | null {
+  const result: { timezone?: string; theme_preference?: 'light' | 'dark'; language?: string } = {};
+
+  const timezone = validateTimezone(body);
+  if (timezone) result.timezone = timezone;
+
+  const theme_preference = validateThemePreference(body);
+  if (theme_preference) result.theme_preference = theme_preference;
+
+  const language = validateLanguage(body);
+  if (language) result.language = language;
+
+  // Return null if no valid fields found
+  if (Object.keys(result).length === 0) return null;
+
+  return result;
 }
 
 /**
@@ -181,18 +228,30 @@ export function createUserSettingsRoutes(supabase: SupabaseClient | null): Route
     // istanbul ignore next - defensive: getUserId handles auth failure
     if (!userId) return;
 
-    const timezone = validateTimezone(req.body);
-    if (!timezone) return errorResponse(res, 400, 'Timezone is required');
+    const fields = extractSettingsFields(req.body);
+    if (!fields) return errorResponse(res, 400, 'At least one valid field is required (timezone, theme_preference, or language)');
 
     try {
       const { data, error } = await db
         .from('user_settings')
-        .update({ timezone })
+        .update(fields)
         .eq('user_id', userId)
         .select()
         .single();
 
       if (error) return errorResponse(res, 500, error.message);
+
+      // Broadcast settings update to all user's connected devices
+      const io = req.app.get('io');
+      if (io && data) {
+        broadcastUserSettingsUpdate(io, userId, {
+          timezone: data.timezone,
+          theme_preference: data.theme_preference,
+          language: data.language,
+          updated_at: data.updated_at,
+        });
+      }
+
       res.json({ data });
     } catch (error: unknown) {
       errorResponse(res, 500, getErrorMessage(error));

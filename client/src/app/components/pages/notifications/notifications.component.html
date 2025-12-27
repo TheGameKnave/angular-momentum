@@ -1,98 +1,94 @@
 <p-card *transloco="let t">
-  <div class="notifications-page">
+  <ng-template pTemplate="header">
     <h2>{{ t('page.Push Notifications') }}</h2>
+  </ng-template>
 
-    <!-- Status Info -->
-    <section class="status-section">
-      <h3>{{ t('Status') }}</h3>
-      <div class="status-grid">
-        <div class="status-item">
-          <strong>{{ t('Platform') }}:</strong>
-          <span>{{ platformType }}</span>
-        </div>
-        <div class="status-item">
-          <strong>{{ t('Permission') }}:</strong>
-          <span [class.granted]="notificationService.permissionGranted()" [class.denied]="!notificationService.permissionGranted()">
-            {{ permissionStatus }}
-          </span>
-        </div>
-        <div class="status-item">
-          <strong>{{ t('Supported') }}:</strong>
-          <span>{{ notificationService.isSupported() ? t('Yes') : t('No') }}</span>
-        </div>
-        <div class="status-item">
-          <strong>{{ t('notification.Unread Count') }}:</strong>
-          <span>{{ notificationService.unreadCount() }}</span>
-        </div>
+  <!-- Status Info -->
+  <section>
+    <h3>{{ t('Status') }}</h3>
+    <dl class="status-grid">
+      <div>
+        <dt>{{ t('Platform') }}</dt>
+        <dd>{{ platformType }}</dd>
       </div>
-    </section>
-
-    <!-- Test Notifications -->
-    <section class="test-section">
-      <h3>{{ t('page.Test Notifications') }}</h3>
-      <p>{{ t('page.Send predefined notifications to test the system') }}</p>
-      @if (!authService.isAuthenticated()) {
-        <p-message severity="info" [text]="t('auth.Register or log in to access all features')" styleClass="mb-3" />
-      }
-
-      <div class="notification-buttons">
-        @for (notification of predefinedNotifications; track notification.id) {
-          <div class="notification-test-card">
-            <div class="notification-preview">
-              <strong>{{ getTitle(notification) }}</strong>
-              <p>{{ getBody(notification) }}</p>
-            </div>
-            <div class="notification-actions">
-              <p-button
-                [label]="t('page.Send Local')"
-                icon="pi pi-bell"
-                (onClick)="sendLocalNotification(notification)"
-                [severity]="getSeverity(notification)"
-                size="small"></p-button>
-              <p-button
-                [label]="t('page.Broadcast')"
-                icon="pi pi-megaphone"
-                (onClick)="sendServerNotification(notification)"
-                [loading]="loading()"
-                [severity]="getSeverity(notification)"
-                size="small"
-                [outlined]="true"
-                [disabled]="!authService.isAuthenticated()"></p-button>
-            </div>
-          </div>
-        }
+      <div>
+        <dt>{{ t('Permission') }}</dt>
+        <dd [class.granted]="notificationService.permissionGranted()" [class.denied]="!notificationService.permissionGranted()">
+          {{ permissionStatus }}
+        </dd>
       </div>
+      <div>
+        <dt>{{ t('Supported') }}</dt>
+        <dd>{{ notificationService.isSupported() ? t('Yes') : t('No') }}</dd>
+      </div>
+      <div>
+        <dt>{{ t('notification.Unread Count') }}</dt>
+        <dd>{{ notificationService.unreadCount() }}</dd>
+      </div>
+    </dl>
+  </section>
 
-      @if (localNotificationStatus()) {
-        <div class="status-message local">
-          {{ localNotificationStatus() }}
+  <!-- Test Notifications -->
+  <section>
+    <h3>{{ t('page.Test Notifications') }}</h3>
+    <p>{{ t('page.Send predefined notifications to test the system') }}</p>
+    @if (!authService.isAuthenticated()) {
+      <p-message severity="info" [text]="t('auth.Register or log in to access all features')" />
+    }
+
+    @for (notification of predefinedNotifications; track notification.id) {
+      <article class="notification-test-card">
+        <div class="notification-preview">
+          <strong>{{ getTitle(notification) }}</strong>
+          <p>{{ getBody(notification) }}</p>
         </div>
-      }
-
-      @if (serverNotificationStatus()) {
-        <div class="status-message server">
-          {{ serverNotificationStatus() }}
+        <div class="notification-actions">
+          <p-button
+            [label]="t('page.Send Local')"
+            icon="pi pi-bell"
+            (onClick)="sendLocalNotification(notification)"
+            [severity]="getSeverity(notification)"
+            size="small"
+          />
+          <p-button
+            [label]="t('page.Broadcast')"
+            icon="pi pi-megaphone"
+            (onClick)="sendServerNotification(notification)"
+            [loading]="loadingId() === notification.id"
+            [severity]="getSeverity(notification)"
+            size="small"
+            [outlined]="true"
+            [disabled]="!authService.isAuthenticated()"
+          />
         </div>
-      }
-    </section>
+      </article>
+    }
 
-    <!-- Info Section -->
-    <section class="info-section">
-      <h3>{{ t('page.How It Works') }}</h3>
-      <ul class="bulleted">
-        <li>
-          <strong>{{ t('page.Local Notification') }}:</strong>
-          {{ t('page.Sends a notification only to your current browser/device. Uses the NotificationService directly.') }}
-        </li>
-        <li>
-          <strong>{{ t('page.Server Broadcast') }}:</strong>
-          {{ t('page.Sends a notification via GraphQL to the server, which broadcasts it to ALL connected clients via WebSocket.') }}
-        </li>
-        <li>
-          <strong>{{ t('page.Platform Detection') }}:</strong>
-          {{ t('page.Tauri apps use native OS notifications. Web/PWA uses browser notifications via Service Worker.') }}
-        </li>
-      </ul>
-    </section>
-  </div>
+    @if (localNotificationStatus()) {
+      <p class="status-message local">{{ localNotificationStatus() }}</p>
+    }
+
+    @if (serverNotificationStatus()) {
+      <p class="status-message server">{{ serverNotificationStatus() }}</p>
+    }
+  </section>
+
+  <!-- Info Section -->
+  <section>
+    <h3>{{ t('page.How It Works') }}</h3>
+    <ul class="bulleted">
+      <li>
+        <strong>{{ t('page.Local Notification') }}:</strong>
+        {{ t('page.Sends a notification only to your current browser/device. Uses the NotificationService directly.') }}
+      </li>
+      <li>
+        <strong>{{ t('page.Server Broadcast') }}:</strong>
+        {{ t('page.Sends a notification via GraphQL to the server, which broadcasts it to ALL connected clients via WebSocket.') }}
+      </li>
+      <li>
+        <strong>{{ t('page.Platform Detection') }}:</strong>
+        {{ t('page.Tauri apps use native OS notifications. Web/PWA uses browser notifications via Service Worker.') }}
+      </li>
+    </ul>
+  </section>
 </p-card>

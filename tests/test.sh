@@ -28,11 +28,27 @@ cd ../client && npx eslint --ext .ts src/
 echo "\nRunning client tests\n\n"
 cd ../client && npm test
 
-# echo "\nRunning e2e tests\n\n"
-# cd ../tests/e2e && node clean_screenshots && node test_runner
-
-# echo "\nRunning screenshot diff tests\n\n"
-# cd ../../ && npx testcafe-blink-diff tests/e2e/screenshots --compare accepted:tested --open --threshold 0.003
-
-echo "\n Running sonar-scanner\n\n"
+echo "\nRunning sonar-scanner\n\n"
 cd ../ && npm run sonar
+
+echo "\nRunning Lighthouse CI\n\n"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# Kill any existing processes on ports 4000 and 4201
+lsof -ti:4000 | xargs kill -9 2>/dev/null || true
+lsof -ti:4201 | xargs kill -9 2>/dev/null || true
+cd "$REPO_ROOT/server" && NODE_ENV=production node build/server/index.js &
+API_PID=$!
+sleep 2
+cd "$REPO_ROOT" && PORT=4000 node client/dist/angular-momentum/server/server.mjs &
+SSR_PID=$!
+sleep 3
+cd "$REPO_ROOT" && npx @lhci/cli autorun
+LHCI_EXIT=$?
+kill $SSR_PID 2>/dev/null || true
+kill $API_PID 2>/dev/null || true
+if [ $LHCI_EXIT -ne 0 ]; then
+  exit $LHCI_EXIT
+fi
+
+echo "\nRunning e2e tests\n\n"
+npm run test:e2e

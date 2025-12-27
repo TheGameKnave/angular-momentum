@@ -1,271 +1,298 @@
 {
-  "page": {
-    "Momentum": "Plantilla"
-    ,"This project is designed to rapidly spin up Angular applications within a monorepo with minimal configuration…": "Este proyecto está diseñado para iniciar rápidamente aplicaciones de Angular dentro de un monorepo con una configuración mínima. Viene preconfigurado con bibliotecas útiles para traducción (i18n, l10n), GraphQL y API REST tradicionales, WebSockets, almacenamiento sin conexión con IndexedDB, service workers, suites de prueba confiables (unitarias y E2E) y mucho más, para que puedas centrarte en desarrollar tu aplicación en lugar de perder tiempo con la configuración."
-    ,"If you find this project helpful and want to see it grow, consider supporting its development…": "Si este proyecto te resulta útil y quieres verlo crecer, considera apoyar su desarrollo. Cada contribución, ya sea a través de comentarios, pull requests o donaciones, nos ayuda a seguir mejorándolo."
-    ,"Support": "Apoyar"
-    ,"Push Notifications": "Notificaciones Push"
-    ,"Test Notifications": "Probar Notificaciones"
-    ,"Send predefined notifications to test the system": "Enviar notificaciones predefinidas para probar el sistema"
-    ,"Send Local": "Enviar Local"
-    ,"Broadcast": "Transmitir"
-    ,"How It Works": "Cómo Funciona"
-    ,"Local Notification": "Notificación Local"
-    ,"Sends a notification only to your current browser/device. Uses the NotificationService directly.": "Envía una notificación solo a tu navegador/dispositivo actual. Usa el NotificationService directamente."
-    ,"Server Broadcast": "Transmisión del Servidor"
-    ,"Sends a notification via GraphQL to the server, which broadcasts it to ALL connected clients via WebSocket.": "Envía una notificación a través de GraphQL al servidor, que la transmite a TODOS los clientes conectados mediante WebSocket."
-    ,"Platform Detection": "Detección de Plataforma"
-    ,"Tauri apps use native OS notifications. Web/PWA uses browser notifications via Service Worker.": "Las aplicaciones Tauri usan notificaciones nativas del sistema operativo. Web/PWA usa notificaciones del navegador a través de Service Worker."
-    ,"Install Angular Momentum on your device instead of using it via a web browser:": "Instala Angular Momentum en tu dispositivo en vez de utilizarlo a través de un navegador:"
-    ,"Other Installers": "Otros Instaladores"
-    ,"Persistent Text": "Texto persistente"
-    ,"Enter some text to have it persist between page reloads (saved in browser storage)": "Introduce texto para que persista entre paginas (recuperado en el almacenamiento del navegador)"
-    ,"Turn features on and off for feature flag testing": "Activar y desactivar características para pruebas de banderas"
-    ,"Unable to load API documentation. Please check your connection and try again.": "No se pudo cargar la documentación de la API. Verifique su conexión e inténtelo nuevamente."
-    ,"Loading API documentation…": "Cargando documentación de la API…"
-  }
-  ,"menu": {
-    "Language": "Idioma"
-    ,"Change Log": "Cambios"
-    ,"This app is {semver} out of date.": "Esta app esta {semver} fuera de date."
-    ,"patch(es)": "{patches, plural, =0 {ningún parche} one {un parche} other {# parches}}"
-    ,"minor version(s)": "{minors, plural, =0 {ninguna versión menor} one {una versión menor} other {# versiones menores}}"
-    ,"major version(s)": "{majors, plural, =0 {ninguna versión mayor} one {una versión mayor} other {# versiones mayores}}"
-    ,"If it doesn’t update momentarily, please try to clear your cache and refresh your browser.": "Si no se actualiza momentáneamente, por favor intenta limpiar tu cache y recargar tu navegador."
-    ,"If you encounter problems, use the web version at": "Si encuentras problemas, puedes usar la webapp en "
-    ,"until an app update is ready.": " hasta que se haya actualizado la app."
-    ,"{environmentName} environment": "{environmentName} ambiente"
-    ,"Development": "Desarrollo"
-    ,"Production": "Producción"
-  }
-  ,"nav": {
-    "Notifications": "Notificaciones"
-    ,"GraphQL API": "GraphQL API"
-    ,"IndexedDB": "IndexedDB"
-    ,"Installers": "Instaladores"
-    ,"Features": "Características"
-  }
-  ,"feature": {
-    "Notifications": "Notificaciones"
-    ,"GraphQL API": "GraphQL API"
-    ,"IndexedDB": "IndexedDB"
-    ,"Installers": "Instaladores"
-    ,"Features": "Características"
-    ,"App Version": "Versión de la App"
-    ,"Environment": "Entorno"
-    ,"Language": "Idioma"
-  }
-  ,"Status": "Estado"
-  ,"Platform": "Plataforma"
-  ,"Permission": "Permiso"
-  ,"Supported": "Compatible"
-  ,"Yes": "Sí"
-  ,"No": "No"
-  ,"notification": {
-    "Unread Count": "No leídas"
-    ,"Mark all read": "Marcar todo como leído"
-    ,"Clear all": "Limpiar todo"
-    ,"No notifications": "Sin notificaciones"
-    ,"Enable Notifications": "Activar Notificaciones"
-    ,"Delete notification": "Eliminar notificación"
-    ,"Welcome!": "¡Bienvenido!"
-    ,"Thanks for trying Angular Momentum—your modern Angular starter kit!": "¡Gracias por probar Angular Momentum, tu kit de inicio moderno para Angular!"
-    ,"Welcome Message": "Mensaje de Bienvenida"
-    ,"New Feature Available": "Nueva Función Disponible"
-    ,"Check out the latest updates in the Features section!": "¡Consulta las últimas actualizaciones en la sección de Funciones!"
-    ,"Feature Update": "Actualización de Función"
-    ,"System Maintenance": "Mantenimiento del Sistema"
-    ,"Scheduled maintenance will occur tonight at {time}.": "El mantenimiento programado ocurrirá esta noche a las {time}."
-    ,"Maintenance Alert": "Alerta de Mantenimiento"
-    ,"Achievement Unlocked": "Logro Desbloqueado"
-    ,"You successfully tested the notification system!": "¡Probaste exitosamente el sistema de notificaciones!"
-    ,"Achievement": "Logro"
-  }
-  ,"auth": {
-    "Log in": "Iniciar sesión"
-    ,"Email or Username": "Correo o usuario"
-    ,"Enter your email": "Ingrese su correo"
-    ,"Enter your email or username": "Ingrese su correo o usuario"
-    ,"Email is required": "Correo requerido"
-    ,"Email or username is required": "Correo o usuario requerido"
-    ,"Did you mean": "¿Quiso decir"
-    ,"Enter your password": "Ingrese su contraseña"
-    ,"Password is required": "Contraseña requerida"
-    ,"Current Password": "Contraseña actual"
-    ,"Enter your current password": "Ingrese su contraseña actual"
-    ,"Current password is required": "Contraseña actual requerida"
-    ,"Forgot your password?": "¿Olvidaste tu contraseña?"
-    ,"Sign Up": "Registrarse"
-    ,"Choose a username": "Elige un usuario"
-    ,"Username not available": "Usuario no disponible"
-    ,"Confirm Password": "Confirmar contraseña"
-    ,"Re-enter your password": "Vuelva a ingresar su contraseña"
-    ,"Passwords do not match": "Las contraseñas no coinciden"
-    ,"Create Account": "Crear cuenta"
-    ,"Bot check failed. This may be due to network issues or security restrictions. Please reload the page…": "Verificación de bot falló. Esto puede deberse a problemas de red o restricciones de seguridad. Vuelva a cargar la página."
-    ,"If this persists,": "Si el problema persiste, "
-    ,"contact support": "contacte al soporte"
-    ,"for help.": " para ayuda."
-    ,"Try Again": "Intentar de nuevo"
-    ,"We’ve sent a 6-digit verification code to:": "Hemos enviado un código de verificación de 6 dígitos a:"
-    ,"Verification Code": "Código de verificación"
-    ,"Please enter the 6-digit code": "Por favor ingrese el código de 6 dígitos"
-    ,"New verification code sent!": "¡Nuevo código de verificación enviado!"
-    ,"Verify Code": "Verificar código"
-    ,"Resend code": "Reenviar código"
-    ,"Switch to login": "Cambiar a inicio de sesión"
-    ,"Didn’t receive the code? Check your spam folder, whitelist support@angularmomentum.app, or try logging in if you already have an account.": "¿No recibiste el código? Revisa tu carpeta de spam, añade support@angularmomentum.app a tu lista de remitentes seguros, o intenta iniciar sesión si ya tienes una cuenta."
-    ,"New Password": "Nueva contraseña"
-    ,"Enter your new password": "Ingrese su nueva contraseña"
-    ,"Confirm New Password": "Confirmar nueva contraseña"
-    ,"Re-enter your new password": "Vuelva a ingresar su nueva contraseña"
-    ,"Update Password": "Actualizar contraseña"
-    ,"Password updated successfully!": "¡Contraseña actualizada exitosamente!"
-    ,"View Profile": "Ver perfil"
-    ,"Logout": "Cerrar sesión"
-    ,"Register or log in to access all features": "Regístrese o inicie sesión para acceder a todas las funciones"
-    ,"If an account with that information exists, a password reset email has been sent.": "Si existe una cuenta con esa información, se ha enviado un correo de restablecimiento."
-    ,"The username you selected was unavailable. You can set a new one in your user profile": "El usuario que seleccionaste no está disponible. Puedes establecer uno nuevo en tu perfil"
-    ,"I confirm that I am 16 years of age or older": "Confirmo que tengo 16 años de edad o más"
-    ,"I agree to the": "Acepto la"
-    ,"Send Reset Code": "Enviar código de restablecimiento"
-    ,"Import Local Data": "Importar datos locales"
-    ,"This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)": "Este dispositivo tiene datos guardados de antes de iniciar sesión. ¿Desea importarlos? (los datos existentes no se sobrescribirán)"
-    ,"Import": "Importar"
-    ,"Skip": "Omitir"
-  }
-  ,"Email": "Correo"
-  ,"Password": "Contraseña"
-  ,"error": {
-    "Invalid credentials": "Credenciales inválidas"
-    ,"Authentication service not initialized": "Servicio de autenticación no inicializado"
-    ,"Login failed": "Inicio de sesión fallido"
-    ,"Invalid username format": "Formato de usuario inválido"
-    ,"Sign up failed": "Registro fallido"
-    ,"Verification failed": "Verificación fallida"
-    ,"Failed to resend verification code": "No se pudo reenviar el código de verificación"
-    ,"Password reset failed": "Restablecimiento de contraseña fallido"
-    ,"Password update failed": "Actualización de contraseña fallida"
-    ,"Email update failed": "Actualización de correo fallida"
-    ,"Not authenticated": "No autenticado"
-    ,"Failed to export data": "No se pudieron exportar los datos"
-    ,"Failed to delete account": "No se pudo eliminar la cuenta"
-    ,"Failed to update username": "No se pudo actualizar el usuario"
-    ,"Failed to delete username": "No se pudo eliminar el usuario"
-    ,"Username not available": "Usuario no disponible"
-    ,"Current password is incorrect": "La contraseña actual es incorrecta"
-    ,"For security purposes, you can only request this after another {seconds} seconds.": "Por razones de seguridad, solo puede solicitar esto después de {seconds} segundos."
-    ,"Your verification code has expired or is invalid. Please request a new one.": "Tu código de verificación ha expirado o no es válido. Por favor, solicita uno nuevo."
-    ,"Please verify your email address before signing in.": "Por favor, verifica tu correo antes de iniciar sesión."
-    ,"Username is required": "Usuario requerido"
-    ,"Invalid or expired code. Please try again.": "Código inválido o expirado. Por favor intente nuevamente."
-  }
-  ,"Username": "Usuario"
-  ,"optional": "opcional"
-  ,"profile": {
-    "Profile": "Perfil"
-    ,"User Information": "Información del usuario"
-    ,"User ID": "ID de usuario"
-    ,"Member Since": "Miembro desde"
-    ,"Last Sign In": "Último inicio de sesión"
-    ,"Change Password": "Cambiar contraseña"
-    ,"Preferences": "Preferencias"
-    ,"Timezone": "Zona horaria"
-    ,"Select timezone": "Seleccionar zona horaria"
-    ,"Change Username": "Cambiar usuario"
-    ,"Set Username": "Establecer usuario"
-    ,"Enter username": "Ingrese usuario"
-    ,"Username updated successfully!": "¡Usuario actualizado!"
-    ,"Without a username, your profile is private": "Sin usuario, tu perfil es privado"
-    ,"Data & Privacy": "Datos y Privacidad"
-    ,"Export Your Data": "Exportar tus datos"
-    ,"Download all your account data in JSON format": "Descarga todos los datos de tu cuenta en formato JSON"
-    ,"Export Data": "Exportar datos"
-    ,"Permanently delete your account and all associated data. This action cannot be undone.": "Eliminar permanentemente tu cuenta y todos los datos asociados. Esta acción no se puede deshacer."
-    ,"Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.": "¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer. Todos tus datos serán eliminados permanentemente."
-    ,"Delete Account": "Eliminar cuenta"
-    ,"Change Email Address": "Cambiar correo"
-    ,"New Email Address": "Nuevo correo"
-    ,"Enter your new email address": "Ingrese su nuevo correo"
-    ,"Please enter a valid email address": "Ingrese un correo válido"
-    ,"A verification link will be sent to your new email address. You must click the link to complete the change.": "Se enviará un enlace de verificación a su nuevo correo. Haga clic en el enlace para completar."
-    ,"Update Email": "Actualizar correo"
-    ,"Verification email sent! Please check your new email address and click the confirmation link.": "¡Correo de verificación enviado! Revise su nuevo correo y haga clic en el enlace."
-    ,"Clear All Data": "Borrar todos los datos"
-    ,"Clear Data": "Borrar datos"
-    ,"Remove all stored preferences, notifications, and settings. Your account will remain active.": "Eliminar todas las preferencias, notificaciones y configuraciones almacenadas. Tu cuenta permanecerá activa."
-  }
-  ,"Cancel": "Cancelar"
-  ,"validation": {
-    "3–30 characters": "3–30 caracteres"
-    ,"Most Unicode characters allowed (emojis, accents, etc.)": "La mayoría de caracteres Unicode permitidos (emojis, acentos, etc.)"
-    ,"Avoid profanity or hate-speech": "Evite blasfemias o discursos de odio"
-    ,"8+ characters with 1 uppercase, 1 lowercase, 1 number, 1 symbol": "8+ caracteres con 1 mayúscula, 1 minúscula, 1 número, 1 símbolo"
-    ,"OR 20+ characters (no other requirements)": "O 20+ caracteres (sin otros requisitos)"
-    ,"Valid email address format": "Formato de correo válido"
-    ,"Example: user@example.com": "Ejemplo: usuario@ejemplo.com"
-  }
-  ,"a11y": {
-    "{name} Logo": "Logo de {name}"
-    ,"unread": "no leído"
-    ,"Read": "Leído"
-    ,"Unread": "No leído"
-    ,"Open menu": "Abrir menú"
-    ,"Close menu": "Cerrar menú"
-  }
-  ,"Save": "Guardar"
-  ,"privacy": {
-    "Privacy Policy": "Política de Privacidad"
-    ,"Privacy": "Privacidad"
-    ,"We use cookies to improve your experience and analyze site usage.": "Usamos cookies para mejorar tu experiencia y analizar el uso del sitio."
-    ,"Learn more": "Más información"
-    ,"Last updated {date}": "Última actualización {date}"
-    ,"This privacy notice for {companyName} describes how and why we might collect, store, use, and/or share your information when you use our services.": "Este aviso de privacidad de {companyName} describe cómo y por qué podríamos recopilar, almacenar, usar y/o compartir su información cuando usa nuestros servicios."
-    ,"Questions or concerns?": "¿Preguntas o inquietudes?"
-    ,"Please contact us at": "Por favor contáctenos en"
-    ,"Summary": "Resumen"
-    ,"We collect minimal personal information (email, username, password) to provide authentication services…": "Recopilamos información mínima (correo, usuario, contraseña) para autenticación. No vendemos sus datos. Puede acceder, corregir y eliminar sus datos en su perfil."
-    ,"Complete Privacy Policy": "Política de Privacidad Completa"
-    ,"Third-Party Services": "Servicios de Terceros"
-    ,"We use the following third-party services. Please review their privacy policies:": "Utilizamos los siguientes servicios de terceros. Por favor revise sus políticas de privacidad:"
-    ,"Authentication & Database": "Autenticación y Base de Datos"
-    ,"Usage Analytics": "Análisis de Uso"
-    ,"Behavior Analytics": "Análisis de Comportamiento"
-    ,"Bot Protection": "Protección contra Bots"
-    ,"Cookie Preferences": "Preferencias de Cookies"
-    ,"We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.": "Usamos cookies para análisis (Google Analytics, Hotjar) para mejorar tu experiencia. Puedes cambiar tu preferencia en cualquier momento."
-    ,"Current status": "Estado actual"
-    ,"Analytics cookies enabled": "Cookies de análisis habilitados"
-    ,"Analytics cookies disabled": "Cookies de análisis deshabilitados"
-    ,"Cookie preference not set": "Preferencia de cookies no establecida"
-  }
-  ,"OK": "OK"
-  ,"Accept": "Aceptar"
-  ,"Decline": "Rechazar"
-  ,"connectivity": {
+  "Accept": "Aceptar",
+  "Cancel": "Cancelar",
+  "Decline": "Rechazar",
+  "Email": "Correo",
+  "No": "No",
+  "OK": "OK",
+  "optional": "opcional",
+  "Password": "Contraseña",
+  "Permission": "Permiso",
+  "Platform": "Plataforma",
+  "Save": "Guardar",
+  "Status": "Estado",
+  "Supported": "Compatible",
+  "Username": "Usuario",
+  "Yes": "Sí",
+
+  "a11y": {
+    "{name} Logo": "Logo de {name}",
+    "Close menu": "Cerrar menú",
+    "Open menu": "Abrir menú",
+    "Read": "Leído",
+    "unread": "no leído",
+    "Unread": "No leído"
+  },
+
+  "auth": {
+    "Bot check failed. This may be due to network issues or security restrictions. Please reload the page…": "Verificación de bot falló. Esto puede deberse a problemas de red o restricciones de seguridad. Vuelva a cargar la página.",
+    "Choose a username": "Elige un usuario",
+    "Confirm New Password": "Confirmar nueva contraseña",
+    "Confirm Password": "Confirmar contraseña",
+    "Create Account": "Crear cuenta",
+    "Current Password": "Contraseña actual",
+    "Current password is required": "Contraseña actual requerida",
+    "Did you mean": "¿Quiso decir",
+    "Didn’t receive the code? Check your spam folder, whitelist support@angularmomentum.app, or try logging in if you already have an account.": "¿No recibiste el código? Revisa tu carpeta de spam, añade support@angularmomentum.app a tu lista de remitentes seguros, o intenta iniciar sesión si ya tienes una cuenta.",
+    "Email is required": "Correo requerido",
+    "Email or Username": "Correo o usuario",
+    "Email or username is required": "Correo o usuario requerido",
+    "Enter your current password": "Ingrese su contraseña actual",
+    "Enter your email": "Ingrese su correo",
+    "Enter your email or username": "Ingrese su correo o usuario",
+    "Enter your new password": "Ingrese su nueva contraseña",
+    "Enter your password": "Ingrese su contraseña",
+    "Forgot your password?": "¿Olvidaste tu contraseña?",
+    "I agree to the": "Acepto la",
+    "I confirm that I am 16 years of age or older": "Confirmo que tengo 16 años de edad o más",
+    "If an account with that information exists, a password reset email has been sent.": "Si existe una cuenta con esa información, se ha enviado un correo de restablecimiento.",
+    "If this persists,": "Si el problema persiste, ",
+    "contact support": "contacte al soporte",
+    "for help.": " para ayuda.",
+    "Import": "Importar",
+    "Import Local Data": "Importar datos locales",
+    "Log in": "Iniciar sesión",
+    "Logout": "Cerrar sesión",
+    "New Password": "Nueva contraseña",
+    "New verification code sent!": "¡Nuevo código de verificación enviado!",
+    "Password is required": "Contraseña requerida",
+    "Password updated successfully!": "¡Contraseña actualizada exitosamente!",
+    "Passwords do not match": "Las contraseñas no coinciden",
+    "Please enter the 6-digit code": "Por favor ingrese el código de 6 dígitos",
+    "Re-enter your new password": "Vuelva a ingresar su nueva contraseña",
+    "Re-enter your password": "Vuelva a ingresar su contraseña",
+    "Register or log in to access all features": "Regístrese o inicie sesión para acceder a todas las funciones",
+    "Resend code": "Reenviar código",
+    "Send Reset Code": "Enviar código de restablecimiento",
+    "Sign Up": "Registrarse",
+    "Skip": "Omitir",
+    "Switch to login": "Cambiar a inicio de sesión",
+    "The username you selected was unavailable. You can set a new one in your user profile": "El usuario que seleccionaste no está disponible. Puedes establecer uno nuevo en tu perfil",
+    "This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)": "Este dispositivo tiene datos guardados de antes de iniciar sesión. ¿Desea importarlos? (los datos existentes no se sobrescribirán)",
+    "Try Again": "Intentar de nuevo",
+    "Update Password": "Actualizar contraseña",
+    "Username not available": "Usuario no disponible",
+    "Verification Code": "Código de verificación",
+    "Verify Code": "Verificar código",
+    "View Profile": "Ver perfil",
+    "We’ve sent a 6-digit verification code to:": "Hemos enviado un código de verificación de 6 dígitos a:"
+  },
+
+  "connectivity": {
     "You are currently offline": "Actualmente estás desconectado"
-  }
-  ,"time": {
-    "years ago": "hace {count} años"
-    ,"months ago": "hace {count} meses"
-    ,"weeks ago": "hace {count} semanas"
-    ,"days ago": "hace {count} días"
-    ,"hours ago": "hace {count} horas"
-    ,"minutes ago": "{count, plural, one {hace un minuto} other {hace # minutos}}"
-    ,"Just now": "Justo ahora"
-  }
-  ,"migration": {
+  },
+
+  "error": {
+    "Authentication service not initialized": "Servicio de autenticación no inicializado",
+    "Current password is incorrect": "La contraseña actual es incorrecta",
+    "Email update failed": "Actualización de correo fallida",
+    "Failed to delete account": "No se pudo eliminar la cuenta",
+    "Failed to delete username": "No se pudo eliminar el usuario",
+    "Failed to export data": "No se pudieron exportar los datos",
+    "Failed to resend verification code": "No se pudo reenviar el código de verificación",
+    "Failed to update username": "No se pudo actualizar el usuario",
+    "For security purposes, you can only request this after another {seconds} seconds.": "Por razones de seguridad, solo puede solicitar esto después de {seconds} segundos.",
+    "Invalid credentials": "Credenciales inválidas",
+    "Invalid or expired code. Please try again.": "Código inválido o expirado. Por favor intente nuevamente.",
+    "Invalid username format": "Formato de usuario inválido",
+    "Login failed": "Inicio de sesión fallido",
+    "Not authenticated": "No autenticado",
+    "Password reset failed": "Restablecimiento de contraseña fallido",
+    "Password update failed": "Actualización de contraseña fallida",
+    "Please verify your email address before signing in.": "Por favor, verifica tu correo antes de iniciar sesión.",
+    "Sign up failed": "Registro fallido",
+    "Username is required": "Usuario requerido",
+    "Username not available": "Usuario no disponible",
+    "Verification failed": "Verificación fallida",
+    "Your verification code has expired or is invalid. Please request a new one.": "Tu código de verificación ha expirado o no es válido. Por favor, solicita uno nuevo."
+  },
+
+  "feature": {
+    "App Version": "Versión de la App",
+    "Environment": "Entorno",
+    "Features": "Características",
+    "GraphQL API": "GraphQL API",
+    "IndexedDB": "IndexedDB",
+    "Installers": "Instaladores",
+    "Language": "Idioma",
+    "Notifications": "Notificaciones"
+  },
+
+  "menu": {
+    "{environmentName} environment": "{environmentName} ambiente",
+    "Change Log": "Cambios",
+    "Development": "Desarrollo",
+    "If it doesn’t update momentarily, please try to clear your cache and refresh your browser.": "Si no se actualiza momentáneamente, por favor intenta limpiar tu cache y recargar tu navegador.",
+    "If you encounter problems, use the web version at": "Si encuentras problemas, puedes usar la webapp en ",
+    "until an app update is ready.": " hasta que se haya actualizado la app.",
+    "Language": "Idioma",
+    "major version(s)": "{majors, plural, =0 {ninguna versión mayor} one {una versión mayor} other {# versiones mayores}}",
+    "minor version(s)": "{minors, plural, =0 {ninguna versión menor} one {una versión menor} other {# versiones menores}}",
+    "patch(es)": "{patches, plural, =0 {ningún parche} one {un parche} other {# parches}}",
+    "Production": "Producción",
+    "This app is {semver} out of date.": "Esta app esta {semver} fuera de date."
+  },
+
+  "migration": {
+    "Download a backup of your data from before the last update.": "Descarga una copia de seguridad de tus datos antes de la última actualización.",
+    "Export Previous Data": "Exportar Datos Anteriores",
+    "The previous data is available to download from your profile page.": "Los datos anteriores están disponibles para exportar desde tu página de perfil.",
     "Your data has been updated to a new format.": "Tus datos han sido actualizados a un nuevo formato."
-    ,"The previous data is available to download from your profile page.": "Los datos anteriores están disponibles para exportar desde tu página de perfil."
-    ,"Export Previous Data": "Exportar Datos Anteriores"
-    ,"Download a backup of your data from before the last update.": "Descarga una copia de seguridad de tus datos antes de la última actualización."
-  }
-  ,"update": {
-    "New Version Available": "Nueva Versión Disponible"
-    ,"This is a major update and requires restart": "Esta es una actualización mayor y requiere reinicio"
-    ,"This is a minor update and requires restart": "Esta es una actualización menor y requiere reinicio"
-    ,"This is a small change—you can update later if desired.": "Este es un cambio pequeño—puedes actualizar más tarde si lo deseas."
-    ,"Update Now": "Actualizar Ahora"
-    ,"Later": "Más Tarde"
+  },
+
+  "nav": {
+    "Features": "Características",
+    "GraphQL API": "GraphQL API",
+    "IndexedDB": "IndexedDB",
+    "Installers": "Instaladores",
+    "Notifications": "Notificaciones"
+  },
+
+  "notification": {
+    "Achievement": "Logro",
+    "Achievement Unlocked": "Logro Desbloqueado",
+    "Check out the latest updates in the Features section!": "¡Consulta las últimas actualizaciones en la sección de Funciones!",
+    "Clear all": "Limpiar todo",
+    "Delete notification": "Eliminar notificación",
+    "Enable Notifications": "Activar Notificaciones",
+    "Feature Update": "Actualización de Función",
+    "Maintenance Alert": "Alerta de Mantenimiento",
+    "Mark all read": "Marcar todo como leído",
+    "New Feature Available": "Nueva Función Disponible",
+    "No notifications": "Sin notificaciones",
+    "Scheduled maintenance will occur tonight at {time}.": "El mantenimiento programado ocurrirá esta noche a las {time}.",
+    "System Maintenance": "Mantenimiento del Sistema",
+    "Thanks for trying Angular Momentum—your modern Angular starter kit!": "¡Gracias por probar Angular Momentum, tu kit de inicio moderno para Angular!",
+    "Unread Count": "No leídas",
+    "Welcome!": "¡Bienvenido!",
+    "Welcome Message": "Mensaje de Bienvenida",
+    "You successfully tested the notification system!": "¡Probaste exitosamente el sistema de notificaciones!"
+  },
+
+  "page": {
+    "Broadcast": "Transmitir",
+    "Enter some text to have it persist between page reloads (saved in browser storage)": "Introduce texto para que persista entre paginas (recuperado en el almacenamiento del navegador)",
+    "How It Works": "Cómo Funciona",
+    "If you find this project helpful and want to see it grow, consider supporting its development…": "Si este proyecto te resulta útil y quieres verlo crecer, considera apoyar su desarrollo. Cada contribución, ya sea a través de comentarios, pull requests o donaciones, nos ayuda a seguir mejorándolo.",
+    "Install Angular Momentum on your device instead of using it via a web browser:": "Instala Angular Momentum en tu dispositivo en vez de utilizarlo a través de un navegador:",
+    "Loading API documentation…": "Cargando documentación de la API…",
+    "Local Notification": "Notificación Local",
+    "Momentum": "Plantilla",
+    "Other Installers": "Otros Instaladores",
+    "Persistent Text": "Texto persistente",
+    "Platform Detection": "Detección de Plataforma",
+    "Push Notifications": "Notificaciones Push",
+    "Send Local": "Enviar Local",
+    "Send predefined notifications to test the system": "Enviar notificaciones predefinidas para probar el sistema",
+    "Sends a notification only to your current browser/device. Uses the NotificationService directly.": "Envía una notificación solo a tu navegador/dispositivo actual. Usa el NotificationService directamente.",
+    "Sends a notification via GraphQL to the server, which broadcasts it to ALL connected clients via WebSocket.": "Envía una notificación a través de GraphQL al servidor, que la transmite a TODOS los clientes conectados mediante WebSocket.",
+    "Server Broadcast": "Transmisión del Servidor",
+    "Support": "Apoyar",
+    "Tauri apps use native OS notifications. Web/PWA uses browser notifications via Service Worker.": "Las aplicaciones Tauri usan notificaciones nativas del sistema operativo. Web/PWA usa notificaciones del navegador a través de Service Worker.",
+    "Test Notifications": "Probar Notificaciones",
+    "This project is designed to rapidly spin up Angular applications within a monorepo with minimal configuration…": "Este proyecto está diseñado para iniciar rápidamente aplicaciones de Angular dentro de un monorepo con una configuración mínima. Viene preconfigurado con bibliotecas útiles para traducción (i18n, l10n), GraphQL y API REST tradicionales, WebSockets, almacenamiento sin conexión con IndexedDB, service workers, suites de prueba confiables (unitarias y E2E) y mucho más, para que puedas centrarte en desarrollar tu aplicación en lugar de perder tiempo con la configuración.",
+    "Turn features on and off for feature flag testing": "Activar y desactivar características para pruebas de banderas",
+    "Unable to load API documentation. Please check your connection and try again.": "No se pudo cargar la documentación de la API. Verifique su conexión e inténtelo nuevamente."
+  },
+
+  "privacy": {
+    "Analytics cookies disabled": "Cookies de análisis deshabilitados",
+    "Analytics cookies enabled": "Cookies de análisis habilitados",
+    "Authentication & Database": "Autenticación y Base de Datos",
+    "Behavior Analytics": "Análisis de Comportamiento",
+    "Bot Protection": "Protección contra Bots",
+    "Complete Privacy Policy": "Política de Privacidad Completa",
+    "Cookie preference not set": "Preferencia de cookies no establecida",
+    "Cookie Preferences": "Preferencias de Cookies",
+    "Current status": "Estado actual",
+    "Last updated {date}": "Última actualización {date}",
+    "Learn more": "Más información",
+    "Privacy": "Privacidad",
+    "Privacy Policy": "Política de Privacidad",
+    "Questions or concerns?": "¿Preguntas o inquietudes?",
+    "Please contact us at": "Por favor contáctenos en",
+    "Summary": "Resumen",
+    "We collect minimal personal information (email, username, password) to provide authentication services…": "Recopilamos información mínima (correo, usuario, contraseña) para autenticación. No vendemos sus datos. Puede acceder, corregir y eliminar sus datos en su perfil.",
+    "Third-Party Services": "Servicios de Terceros",
+    "This privacy notice for {companyName} describes how and why we might collect, store, use, and/or share your information when you use our services.": "Este aviso de privacidad de {companyName} describe cómo y por qué podríamos recopilar, almacenar, usar y/o compartir su información cuando usa nuestros servicios.",
+    "Usage Analytics": "Análisis de Uso",
+    "We use cookies for analytics (Google Analytics, Hotjar) to improve your experience. You can change your preference at any time.": "Usamos cookies para análisis (Google Analytics, Hotjar) para mejorar tu experiencia. Puedes cambiar tu preferencia en cualquier momento.",
+    "We use cookies to improve your experience and analyze site usage.": "Usamos cookies para mejorar tu experiencia y analizar el uso del sitio.",
+    "We use the following third-party services. Please review their privacy policies:": "Utilizamos los siguientes servicios de terceros. Por favor revise sus políticas de privacidad:"
+  },
+
+  "profile": {
+    "A verification code will be sent to your new email address. You must enter the code to complete the change.": "Se enviará un código de verificación a su nuevo correo. Ingrese el código para completar.",
+    "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.": "¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer. Todos tus datos serán eliminados permanentemente.",
+    "Change Email Address": "Cambiar correo",
+    "Change Password": "Cambiar contraseña",
+    "Change Username": "Cambiar usuario",
+    "Clear All Data": "Borrar todos los datos",
+    "Clear Data": "Borrar datos",
+    "Data & Privacy": "Datos y Privacidad",
+    "Delete Account": "Eliminar cuenta",
+    "Email address updated successfully!": "¡Correo actualizado correctamente!",
+    "Type {text} to confirm": "Escriba {text} para confirmar",
+    "Download all your account data in JSON format": "Descarga todos los datos de tu cuenta en formato JSON",
+    "Enter username": "Ingrese usuario",
+    "Enter your new email address": "Ingrese su nuevo correo",
+    "Export Data": "Exportar datos",
+    "Export Your Data": "Exportar tus datos",
+    "Last Sign In": "Último inicio de sesión",
+    "Member Since": "Miembro desde",
+    "New Email Address": "Nuevo correo",
+    "Permanently delete your account and all associated data. This action cannot be undone.": "Eliminar permanentemente tu cuenta y todos los datos asociados. Esta acción no se puede deshacer.",
+    "Please enter a valid email address": "Ingrese un correo válido",
+    "Preferences": "Preferencias",
+    "Profile": "Perfil",
+    "Remove all stored preferences, notifications, and settings. Your account will remain active.": "Eliminar todas las preferencias, notificaciones y configuraciones almacenadas. Tu cuenta permanecerá activa.",
+    "Select timezone": "Seleccionar zona horaria",
+    "Set Username": "Establecer usuario",
+    "Timezone": "Zona horaria",
+    "Theme": "Tema",
+    "Light": "Claro",
+    "Dark": "Oscuro",
+    "Update Email": "Actualizar correo",
+    "User ID": "ID de usuario",
+    "User Information": "Información del usuario",
+    "Username updated successfully!": "¡Usuario actualizado!",
+    "Verification email sent! Please check your new email address and enter the confirmation code.": "¡Correo de verificación enviado! Revise su nuevo correo e ingrese el código de confirmación.",
+    "Without a username, your profile is private": "Sin usuario, tu perfil es privado"
+  },
+
+  "time": {
+    "days ago": "hace {count} días",
+    "hours ago": "hace {count} horas",
+    "in days": "en {count} días",
+    "in hours": "en {count} horas",
+    "in minutes": "{count, plural, one {en un minuto} other {en # minutos}}",
+    "in months": "en {count} meses",
+    "in weeks": "en {count} semanas",
+    "in years": "en {count} años",
+    "Just now": "Justo ahora",
+    "minutes ago": "{count, plural, one {hace un minuto} other {hace # minutos}}",
+    "Momentarily": "En breve",
+    "months ago": "hace {count} meses",
+    "weeks ago": "hace {count} semanas",
+    "years ago": "hace {count} años"
+  },
+
+  "update": {
+    "Later": "Más Tarde",
+    "New Version Available": "Nueva Versión Disponible",
+    "This is a major update and requires restart": "Esta es una actualización mayor y requiere reinicio",
+    "This is a minor update and requires restart": "Esta es una actualización menor y requiere reinicio",
+    "This is a small change—you can update later if desired.": "Este es un cambio pequeño—puedes actualizar más tarde si lo deseas.",
+    "Update Now": "Actualizar Ahora"
+  },
+
+  "validation": {
+    "3–30 characters": "3–30 caracteres",
+    "8+ characters with 1 uppercase, 1 lowercase, 1 number, 1 symbol": "8+ caracteres con 1 mayúscula, 1 minúscula, 1 número, 1 símbolo",
+    "Avoid profanity or hate-speech": "Evite blasfemias o discursos de odio",
+    "Example: user@example.com": "Ejemplo: usuario@ejemplo.com",
+    "Most Unicode characters allowed (emojis, accents, etc.)": "La mayoría de caracteres Unicode permitidos (emojis, acentos, etc.)",
+    "OR 20+ characters (no other requirements)": "O 20+ caracteres (sin otros requisitos)",
+    "Valid email address format": "Formato de correo válido"
   }
 }

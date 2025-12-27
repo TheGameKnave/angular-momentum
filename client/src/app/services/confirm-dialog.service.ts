@@ -22,6 +22,8 @@ export interface ConfirmDialogOptions {
   confirmSeverity?: 'primary' | 'secondary' | 'success' | 'info' | 'warn' | 'danger';
   /** Cancel button label (translation key). Defaults to 'Cancel' */
   cancelLabel?: string;
+  /** Text the user must type to enable the confirm button (e.g., 'DELETE') */
+  requireConfirmationText?: string;
   /** Callback executed when user confirms */
   onConfirm: () => Promise<void>;
 }
@@ -48,12 +50,16 @@ export class ConfirmDialogService {
   /** Current dialog options */
   readonly options = signal<ConfirmDialogOptions | null>(null);
 
+  /** User's confirmation text input (for requireConfirmationText feature) */
+  readonly confirmationInput = signal('');
+
   /**
    * Show the confirmation dialog with the given options.
    */
   show(options: ConfirmDialogOptions): void {
     this.options.set(options);
     this.error.set(null);
+    this.confirmationInput.set('');
     this.visible.set(true);
   }
 
@@ -85,5 +91,15 @@ export class ConfirmDialogService {
     this.visible.set(false);
     this.error.set(null);
     this.options.set(null);
+    this.confirmationInput.set('');
+  }
+
+  /**
+   * Check if the confirmation text matches (case-sensitive).
+   */
+  isConfirmationValid(): boolean {
+    const required = this.options()?.requireConfirmationText;
+    if (!required) return true;
+    return this.confirmationInput() === required;
   }
 }

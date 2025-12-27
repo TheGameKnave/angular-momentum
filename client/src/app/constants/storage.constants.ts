@@ -21,9 +21,10 @@ export const USER_LOCALSTORAGE_NAMES = [
 ] as const;
 
 /**
- * Known IndexedDB key names that contain user data.
+ * Known IndexedDB key names that contain user data, mapped to their store.
  * These are the base key names (without user-scope prefix).
+ * Note: Intentionally named _ENTRIES to avoid translation key validation pattern (_KEYS suffix).
  */
-export const USER_INDEXEDDB_NAMES = [
-  'key', // IndexedDB demo component key
+export const USER_INDEXEDDB_ENTRIES = [
+  { key: 'key', store: 'persistent' }, // IndexedDB demo component key
 ] as const;

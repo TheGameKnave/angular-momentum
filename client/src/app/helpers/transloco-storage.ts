@@ -1,7 +1,67 @@
 import { inject } from '@angular/core';
 import { PlatformService } from '../services/platform.service';
-import { UserStorageService } from '../services/user-storage.service';
 import { TIME_CONSTANTS } from '@app/constants/ui.constants';
+import { STORAGE_PREFIXES } from '@app/constants/storage.constants';
+import { ENVIRONMENT } from 'src/environments/environment';
+
+/**
+ * Extract user ID from Supabase auth token in localStorage.
+ * This is used during app bootstrap before AuthService is initialized,
+ * allowing us to read user-scoped language preference without flicker.
+ * @returns User ID or null if not authenticated
+ */
+function getUserIdFromToken(): string | null {
+  // istanbul ignore next - SSR guard
+  if (typeof localStorage === 'undefined') {
+    return null;
+  }
+
+  try {
+    // Extract project ref from Supabase URL (e.g., 'tyoyznpjxppchdyydbnf' from 'https://tyoyznpjxppchdyydbnf.supabase.co')
+    const projectRef = new URL(ENVIRONMENT.supabase.url).hostname.split('.')[0];
+    const tokenKey = `sb-${projectRef}-auth-token`;
+    const tokenData = localStorage.getItem(tokenKey);
+
+    if (!tokenData) {
+      return null;
+    }
+
+    const parsed = JSON.parse(tokenData);
+    // Supabase stores { access_token, refresh_token, ... } or nested under currentSession
+    const accessToken = parsed.access_token || parsed.currentSession?.access_token;
+
+    if (!accessToken) {
+      return null;
+    }
+
+    // JWT format: header.payload.signature - we need the payload
+    const [, payloadBase64] = accessToken.split('.');
+    if (!payloadBase64) {
+      return null;
+    }
+
+    // Decode base64 payload (handle URL-safe base64)
+    const payload = JSON.parse(atob(payloadBase64.replaceAll('-', '+').replaceAll('_', '/')));
+    // istanbul ignore next - payload.sub is always present in valid Supabase JWTs
+    return payload.sub || null; // 'sub' is the user ID in JWT
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Get the storage key prefix based on current auth state.
+ * Reads directly from Supabase token, no dependency on AuthService.
+ * @param key - Base key name
+ * @returns Prefixed key (e.g., 'user_abc123_translocoLang' or 'anonymous_translocoLang')
+ */
+function getStorageKeyPrefix(key: string): string {
+  const userId = getUserIdFromToken();
+  if (userId) {
+    return `${STORAGE_PREFIXES.USER}_${userId}_${key}`;
+  }
+  return `${STORAGE_PREFIXES.ANONYMOUS}_${key}`;
+}
 
 /**
  * Cookie utilities for language persistence.
@@ -103,10 +163,11 @@ export class NoOpStorage {
  * User-scoped storage:
  * - localStorage uses prefixed keys (e.g., 'user_abc123_lang' or 'anonymous_lang')
  * - Cookies remain unprefixed for SSR compatibility (server can't know user scope)
+ *
+ * Note: This class reads the user ID directly from Supabase JWT token in localStorage,
+ * allowing it to work during app bootstrap before AuthService is initialized.
  */
 export class DualStorage {
-  constructor(private readonly userStorageService: UserStorageService) {}
-
   /**
    * Get item from localStorage (user-scoped) with cookie fallback.
    * @param key - Base storage key (will be prefixed for localStorage)
@@ -115,7 +176,7 @@ export class DualStorage {
   getItem(key: string): string | null {
     // Try user-scoped localStorage first
     try {
-      const prefixedKey = this.userStorageService.prefixKey(key);
+      const prefixedKey = getStorageKeyPrefix(key);
       const value = localStorage.getItem(prefixedKey);
       if (value) {
         return value;
@@ -136,7 +197,7 @@ export class DualStorage {
   setItem(key: string, value: string): void {
     // Set in user-scoped localStorage
     try {
-      const prefixedKey = this.userStorageService.prefixKey(key);
+      const prefixedKey = getStorageKeyPrefix(key);
       localStorage.setItem(prefixedKey, value);
     } catch {
       // Ignore localStorage errors
@@ -152,7 +213,7 @@ export class DualStorage {
    */
   removeItem(key: string): void {
     try {
-      const prefixedKey = this.userStorageService.prefixKey(key);
+      const prefixedKey = getStorageKeyPrefix(key);
       localStorage.removeItem(prefixedKey);
     } catch {
       // Ignore localStorage errors
@@ -165,10 +226,11 @@ export class DualStorage {
 /**
  * User-scoped localStorage wrapper for Tauri platform.
  * Prefixes all keys with user scope.
+ *
+ * Note: This class reads the user ID directly from Supabase JWT token in localStorage,
+ * allowing it to work during app bootstrap before AuthService is initialized.
  */
 export class UserScopedLocalStorage {
-  constructor(private readonly userStorageService: UserStorageService) {}
-
   /**
    * Get item from user-scoped localStorage.
    * @param key - The storage key (will be prefixed with user scope)
@@ -176,7 +238,7 @@ export class UserScopedLocalStorage {
    */
   getItem(key: string): string | null {
     try {
-      const prefixedKey = this.userStorageService.prefixKey(key);
+      const prefixedKey = getStorageKeyPrefix(key);
       return localStorage.getItem(prefixedKey);
     } catch {
       return null;
@@ -190,7 +252,7 @@ export class UserScopedLocalStorage {
    */
   setItem(key: string, value: string): void {
     try {
-      const prefixedKey = this.userStorageService.prefixKey(key);
+      const prefixedKey = getStorageKeyPrefix(key);
       localStorage.setItem(prefixedKey, value);
     } catch {
       // Ignore errors
@@ -203,7 +265,7 @@ export class UserScopedLocalStorage {
    */
   removeItem(key: string): void {
     try {
-      const prefixedKey = this.userStorageService.prefixKey(key);
+      const prefixedKey = getStorageKeyPrefix(key);
       localStorage.removeItem(prefixedKey);
     } catch {
       // Ignore errors
@@ -223,7 +285,6 @@ export class UserScopedLocalStorage {
  */
 export function platformAwareStorageFactory() {
   const platformService = inject(PlatformService);
-  const userStorageService = inject(UserStorageService);
 
   if (platformService.isSSR()) {
     return new NoOpStorage();
@@ -231,9 +292,9 @@ export function platformAwareStorageFactory() {
 
   if (platformService.isTauri()) {
     // Tauri: Use user-scoped localStorage only
-    return new UserScopedLocalStorage(userStorageService);
+    return new UserScopedLocalStorage();
   }
 
   // Web: Use dual storage (user-scoped localStorage + cookies)
-  return new DualStorage(userStorageService);
+  return new DualStorage();
 }

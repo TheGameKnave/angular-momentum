@@ -2,7 +2,21 @@
  * Application version history and changelog
  * @description Array of changelog entries tracking version releases, dates, descriptions, and changes
  */
-export const changeLog = [  
+export const changeLog = [
+  {
+    version: "21.1.0",
+    date: "2025-12-26",
+    description: "SSR, i18n, testing",
+    changes: [
+      "Server-side rendering (SSR) with Angular 21",
+      "Turkish translation",
+      "Lighthouse CI integration",
+      "E2E visual regression testing with Playwright",
+      "Smoke tests for deployed environments",
+      "Security headers (CSP, HSTS, etc.)",
+      "Menu CLS fix for smoother page loads",
+    ]
+  },
   {
     version: "21.0.1",
     date: "2025-12-13",

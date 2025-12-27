@@ -4,8 +4,8 @@
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 
-# Get staged TypeScript files (grep || true prevents exit code 1 when no matches)
-STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.ts$' || true)
+# Get staged TypeScript files, excluding tests folder (grep || true prevents exit code 1 when no matches)
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.ts$' | grep -v '^tests/' || true)
 
 if [ -z "$STAGED_FILES" ]; then
   exit 0

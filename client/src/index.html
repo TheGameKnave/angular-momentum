@@ -4,13 +4,14 @@
 <head>
   <meta charset="utf-8" />
   <title>Angular Momentum</title>
+  <meta name="description" content="A modern Angular starter kit with authentication, i18n, GraphQL, IndexedDB, notifications, and more. Rapidly build production-ready Angular applications." />
 
   <base href="/" />
   <meta name="msapplication-TileColor" content="#2b5797" />
   <meta http-equiv="expires" content="0" />
   <meta name="theme-color" content="#1976d2" />
   <meta name="color-scheme" content="dark" />
-  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0" />
   <meta name="format-detection" content="telephone=no" />
   <meta name="msapplication-tap-highlight" content="no" />
 
@@ -25,6 +26,29 @@
   <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png" />
   <link rel="mask-icon" href="assets/icons/safari-pinned-tab.svg" color="#5bbad5" />
   <link rel="manifest" href="manifest.webmanifest" />
+
+  <!-- Preload fonts to prevent FOUT (Flash of Unstyled Text) -->
+  <link rel="preload" href="assets/fonts/Raleway-VariableFont_wght.ttf" as="font" type="font/ttf" crossorigin />
+  <link rel="preload" href="assets/fonts/Raleway-Italic-VariableFont_wght.ttf" as="font" type="font/ttf" crossorigin />
+
+  <!-- Set responsive classes immediately to prevent layout flash (CSR fallback) -->
+  <script>
+    (function() {
+      var w = window.innerWidth;
+      var c = 'screen-xs';
+      if (w >= 576) c += ' screen-sm'; else c += ' not-sm';
+      if (w >= 768) c += ' screen-md'; else c += ' not-md';
+      if (w >= 992) c += ' screen-lg'; else c += ' not-lg';
+      if (w >= 1200) c += ' screen-xl'; else c += ' not-xl';
+      // Only set if body has no screen classes yet (SSR already set them)
+      document.addEventListener('DOMContentLoaded', function() {
+        if (!document.body.classList.contains('screen-sm') &&
+            !document.body.classList.contains('not-sm')) {
+          document.body.className = c;
+        }
+      });
+    })();
+  </script>
 </head>
 <body id="body">
   <!-- Turn on JavaScript like a normal person to be able to use this. -->

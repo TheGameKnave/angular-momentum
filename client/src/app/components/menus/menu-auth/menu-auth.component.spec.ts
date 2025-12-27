@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, NavigationEnd } from '@angular/router';
 import { signal } from '@angular/core';
 import { Subject } from 'rxjs';
+import { TranslocoService } from '@jsverse/transloco';
 import { MenuAuthComponent } from './menu-auth.component';
 import { AuthService } from '@app/services/auth.service';
 import { AuthUiStateService } from '@app/services/auth-ui-state.service';
@@ -10,6 +11,8 @@ import { UsernameService } from '@app/services/username.service';
 import { StoragePromotionService } from '@app/services/storage-promotion.service';
 import { NotificationService } from '@app/services/notification.service';
 import { ConfirmDialogService } from '@app/services/confirm-dialog.service';
+import { IndexedDbService } from '@app/services/indexeddb.service';
+import { UserStorageService } from '@app/services/user-storage.service';
 import { AuthGuard } from '@app/guards/auth.guard';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 
@@ -23,6 +26,9 @@ describe('MenuAuthComponent', () => {
   let mockStoragePromotionService: jasmine.SpyObj<StoragePromotionService>;
   let mockNotificationService: jasmine.SpyObj<NotificationService>;
   let mockConfirmDialogService: jasmine.SpyObj<ConfirmDialogService>;
+  let mockIndexedDbService: jasmine.SpyObj<IndexedDbService>;
+  let mockUserStorageService: jasmine.SpyObj<UserStorageService>;
+  let translocoService: TranslocoService;
   let mockRouter: jasmine.SpyObj<Router>;
   let routerEventsSubject: Subject<any>;
 
@@ -80,6 +86,18 @@ describe('MenuAuthComponent', () => {
       visible: jasmine.createSpy('visible').and.returnValue(false)
     });
 
+    mockIndexedDbService = jasmine.createSpyObj('IndexedDbService', ['getRaw']);
+    mockIndexedDbService.getRaw.and.returnValue(Promise.resolve(undefined));
+
+    mockUserStorageService = jasmine.createSpyObj('UserStorageService', [
+      'prefixKeyForUser',
+      'prefixKeyForAnonymous',
+      'isAuthenticated'
+    ]);
+    mockUserStorageService.prefixKeyForUser.and.callFake((userId: string, key: string) => `user_${userId}_${key}`);
+    mockUserStorageService.prefixKeyForAnonymous.and.callFake((key: string) => `anonymous_${key}`);
+    mockUserStorageService.isAuthenticated.and.returnValue(false);
+
     mockRouter = jasmine.createSpyObj('Router', ['navigate'], {
       events: routerEventsSubject.asObservable(),
       url: '/test',
@@ -111,12 +129,15 @@ describe('MenuAuthComponent', () => {
         { provide: StoragePromotionService, useValue: mockStoragePromotionService },
         { provide: NotificationService, useValue: mockNotificationService },
         { provide: ConfirmDialogService, useValue: mockConfirmDialogService },
+        { provide: IndexedDbService, useValue: mockIndexedDbService },
+        { provide: UserStorageService, useValue: mockUserStorageService },
         { provide: Router, useValue: mockRouter },
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(MenuAuthComponent);
     component = fixture.componentInstance;
+    translocoService = TestBed.inject(TranslocoService);
     fixture.detectChanges();
   });
 
@@ -129,14 +150,14 @@ describe('MenuAuthComponent', () => {
       mockAuthService.hasReturnUrl.and.returnValue(true);
       mockAuthService.isAuthenticated.and.returnValue(false);
 
-      // Mock anchorMenu
-      component.anchorMenu = jasmine.createSpyObj('AnchorMenuComponent', ['open', 'close']);
+      // Mock dialogMenu
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
 
       component.ngAfterViewInit();
 
       setTimeout(() => {
         expect(mockAuthUiState.setMode).toHaveBeenCalledWith('login');
-        expect(component.anchorMenu.open).toHaveBeenCalled();
+        expect(component.dialogMenu.open).toHaveBeenCalled();
         done();
       }, 10);
     });
@@ -145,7 +166,7 @@ describe('MenuAuthComponent', () => {
       mockAuthService.hasReturnUrl.and.returnValue(true);
       mockAuthService.isAuthenticated.and.returnValue(true);
 
-      component.anchorMenu = jasmine.createSpyObj('AnchorMenuComponent', ['open', 'close']);
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
 
       component.ngAfterViewInit();
 
@@ -155,7 +176,7 @@ describe('MenuAuthComponent', () => {
     it('should not open menu if no returnUrl', () => {
       mockAuthService.hasReturnUrl.and.returnValue(false);
 
-      component.anchorMenu = jasmine.createSpyObj('AnchorMenuComponent', ['open', 'close']);
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
 
       component.ngAfterViewInit();
 
@@ -173,7 +194,7 @@ describe('MenuAuthComponent', () => {
   describe('onLoginSuccess', () => {
     beforeEach(() => {
       jasmine.clock().install();
-      component.anchorMenu = jasmine.createSpyObj('AnchorMenuComponent', ['open', 'close']);
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
     });
 
     afterEach(() => {
@@ -190,12 +211,12 @@ describe('MenuAuthComponent', () => {
     it('should set auto-close timer and close menu after delay', async () => {
       await component.onLoginSuccess();
 
-      expect(component.autoCloseTimer()).toBe(2);
+      expect(component.autoCloseTimer()).toBe(4);
 
-      jasmine.clock().tick(2000);
+      jasmine.clock().tick(4000);
 
       expect(component.autoCloseTimer()).toBe(0);
-      expect(component.anchorMenu.close).toHaveBeenCalled();
+      expect(component.dialogMenu.close).toHaveBeenCalled();
     });
   });
 
@@ -218,7 +239,7 @@ describe('MenuAuthComponent', () => {
   describe('onVerifySuccess', () => {
     beforeEach(() => {
       jasmine.clock().install();
-      component.anchorMenu = jasmine.createSpyObj('AnchorMenuComponent', ['open', 'close']);
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
       // Set pendingUsername signal value
       (mockAuthUiState.pendingUsername as any).set('testuser');
     });
@@ -249,12 +270,12 @@ describe('MenuAuthComponent', () => {
     it('should set auto-close timer and close menu after delay', async () => {
       await component.onVerifySuccess();
 
-      expect(component.autoCloseTimer()).toBe(4);
+      expect(component.autoCloseTimer()).toBe(6);
 
-      jasmine.clock().tick(4000);
+      jasmine.clock().tick(6000);
 
       expect(component.autoCloseTimer()).toBe(0);
-      expect(component.anchorMenu.close).toHaveBeenCalled();
+      expect(component.dialogMenu.close).toHaveBeenCalled();
     });
   });
 
@@ -267,7 +288,7 @@ describe('MenuAuthComponent', () => {
 
   describe('onResetSuccess', () => {
     beforeEach(() => {
-      component.anchorMenu = jasmine.createSpyObj('AnchorMenuComponent', ['open', 'close']);
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
     });
 
     it('should initialize user settings and close menu', async () => {
@@ -275,7 +296,7 @@ describe('MenuAuthComponent', () => {
 
       expect(mockUserSettingsService.initialize).toHaveBeenCalled();
       expect(mockUsernameService.loadUsername).toHaveBeenCalled();
-      expect(component.anchorMenu.close).toHaveBeenCalled();
+      expect(component.dialogMenu.close).toHaveBeenCalled();
     });
   });
 
@@ -290,26 +311,26 @@ describe('MenuAuthComponent', () => {
 
   describe('onViewProfile', () => {
     beforeEach(() => {
-      component.anchorMenu = jasmine.createSpyObj('AnchorMenuComponent', ['open', 'close']);
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
     });
 
     it('should close menu and navigate to profile', () => {
       component.onViewProfile();
 
-      expect(component.anchorMenu.close).toHaveBeenCalled();
+      expect(component.dialogMenu.close).toHaveBeenCalled();
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/profile']);
     });
   });
 
   describe('onLogout', () => {
     beforeEach(() => {
-      component.anchorMenu = jasmine.createSpyObj('AnchorMenuComponent', ['open', 'close']);
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
     });
 
     it('should clear services and logout', async () => {
       await component.onLogout();
 
-      expect(component.anchorMenu.close).toHaveBeenCalled();
+      expect(component.dialogMenu.close).toHaveBeenCalled();
       expect(mockUserSettingsService.clear).toHaveBeenCalled();
       expect(mockUsernameService.clear).toHaveBeenCalled();
       expect(mockAuthUiState.reset).toHaveBeenCalled();
@@ -358,6 +379,29 @@ describe('MenuAuthComponent', () => {
       component.onMenuClosed();
       expect(mockAuthUiState.reset).toHaveBeenCalled();
     });
+
+    it('should clear auto-close timer when menu is closed during timer', async () => {
+      jasmine.clock().install();
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
+
+      // Trigger login success which starts the auto-close timer
+      await component.onLoginSuccess();
+      expect(component.autoCloseTimer()).toBe(4);
+
+      // Close the menu before timer fires (simulating user navigating away)
+      component.onMenuClosed();
+
+      // Timer should be cleared
+      expect(component.autoCloseTimer()).toBe(0);
+
+      // Advance clock past when timer would have fired
+      jasmine.clock().tick(5000);
+
+      // Menu close should NOT have been called again (timer was cleared)
+      expect(component.dialogMenu.close).not.toHaveBeenCalled();
+
+      jasmine.clock().uninstall();
+    });
   });
 
   describe('storagePromotionCallback', () => {
@@ -404,6 +448,94 @@ describe('MenuAuthComponent', () => {
       expect(mockStoragePromotionService.hasAnonymousData).toHaveBeenCalled();
       expect(mockConfirmDialogService.show).not.toHaveBeenCalled();
       expect(mockStoragePromotionService.promoteAnonymousToUser).not.toHaveBeenCalled();
+    });
+
+    it('should switch to target user language for import dialog (new format)', async () => {
+      const userId = 'test-user-id';
+      mockStoragePromotionService.hasAnonymousData.and.returnValue(Promise.resolve(true));
+
+      // Mock target user having Spanish language preference (new format with timestamp)
+      mockIndexedDbService.getRaw.and.returnValue(Promise.resolve({ value: 'es', updatedAt: 123456 }));
+
+      // Spy on the real TranslocoService
+      const setActiveLangSpy = spyOn(translocoService, 'setActiveLang').and.callThrough();
+
+      // Simulate user confirming the dialog
+      mockConfirmDialogService.show.and.callFake((options: any) => {
+        options.onConfirm();
+      });
+
+      await component.storagePromotionCallback(userId);
+
+      // Should have looked up the user's language preference
+      expect(mockUserStorageService.prefixKeyForUser).toHaveBeenCalledWith(userId, 'preferences_language');
+      expect(mockIndexedDbService.getRaw).toHaveBeenCalled();
+
+      // Should have switched language before showing dialog
+      expect(setActiveLangSpy).toHaveBeenCalledWith('es');
+    });
+
+    it('should switch to target user language for import dialog (old format)', async () => {
+      const userId = 'test-user-id';
+      mockStoragePromotionService.hasAnonymousData.and.returnValue(Promise.resolve(true));
+
+      // Mock target user having French language preference (old raw string format)
+      mockIndexedDbService.getRaw.and.returnValue(Promise.resolve('fr'));
+
+      // Spy on the real TranslocoService
+      const setActiveLangSpy = spyOn(translocoService, 'setActiveLang').and.callThrough();
+
+      // Simulate user confirming the dialog
+      mockConfirmDialogService.show.and.callFake((options: any) => {
+        options.onConfirm();
+      });
+
+      await component.storagePromotionCallback(userId);
+
+      // Should have switched language before showing dialog
+      expect(setActiveLangSpy).toHaveBeenCalledWith('fr');
+    });
+
+    it('should not switch language when target user has no language preference', async () => {
+      const userId = 'test-user-id';
+      mockStoragePromotionService.hasAnonymousData.and.returnValue(Promise.resolve(true));
+
+      // Mock target user having no language preference
+      mockIndexedDbService.getRaw.and.returnValue(Promise.resolve(undefined));
+
+      // Spy on the real TranslocoService
+      const setActiveLangSpy = spyOn(translocoService, 'setActiveLang').and.callThrough();
+
+      // Simulate user confirming the dialog
+      mockConfirmDialogService.show.and.callFake((options: any) => {
+        options.onConfirm();
+      });
+
+      await component.storagePromotionCallback(userId);
+
+      // Should NOT have switched language
+      expect(setActiveLangSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not switch language when target user language is same as current', async () => {
+      const userId = 'test-user-id';
+      mockStoragePromotionService.hasAnonymousData.and.returnValue(Promise.resolve(true));
+
+      // Mock target user having same language as current (en-US is the default in testing module)
+      mockIndexedDbService.getRaw.and.returnValue(Promise.resolve({ value: 'en-US', updatedAt: 123456 }));
+
+      // Spy on the real TranslocoService
+      const setActiveLangSpy = spyOn(translocoService, 'setActiveLang').and.callThrough();
+
+      // Simulate user confirming the dialog
+      mockConfirmDialogService.show.and.callFake((options: any) => {
+        options.onConfirm();
+      });
+
+      await component.storagePromotionCallback(userId);
+
+      // Should NOT have switched language (already in en-US)
+      expect(setActiveLangSpy).not.toHaveBeenCalled();
     });
   });
 });

@@ -10,8 +10,6 @@
         type="email"
         [placeholder]="t('auth.Enter your email')"
         autocomplete="email"
-        class="w-full"
-        style="padding: 1rem; font-size: 1rem;"
       />
       @if (resetForm.get('email')?.invalid && resetForm.get('email')?.touched) {
         @if (resetForm.get('email')?.hasError('emailTypo')) {
@@ -31,13 +29,12 @@
         type="button"
         [loading]="loading()"
         [disabled]="resetForm.get('email')?.invalid"
-        class="w-full"
         (click)="requestCode()"
       >
         {{ t('auth.Send Reset Code') }}
       </button>
     } @else {
-      <p-message severity="success" [text]="t('auth.If an account with that information exists, a password reset email has been sent.')" styleClass="w-full" />
+      <p-message severity="success" [text]="t('auth.If an account with that information exists, a password reset email has been sent.')" />
     }
 
     <!-- OTP Code Input (only shown after code is sent) -->
@@ -55,8 +52,7 @@
           maxlength="6"
           placeholder="000000"
           autocomplete="one-time-code"
-          class="w-full"
-          style="padding: 1rem; font-size: 1.5rem; text-align: center; letter-spacing: 0.5rem;"
+          class="otp-input"
           (input)="onOtpInput($event)"
           (paste)="onOtpPaste($event)"
         />
@@ -71,7 +67,6 @@
         type="submit"
         [loading]="loading()"
         [disabled]="resetForm.invalid"
-        class="w-full"
       >
         {{ t('auth.Verify Code') }}
       </button>
@@ -79,7 +74,7 @@
 
     <!-- Error Message -->
     @if (errorMessage()) {
-      <p-message severity="error" [text]="errorMessage()!" styleClass="w-full" />
+      <p-message severity="error" [text]="errorMessage()!" />
     }
 
     <!-- Resend Code Button (always visible after code sent) -->
@@ -88,7 +83,7 @@
         <button
           pButton
           type="button"
-          class="p-button-text p-button-secondary w-full"
+          class="p-button-text p-button-secondary"
           [loading]="resending()"
           [disabled]="loading()"
           (click)="resendCode()"
@@ -96,7 +91,7 @@
           {{ t('auth.Resend code') }}
         </button>
         @if (resendSuccess()) {
-          <p-message severity="info" [text]="t('auth.New verification code sent!')" styleClass="w-full" />
+          <p-message severity="info" [text]="t('auth.New verification code sent!')" />
         }
       </div>
     }

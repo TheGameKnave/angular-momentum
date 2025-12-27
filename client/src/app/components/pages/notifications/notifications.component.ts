@@ -10,6 +10,7 @@ import { NOTIFICATION_IDS, NOTIFICATION_KEY_MAP, NotificationId } from '@app/con
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '@app/services/auth.service';
 import { GraphqlService } from '@app/services/graphql.service';
+import { UserSettingsService } from '@app/services/user-settings.service';
 
 /**
  * Notifications component that demonstrates push notification capabilities.
@@ -34,21 +35,35 @@ export class NotificationsComponent {
   readonly notificationService = inject(NotificationService);
   private readonly translocoService = inject(TranslocoService);
   protected readonly authService = inject(AuthService);
+  private readonly userSettingsService = inject(UserSettingsService);
 
   localNotificationStatus = signal<string>('');
   serverNotificationStatus = signal<string>('');
-  loading = signal(false);
+  loadingId = signal<string | null>(null);
 
   /**
    * Simple list of predefined notification IDs with optional params.
    * All display content is derived from NOTIFICATION_KEY_MAP.
+   * Maintenance time is generated dynamically as tonight at 10 PM UTC.
    */
-  readonly predefinedNotifications: PredefinedNotification[] = [
-    { id: NOTIFICATION_IDS.WELCOME },
-    { id: NOTIFICATION_IDS.FEATURE_UPDATE },
-    { id: NOTIFICATION_IDS.MAINTENANCE, params: { time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString() } },
-    { id: NOTIFICATION_IDS.ACHIEVEMENT },
-  ];
+  get predefinedNotifications(): PredefinedNotification[] {
+    return [
+      { id: NOTIFICATION_IDS.WELCOME },
+      { id: NOTIFICATION_IDS.FEATURE_UPDATE },
+      { id: NOTIFICATION_IDS.MAINTENANCE, params: { time: this.getMaintenanceTime() } },
+      { id: NOTIFICATION_IDS.ACHIEVEMENT },
+    ];
+  }
+
+  /**
+   * Generates an ISO timestamp for tonight at 10 PM UTC.
+   * This allows the notification service to format it for the user's timezone.
+   */
+  private getMaintenanceTime(): string {
+    const today = new Date();
+    today.setUTCHours(22, 0, 0, 0);
+    return today.toISOString();
+  }
 
   /**
    * Gets the translated title for a notification.
@@ -60,18 +75,35 @@ export class NotificationsComponent {
 
   /**
    * Gets the translated body for a notification, with params applied.
+   * Formats any timestamp params for display.
    */
   getBody(notification: PredefinedNotification): string {
     const keys = NOTIFICATION_KEY_MAP[notification.id as NotificationId];
     if (notification.params) {
-      // Format timestamp for display
-      const displayParams = { ...notification.params };
-      if (typeof displayParams['time'] === 'string') {
-        displayParams['time'] = new Date(displayParams['time']).toLocaleString();
-      }
-      return this.translocoService.translate(keys.bodyKey, displayParams);
+      const formattedParams = this.formatParams(notification.params);
+      return this.translocoService.translate(keys.bodyKey, formattedParams);
     }
     return this.translocoService.translate(keys.bodyKey);
+  }
+
+  /**
+   * Formats params for display, converting ISO timestamps to localized strings.
+   */
+  private formatParams(params: Record<string, unknown>): Record<string, unknown> {
+    const formatted = { ...params };
+    if (typeof formatted['time'] === 'string') {
+      const date = new Date(formatted['time']);
+      if (!Number.isNaN(date.getTime())) {
+        const timezone = this.userSettingsService.settings()?.timezone ?? this.userSettingsService.detectTimezone();
+        const locale = this.translocoService.getActiveLang();
+        formatted['time'] = date.toLocaleString(locale, {
+          timeZone: timezone,
+          hour: 'numeric',
+          minute: '2-digit'
+        });
+      }
+    }
+    return formatted;
   }
 
   /**
@@ -129,7 +161,7 @@ export class NotificationsComponent {
    */
   async sendServerNotification(notification: PredefinedNotification) {
     this.serverNotificationStatus.set('');
-    this.loading.set(true);
+    this.loadingId.set(notification.id);
 
     try {
       const result = await firstValueFrom(
@@ -144,7 +176,7 @@ export class NotificationsComponent {
     } catch (error) {
       this.serverNotificationStatus.set(`❌ Error: ${error}`);
     } finally {
-      this.loading.set(false);
+      this.loadingId.set(null);
     }
   }
 

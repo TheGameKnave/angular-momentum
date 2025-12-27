@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { signal } from '@angular/core';
-import { IndexedDbService } from './indexeddb.service';
+import { IndexedDbService, IDB_STORES } from './indexeddb.service';
 import { UserStorageService } from './user-storage.service';
 
 describe('IndexedDbService', () => {
@@ -52,47 +51,47 @@ describe('IndexedDbService', () => {
   });
 
   it('should store and retrieve a value with prefixed key', async () => {
-    await service.set('testKey', 'testValue');
+    await service.set('testKey', 'testValue', IDB_STORES.SETTINGS);
 
     // Verify the prefixed key was used
     expect(mockUserStorageService.prefixKey).toHaveBeenCalledWith('testKey');
     expect(mockStore.get('anonymous_testKey')).toBe('testValue');
 
-    const result = await service.get('testKey');
+    const result = await service.get('testKey', IDB_STORES.SETTINGS);
     expect(result).toBe('testValue');
   });
 
   it('should return undefined for non-existent key', async () => {
-    const result = await service.get('nonExistent');
+    const result = await service.get('nonExistent', IDB_STORES.SETTINGS);
     expect(result).toBeUndefined();
   });
 
   it('should overwrite existing value', async () => {
-    await service.set('key', 'value1');
-    await service.set('key', 'value2');
-    const result = await service.get('key');
+    await service.set('key', 'value1', IDB_STORES.SETTINGS);
+    await service.set('key', 'value2', IDB_STORES.SETTINGS);
+    const result = await service.get('key', IDB_STORES.SETTINGS);
     expect(result).toBe('value2');
   });
 
   it('should delete a value with prefixed key', async () => {
-    await service.set('key', 'value');
-    await service.del('key');
+    await service.set('key', 'value', IDB_STORES.SETTINGS);
+    await service.del('key', IDB_STORES.SETTINGS);
 
     // Verify prefixed key was deleted
     expect(mockStore.has('anonymous_key')).toBeFalse();
 
-    const result = await service.get('key');
+    const result = await service.get('key', IDB_STORES.SETTINGS);
     expect(result).toBeUndefined();
   });
 
   it('should clear all values for current user scope', async () => {
-    await service.set('key1', 'value1');
-    await service.set('key2', 'value2');
+    await service.set('key1', 'value1', IDB_STORES.SETTINGS);
+    await service.set('key2', 'value2', IDB_STORES.SETTINGS);
 
     // Add a key from a different user scope (shouldn't be cleared)
     mockStore.set('user_other_key', 'otherValue');
 
-    await service.clear();
+    await service.clear(IDB_STORES.SETTINGS);
 
     // Keys from current scope should be cleared
     expect(mockStore.has('anonymous_key1')).toBeFalse();
@@ -103,10 +102,10 @@ describe('IndexedDbService', () => {
   });
 
   it('should retrieve all keys (all scopes)', async () => {
-    await service.set('key1', 'value1');
-    await service.set('key2', 'value2');
+    await service.set('key1', 'value1', IDB_STORES.SETTINGS);
+    await service.set('key2', 'value2', IDB_STORES.SETTINGS);
 
-    const keys = await service.keys();
+    const keys = await service.keys(IDB_STORES.SETTINGS);
     expect(keys.length).toBe(2);
     // Keys are stored with prefix
     expect(keys.map(k => String(k))).toContain('anonymous_key1');
@@ -114,15 +113,15 @@ describe('IndexedDbService', () => {
   });
 
   it('should handle numeric keys', async () => {
-    await service.set(123, 'numericKeyValue');
-    const result = await service.get(123);
+    await service.set(123, 'numericKeyValue', IDB_STORES.SETTINGS);
+    const result = await service.get(123, IDB_STORES.SETTINGS);
     expect(result).toBe('numericKeyValue');
   });
 
   it('should store complex objects', async () => {
     const complexValue = { nested: { data: [1, 2, 3] }, flag: true };
-    await service.set('complex', complexValue);
-    const result = await service.get('complex');
+    await service.set('complex', complexValue, IDB_STORES.SETTINGS);
+    const result = await service.get('complex', IDB_STORES.SETTINGS);
     expect(result).toEqual(complexValue);
   });
 
@@ -130,14 +129,14 @@ describe('IndexedDbService', () => {
     it('should get value without prefixing using getRaw', async () => {
       mockStore.set('rawKey', 'rawValue');
 
-      const result = await service.getRaw('rawKey');
+      const result = await service.getRaw('rawKey', IDB_STORES.BACKUPS);
 
       expect(result).toBe('rawValue');
       // prefixKey should not have been called for getRaw
     });
 
     it('should set value without prefixing using setRaw', async () => {
-      await service.setRaw('rawKey', 'rawValue');
+      await service.setRaw('rawKey', 'rawValue', IDB_STORES.BACKUPS);
 
       expect(mockStore.get('rawKey')).toBe('rawValue');
     });
@@ -145,7 +144,7 @@ describe('IndexedDbService', () => {
     it('should delete value without prefixing using delRaw', async () => {
       mockStore.set('rawKey', 'rawValue');
 
-      await service.delRaw('rawKey');
+      await service.delRaw('rawKey', IDB_STORES.BACKUPS);
 
       expect(mockStore.has('rawKey')).toBeFalse();
     });
@@ -200,6 +199,14 @@ describe('IndexedDbService', () => {
         db.close();
       }
     });
+
+    it('should return null when database does not exist (version 0)', async () => {
+      spyOn(service, 'getCurrentVersionWithoutMigrating').and.returnValue(Promise.resolve(0));
+
+      const db = await service.openWithoutMigrating();
+
+      expect(db).toBeNull();
+    });
   });
 
   describe('init', () => {
@@ -211,6 +218,28 @@ describe('IndexedDbService', () => {
 
       // Should still be the same promise
       expect((service as any).dbPromise).toBe(originalPromise);
+    });
+  });
+
+  describe('clearAll', () => {
+    it('should clear all values from all stores for the current user scope', async () => {
+      // Add keys to different stores with current user scope
+      await service.set('key1', 'value1', IDB_STORES.PERSISTENT);
+      await service.set('key2', 'value2', IDB_STORES.SETTINGS);
+      await service.set('key3', 'value3', IDB_STORES.BACKUPS);
+
+      // Add a key from a different user scope (shouldn't be cleared)
+      mockStore.set('user_other_key', 'otherValue');
+
+      await service.clearAll();
+
+      // Keys from current scope should be cleared from all stores
+      expect(mockStore.has('anonymous_key1')).toBeFalse();
+      expect(mockStore.has('anonymous_key2')).toBeFalse();
+      expect(mockStore.has('anonymous_key3')).toBeFalse();
+
+      // Key from other scope should remain
+      expect(mockStore.get('user_other_key')).toBe('otherValue');
     });
   });
 });

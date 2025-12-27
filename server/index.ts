@@ -12,6 +12,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { UsernameService } from './services/usernameService';
 import turnstileService from './services/turnstileService';
 import { ALLOWED_ORIGINS } from './constants/server.constants';
+import { securityHeaders } from './middleware/security';
 
 /**
  * Configures static file serving for the Angular application based on the environment.
@@ -26,7 +27,15 @@ function setupStaticFileServing(app: express.Application, env: string) {
     app.use(express.static(dirname, { maxAge: 3600000 }));
 
     app.get('/{*splat}', (req, res) => {
-      res.sendFile(path.join(dirname, 'index.html'));
+      // SSR builds use index.csr.html, non-SSR builds use index.html
+      const indexFile = path.join(dirname, 'index.csr.html');
+      const fallbackFile = path.join(dirname, 'index.html');
+      res.sendFile(indexFile, (err) => {
+        // istanbul ignore next - fallback only used when index.csr.html missing (non-SSR builds)
+        if (err) {
+          res.sendFile(fallbackFile);
+        }
+      });
     });
   }
 }
@@ -80,15 +89,26 @@ export function setupApp(): express.Application {
     credentials: true,
   }));
   app.set('trust proxy', 1);
+
+  // Security headers - CSP handled by Angular's meta tag, HSTS only in production
+  app.use(securityHeaders({
+    contentSecurityPolicy: 'none', // CSP defined in Angular index.html meta tag
+    enableHSTS: process.env.NODE_ENV === 'production',
+  }));
+
   app.use(logger);
   app.use(express.json());
 
-  // Rate limiting for API endpoints
+  // Rate limiting for API endpoints (disabled in dev/test environments)
   const apiLimiter = rateLimit({
     windowMs: 10/*minutes*/ * 60/*seconds*/ * 1000/*milliseconds*/,
     max: 100,
     standardHeaders: true,
     legacyHeaders: false,
+    skip: () => {
+      // Disable rate limiting entirely in development/test environments
+      return process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+    }
   });
 
   app.use(express.urlencoded({ extended: true }));
@@ -119,11 +139,14 @@ if (require.main === module) {
   const app = setupApp();
   const server = createServer(app);
 
-  const io = setupWebSocket(server);
+  // Initialize Supabase for WebSocket auth
+  const supabase = initializeSupabase();
+  const io = setupWebSocket(server, supabase);
 
   app.set('io', io);
 
-  const PORT = Number(config.server_port);
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  server.listen(PORT, '0.0.0.0', () => {});
+  const PORT = Number(config.server_port) || 4201;
+  server.listen(PORT, '0.0.0.0', () => {
+    /**/console.log(`API server listening on port ${PORT}`);
+  });
 }

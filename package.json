@@ -1,6 +1,6 @@
 {
   "name": "angular-momentum",
-  "version": "21.0.1",
+  "version": "21.1.0",
   "siteUrl": "https://angularmomentum.app",
   "repository": "https://github.com/TheGameKnave/angular-momentum",
   "private": true,
@@ -10,11 +10,12 @@
   "scripts": {
     "client": "cd client && NODE_ENV=development npm run start -- --configuration development",
     "client:prod": "cd client && NODE_ENV=production npm run start -- --configuration production",
+    "client:e2e": "cd client && NODE_ENV=development npm run start -- --configuration e2e",
     "server": "cd server && NODE_ENV=development node-env-run --exec nodemon | pino-colada",
     "server:prod": "cd server && NODE_ENV=production node-env-run --exec nodemon",
     "heroku-postbuild": "cd client && npm install && npm run heroku-postbuild",
-    "start": "cd server && ts-node index.ts",
-    "dev": "run-p client server",
+    "start": "echo \"Run server and client, in parallel, in dev mode\" && run-p client server",
+    "start:e2e": "run-p client:e2e server",
     "prod": "run-p client:prod server:prod",
     "sonar": "sonar-scanner -Dsonar.token=$(grep SONAR_TOKEN server/.env | cut -d '=' -f 2)",
     "test": "./tests/test.sh",
@@ -22,8 +23,10 @@
     "test:notification": "cd tests/translation && npx tsx notification-validation.ts",
     "test:server": "cd server && npm test",
     "test:client": "cd client && npm test",
-    "test:e2e": "cd tests/e2e && node clean_screenshots && node test_runner",
-    "accept": "cd tests/e2e && node accept_tests",
+    "test:e2e": "npx playwright test --config=tests/e2e/playwright.config.ts",
+    "test:e2e:ui": "npx playwright test --config=tests/e2e/playwright.config.ts --ui",
+    "test:e2e:headed": "npx playwright test --config=tests/e2e/playwright.config.ts --headed",
+    "test:e2e:accept": "./tests/e2e/copy-snapshots.sh",
     "deploy:dev": "./deploy.sh dev",
     "deploy:staging": "./deploy.sh staging",
     "bump-version": "node bump_version.js",
@@ -38,14 +41,17 @@
     "@types/express-serve-static-core": "^5.1.0"
   },
   "devDependencies": {
-    "@types/express-serve-static-core": "^5.1.0",
     "@formatjs/icu-messageformat-parser": "^2.11.4",
     "@jirutka/ajv-cli": "^6.0.0-beta.5",
+    "@lhci/cli": "^0.15.1",
+    "@playwright/test": "^1.57.0",
+    "@types/compression": "^1.8.1",
+    "@types/express-serve-static-core": "^5.1.0",
     "ajv": "^8.17.1",
     "husky": "^9.1.7",
-    "testcafe": "^3.6.2",
-    "testcafe-angular-selectors": "^0.4.1",
-    "testcafe-blink-diff": "^0.5.5",
     "typescript": "~5.9.3"
+  },
+  "dependencies": {
+    "compression": "^1.8.1"
   }
 }

@@ -1,4 +1,4 @@
-<app-anchor-menu position="left" width="42rem">
+<app-dialog-menu position="left" width="42rem">
   <!-- Trigger: Version Button -->
   <span
     menu-trigger
@@ -52,9 +52,11 @@
     <div menu-body appScrollIndicator class="menu-change-log-body">
       @for (change of changeLog.changes(); track change.version) {
         <p-card>
-          <h4>
-            {{ change.version }} · {{ change.description }} 
-          </h4>
+          <ng-template pTemplate="header">
+            <h4>
+              {{ change.version }} · {{ change.description }} 
+            </h4>
+          </ng-template>
           <p>@ {{ change.date }}</p>
           <ul class="bulleted">
             @for (item of change.changes; track item) {
@@ -65,4 +67,4 @@
       }
     </div>
   </div>
-</app-anchor-menu>
+</app-dialog-menu>

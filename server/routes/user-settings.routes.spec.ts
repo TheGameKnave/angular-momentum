@@ -23,7 +23,7 @@ describe('User Settings Routes', () => {
       from: jest.fn().mockReturnThis(),
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
-      single: jest.fn(),
+      single: jest.fn().mockResolvedValue({ data: null, error: null }),
       insert: jest.fn().mockReturnThis(),
       update: jest.fn().mockReturnThis(),
       upsert: jest.fn().mockReturnThis(),
@@ -634,7 +634,7 @@ describe('User Settings Routes', () => {
       });
     });
 
-    it('should return 400 if timezone is missing', async () => {
+    it('should return 400 if no valid fields provided', async () => {
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
@@ -647,7 +647,41 @@ describe('User Settings Routes', () => {
 
       expect(response.status).toBe(400);
       expect(response.body).toEqual({
-        error: 'Timezone is required',
+        error: 'At least one valid field is required (timezone, theme_preference, or language)',
+      });
+    });
+
+    it('should return 400 if timezone is invalid type', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      const response = await request(app)
+        .patch('/api/user-settings')
+        .set('Authorization', 'Bearer valid-token')
+        .send({ timezone: 123 });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        error: 'At least one valid field is required (timezone, theme_preference, or language)',
+      });
+    });
+
+    it('should return 400 if theme_preference is invalid', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      const response = await request(app)
+        .patch('/api/user-settings')
+        .set('Authorization', 'Bearer valid-token')
+        .send({ theme_preference: 'invalid' });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        error: 'At least one valid field is required (timezone, theme_preference, or language)',
       });
     });
 
@@ -685,6 +719,57 @@ describe('User Settings Routes', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ data: mockSettings });
+    });
+
+    it('should broadcast settings update via WebSocket when io is configured', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      const mockSettings = {
+        id: 'settings-123',
+        user_id: 'user-123',
+        timezone: 'America/New_York',
+        theme_preference: 'dark',
+        language: 'en-US',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-02T12:00:00Z',
+      };
+
+      mockSupabase.from.mockReturnValue({
+        update: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            select: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
+                data: mockSettings,
+                error: null,
+              }),
+            }),
+          }),
+        }),
+      });
+
+      // Set up mock io on the app
+      const mockIo = {
+        to: jest.fn().mockReturnThis(),
+        emit: jest.fn(),
+      };
+      app.set('io', mockIo);
+
+      const response = await request(app)
+        .patch('/api/user-settings')
+        .set('Authorization', 'Bearer valid-token')
+        .send({ timezone: 'America/New_York' });
+
+      expect(response.status).toBe(200);
+      expect(mockIo.to).toHaveBeenCalledWith('user:user-123');
+      expect(mockIo.emit).toHaveBeenCalledWith('user-settings-updated', {
+        timezone: 'America/New_York',
+        theme_preference: 'dark',
+        language: 'en-US',
+        updated_at: '2024-01-02T12:00:00Z',
+      });
     });
 
     it('should return 500 if database update fails', async () => {
@@ -751,6 +836,222 @@ describe('User Settings Routes', () => {
 
       expect(response.status).toBe(500);
       expect(response.body).toEqual({ error: 'Unknown error' });
+    });
+
+    it('should update theme_preference to dark successfully', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      const mockSettings = {
+        id: 'settings-123',
+        user_id: 'user-123',
+        timezone: 'UTC',
+        theme_preference: 'dark',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-02',
+      };
+
+      mockSupabase.from.mockReturnValue({
+        update: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            select: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
+                data: mockSettings,
+                error: null,
+              }),
+            }),
+          }),
+        }),
+      });
+
+      const response = await request(app)
+        .patch('/api/user-settings')
+        .set('Authorization', 'Bearer valid-token')
+        .send({ theme_preference: 'dark' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ data: mockSettings });
+    });
+
+    it('should update theme_preference to light successfully', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      const mockSettings = {
+        id: 'settings-123',
+        user_id: 'user-123',
+        timezone: 'UTC',
+        theme_preference: 'light',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-02',
+      };
+
+      mockSupabase.from.mockReturnValue({
+        update: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            select: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
+                data: mockSettings,
+                error: null,
+              }),
+            }),
+          }),
+        }),
+      });
+
+      const response = await request(app)
+        .patch('/api/user-settings')
+        .set('Authorization', 'Bearer valid-token')
+        .send({ theme_preference: 'light' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ data: mockSettings });
+    });
+
+    it('should update both timezone and theme_preference together', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      const mockSettings = {
+        id: 'settings-123',
+        user_id: 'user-123',
+        timezone: 'America/New_York',
+        theme_preference: 'light',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-02',
+      };
+
+      const mockUpdate = jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: mockSettings,
+              error: null,
+            }),
+          }),
+        }),
+      });
+
+      mockSupabase.from.mockReturnValue({
+        update: mockUpdate,
+      });
+
+      const response = await request(app)
+        .patch('/api/user-settings')
+        .set('Authorization', 'Bearer valid-token')
+        .send({ timezone: 'America/New_York', theme_preference: 'light' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ data: mockSettings });
+      expect(mockUpdate).toHaveBeenCalledWith({
+        timezone: 'America/New_York',
+        theme_preference: 'light',
+      });
+    });
+
+    it('should update language successfully', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      const mockSettings = {
+        id: 'settings-123',
+        user_id: 'user-123',
+        timezone: 'UTC',
+        language: 'es',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-02',
+      };
+
+      mockSupabase.from.mockReturnValue({
+        update: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            select: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
+                data: mockSettings,
+                error: null,
+              }),
+            }),
+          }),
+        }),
+      });
+
+      const response = await request(app)
+        .patch('/api/user-settings')
+        .set('Authorization', 'Bearer valid-token')
+        .send({ language: 'es' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ data: mockSettings });
+    });
+
+    it('should update all fields together', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      const mockSettings = {
+        id: 'settings-123',
+        user_id: 'user-123',
+        timezone: 'America/New_York',
+        theme_preference: 'light',
+        language: 'fr',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-02',
+      };
+
+      const mockUpdate = jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: mockSettings,
+              error: null,
+            }),
+          }),
+        }),
+      });
+
+      mockSupabase.from.mockReturnValue({
+        update: mockUpdate,
+      });
+
+      const response = await request(app)
+        .patch('/api/user-settings')
+        .set('Authorization', 'Bearer valid-token')
+        .send({ timezone: 'America/New_York', theme_preference: 'light', language: 'fr' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ data: mockSettings });
+      expect(mockUpdate).toHaveBeenCalledWith({
+        timezone: 'America/New_York',
+        theme_preference: 'light',
+        language: 'fr',
+      });
+    });
+
+    it('should return 400 if language is invalid type', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      const response = await request(app)
+        .patch('/api/user-settings')
+        .set('Authorization', 'Bearer valid-token')
+        .send({ language: 123 });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        error: 'At least one valid field is required (timezone, theme_preference, or language)',
+      });
     });
   });
 
