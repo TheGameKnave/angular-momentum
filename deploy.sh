@@ -69,6 +69,26 @@ if [[ "$ENV" == "dev" || "$ENV" == "staging" ]]; then
   echo "⏳ Waiting for Heroku to finish deploying..."
   sleep 30
 
+  # Purge Cloudflare cache if credentials are set
+  if [[ -n "$CLOUDFLARE_ZONE_ID" && -n "$CLOUDFLARE_API_TOKEN" ]]; then
+    echo "🔄 Purging Cloudflare cache..."
+    PURGE_RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
+      -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+      -H "Content-Type: application/json" \
+      --data '{"purge_everything":true}')
+
+    if echo "$PURGE_RESPONSE" | grep -q '"success":true'; then
+      echo "✅ Cloudflare cache purged successfully"
+    else
+      echo "⚠️ Cloudflare cache purge may have failed: $PURGE_RESPONSE"
+    fi
+
+    # Give Cloudflare a moment to propagate
+    sleep 5
+  else
+    echo "⚠️ Skipping Cloudflare cache purge (CLOUDFLARE_ZONE_ID or CLOUDFLARE_API_TOKEN not set)"
+  fi
+
   echo "🧪 Running smoke tests against $APP_URL..."
   cd tests/e2e
   APP_BASE_URL="$APP_URL" npx playwright test -c playwright.smoke.config.ts --reporter=list
