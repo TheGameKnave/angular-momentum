@@ -57,6 +57,7 @@
     "i18n-l10n-flags": "^2.0.0",
     "idb": "^8.0.0",
     "ngx-markdown": "^21.0.1",
+    "@types/compression": "^1.8.1",
     "compression": "^1.8.0",
     "ngx-socket-io": "~4.9.3",
     "ngx-turnstile": "^0.2.5",
@@ -69,7 +70,6 @@
   },
   "devDependencies": {
     "@angular-eslint/eslint-plugin-template": "^21.0.1",
-    "@types/compression": "^1.8.1",
     "@angular/build": "^21.0.2",
     "@eslint/js": "^9.39.1",
     "@tauri-apps/cli": "^2.9.5",
