@@ -248,6 +248,7 @@ jobs:
           echo "kotlin.code.style=official" >> "$FILE"
           echo "android.nonTransitiveRClass=true" >> "$FILE"
           echo "android.nonFinalResIds=false" >> "$FILE"
+          echo "android.suppressUnsupportedCompileSdk=36" >> "$FILE"
 
       - name: Decode and setup release keystore
         env:
@@ -268,6 +269,9 @@ jobs:
           printf 'password=%s\n' "$ANDROID_KEYSTORE_PASSWORD" > client/src-tauri/gen/android/keystore.properties
           printf 'keyAlias=%s\n' "$ANDROID_KEY_ALIAS" >> client/src-tauri/gen/android/keystore.properties
           printf 'storeFile=../../../build-tools/upload-keystore.jks\n' >> client/src-tauri/gen/android/keystore.properties
+
+      - name: Install Tauri CLI (cargo)
+        run: cargo install tauri-cli --locked
 
       - name: Build Android
         run: |

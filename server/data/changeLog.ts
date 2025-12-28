@@ -4,6 +4,14 @@
  */
 export const changeLog = [
   {
+    version: "21.1.3",
+    date: "2025-12-28",
+    description: "android tauri build update",
+    changes: [
+      "android tauri build update",
+    ]
+  },
+  {
     version: "21.1.2",
     date: "2025-12-27",
     description: "translations/feature gate",
