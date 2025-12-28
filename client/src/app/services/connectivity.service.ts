@@ -131,6 +131,7 @@ export class ConnectivityService {
         const res = await fetch(`${this.pingUrl}?ts=${Date.now()}`, {
           cache: 'no-store',
           signal,
+          headers: { 'ngsw-bypass': 'true' },  // Skip service worker cache
         });
   
         const success = res.ok;
