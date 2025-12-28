@@ -1,6 +1,15 @@
 {
   "$schema": "../node_modules/@angular/service-worker/config/schema.json",
   "index": "/index.html",
+  "navigationUrls": [
+    "/**",
+    "!/**/*.*",
+    "!/**/api/**",
+    "!https://static.cloudflareinsights.com/**",
+    "!https://static.hotjar.com/**",
+    "!https://*.google-analytics.com/**",
+    "!https://*.googletagmanager.com/**"
+  ],
   "assetGroups": [
     {
       "name": "app",
