@@ -155,15 +155,21 @@ describe('UpdateService', () => {
       expect((service as any).reloadPage).toHaveBeenCalled();
     }));
 
-    it('should log VERSION_DETECTED and capture previous version', () => {
+    it('should log VERSION_DETECTED', () => {
       const versionDetectedEvent: VersionDetectedEvent = {
         type: 'VERSION_DETECTED',
         version: { hash: 'v1.2.3' }
       };
       (service as any).handleSwEvent(versionDetectedEvent);
       expect(logMock.log).toHaveBeenCalledWith('SW: New version detected:', { hash: 'v1.2.3' });
-      expect(changeLogMock.capturePreviousVersion).toHaveBeenCalled();
     });
+
+    it('should capture previous version before activating update', fakeAsync(() => {
+      (service as any).checkServiceWorkerUpdate();
+      tick();
+      expect(changeLogMock.capturePreviousVersion).toHaveBeenCalled();
+      expect(swUpdateMock.activateUpdate).toHaveBeenCalled();
+    }));
   });
 
   describe('Tauri updates', () => {

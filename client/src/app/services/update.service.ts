@@ -67,7 +67,7 @@ export class UpdateService {
     interval(UPDATE_CONFIG.CHECK_INTERVAL_MS)
       .pipe(startWith(0), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        /**/console.log('Checking for updates...');
+        /**/console.log('Checking for updates @ ' + new Date().toLocaleString());
         this.checkServiceWorkerUpdate();
         this.checkTauriUpdate();
       });
@@ -88,6 +88,8 @@ export class UpdateService {
     this.updates.checkForUpdate().then(available => {
       if (available) {
         this.logService.log('SW: Update available, activating...');
+        // Capture current version BEFORE activating update
+        this.changeLogService.capturePreviousVersion();
         this.updates!.activateUpdate().then(() => {
           this.logService.log('SW: Update activated. Awaiting VERSION_READY...');
           // VERSION_READY will trigger handleSwEvent
@@ -127,8 +129,6 @@ export class UpdateService {
       }
     } else if (event.type === 'VERSION_DETECTED') {
       this.logService.log('SW: New version detected:', event.version);
-      // Capture current version before new code loads
-      this.changeLogService.capturePreviousVersion();
     }
   }
 
