@@ -111,26 +111,55 @@ export class ProfileComponent implements OnInit {
   readonly pendingNewEmail = signal<string | null>(null); // Email awaiting OTP verification
   readonly emailOtp = signal(''); // OTP input value
 
-  // Common timezones for the dropdown
-  readonly commonTimezones = [
-    { label: 'UTC', value: 'UTC' },
-    { label: 'America/New_York (Eastern)', value: 'America/New_York' },
-    { label: 'America/Chicago (Central)', value: 'America/Chicago' },
-    { label: 'America/Denver (Mountain)', value: 'America/Denver' },
-    { label: 'America/Los_Angeles (Pacific)', value: 'America/Los_Angeles' },
-    { label: 'America/Anchorage (Alaska)', value: 'America/Anchorage' },
-    { label: 'Pacific/Honolulu (Hawaii)', value: 'Pacific/Honolulu' },
-    { label: 'Europe/London', value: 'Europe/London' },
-    { label: 'Europe/Paris', value: 'Europe/Paris' },
-    { label: 'Europe/Berlin', value: 'Europe/Berlin' },
-    { label: 'Asia/Tokyo', value: 'Asia/Tokyo' },
-    { label: 'Asia/Shanghai', value: 'Asia/Shanghai' },
-    { label: 'Asia/Singapore', value: 'Asia/Singapore' },
-    { label: 'Asia/Dubai', value: 'Asia/Dubai' },
-    { label: 'Australia/Sydney', value: 'Australia/Sydney' },
-    { label: 'Australia/Melbourne', value: 'Australia/Melbourne' },
-    { label: 'Pacific/Auckland', value: 'Pacific/Auckland' },
+  // Common timezones for the dropdown (translation keys)
+  readonly commonTimezoneKeys = [
+    'UTC',
+    'America/New_York (Eastern)',
+    'America/Chicago (Central)',
+    'America/Denver (Mountain)',
+    'America/Los_Angeles (Pacific)',
+    'America/Anchorage (Alaska)',
+    'Pacific/Honolulu (Hawaii)',
+    'Europe/London',
+    'Europe/Paris',
+    'Europe/Berlin',
+    'Asia/Tokyo',
+    'Asia/Shanghai',
+    'Asia/Singapore',
+    'Asia/Dubai',
+    'Australia/Sydney',
+    'Australia/Melbourne',
+    'Pacific/Auckland',
   ];
+
+  // Timezone value mapping (key -> IANA timezone identifier)
+  readonly timezoneValues: Record<string, string> = {
+    'UTC': 'UTC',
+    'America/New_York (Eastern)': 'America/New_York',
+    'America/Chicago (Central)': 'America/Chicago',
+    'America/Denver (Mountain)': 'America/Denver',
+    'America/Los_Angeles (Pacific)': 'America/Los_Angeles',
+    'America/Anchorage (Alaska)': 'America/Anchorage',
+    'Pacific/Honolulu (Hawaii)': 'Pacific/Honolulu',
+    'Europe/London': 'Europe/London',
+    'Europe/Paris': 'Europe/Paris',
+    'Europe/Berlin': 'Europe/Berlin',
+    'Asia/Tokyo': 'Asia/Tokyo',
+    'Asia/Shanghai': 'Asia/Shanghai',
+    'Asia/Singapore': 'Asia/Singapore',
+    'Asia/Dubai': 'Asia/Dubai',
+    'Australia/Sydney': 'Australia/Sydney',
+    'Australia/Melbourne': 'Australia/Melbourne',
+    'Pacific/Auckland': 'Pacific/Auckland',
+  };
+
+  // Computed signal for translated timezone options
+  readonly commonTimezones = computed(() => {
+    return this.commonTimezoneKeys.map(key => ({
+      label: this.translocoService.translate(`timezone.${key}`),
+      value: this.timezoneValues[key]
+    }));
+  });
 
   // Tooltip content for form fields (translated)
   passwordTooltip = '';

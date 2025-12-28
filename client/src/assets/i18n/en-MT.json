@@ -166,7 +166,12 @@
     "Unread Count": "Unred Kawnt",
     "Welcome!": "Welkm!",
     "Welcome Message": "Welkm Mesij",
-    "You successfully tested the notification system!": "Iu suksesfuli testd xe notifikaishn sistm!"
+    "You successfully tested the notification system!": "Iu suksesfuli testd xe notifikaishn sistm!",
+    "Granted": "Grantd",
+    "Not granted": "Not grantd",
+    "Not supported": "Not suportd",
+    "Tauri (Native)": "Tauri (Naitiv)",
+    "Web/PWA": "Web/PWA"
   },
 
   "page": {
@@ -258,6 +263,26 @@
     "Username updated successfully!": "Iuzerneim updaitd suksesfuli!",
     "Verification email sent! Please check your new email address and enter the confirmation code.": "Verifikaishn imail sent! Pliiz chek ior niu imail adres and entr xe konfermaishn koud.",
     "Without a username, your profile is private": "Wixawt a iuzerneim, ior profail iz praivt"
+  },
+
+  "timezone": {
+    "UTC": "UTC",
+    "America/New_York (Eastern)": "Amerika/Niu_Iork (Iistern)",
+    "America/Chicago (Central)": "Amerika/Shikago (Sentrl)",
+    "America/Denver (Mountain)": "Amerika/Denvr (Mawntn)",
+    "America/Los_Angeles (Pacific)": "Amerika/Los_Anjls (Pasifik)",
+    "America/Anchorage (Alaska)": "Amerika/Ankrj (Alaska)",
+    "Pacific/Honolulu (Hawaii)": "Pasifik/Honolulu (Hawai)",
+    "Europe/London": "Iurop/Landn",
+    "Europe/Paris": "Iurop/Paris",
+    "Europe/Berlin": "Iurop/Berlin",
+    "Asia/Tokyo": "Eizia/Tokio",
+    "Asia/Shanghai": "Eizia/Shanghai",
+    "Asia/Singapore": "Eizia/Singapr",
+    "Asia/Dubai": "Eizia/Dubai",
+    "Australia/Sydney": "Ostreilia/Sidni",
+    "Australia/Melbourne": "Ostreilia/Melbrn",
+    "Pacific/Auckland": "Pasifik/Okland"
   },
 
   "time": {
