@@ -154,17 +154,20 @@ describe('RelativeTimePipe', () => {
     });
 
     it('should return weeks for times 2+ weeks in the future', () => {
-      const twoWeeksFromNow = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+      // 18 days = solidly in "2 weeks" range (14-21 days)
+      const twoWeeksFromNow = new Date(Date.now() + 18 * 24 * 60 * 60 * 1000);
       expect(pipe.transform(twoWeeksFromNow)).toBe('in 2w');
     });
 
     it('should return months for times 2+ months in the future', () => {
-      const threeMonthsFromNow = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+      // 105 days = solidly in "3 months" range (~3.5 months)
+      const threeMonthsFromNow = new Date(Date.now() + 105 * 24 * 60 * 60 * 1000);
       expect(pipe.transform(threeMonthsFromNow)).toBe('in 3mo');
     });
 
     it('should return years for times 2+ years in the future', () => {
-      const twoYearsFromNow = new Date(Date.now() + 730 * 24 * 60 * 60 * 1000);
+      // 900 days = solidly in "2 years" range (~2.5 years)
+      const twoYearsFromNow = new Date(Date.now() + 900 * 24 * 60 * 60 * 1000);
       expect(pipe.transform(twoYearsFromNow)).toBe('in 2y');
     });
 
