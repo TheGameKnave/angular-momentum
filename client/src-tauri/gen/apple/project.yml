@@ -51,7 +51,7 @@ targets:
           - UIInterfaceOrientationPortraitUpsideDown
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
-        CFBundleShortVersionString: 21.1.2
+        CFBundleShortVersionString: 21.1.3
         CFBundleVersion: 0.20.1
     entitlements:
       path: angular-momentum_iOS/angular-momentum_iOS.entitlements
