@@ -4,27 +4,18 @@ import { COMPONENT_LIST } from '@app/helpers/component-list';
 describe('App Routing Configuration', () => {
   const componentList = COMPONENT_LIST;
 
-  it('should define the base route', async () => {
+  it('should define the base route', () => {
     const indexRoute = routes.find(route => route.path === '');
     expect(indexRoute).toBeDefined();
-    expect(indexRoute?.loadComponent).toBeDefined();
-
-    // Ensure loadComponent function resolves correctly
-    const module = await indexRoute!.loadComponent!();
-    expect(module).toBeTruthy();
+    expect(indexRoute?.component).toBeDefined();
   });
 
-  it('should generate routes from component list', async () => {
-    for (const component of componentList) {
-      const expectedPath = component.route ?? component.name.toLowerCase().replace(/\s+/g, '-');
+  it('should generate routes from component list', () => {
+    for (const entry of componentList) {
+      const expectedPath = entry.route ?? entry.name.toLowerCase().replace(/\s+/g, '-');
       const route = routes.find(r => r.path === expectedPath);
       expect(route).toBeDefined();
-      expect(route?.loadComponent).toBeDefined();
-
-      // Verify lazy loading works
-      const loadedComponent = await route!.loadComponent!();
-      const expectedComponent = await component.loadComponent();
-      expect(loadedComponent).toBe(expectedComponent);
+      expect(route?.component).toBe(entry.component);
     }
   });
 

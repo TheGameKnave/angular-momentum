@@ -166,7 +166,12 @@
     "Unread Count": "未读数量",
     "Welcome!": "欢迎！",
     "Welcome Message": "欢迎消息",
-    "You successfully tested the notification system!": "您成功测试了通知系统！"
+    "You successfully tested the notification system!": "您成功测试了通知系统！",
+    "Granted": "已授权",
+    "Not granted": "未授权",
+    "Not supported": "不支持",
+    "Tauri (Native)": "Tauri (原生)",
+    "Web/PWA": "网页/PWA"
   },
 
   "page": {
@@ -258,6 +263,26 @@
     "Username updated successfully!": "用户名更新成功！",
     "Verification email sent! Please check your new email address and enter the confirmation code.": "验证电子邮件已发送！请检查您的新电子邮件地址并输入确认码。",
     "Without a username, your profile is private": "没有用户名，您的个人资料是私密的"
+  },
+
+  "timezone": {
+    "UTC": "协调世界时 (UTC)",
+    "America/New_York (Eastern)": "纽约 (东部时间)",
+    "America/Chicago (Central)": "芝加哥 (中部时间)",
+    "America/Denver (Mountain)": "丹佛 (山地时间)",
+    "America/Los_Angeles (Pacific)": "洛杉矶 (太平洋时间)",
+    "America/Anchorage (Alaska)": "安克雷奇 (阿拉斯加时间)",
+    "Pacific/Honolulu (Hawaii)": "檀香山 (夏威夷时间)",
+    "Europe/London": "伦敦",
+    "Europe/Paris": "巴黎",
+    "Europe/Berlin": "柏林",
+    "Asia/Tokyo": "东京",
+    "Asia/Shanghai": "上海",
+    "Asia/Singapore": "新加坡",
+    "Asia/Dubai": "迪拜",
+    "Australia/Sydney": "悉尼",
+    "Australia/Melbourne": "墨尔本",
+    "Pacific/Auckland": "奥克兰"
   },
 
   "time": {

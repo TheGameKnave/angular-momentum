@@ -166,7 +166,12 @@
     "Unread Count": "No leídas",
     "Welcome!": "¡Bienvenido!",
     "Welcome Message": "Mensaje de Bienvenida",
-    "You successfully tested the notification system!": "¡Probaste exitosamente el sistema de notificaciones!"
+    "You successfully tested the notification system!": "¡Probaste exitosamente el sistema de notificaciones!",
+    "Granted": "Concedido",
+    "Not granted": "No concedido",
+    "Not supported": "No compatible",
+    "Tauri (Native)": "Tauri (Nativo)",
+    "Web/PWA": "Web/PWA"
   },
 
   "page": {
@@ -258,6 +263,26 @@
     "Username updated successfully!": "¡Usuario actualizado!",
     "Verification email sent! Please check your new email address and enter the confirmation code.": "¡Correo de verificación enviado! Revise su nuevo correo e ingrese el código de confirmación.",
     "Without a username, your profile is private": "Sin usuario, tu perfil es privado"
+  },
+
+  "timezone": {
+    "UTC": "UTC",
+    "America/New_York (Eastern)": "Nueva York (Este)",
+    "America/Chicago (Central)": "Chicago (Central)",
+    "America/Denver (Mountain)": "Denver (Montaña)",
+    "America/Los_Angeles (Pacific)": "Los Ángeles (Pacífico)",
+    "America/Anchorage (Alaska)": "Anchorage (Alaska)",
+    "Pacific/Honolulu (Hawaii)": "Honolulu (Hawái)",
+    "Europe/London": "Londres",
+    "Europe/Paris": "París",
+    "Europe/Berlin": "Berlín",
+    "Asia/Tokyo": "Tokio",
+    "Asia/Shanghai": "Shanghái",
+    "Asia/Singapore": "Singapur",
+    "Asia/Dubai": "Dubái",
+    "Australia/Sydney": "Sídney",
+    "Australia/Melbourne": "Melbourne",
+    "Pacific/Auckland": "Auckland"
   },
 
   "time": {

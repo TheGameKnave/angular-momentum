@@ -755,6 +755,26 @@
         "You successfully tested the notification system!": {
           "type": "string",
           "description": "Test notification: Achievement notification body"
+        },
+        "Granted": {
+          "type": "string",
+          "description": "Notification permission status: permission granted"
+        },
+        "Not granted": {
+          "type": "string",
+          "description": "Notification permission status: permission not granted"
+        },
+        "Not supported": {
+          "type": "string",
+          "description": "Notification permission status: notifications not supported"
+        },
+        "Tauri (Native)": {
+          "type": "string",
+          "description": "Platform type label for Tauri native apps"
+        },
+        "Web/PWA": {
+          "type": "string",
+          "description": "Platform type label for web browser/PWA"
         }
       },
       "required": [
@@ -765,14 +785,19 @@
         "Delete notification",
         "Enable Notifications",
         "Feature Update",
+        "Granted",
         "Maintenance Alert",
         "Mark all read",
         "New Feature Available",
         "No notifications",
+        "Not granted",
+        "Not supported",
         "Scheduled maintenance will occur tonight at {time}.",
         "System Maintenance",
+        "Tauri (Native)",
         "Thanks for trying Angular Momentum—your modern Angular starter kit!",
         "Unread Count",
+        "Web/PWA",
         "Welcome!",
         "Welcome Message",
         "You successfully tested the notification system!"
@@ -1296,6 +1321,100 @@
       "additionalProperties": false
     },
 
+    "timezone": {
+      "type": "object",
+      "properties": {
+        "UTC": {
+          "type": "string",
+          "description": "Timezone: UTC"
+        },
+        "America/New_York (Eastern)": {
+          "type": "string",
+          "description": "Timezone: US Eastern"
+        },
+        "America/Chicago (Central)": {
+          "type": "string",
+          "description": "Timezone: US Central"
+        },
+        "America/Denver (Mountain)": {
+          "type": "string",
+          "description": "Timezone: US Mountain"
+        },
+        "America/Los_Angeles (Pacific)": {
+          "type": "string",
+          "description": "Timezone: US Pacific"
+        },
+        "America/Anchorage (Alaska)": {
+          "type": "string",
+          "description": "Timezone: US Alaska"
+        },
+        "Pacific/Honolulu (Hawaii)": {
+          "type": "string",
+          "description": "Timezone: US Hawaii"
+        },
+        "Europe/London": {
+          "type": "string",
+          "description": "Timezone: London UK"
+        },
+        "Europe/Paris": {
+          "type": "string",
+          "description": "Timezone: Paris France"
+        },
+        "Europe/Berlin": {
+          "type": "string",
+          "description": "Timezone: Berlin Germany"
+        },
+        "Asia/Tokyo": {
+          "type": "string",
+          "description": "Timezone: Tokyo Japan"
+        },
+        "Asia/Shanghai": {
+          "type": "string",
+          "description": "Timezone: Shanghai China"
+        },
+        "Asia/Singapore": {
+          "type": "string",
+          "description": "Timezone: Singapore"
+        },
+        "Asia/Dubai": {
+          "type": "string",
+          "description": "Timezone: Dubai UAE"
+        },
+        "Australia/Sydney": {
+          "type": "string",
+          "description": "Timezone: Sydney Australia"
+        },
+        "Australia/Melbourne": {
+          "type": "string",
+          "description": "Timezone: Melbourne Australia"
+        },
+        "Pacific/Auckland": {
+          "type": "string",
+          "description": "Timezone: Auckland New Zealand"
+        }
+      },
+      "required": [
+        "UTC",
+        "America/New_York (Eastern)",
+        "America/Chicago (Central)",
+        "America/Denver (Mountain)",
+        "America/Los_Angeles (Pacific)",
+        "America/Anchorage (Alaska)",
+        "Pacific/Honolulu (Hawaii)",
+        "Europe/London",
+        "Europe/Paris",
+        "Europe/Berlin",
+        "Asia/Tokyo",
+        "Asia/Shanghai",
+        "Asia/Singapore",
+        "Asia/Dubai",
+        "Australia/Sydney",
+        "Australia/Melbourne",
+        "Pacific/Auckland"
+      ],
+      "additionalProperties": false
+    },
+
     "update": {
       "type": "object",
       "properties": {
@@ -1408,6 +1527,7 @@
     "privacy",
     "profile",
     "time",
+    "timezone",
     "update",
     "validation"
   ],

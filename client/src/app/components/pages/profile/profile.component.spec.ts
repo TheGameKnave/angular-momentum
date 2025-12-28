@@ -934,5 +934,39 @@ describe('ProfileComponent', () => {
       expect(component.backupLoading()).toBe(false);
     });
   });
+
+  describe('commonTimezones', () => {
+    it('should return translated timezone options', () => {
+      const timezones = component.commonTimezones();
+
+      expect(timezones.length).toBeGreaterThan(0);
+      // Check structure of each timezone option
+      timezones.forEach(tz => {
+        expect(tz.label).toBeDefined();
+        expect(tz.value).toBeDefined();
+        expect(typeof tz.label).toBe('string');
+        expect(typeof tz.value).toBe('string');
+      });
+    });
+
+    it('should include UTC timezone', () => {
+      const timezones = component.commonTimezones();
+      const utc = timezones.find(tz => tz.value === 'UTC');
+
+      expect(utc).toBeDefined();
+      expect(utc?.value).toBe('UTC');
+    });
+
+    it('should map timezone keys to IANA timezone values', () => {
+      const timezones = component.commonTimezones();
+
+      // Check a few key mappings
+      const eastern = timezones.find(tz => tz.value === 'America/New_York');
+      expect(eastern).toBeDefined();
+
+      const tokyo = timezones.find(tz => tz.value === 'Asia/Tokyo');
+      expect(tokyo).toBeDefined();
+    });
+  });
 });
 

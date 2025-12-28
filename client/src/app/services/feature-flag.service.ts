@@ -110,7 +110,9 @@ export class FeatureFlagService {
 
   /**
    * Get the value of a specific feature flag.
-   * Returns true if the flag is not explicitly set to false (defaults to enabled).
+   * Uses fail-open logic: returns true if the flag is not explicitly set to false.
+   * This allows non-feature-flagged components (like Features) to always be visible,
+   * while feature-flagged components are controlled by their flag value.
    * @param feature - The feature flag key to retrieve
    * @returns Boolean value of the feature flag (defaults to true if not set)
    */

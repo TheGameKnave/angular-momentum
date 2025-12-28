@@ -182,20 +182,24 @@ export class NotificationsComponent {
 
   /**
    * Gets the current notification permission status.
-   * @returns A string indicating whether notifications are supported and if permission is granted
+   * @returns A translated string indicating whether notifications are supported and if permission is granted
    */
   get permissionStatus(): string {
     if (!this.notificationService.isSupported()) {
-      return 'Not supported';
+      return this.translocoService.translate('notification.Not supported');
     }
-    return this.notificationService.permissionGranted() ? 'Granted' : 'Not granted';
+    return this.notificationService.permissionGranted()
+      ? this.translocoService.translate('notification.Granted')
+      : this.translocoService.translate('notification.Not granted');
   }
 
   /**
    * Determines the current platform type.
-   * @returns A string indicating whether the app is running in Tauri (native) or Web/PWA
+   * @returns A translated string indicating whether the app is running in Tauri (native) or Web/PWA
    */
   get platformType(): string {
-    return '__TAURI__' in globalThis ? 'Tauri (Native)' : 'Web/PWA';
+    return '__TAURI__' in globalThis
+      ? this.translocoService.translate('notification.Tauri (Native)')
+      : this.translocoService.translate('notification.Web/PWA');
   }
 }

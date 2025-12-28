@@ -166,7 +166,12 @@
     "Unread Count": "Okunmamış Sayısı",
     "Welcome!": "Hoş Geldiniz!",
     "Welcome Message": "Hoş Geldiniz Mesajı",
-    "You successfully tested the notification system!": "Bildirim sistemini başarıyla test ettiniz!"
+    "You successfully tested the notification system!": "Bildirim sistemini başarıyla test ettiniz!",
+    "Granted": "Verildi",
+    "Not granted": "Verilmedi",
+    "Not supported": "Desteklenmiyor",
+    "Tauri (Native)": "Tauri (Yerel)",
+    "Web/PWA": "Web/PWA"
   },
 
   "page": {
@@ -258,6 +263,26 @@
     "Username updated successfully!": "Kullanıcı adı başarıyla güncellendi!",
     "Verification email sent! Please check your new email address and enter the confirmation code.": "Doğrulama e-postası gönderildi! Lütfen yeni e-posta adresinizi kontrol edin ve onay kodunu girin.",
     "Without a username, your profile is private": "Kullanıcı adı olmadan profiliniz gizlidir"
+  },
+
+  "timezone": {
+    "UTC": "UTC",
+    "America/New_York (Eastern)": "New York (Doğu)",
+    "America/Chicago (Central)": "Chicago (Merkez)",
+    "America/Denver (Mountain)": "Denver (Dağ)",
+    "America/Los_Angeles (Pacific)": "Los Angeles (Pasifik)",
+    "America/Anchorage (Alaska)": "Anchorage (Alaska)",
+    "Pacific/Honolulu (Hawaii)": "Honolulu (Hawaii)",
+    "Europe/London": "Londra",
+    "Europe/Paris": "Paris",
+    "Europe/Berlin": "Berlin",
+    "Asia/Tokyo": "Tokyo",
+    "Asia/Shanghai": "Şanghay",
+    "Asia/Singapore": "Singapur",
+    "Asia/Dubai": "Dubai",
+    "Australia/Sydney": "Sidney",
+    "Australia/Melbourne": "Melbourne",
+    "Pacific/Auckland": "Auckland"
   },
 
   "time": {

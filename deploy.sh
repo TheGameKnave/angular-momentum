@@ -2,6 +2,13 @@
 
 set -e
 
+# Load environment variables from server/.env if it exists
+if [[ -f "server/.env" ]]; then
+  set -a
+  source server/.env
+  set +a
+fi
+
 ENV=$1
 
 if [[ -z "$ENV" ]]; then
@@ -63,43 +70,40 @@ git push $GIT_REMOTE $GIT_BRANCH:main
 
 echo "✅ Deployment to '$ENV' complete."
 
-# Run smoke tests for dev and staging
-if [[ "$ENV" == "dev" || "$ENV" == "staging" ]]; then
-  echo ""
-  echo "⏳ Waiting for Heroku to finish deploying..."
-  sleep 30
+echo ""
+echo "⏳ Waiting for Heroku to finish deploying..."
+sleep 30
 
-  # Purge Cloudflare cache if credentials are set
-  if [[ -n "$CLOUDFLARE_ZONE_ID" && -n "$CLOUDFLARE_API_TOKEN" ]]; then
-    echo "🔄 Purging Cloudflare cache..."
-    PURGE_RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
-      -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-      -H "Content-Type: application/json" \
-      --data '{"purge_everything":true}')
+# Purge Cloudflare cache if credentials are set
+if [[ -n "$CLOUDFLARE_ZONE_ID" && -n "$CLOUDFLARE_API_TOKEN" ]]; then
+  echo "🔄 Purging Cloudflare cache..."
+  PURGE_RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
+    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+    -H "Content-Type: application/json" \
+    --data '{"purge_everything":true}')
 
-    if echo "$PURGE_RESPONSE" | grep -q '"success":true'; then
-      echo "✅ Cloudflare cache purged successfully"
-    else
-      echo "⚠️ Cloudflare cache purge may have failed: $PURGE_RESPONSE"
-    fi
-
-    # Give Cloudflare a moment to propagate
-    sleep 5
+  if echo "$PURGE_RESPONSE" | grep -q '"success": *true'; then
+    echo "✅ Cloudflare cache purged successfully"
   else
-    echo "⚠️ Skipping Cloudflare cache purge (CLOUDFLARE_ZONE_ID or CLOUDFLARE_API_TOKEN not set)"
+    echo "⚠️ Cloudflare cache purge may have failed: $PURGE_RESPONSE"
   fi
 
-  echo "🧪 Running smoke tests against $APP_URL..."
-  cd tests/e2e
-  APP_BASE_URL="$APP_URL" npx playwright test -c playwright.smoke.config.ts --reporter=list
-  SMOKE_EXIT=$?
-  cd ../..
-
-  if [[ $SMOKE_EXIT -ne 0 ]]; then
-    echo ""
-    echo "❌ Smoke tests failed! Check the deployment."
-    exit $SMOKE_EXIT
-  fi
-
-  echo "✅ Smoke tests passed!"
+  # Give Cloudflare a moment to propagate
+  sleep 5
+else
+  echo "⚠️ Skipping Cloudflare cache purge (CLOUDFLARE_ZONE_ID or CLOUDFLARE_API_TOKEN not set)"
 fi
+
+echo "🧪 Running smoke tests against $APP_URL..."
+cd tests/e2e
+APP_BASE_URL="$APP_URL" npx playwright test -c playwright.smoke.config.ts --reporter=list
+SMOKE_EXIT=$?
+cd ../..
+
+if [[ $SMOKE_EXIT -ne 0 ]]; then
+  echo ""
+  echo "❌ Smoke tests failed! Check the deployment."
+  exit $SMOKE_EXIT
+fi
+
+echo "✅ Smoke tests passed!"
