@@ -544,6 +544,12 @@ test.describe('Visual Regression Tests', () => {
     await waitForAngular(page);
     await dismissCookieBanner(page);
 
+    // Replace version in footer with placeholder
+    await page.evaluate(() => {
+      const versionEl = document.querySelector('footer app-menu-change-log .change-log-button h2');
+      if (versionEl) versionEl.textContent = 'vX.X.X';
+    });
+
     await expect(page).toHaveScreenshot('layout-tablet.png', {
       maxDiffPixelRatio: 0.001,
       animations: 'disabled',
