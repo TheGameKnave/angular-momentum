@@ -261,23 +261,45 @@ describe('TurnstileService', () => {
       service = new TurnstileService('test-secret-key');
     });
 
-    it('should return success when no token in metadata', async () => {
+    it('should require token in production (with secret key)', async () => {
+      const result = await service.verifyFromMetadata({});
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Turnstile token required'
+      });
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should require token when metadata is null in production', async () => {
+      const result = await service.verifyFromMetadata(null as unknown as Record<string, unknown>);
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Turnstile token required'
+      });
+    });
+
+    it('should require token when metadata is undefined in production', async () => {
+      const result = await service.verifyFromMetadata(undefined as unknown as Record<string, unknown>);
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Turnstile token required'
+      });
+    });
+
+    it('should allow missing token in development (no secret key)', async () => {
+      (config as any).turnstile_secret_key = '';
+      service = new TurnstileService();
+
       const result = await service.verifyFromMetadata({});
 
       expect(result).toEqual({ success: true });
       expect(mockFetch).not.toHaveBeenCalled();
-    });
 
-    it('should return success when metadata is null', async () => {
-      const result = await service.verifyFromMetadata(null as unknown as Record<string, unknown>);
-
-      expect(result).toEqual({ success: true });
-    });
-
-    it('should return success when metadata is undefined', async () => {
-      const result = await service.verifyFromMetadata(undefined as unknown as Record<string, unknown>);
-
-      expect(result).toEqual({ success: true });
+      // Restore
+      (config as any).turnstile_secret_key = 'mock-secret-key';
     });
 
     it('should verify token when present in metadata', async () => {

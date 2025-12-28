@@ -1,15 +1,6 @@
 {
   "$schema": "../node_modules/@angular/service-worker/config/schema.json",
   "index": "/index.html",
-  "navigationUrls": [
-    "/**",
-    "!/**/*.*",
-    "!/**/api/**",
-    "!https://static.cloudflareinsights.com/**",
-    "!https://static.hotjar.com/**",
-    "!https://*.google-analytics.com/**",
-    "!https://*.googletagmanager.com/**"
-  ],
   "assetGroups": [
     {
       "name": "app",
@@ -33,6 +24,27 @@
           "/assets/**",
           "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
         ]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "external-analytics",
+      "urls": [
+        "https://static.cloudflareinsights.com/**",
+        "https://cloudflareinsights.com/**",
+        "https://static.hotjar.com/**",
+        "https://script.hotjar.com/**",
+        "https://vars.hotjar.com/**",
+        "https://www.googletagmanager.com/**",
+        "https://www.google-analytics.com/**",
+        "https://challenges.cloudflare.com/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 1,
+        "maxAge": "1s",
+        "timeout": "10s"
       }
     }
   ]
