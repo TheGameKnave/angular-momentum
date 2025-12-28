@@ -4,6 +4,19 @@
  */
 export const changeLog = [
   {
+    version: "21.1.4",
+    date: "2025-12-28",
+    description: "Update dialog, scroll, tests",
+    changes: [
+      "Fix update dialog showing same version twice",
+      "Bottom menu scroll indicator",
+      "Connectivity service improvements",
+      "E2E phone screenshot isolation",
+      "Service worker analytics bypass",
+      "Turnstile token required in production",
+    ]
+  },
+  {
     version: "21.1.3",
     date: "2025-12-28",
     description: "android tauri build update",

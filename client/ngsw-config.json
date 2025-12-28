@@ -36,6 +36,7 @@
         "https://static.hotjar.com/**",
         "https://script.hotjar.com/**",
         "https://vars.hotjar.com/**",
+        "https://*.contentsquare.net/**",
         "https://www.googletagmanager.com/**",
         "https://www.google-analytics.com/**",
         "https://challenges.cloudflare.com/**"
