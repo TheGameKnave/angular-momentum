@@ -4,6 +4,16 @@
  */
 export const changeLog = [
   {
+    version: "21.1.2",
+    date: "2025-12-27",
+    description: "translations/feature gate",
+    changes: [
+      "Translate timezones",
+      "Translate notification statuses",
+      "Correct feature gate behavior"
+    ]
+  },
+  {
     version: "21.1.1",
     date: "2025-12-27",
     description: "New build",
