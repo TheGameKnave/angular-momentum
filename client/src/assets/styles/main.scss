@@ -2112,7 +2112,7 @@ body:not(.viewport-ready):not(.not-sm) {
   // Layout overrides
   .main {
     padding-left: 0;
-    height: calc(100dvh - 3.8rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    height: calc(100dvh - 4.4rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     overscroll-behavior-y: contain;
   }
   .main > header,
@@ -2145,16 +2145,12 @@ body:not(.viewport-ready):not(.not-sm) {
     }
     > * {
       margin: 0;
+      padding-bottom: 0.6rem;
     }
     ul {
       display: flex;
       min-width: max-content;
       align-items: stretch;
-      &:before, &:after {
-        display: block;
-        content: "";
-        width: calc(50vw - 2.3rem);
-      }
       > * {
         margin: auto 0.6rem;
         flex: 0 0 auto;
