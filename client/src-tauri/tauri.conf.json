@@ -6,7 +6,7 @@
   "build": {
     "beforeDevCommand": "ng serve --hmr --proxy-config src/proxy.conf.js --configuration=tauri-local",
     "devUrl": "http://localhost:4200",
-    "beforeBuildCommand": "npm run build --configuration=production",
+    "beforeBuildCommand": "npm run build -- --configuration=production && node -e \"require('fs').copyFileSync('dist/angular-momentum/browser/index.csr.html','dist/angular-momentum/browser/index.html')\"",
     "frontendDist": "../dist/angular-momentum/browser"
   },
   "app": {

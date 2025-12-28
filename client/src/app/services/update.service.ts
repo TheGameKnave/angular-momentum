@@ -127,6 +127,8 @@ export class UpdateService {
       }
     } else if (event.type === 'VERSION_DETECTED') {
       this.logService.log('SW: New version detected:', event.version);
+      // Capture current version before new code loads
+      this.changeLogService.capturePreviousVersion();
     }
   }
 

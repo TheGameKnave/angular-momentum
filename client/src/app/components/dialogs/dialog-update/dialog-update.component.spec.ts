@@ -22,6 +22,7 @@ describe('DialogUpdateComponent', () => {
         description: 'Bug fixes and improvements',
         changes: ['Fixed a bug', 'Improved performance'],
       }]),
+      previousVersion: signal<string | null>('1.0.0'),
     });
     mockChangeLogService.getCurrentVersion.and.returnValue('1.0.0');
 
@@ -53,9 +54,28 @@ describe('DialogUpdateComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should show current and latest version', () => {
-    expect(component.currentVersion()).toBe('1.0.0');
+  it('should show previous and latest version', () => {
+    expect(component.previousVersion()).toBe('1.0.0');
     expect(component.latestVersion()).toBe('1.0.1');
+  });
+
+  it('should show versions when they differ', () => {
+    expect(component.showVersions()).toBeTrue();
+  });
+
+  it('should hide versions when they are the same', () => {
+    (mockChangeLogService.previousVersion as any).set('1.0.1');
+    fixture.detectChanges();
+
+    expect(component.showVersions()).toBeFalse();
+  });
+
+  it('should fall back to getCurrentVersion when previousVersion is null', () => {
+    (mockChangeLogService.previousVersion as any).set(null);
+    fixture.detectChanges();
+
+    // Should fall back to getCurrentVersion which returns '1.0.0'
+    expect(component.previousVersion()).toBe('1.0.0');
   });
 
   it('should identify patch updates as non-required', () => {
@@ -97,29 +117,31 @@ describe('DialogUpdateComponent', () => {
     expect(mockUpdateDialogService.dismiss).not.toHaveBeenCalled();
   });
 
-  it('should compute changelog entries newer than current version', () => {
+  it('should compute changelog entries newer than previous version', () => {
     const entries = component.changelogEntries();
 
     expect(entries.length).toBe(1);
     expect(entries[0].version).toBe('1.0.1');
   });
 
-  it('should return empty changelog entries when at latest version', () => {
-    mockChangeLogService.getCurrentVersion.and.returnValue('1.0.1');
+  it('should return empty changelog entries when previous version matches latest', () => {
+    (mockChangeLogService.previousVersion as any).set('1.0.1');
+    fixture.detectChanges();
 
     const entries = component.changelogEntries();
 
     expect(entries.length).toBe(0);
   });
 
-  it('should filter out changelog entries older than current version', () => {
-    // Mock changelog with entries older than current
+  it('should filter out changelog entries older than previous version', () => {
+    // Mock changelog with entries older than previous
     (mockChangeLogService.changes as any).set([
       { version: '1.0.1', date: '2025-01-02', description: 'Newer', changes: [] },
-      { version: '1.0.0', date: '2025-01-01', description: 'Current', changes: [] },
+      { version: '1.0.0', date: '2025-01-01', description: 'Previous', changes: [] },
       { version: '0.9.0', date: '2024-12-01', description: 'Older', changes: [] },
     ]);
-    mockChangeLogService.getCurrentVersion.and.returnValue('1.0.0');
+    (mockChangeLogService.previousVersion as any).set('1.0.0');
+    fixture.detectChanges();
 
     const entries = component.changelogEntries();
 
@@ -130,15 +152,29 @@ describe('DialogUpdateComponent', () => {
 
   it('should handle comparing versions with equal major but lower minor', () => {
     // This tests the isVersionNewer branch where v1[i] < v2[i] in a later position
-    // When checking 1.0.5 against current 1.1.0: major equal (1==1), then minor 0 < 1, returns false
+    // When checking 1.0.5 against previous 1.1.0: major equal (1==1), then minor 0 < 1, returns false
     (mockChangeLogService.changes as any).set([
       { version: '1.0.5', date: '2025-01-01', description: 'Old minor', changes: [] },
     ]);
-    mockChangeLogService.getCurrentVersion.and.returnValue('1.1.0');
+    (mockChangeLogService.previousVersion as any).set('1.1.0');
+    fixture.detectChanges();
 
     const entries = component.changelogEntries();
 
     // 1.0.5 is NOT newer than 1.1.0, so entries should be empty
     expect(entries.length).toBe(0);
+  });
+
+  it('should use getCurrentVersion fallback when previousVersion is null for changelog', () => {
+    // When previousVersion is null, it should fall back to getCurrentVersion
+    (mockChangeLogService.previousVersion as any).set(null);
+    mockChangeLogService.getCurrentVersion.and.returnValue('1.0.0');
+    fixture.detectChanges();
+
+    const entries = component.changelogEntries();
+
+    // Should still show 1.0.1 as newer than fallback 1.0.0
+    expect(entries.length).toBe(1);
+    expect(entries[0].version).toBe('1.0.1');
   });
 });

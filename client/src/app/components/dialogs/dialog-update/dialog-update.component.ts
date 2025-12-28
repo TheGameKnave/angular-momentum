@@ -44,8 +44,15 @@ export class DialogUpdateComponent extends DialogBaseComponent {
   /** Latest available version */
   readonly latestVersion = this.changeLogService.appVersion;
 
-  /** Current version */
-  readonly currentVersion = computed(() => this.changeLogService.getCurrentVersion());
+  /** Previous version (captured before update) - falls back to current if not captured */
+  readonly previousVersion = computed(() =>
+    this.changeLogService.previousVersion() ?? this.changeLogService.getCurrentVersion()
+  );
+
+  /** Whether to show version numbers (hide if they're the same) */
+  readonly showVersions = computed(() =>
+    this.previousVersion() !== this.latestVersion()
+  );
 
   /** Whether this is a required update (major/minor) */
   readonly isRequiredUpdate = computed(() => {
@@ -53,15 +60,15 @@ export class DialogUpdateComponent extends DialogBaseComponent {
     return impact === 'major' || impact === 'minor';
   });
 
-  /** All changelog entries between current version and latest version */
+  /** All changelog entries between previous version and latest version */
   readonly changelogEntries = computed((): ChangeLogResponse[] => {
     const changes = this.changeLogService.changes();
-    const currentVersion = this.currentVersion();
+    const prevVersion = this.previousVersion();
 
-    // Find all entries newer than current version
+    // Find all entries newer than previous version
     const newerEntries: ChangeLogResponse[] = [];
     for (const entry of changes) {
-      if (this.isVersionNewer(entry.version, currentVersion)) {
+      if (this.isVersionNewer(entry.version, prevVersion)) {
         newerEntries.push(entry);
       } else {
         break; // changelog is sorted newest first, so we can stop

@@ -36,7 +36,7 @@ describe('UpdateService', () => {
       visible: signal(false)
     });
     updateDialogMock.show.and.returnValue(Promise.resolve(true));
-    changeLogMock = jasmine.createSpyObj('ChangeLogService', ['refresh', 'getCurrentVersion'], {
+    changeLogMock = jasmine.createSpyObj('ChangeLogService', ['refresh', 'getCurrentVersion', 'capturePreviousVersion'], {
       appVersion: signal('1.0.0'),
       appDiff: signal({ impact: 'patch', major: 0, minor: 0, patch: 1 })
     });
@@ -155,13 +155,14 @@ describe('UpdateService', () => {
       expect((service as any).reloadPage).toHaveBeenCalled();
     }));
 
-    it('should log VERSION_DETECTED', () => {
+    it('should log VERSION_DETECTED and capture previous version', () => {
       const versionDetectedEvent: VersionDetectedEvent = {
         type: 'VERSION_DETECTED',
         version: { hash: 'v1.2.3' }
       };
       (service as any).handleSwEvent(versionDetectedEvent);
       expect(logMock.log).toHaveBeenCalledWith('SW: New version detected:', { hash: 'v1.2.3' });
+      expect(changeLogMock.capturePreviousVersion).toHaveBeenCalled();
     });
   });
 

@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="dialog-update-header">
       <h2>
-        {{ t('update.New Version Available') }}: <span class="strikethrough">{{ currentVersion() }}</span> → {{ latestVersion() }}
+        {{ t('update.New Version Available') }}@if (showVersions()) {: <span class="strikethrough">{{ previousVersion() }}</span> → {{ latestVersion() }}}
       </h2>
       @if (!isRequiredUpdate()) {
         <button
