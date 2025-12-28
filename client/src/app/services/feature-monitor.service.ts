@@ -29,6 +29,12 @@ export class  FeatureMonitorService {
 
   constructor() {
     effect(() => {
+      // Read enabledComponents signal to establish reactive dependency
+      const allowed = this.helpersService.enabledComponents().map(c =>
+        this.slugPipe.transform(c.name)
+      );
+
+      // Get current route (not reactive, but effect re-runs when enabledComponents changes)
       const url = this.router.url;
       const currentSegment = url.split('/').filter(Boolean)[0] ?? '';
 
@@ -36,10 +42,6 @@ export class  FeatureMonitorService {
       if (this.staticRoutes.includes(currentSegment)) {
         return;
       }
-
-      const allowed = this.helpersService.enabledComponents().map(c =>
-        this.slugPipe.transform(c.name)
-      );
 
       if (currentSegment && !allowed.includes(currentSegment)) {
         this.router.navigate(['/']);

@@ -99,12 +99,17 @@ describe('FeatureFlagService', () => {
   });
   
 
-  it('should return true for unknown feature (default behavior)', () => {
+  it('should return true for unknown feature (fail-open)', () => {
     const features = { 'GraphQL API': true, 'IndexedDB': true };
     service.features.set(features);
-    // According to the service implementation, getFeature returns true if feature is not explicitly false
-    // So an undefined feature will return true
+    // Fail-open: unknown features return true (not explicitly false)
     expect(service.getFeature('Environment')).toBe(true);
+  });
+
+  it('should return false only when feature is explicitly false', () => {
+    service.features.set({ 'GraphQL API': true, 'IndexedDB': false });
+    expect(service.getFeature('GraphQL API')).toBe(true);
+    expect(service.getFeature('IndexedDB')).toBe(false);
   });
 
   afterEach(() => {
