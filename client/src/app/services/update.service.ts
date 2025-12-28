@@ -114,6 +114,13 @@ export class UpdateService {
    */
   private async handleSwEvent(event: VersionEvent): Promise<void> {
     if (event.type === 'VERSION_READY' && !this.confirming) {
+      // Skip dialog if previousVersion wasn't captured (page loaded fresh with new code)
+      // This happens when SW cache is stale but page already loaded new code from network
+      if (!this.changeLogService.previousVersion()) {
+        this.logService.log('SW: No previous version captured, skipping dialog');
+        return;
+      }
+
       this.confirming = true;
 
       // Refresh changelog to get canonical new version from API

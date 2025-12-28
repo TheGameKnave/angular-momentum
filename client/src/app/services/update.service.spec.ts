@@ -36,10 +36,13 @@ describe('UpdateService', () => {
       visible: signal(false)
     });
     updateDialogMock.show.and.returnValue(Promise.resolve(true));
-    changeLogMock = jasmine.createSpyObj('ChangeLogService', ['refresh', 'getCurrentVersion', 'capturePreviousVersion'], {
+    changeLogMock = jasmine.createSpyObj('ChangeLogService', ['refresh', 'getCurrentVersion', 'capturePreviousVersion', 'previousVersion'], {
       appVersion: signal('1.0.0'),
       appDiff: signal({ impact: 'patch', major: 0, minor: 0, patch: 1 })
     });
+    // Default: previousVersion returns '0.9.0' (different from current '1.0.0')
+    changeLogMock.previousVersion.and.returnValue('0.9.0');
+    changeLogMock.getCurrentVersion.and.returnValue('1.0.0');
 
     TestBed.configureTestingModule({
       providers: [
@@ -169,6 +172,21 @@ describe('UpdateService', () => {
       tick();
       expect(changeLogMock.capturePreviousVersion).toHaveBeenCalled();
       expect(swUpdateMock.activateUpdate).toHaveBeenCalled();
+    }));
+
+    it('should skip dialog if no previousVersion was captured', fakeAsync(async () => {
+      changeLogMock.previousVersion.and.returnValue(null);
+
+      const versionReadyEvent: VersionReadyEvent = {
+        type: 'VERSION_READY',
+        currentVersion: { hash: 'old' },
+        latestVersion: { hash: 'new' }
+      };
+
+      await (service as any).handleSwEvent(versionReadyEvent);
+      tick();
+      expect(logMock.log).toHaveBeenCalledWith('SW: No previous version captured, skipping dialog');
+      expect(updateDialogMock.show).not.toHaveBeenCalled();
     }));
   });
 
