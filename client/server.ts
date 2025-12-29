@@ -64,6 +64,14 @@ const apiProxy = createProxyMiddleware({
 });
 app.use(apiProxy);
 
+// Service worker manifest must never be cached - it tells the SW when updates are available
+app.get('/ngsw.json', (_req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.sendFile(join(browserDistFolder, 'ngsw.json'));
+});
+
 // Serve static files from browser dist folder
 app.use(
   express.static(browserDistFolder, {
