@@ -55,19 +55,35 @@ export class UpdateService {
     if (!this.isBrowser) return;
     if (!['production', 'staging', 'local'].includes(ENVIRONMENT.env)) return;
 
+    /**/console.log('[UpdateService] Initializing...');
+    /**/console.log('[UpdateService] Environment:', ENVIRONMENT.env);
+    /**/console.log('[UpdateService] SwUpdate available:', !!this.updates);
+    /**/console.log('[UpdateService] SwUpdate enabled:', this.updates?.isEnabled);
+    /**/console.log('[UpdateService] Check interval:', UPDATE_CONFIG.CHECK_INTERVAL_MS, 'ms');
+    /**/console.log('[UpdateService] Current version from changelog:', this.changeLogService.getCurrentVersion());
+    /**/console.log('[UpdateService] Previous version captured:', this.changeLogService.previousVersion());
+
     // Listen for Angular Service Worker version events (only if SwUpdate is available)
     // istanbul ignore next - SwUpdate observable subscription requires real service worker context
     if (this.updates) {
+      /**/console.log('[UpdateService] Subscribing to versionUpdates...');
       this.updates.versionUpdates
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(event => this.handleSwEvent(event));
+        .subscribe(event => {
+          /**/console.log('[UpdateService] versionUpdates event received:', event.type, event);
+          this.handleSwEvent(event);
+        });
     }
 
     // Run immediate and interval-based update checks
     interval(UPDATE_CONFIG.CHECK_INTERVAL_MS)
       .pipe(startWith(0), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        /**/console.log('Checking for updates @ ' + new Date().toLocaleString());
+        const now = new Date().toLocaleString();
+        /**/console.log(`[UpdateService] ========== Update check @ ${now} ==========`);
+        /**/console.log('[UpdateService] confirming flag:', this.confirming);
+        /**/console.log('[UpdateService] previousVersion:', this.changeLogService.previousVersion());
+        /**/console.log('[UpdateService] currentVersion:', this.changeLogService.getCurrentVersion());
         this.checkServiceWorkerUpdate();
         this.checkTauriUpdate();
       });
@@ -82,23 +98,42 @@ export class UpdateService {
    */
   private checkServiceWorkerUpdate(): void {
     // istanbul ignore next - Tauri platform detection, isTauri() always returns false in unit tests
-    if (isTauri()) return;
+    if (isTauri()) {
+      /**/console.log('[UpdateService] checkServiceWorkerUpdate: Skipping (Tauri platform)');
+      return;
+    }
     // istanbul ignore next - SSR guard, SwUpdate is null during server rendering
-    if (!this.updates) return;
+    if (!this.updates) {
+      /**/console.log('[UpdateService] checkServiceWorkerUpdate: Skipping (SwUpdate not available)');
+      return;
+    }
+    if (!this.updates.isEnabled) {
+      /**/console.log('[UpdateService] checkServiceWorkerUpdate: Skipping (SwUpdate not enabled)');
+      return;
+    }
+
+    /**/console.log('[UpdateService] checkServiceWorkerUpdate: Calling SwUpdate.checkForUpdate()...');
     this.updates.checkForUpdate().then(available => {
+      /**/console.log('[UpdateService] checkForUpdate() returned:', available);
       if (available) {
-        this.logService.log('SW: Update available, activating...');
+        /**/console.log('[UpdateService] Update IS available! Capturing previous version...');
+        /**/console.log('[UpdateService] Previous version BEFORE capture:', this.changeLogService.previousVersion());
         // Capture current version BEFORE activating update
         this.changeLogService.capturePreviousVersion();
+        /**/console.log('[UpdateService] Previous version AFTER capture:', this.changeLogService.previousVersion());
+        /**/console.log('[UpdateService] Calling activateUpdate()...');
         this.updates!.activateUpdate().then(() => {
+          /**/console.log('[UpdateService] activateUpdate() completed. Waiting for VERSION_READY event...');
           this.logService.log('SW: Update activated. Awaiting VERSION_READY...');
-          // VERSION_READY will trigger handleSwEvent
+        }).catch(err => {
+          /**/console.error('[UpdateService] activateUpdate() failed:', err);
         });
       } else {
+        /**/console.log('[UpdateService] No update available from SW.');
         this.logService.log('SW: No update available.');
       }
     }).catch(err => {
-      console.error('SW: Failed to check for update:', err);
+      /**/console.error('[UpdateService] checkForUpdate() failed:', err);
     });
   }
 
@@ -113,29 +148,55 @@ export class UpdateService {
    * @param event - Service Worker version event
    */
   private async handleSwEvent(event: VersionEvent): Promise<void> {
-    if (event.type === 'VERSION_READY' && !this.confirming) {
+    /**/console.log('[UpdateService] handleSwEvent called with:', event.type);
+    /**/console.log('[UpdateService] Full event object:', JSON.stringify(event, null, 2));
+    /**/console.log('[UpdateService] confirming flag:', this.confirming);
+
+    if (event.type === 'VERSION_READY') {
+      /**/console.log('[UpdateService] VERSION_READY received');
+      /**/console.log('[UpdateService] previousVersion:', this.changeLogService.previousVersion());
+      /**/console.log('[UpdateService] currentVersion:', this.changeLogService.getCurrentVersion());
+
+      if (this.confirming) {
+        /**/console.log('[UpdateService] Already confirming, skipping dialog');
+        return;
+      }
+
       // Skip dialog if previousVersion wasn't captured (page loaded fresh with new code)
       // This happens when SW cache is stale but page already loaded new code from network
       if (!this.changeLogService.previousVersion()) {
+        /**/console.log('[UpdateService] No previousVersion captured - page loaded fresh with new code');
         this.logService.log('SW: No previous version captured, skipping dialog');
         return;
       }
 
+      /**/console.log('[UpdateService] Showing update dialog...');
       this.confirming = true;
 
       // Refresh changelog to get canonical new version from API
       // This ensures appDiff reflects the actual new version, not cached data
+      /**/console.log('[UpdateService] Refreshing changelog...');
       this.changeLogService.refresh();
+      /**/console.log('[UpdateService] After refresh - currentVersion:', this.changeLogService.getCurrentVersion());
 
       // Show update dialog
       const confirmed = await this.updateDialogService.show();
+      /**/console.log('[UpdateService] Dialog result:', confirmed);
 
       this.confirming = false;
       if (confirmed) {
+        /**/console.log('[UpdateService] User confirmed, reloading page...');
         this.reloadPage();
+      } else {
+        /**/console.log('[UpdateService] User skipped/dismissed dialog');
       }
     } else if (event.type === 'VERSION_DETECTED') {
+      /**/console.log('[UpdateService] VERSION_DETECTED - new version hash:', event.version?.hash);
       this.logService.log('SW: New version detected:', event.version);
+    } else if (event.type === 'VERSION_INSTALLATION_FAILED') {
+      /**/console.error('[UpdateService] VERSION_INSTALLATION_FAILED:', event);
+    } else if (event.type === 'NO_NEW_VERSION_DETECTED') {
+      /**/console.log('[UpdateService] NO_NEW_VERSION_DETECTED');
     }
   }
 

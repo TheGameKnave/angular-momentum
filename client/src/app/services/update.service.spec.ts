@@ -27,7 +27,8 @@ describe('UpdateService', () => {
     swUpdateMock = {
       checkForUpdate: jasmine.createSpy('checkForUpdate').and.returnValue(Promise.resolve(true)),
       activateUpdate: jasmine.createSpy('activateUpdate').and.returnValue(Promise.resolve()),
-      versionUpdates: versionUpdates$
+      versionUpdates: versionUpdates$,
+      isEnabled: true
     };
 
     destroyRefMock = jasmine.createSpyObj('DestroyRef', ['']);
@@ -119,7 +120,7 @@ describe('UpdateService', () => {
 
     expect(swUpdateMock.checkForUpdate).toHaveBeenCalled();
     expect(consoleSpy).toHaveBeenCalledWith(
-      'SW: Failed to check for update:',
+      '[UpdateService] checkForUpdate() failed:',
       jasmine.any(Error)
     );
   });
@@ -132,7 +133,6 @@ describe('UpdateService', () => {
       tick();
       expect(swUpdateMock.checkForUpdate).toHaveBeenCalled();
       expect(swUpdateMock.activateUpdate).toHaveBeenCalled();
-      expect(logMock.log).toHaveBeenCalledWith('SW: Update available, activating...');
     }));
 
     it('should log if no SW update', fakeAsync(() => {
