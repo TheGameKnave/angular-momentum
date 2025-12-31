@@ -40,6 +40,7 @@ export class UpdateService {
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   private confirming = false;
+  private checkInProgress = false;
 
   constructor() {
     this.init();
@@ -55,6 +56,10 @@ export class UpdateService {
     if (!this.isBrowser) return;
     if (!['production', 'staging', 'local'].includes(ENVIRONMENT.env)) return;
 
+    // Clear any stale previousVersion on fresh page load
+    // If user reloaded the page, they already have the new code - no update dialog needed
+    this.changeLogService.clearPreviousVersion();
+
     // Listen for Angular Service Worker version events (only if SwUpdate is available)
     // istanbul ignore next - SwUpdate observable subscription requires real service worker context
     if (this.updates) {
@@ -67,7 +72,6 @@ export class UpdateService {
     interval(UPDATE_CONFIG.CHECK_INTERVAL_MS)
       .pipe(startWith(0), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        /**/console.log('Checking for updates...');
         this.checkServiceWorkerUpdate();
         this.checkTauriUpdate();
       });
@@ -85,18 +89,41 @@ export class UpdateService {
     if (isTauri()) return;
     // istanbul ignore next - SSR guard, SwUpdate is null during server rendering
     if (!this.updates) return;
-    this.updates.checkForUpdate().then(available => {
+    // istanbul ignore next - isEnabled is always true when SwUpdate is injected in tests
+    if (!this.updates.isEnabled) return;
+    if (this.checkInProgress) return;
+
+    // Capture current version BEFORE checking for updates
+    // This prevents race condition where VERSION_READY fires before checkForUpdate() resolves
+    this.changeLogService.capturePreviousVersion();
+
+    this.checkInProgress = true;
+
+    // Race between checkForUpdate and timeout to prevent indefinite hangs
+    const checkPromise = this.updates.checkForUpdate();
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Update check timed out')), UPDATE_CONFIG.CHECK_TIMEOUT_MS);
+    });
+
+    Promise.race([checkPromise, timeoutPromise]).then(available => {
+      this.checkInProgress = false;
       if (available) {
-        this.logService.log('SW: Update available, activating...');
+        // istanbul ignore next - activateUpdate rarely fails, requires corrupted SW state
         this.updates!.activateUpdate().then(() => {
           this.logService.log('SW: Update activated. Awaiting VERSION_READY...');
-          // VERSION_READY will trigger handleSwEvent
+        }).catch(err => {
+          console.error('[UpdateService] activateUpdate() failed:', err);
         });
       } else {
         this.logService.log('SW: No update available.');
+        // Clear captured version since no update was found
+        this.changeLogService.clearPreviousVersion();
       }
     }).catch(err => {
-      console.error('SW: Failed to check for update:', err);
+      this.checkInProgress = false;
+      console.error('[UpdateService] checkForUpdate() failed:', err);
+      // Clear captured version on error/timeout
+      this.changeLogService.clearPreviousVersion();
     });
   }
 
@@ -111,22 +138,41 @@ export class UpdateService {
    * @param event - Service Worker version event
    */
   private async handleSwEvent(event: VersionEvent): Promise<void> {
-    if (event.type === 'VERSION_READY' && !this.confirming) {
-      this.confirming = true;
+    switch (event.type) {
+      case 'VERSION_READY': {
+        // istanbul ignore next - guards against rapid duplicate VERSION_READY events
+        if (this.confirming) return;
 
-      // Refresh changelog to get canonical new version from API
-      // This ensures appDiff reflects the actual new version, not cached data
-      this.changeLogService.refresh();
+        // Skip dialog if previousVersion wasn't captured (page loaded fresh with new code)
+        // This happens when SW cache is stale but page already loaded new code from network
+        if (!this.changeLogService.previousVersion()) {
+          this.logService.log('SW: No previous version captured, skipping dialog');
+          return;
+        }
 
-      // Show update dialog
-      const confirmed = await this.updateDialogService.show();
+        this.confirming = true;
 
-      this.confirming = false;
-      if (confirmed) {
-        this.reloadPage();
+        // Refresh changelog to get canonical new version from API
+        // This ensures appDiff reflects the actual new version, not cached data
+        this.changeLogService.refresh();
+
+        // Show update dialog
+        const confirmed = await this.updateDialogService.show();
+
+        this.confirming = false;
+        if (confirmed) {
+          this.reloadPage();
+        }
+        break;
       }
-    } else if (event.type === 'VERSION_DETECTED') {
-      this.logService.log('SW: New version detected:', event.version);
+      // istanbul ignore next - VERSION_DETECTED is only logged, not tested
+      case 'VERSION_DETECTED':
+        this.logService.log('SW: New version detected:', event.version);
+        break;
+      // istanbul ignore next - VERSION_INSTALLATION_FAILED is rare, requires network/hash errors during SW install
+      case 'VERSION_INSTALLATION_FAILED':
+        console.error('[UpdateService] VERSION_INSTALLATION_FAILED:', event);
+        break;
     }
   }
 

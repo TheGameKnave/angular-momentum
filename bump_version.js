@@ -39,6 +39,18 @@ if (isSemverGreater(newVersion, oldVersion)) {
   /**/console.log(`🔢 iOS bundleVersion incremented to ${tauriConf.bundle.iOS.bundleVersion}`);
   tauriConf.bundle.android.versionCode = Number(tauriConf.bundle.android.versionCode || 0) + 1;
   /**/console.log(`🔢 android bundleVersion incremented to ${tauriConf.bundle.android.versionCode}`);
+
+  // Also update CFBundleVersion in Info.plist
+  const infoPlistPath = path.resolve("client/src-tauri/gen/apple/angular-momentum_iOS/Info.plist");
+  if (fs.existsSync(infoPlistPath)) {
+    const plistContent = fs.readFileSync(infoPlistPath, "utf8");
+    const updatedPlist = plistContent.replace(
+      /(<key>CFBundleVersion<\/key>\s*<string>)(\d+)(<\/string>)/,
+      (_, prefix, num, suffix) => `${prefix}${Number(num) + 1}${suffix}`
+    );
+    fs.writeFileSync(infoPlistPath, updatedPlist, "utf8");
+    /**/console.log(`🔢 Info.plist CFBundleVersion incremented`);
+  }
 }
 
 fs.writeFileSync(tauriConfPath, JSON.stringify(tauriConf, null, 2));
@@ -79,8 +91,8 @@ const targets = [
   },
   {
     file: "client/src-tauri/gen/apple/angular-momentum_iOS/Info.plist",
-    pattern: new RegExp(`<string>${oldVersion}</string>`, "g"),
-    replacement: `<string>${newVersion}</string>`,
+    pattern: new RegExp(`(<key>CFBundleShortVersionString</key>\\s*<string>)${oldVersion}(</string>)`),
+    replacement: `$1${newVersion}$2`,
   },
   {
     file: "client/src-tauri/gen/apple/project.yml",

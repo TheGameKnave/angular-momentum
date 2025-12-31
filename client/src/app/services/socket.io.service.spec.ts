@@ -1,17 +1,25 @@
 import { TestBed } from '@angular/core/testing';
 import { SocketIoService } from '@app/services/socket.io.service';
 import { Socket } from 'ngx-socket-io';
+import { ConnectivityService } from './connectivity.service';
+import { signal } from '@angular/core';
 
 describe('SocketIoService', () => {
   let service: SocketIoService;
   let socketSpy: jasmine.SpyObj<Socket>;
+  let connectivityMock: { isOnline: ReturnType<typeof signal<boolean>>; stop: jasmine.Spy };
 
   beforeEach(() => {
     socketSpy = jasmine.createSpyObj('Socket', ['fromEvent', 'emit', 'disconnect', 'connect']);
+    connectivityMock = {
+      isOnline: signal(true),
+      stop: jasmine.createSpy('stop'),
+    };
 
     TestBed.configureTestingModule({
       providers: [
-        { provide: Socket, useValue: socketSpy }
+        { provide: Socket, useValue: socketSpy },
+        { provide: ConnectivityService, useValue: connectivityMock },
       ]
     });
 

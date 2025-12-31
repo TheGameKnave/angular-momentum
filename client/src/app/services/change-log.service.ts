@@ -47,6 +47,9 @@ export class ChangeLogService {
   /** Dev-only override for current version (used for testing update dialog) */
   readonly devVersionOverride = signal<string | null>(null);
 
+  /** Previous version captured before update (for update dialog display) */
+  readonly previousVersion = signal<string | null>(null);
+
   private readonly manualRefresh$ = new Subject<void>();
   private readonly refreshIntervalMs = CHANGELOG_CONFIG.REFRESH_INTERVAL_MS;
   private readonly refresh$ = merge(
@@ -109,5 +112,20 @@ export class ChangeLogService {
   // istanbul ignore next - returns static package.json version, mocked in tests
   public getCurrentVersion(): string {
     return this.devVersionOverride() ?? packageJson.version;
+  }
+
+  /**
+   * Capture the current version as the "previous" version before an update.
+   * Called when an update is detected but before the new code is activated.
+   */
+  public capturePreviousVersion(): void {
+    this.previousVersion.set(this.getCurrentVersion());
+  }
+
+  /**
+   * Clear the previous version after update dialog is dismissed.
+   */
+  public clearPreviousVersion(): void {
+    this.previousVersion.set(null);
   }
 }

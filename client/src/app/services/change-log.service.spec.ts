@@ -110,6 +110,39 @@ describe('ChangeLogService', () => {
     );
   }));
 
+  describe('previousVersion', () => {
+    it('should initially be null', () => {
+      expect(service.previousVersion()).toBeNull();
+    });
+
+    it('should capture current version when capturePreviousVersion is called', () => {
+      service.capturePreviousVersion();
+
+      expect(service.previousVersion()).toBe('1.0.0');
+    });
+
+    it('should clear previous version when clearPreviousVersion is called', () => {
+      service.capturePreviousVersion();
+      expect(service.previousVersion()).toBe('1.0.0');
+
+      service.clearPreviousVersion();
+
+      expect(service.previousVersion()).toBeNull();
+    });
+
+    it('should capture devVersionOverride if set', () => {
+      // Restore original implementation to test devVersionOverride logic
+      (service.getCurrentVersion as jasmine.Spy).and.callFake(() =>
+        service.devVersionOverride() ?? '1.0.0'
+      );
+
+      service.devVersionOverride.set('0.5.0');
+      service.capturePreviousVersion();
+
+      expect(service.previousVersion()).toBe('0.5.0');
+    });
+  });
+
   afterEach(() => {
     httpMock.verify();
   });

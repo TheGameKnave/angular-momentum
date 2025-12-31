@@ -4,6 +4,7 @@ import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { filter } from 'rxjs';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { SlugPipe } from '@app/pipes/slug.pipe';
+import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
 import { FeatureFlagService } from '@app/services/feature-flag.service';
 import { HelpersService } from '@app/services/helpers.service';
 import { SCREEN_SIZES, TOOLTIP_CONFIG } from '@app/constants/ui.constants';
@@ -28,6 +29,7 @@ import { ConnectivityService } from '@app/services/connectivity.service';
     RouterModule,
     TranslocoDirective,
     TooltipModule,
+    ScrollIndicatorDirective,
   ],
 })
 export class MenuFeatureComponent implements OnInit, AfterViewInit {

@@ -105,7 +105,14 @@ export class TurnstileService {
     const token = userMetadata?.turnstile_token;
 
     if (!token || typeof token !== 'string') {
-      // If no token provided, allow signup (CAPTCHA might not be required)
+      // In production, require a valid token to prevent bot bypasses
+      if (this.secretKey) {
+        return {
+          success: false,
+          error: 'Turnstile token required'
+        };
+      }
+      // In development (no secret key), allow without token
       return { success: true };
     }
 

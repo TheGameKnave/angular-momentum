@@ -120,7 +120,8 @@ export class CookieConsentService {
   private loadGoogleAnalytics(): void {
     const gaScript = document.createElement('script');
     gaScript.async = true;
-    gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${this.GA_ID}`;
+    // ngsw-bypass prevents Angular service worker from intercepting this request
+    gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${this.GA_ID}&ngsw-bypass=true`;
     document.head.appendChild(gaScript);
 
     // istanbul ignore next - async script onload callback
@@ -156,7 +157,8 @@ export class CookieConsentService {
 
     const script = document.createElement('script');
     script.async = true;
-    script.src = `https://static.hotjar.com/c/hotjar-${this.HOTJAR_ID}.js?sv=${this.HOTJAR_SV}`;
+    // ngsw-bypass prevents Angular service worker from intercepting this request
+    script.src = `https://static.hotjar.com/c/hotjar-${this.HOTJAR_ID}.js?sv=${this.HOTJAR_SV}&ngsw-bypass=true`;
     document.head.appendChild(script);
     this.logService.log('Hotjar loaded');
     /* eslint-enable @typescript-eslint/no-explicit-any, prefer-rest-params */

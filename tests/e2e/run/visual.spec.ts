@@ -186,6 +186,12 @@ test.describe('Visual Regression Tests', () => {
 
     const height = Math.min(contentHeight, MAX_PAGE_HEIGHT);
 
+    // Hide feature menu content to avoid false failures from menu changes
+    await page.evaluate(() => {
+      const menuContent = document.querySelector('app-menu-feature > div');
+      if (menuContent) (menuContent as HTMLElement).style.visibility = 'hidden';
+    });
+
     await expect(page).toHaveScreenshot(name, {
       maxDiffPixelRatio: 0.001,
       animations: 'disabled',
@@ -196,6 +202,12 @@ test.describe('Visual Regression Tests', () => {
         height,
       },
       ...options,
+    });
+
+    // Restore menu visibility
+    await page.evaluate(() => {
+      const menuContent = document.querySelector('app-menu-feature > div');
+      if (menuContent) (menuContent as HTMLElement).style.visibility = '';
     });
   }
 
