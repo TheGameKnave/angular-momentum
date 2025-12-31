@@ -56,40 +56,22 @@ export class UpdateService {
     if (!this.isBrowser) return;
     if (!['production', 'staging', 'local'].includes(ENVIRONMENT.env)) return;
 
-    /**/console.log('[UpdateService] Initializing...');
-    /**/console.log('[UpdateService] Environment:', ENVIRONMENT.env);
-    /**/console.log('[UpdateService] SwUpdate available:', !!this.updates);
-    /**/console.log('[UpdateService] SwUpdate enabled:', this.updates?.isEnabled);
-    /**/console.log('[UpdateService] Check interval:', UPDATE_CONFIG.CHECK_INTERVAL_MS, 'ms');
-    /**/console.log('[UpdateService] Current version from changelog:', this.changeLogService.getCurrentVersion());
-    /**/console.log('[UpdateService] Previous version on init:', this.changeLogService.previousVersion());
-
     // Clear any stale previousVersion on fresh page load
     // If user reloaded the page, they already have the new code - no update dialog needed
     this.changeLogService.clearPreviousVersion();
-    /**/console.log('[UpdateService] Cleared previousVersion on init');
 
     // Listen for Angular Service Worker version events (only if SwUpdate is available)
     // istanbul ignore next - SwUpdate observable subscription requires real service worker context
     if (this.updates) {
-      /**/console.log('[UpdateService] Subscribing to versionUpdates...');
       this.updates.versionUpdates
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(event => {
-          /**/console.log('[UpdateService] versionUpdates event received:', event.type, event);
-          this.handleSwEvent(event);
-        });
+        .subscribe(event => this.handleSwEvent(event));
     }
 
     // Run immediate and interval-based update checks
     interval(UPDATE_CONFIG.CHECK_INTERVAL_MS)
       .pipe(startWith(0), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        const now = new Date().toLocaleString();
-        /**/console.log(`[UpdateService] ========== Update check @ ${now} ==========`);
-        /**/console.log('[UpdateService] confirming flag:', this.confirming);
-        /**/console.log('[UpdateService] previousVersion:', this.changeLogService.previousVersion());
-        /**/console.log('[UpdateService] currentVersion:', this.changeLogService.getCurrentVersion());
         this.checkServiceWorkerUpdate();
         this.checkTauriUpdate();
       });
@@ -104,86 +86,40 @@ export class UpdateService {
    */
   private checkServiceWorkerUpdate(): void {
     // istanbul ignore next - Tauri platform detection, isTauri() always returns false in unit tests
-    if (isTauri()) {
-      /**/console.log('[UpdateService] checkServiceWorkerUpdate: Skipping (Tauri platform)');
-      return;
-    }
+    if (isTauri()) return;
     // istanbul ignore next - SSR guard, SwUpdate is null during server rendering
-    if (!this.updates) {
-      /**/console.log('[UpdateService] checkServiceWorkerUpdate: Skipping (SwUpdate not available)');
-      return;
-    }
-    if (!this.updates.isEnabled) {
-      /**/console.log('[UpdateService] checkServiceWorkerUpdate: Skipping (SwUpdate not enabled)');
-      return;
-    }
-    if (this.checkInProgress) {
-      /**/console.log('[UpdateService] checkServiceWorkerUpdate: Skipping (check already in progress)');
-      return;
-    }
-
-    // Log SW controller state for debugging
-    // istanbul ignore next - navigator.serviceWorker only exists in browser
-    if (navigator.serviceWorker) {
-      const sw = navigator.serviceWorker;
-      /**/console.log('[UpdateService] SW controller:', sw.controller ? 'active' : 'none');
-      /**/console.log('[UpdateService] SW ready state:', sw.controller?.state ?? 'no controller');
-
-      // Fetch NGSW debug state to detect SAFE_MODE
-      fetch('/ngsw/state').then(res => res.text()).then(state => {
-        /**/console.log('[UpdateService] NGSW state:', state.includes('SAFE_MODE') ? 'SAFE_MODE (broken!)' : state.split('\n')[1] ?? 'unknown');
-        if (state.includes('SAFE_MODE')) {
-          /**/console.error('[UpdateService] SW is in SAFE_MODE - updates will not work! User must hard refresh or clear SW.');
-        }
-      }).catch(() => {
-        /**/console.log('[UpdateService] Could not fetch /ngsw/state');
-      });
-    }
+    if (!this.updates) return;
+    if (!this.updates.isEnabled) return;
+    if (this.checkInProgress) return;
 
     // Capture current version BEFORE checking for updates
     // This prevents race condition where VERSION_READY fires before checkForUpdate() resolves
-    /**/console.log('[UpdateService] Capturing previous version before check:', this.changeLogService.getCurrentVersion());
     this.changeLogService.capturePreviousVersion();
 
     this.checkInProgress = true;
-    /**/console.log('[UpdateService] checkServiceWorkerUpdate: Calling SwUpdate.checkForUpdate()...');
 
     // Race between checkForUpdate and timeout to prevent indefinite hangs
-    const startTime = Date.now();
-    /**/console.log('[UpdateService] checkForUpdate() started at:', new Date(startTime).toISOString());
     const checkPromise = this.updates.checkForUpdate();
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('Update check timed out')), UPDATE_CONFIG.CHECK_TIMEOUT_MS);
     });
 
-    // Log when the original promise settles (even if timeout wins the race)
-    checkPromise.then(
-      result => /**/console.log(`[UpdateService] checkForUpdate() resolved after ${Date.now() - startTime}ms:`, result),
-      err => /**/console.log(`[UpdateService] checkForUpdate() rejected after ${Date.now() - startTime}ms:`, err)
-    );
-
     Promise.race([checkPromise, timeoutPromise]).then(available => {
       this.checkInProgress = false;
-      /**/console.log('[UpdateService] checkForUpdate() returned:', available);
       if (available) {
-        /**/console.log('[UpdateService] Update IS available!');
-        /**/console.log('[UpdateService] Previous version captured:', this.changeLogService.previousVersion());
-        /**/console.log('[UpdateService] Calling activateUpdate()...');
         this.updates!.activateUpdate().then(() => {
-          /**/console.log('[UpdateService] activateUpdate() completed. Waiting for VERSION_READY event...');
           this.logService.log('SW: Update activated. Awaiting VERSION_READY...');
         }).catch(err => {
-          /**/console.error('[UpdateService] activateUpdate() failed:', err);
+          console.error('[UpdateService] activateUpdate() failed:', err);
         });
       } else {
-        /**/console.log('[UpdateService] No update available from SW.');
         this.logService.log('SW: No update available.');
         // Clear captured version since no update was found
         this.changeLogService.clearPreviousVersion();
       }
     }).catch(err => {
       this.checkInProgress = false;
-      /**/console.error('[UpdateService] checkForUpdate() failed:', err);
+      console.error('[UpdateService] checkForUpdate() failed:', err);
       // Clear captured version on error/timeout
       this.changeLogService.clearPreviousVersion();
     });
@@ -200,55 +136,33 @@ export class UpdateService {
    * @param event - Service Worker version event
    */
   private async handleSwEvent(event: VersionEvent): Promise<void> {
-    /**/console.log('[UpdateService] handleSwEvent called with:', event.type);
-    /**/console.log('[UpdateService] Full event object:', JSON.stringify(event, null, 2));
-    /**/console.log('[UpdateService] confirming flag:', this.confirming);
-
     if (event.type === 'VERSION_READY') {
-      /**/console.log('[UpdateService] VERSION_READY received');
-      /**/console.log('[UpdateService] previousVersion:', this.changeLogService.previousVersion());
-      /**/console.log('[UpdateService] currentVersion:', this.changeLogService.getCurrentVersion());
-
-      if (this.confirming) {
-        /**/console.log('[UpdateService] Already confirming, skipping dialog');
-        return;
-      }
+      if (this.confirming) return;
 
       // Skip dialog if previousVersion wasn't captured (page loaded fresh with new code)
       // This happens when SW cache is stale but page already loaded new code from network
       if (!this.changeLogService.previousVersion()) {
-        /**/console.log('[UpdateService] No previousVersion captured - page loaded fresh with new code');
         this.logService.log('SW: No previous version captured, skipping dialog');
         return;
       }
 
-      /**/console.log('[UpdateService] Showing update dialog...');
       this.confirming = true;
 
       // Refresh changelog to get canonical new version from API
       // This ensures appDiff reflects the actual new version, not cached data
-      /**/console.log('[UpdateService] Refreshing changelog...');
       this.changeLogService.refresh();
-      /**/console.log('[UpdateService] After refresh - currentVersion:', this.changeLogService.getCurrentVersion());
 
       // Show update dialog
       const confirmed = await this.updateDialogService.show();
-      /**/console.log('[UpdateService] Dialog result:', confirmed);
 
       this.confirming = false;
       if (confirmed) {
-        /**/console.log('[UpdateService] User confirmed, reloading page...');
         this.reloadPage();
-      } else {
-        /**/console.log('[UpdateService] User skipped/dismissed dialog');
       }
     } else if (event.type === 'VERSION_DETECTED') {
-      /**/console.log('[UpdateService] VERSION_DETECTED - new version hash:', event.version?.hash);
       this.logService.log('SW: New version detected:', event.version);
     } else if (event.type === 'VERSION_INSTALLATION_FAILED') {
-      /**/console.error('[UpdateService] VERSION_INSTALLATION_FAILED:', event);
-    } else if (event.type === 'NO_NEW_VERSION_DETECTED') {
-      /**/console.log('[UpdateService] NO_NEW_VERSION_DETECTED');
+      console.error('[UpdateService] VERSION_INSTALLATION_FAILED:', event);
     }
   }
 
