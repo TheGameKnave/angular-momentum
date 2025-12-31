@@ -112,15 +112,17 @@ export class UpdateService {
       return;
     }
 
+    // Capture current version BEFORE checking for updates
+    // This prevents race condition where VERSION_READY fires before checkForUpdate() resolves
+    /**/console.log('[UpdateService] Capturing previous version before check:', this.changeLogService.getCurrentVersion());
+    this.changeLogService.capturePreviousVersion();
+
     /**/console.log('[UpdateService] checkServiceWorkerUpdate: Calling SwUpdate.checkForUpdate()...');
     this.updates.checkForUpdate().then(available => {
       /**/console.log('[UpdateService] checkForUpdate() returned:', available);
       if (available) {
-        /**/console.log('[UpdateService] Update IS available! Capturing previous version...');
-        /**/console.log('[UpdateService] Previous version BEFORE capture:', this.changeLogService.previousVersion());
-        // Capture current version BEFORE activating update
-        this.changeLogService.capturePreviousVersion();
-        /**/console.log('[UpdateService] Previous version AFTER capture:', this.changeLogService.previousVersion());
+        /**/console.log('[UpdateService] Update IS available!');
+        /**/console.log('[UpdateService] Previous version captured:', this.changeLogService.previousVersion());
         /**/console.log('[UpdateService] Calling activateUpdate()...');
         this.updates!.activateUpdate().then(() => {
           /**/console.log('[UpdateService] activateUpdate() completed. Waiting for VERSION_READY event...');
@@ -131,9 +133,13 @@ export class UpdateService {
       } else {
         /**/console.log('[UpdateService] No update available from SW.');
         this.logService.log('SW: No update available.');
+        // Clear captured version since no update was found
+        this.changeLogService.clearPreviousVersion();
       }
     }).catch(err => {
       /**/console.error('[UpdateService] checkForUpdate() failed:', err);
+      // Clear captured version on error
+      this.changeLogService.clearPreviousVersion();
     });
   }
 
