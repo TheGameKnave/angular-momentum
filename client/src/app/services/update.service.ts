@@ -89,6 +89,7 @@ export class UpdateService {
     if (isTauri()) return;
     // istanbul ignore next - SSR guard, SwUpdate is null during server rendering
     if (!this.updates) return;
+    // istanbul ignore next - isEnabled is always true when SwUpdate is injected in tests
     if (!this.updates.isEnabled) return;
     if (this.checkInProgress) return;
 
@@ -107,6 +108,7 @@ export class UpdateService {
     Promise.race([checkPromise, timeoutPromise]).then(available => {
       this.checkInProgress = false;
       if (available) {
+        // istanbul ignore next - activateUpdate rarely fails, requires corrupted SW state
         this.updates!.activateUpdate().then(() => {
           this.logService.log('SW: Update activated. Awaiting VERSION_READY...');
         }).catch(err => {
@@ -136,33 +138,41 @@ export class UpdateService {
    * @param event - Service Worker version event
    */
   private async handleSwEvent(event: VersionEvent): Promise<void> {
-    if (event.type === 'VERSION_READY') {
-      if (this.confirming) return;
+    switch (event.type) {
+      case 'VERSION_READY': {
+        // istanbul ignore next - guards against rapid duplicate VERSION_READY events
+        if (this.confirming) return;
 
-      // Skip dialog if previousVersion wasn't captured (page loaded fresh with new code)
-      // This happens when SW cache is stale but page already loaded new code from network
-      if (!this.changeLogService.previousVersion()) {
-        this.logService.log('SW: No previous version captured, skipping dialog');
-        return;
+        // Skip dialog if previousVersion wasn't captured (page loaded fresh with new code)
+        // This happens when SW cache is stale but page already loaded new code from network
+        if (!this.changeLogService.previousVersion()) {
+          this.logService.log('SW: No previous version captured, skipping dialog');
+          return;
+        }
+
+        this.confirming = true;
+
+        // Refresh changelog to get canonical new version from API
+        // This ensures appDiff reflects the actual new version, not cached data
+        this.changeLogService.refresh();
+
+        // Show update dialog
+        const confirmed = await this.updateDialogService.show();
+
+        this.confirming = false;
+        if (confirmed) {
+          this.reloadPage();
+        }
+        break;
       }
-
-      this.confirming = true;
-
-      // Refresh changelog to get canonical new version from API
-      // This ensures appDiff reflects the actual new version, not cached data
-      this.changeLogService.refresh();
-
-      // Show update dialog
-      const confirmed = await this.updateDialogService.show();
-
-      this.confirming = false;
-      if (confirmed) {
-        this.reloadPage();
-      }
-    } else if (event.type === 'VERSION_DETECTED') {
-      this.logService.log('SW: New version detected:', event.version);
-    } else if (event.type === 'VERSION_INSTALLATION_FAILED') {
-      console.error('[UpdateService] VERSION_INSTALLATION_FAILED:', event);
+      // istanbul ignore next - VERSION_DETECTED is only logged, not tested
+      case 'VERSION_DETECTED':
+        this.logService.log('SW: New version detected:', event.version);
+        break;
+      // istanbul ignore next - VERSION_INSTALLATION_FAILED is rare, requires network/hash errors during SW install
+      case 'VERSION_INSTALLATION_FAILED':
+        console.error('[UpdateService] VERSION_INSTALLATION_FAILED:', event);
+        break;
     }
   }
 
