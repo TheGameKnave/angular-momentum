@@ -25,7 +25,7 @@ export const UPDATE_CONFIG = {
    * Set to 2.5 minutes (150,000 ms) for testing update detection.
    * TODO: Restore to 15 minutes (900,000 ms) after testing.
    */
-  CHECK_INTERVAL_MS: 1.01 * 60 * 1000,
+  CHECK_INTERVAL_MS: 1.02 * 60 * 1000,
 } as const;
 
 /**
