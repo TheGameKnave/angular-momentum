@@ -40,6 +40,7 @@ export class UpdateService {
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   private confirming = false;
+  private checkInProgress = false;
 
   constructor() {
     this.init();
@@ -61,7 +62,12 @@ export class UpdateService {
     /**/console.log('[UpdateService] SwUpdate enabled:', this.updates?.isEnabled);
     /**/console.log('[UpdateService] Check interval:', UPDATE_CONFIG.CHECK_INTERVAL_MS, 'ms');
     /**/console.log('[UpdateService] Current version from changelog:', this.changeLogService.getCurrentVersion());
-    /**/console.log('[UpdateService] Previous version captured:', this.changeLogService.previousVersion());
+    /**/console.log('[UpdateService] Previous version on init:', this.changeLogService.previousVersion());
+
+    // Clear any stale previousVersion on fresh page load
+    // If user reloaded the page, they already have the new code - no update dialog needed
+    this.changeLogService.clearPreviousVersion();
+    /**/console.log('[UpdateService] Cleared previousVersion on init');
 
     // Listen for Angular Service Worker version events (only if SwUpdate is available)
     // istanbul ignore next - SwUpdate observable subscription requires real service worker context
@@ -111,14 +117,27 @@ export class UpdateService {
       /**/console.log('[UpdateService] checkServiceWorkerUpdate: Skipping (SwUpdate not enabled)');
       return;
     }
+    if (this.checkInProgress) {
+      /**/console.log('[UpdateService] checkServiceWorkerUpdate: Skipping (check already in progress)');
+      return;
+    }
 
     // Capture current version BEFORE checking for updates
     // This prevents race condition where VERSION_READY fires before checkForUpdate() resolves
     /**/console.log('[UpdateService] Capturing previous version before check:', this.changeLogService.getCurrentVersion());
     this.changeLogService.capturePreviousVersion();
 
+    this.checkInProgress = true;
     /**/console.log('[UpdateService] checkServiceWorkerUpdate: Calling SwUpdate.checkForUpdate()...');
-    this.updates.checkForUpdate().then(available => {
+
+    // Race between checkForUpdate and timeout to prevent indefinite hangs
+    const checkPromise = this.updates.checkForUpdate();
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Update check timed out')), UPDATE_CONFIG.CHECK_TIMEOUT_MS);
+    });
+
+    Promise.race([checkPromise, timeoutPromise]).then(available => {
+      this.checkInProgress = false;
       /**/console.log('[UpdateService] checkForUpdate() returned:', available);
       if (available) {
         /**/console.log('[UpdateService] Update IS available!');
@@ -137,8 +156,9 @@ export class UpdateService {
         this.changeLogService.clearPreviousVersion();
       }
     }).catch(err => {
+      this.checkInProgress = false;
       /**/console.error('[UpdateService] checkForUpdate() failed:', err);
-      // Clear captured version on error
+      // Clear captured version on error/timeout
       this.changeLogService.clearPreviousVersion();
     });
   }

@@ -26,6 +26,12 @@ export const UPDATE_CONFIG = {
    * TODO: Restore to 15 minutes (900,000 ms) after testing.
    */
   CHECK_INTERVAL_MS: 1.02 * 60 * 1000,
+  /**
+   * Timeout for update check in milliseconds.
+   * If checkForUpdate() doesn't resolve within this time, abort and allow retry.
+   * Set to 30 seconds to handle slow networks while avoiding indefinite hangs.
+   */
+  CHECK_TIMEOUT_MS: 30 * 1000,
 } as const;
 
 /**

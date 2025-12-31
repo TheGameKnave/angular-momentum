@@ -183,6 +183,37 @@ describe('UpdateService', () => {
       expect(changeLogMock.clearPreviousVersion).toHaveBeenCalled();
     }));
 
+    it('should skip check if one is already in progress', fakeAsync(() => {
+      // First check - will hang (never resolves)
+      swUpdateMock.checkForUpdate.and.returnValue(new Promise(() => {}));
+      (service as any).checkServiceWorkerUpdate();
+
+      // Second check - should skip
+      (service as any).checkServiceWorkerUpdate();
+      tick();
+
+      // checkForUpdate should only be called once
+      expect(swUpdateMock.checkForUpdate).toHaveBeenCalledTimes(1);
+
+      // Clean up: advance past timeout to avoid pending timers
+      tick(30000);
+    }));
+
+    it('should timeout and clear state if check hangs too long', fakeAsync(() => {
+      const consoleSpy = spyOn(console, 'error');
+      // Check that never resolves
+      swUpdateMock.checkForUpdate.and.returnValue(new Promise(() => {}));
+      (service as any).checkServiceWorkerUpdate();
+
+      // Advance past timeout (30 seconds)
+      tick(30000);
+
+      expect(consoleSpy).toHaveBeenCalledWith('[UpdateService] checkForUpdate() failed:', jasmine.any(Error));
+      expect(changeLogMock.clearPreviousVersion).toHaveBeenCalled();
+      // checkInProgress should be reset
+      expect((service as any).checkInProgress).toBe(false);
+    }));
+
     it('should skip dialog if no previousVersion was captured', fakeAsync(async () => {
       changeLogMock.previousVersion.and.returnValue(null);
 
