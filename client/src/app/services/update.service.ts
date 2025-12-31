@@ -122,6 +122,24 @@ export class UpdateService {
       return;
     }
 
+    // Log SW controller state for debugging
+    // istanbul ignore next - navigator.serviceWorker only exists in browser
+    if (navigator.serviceWorker) {
+      const sw = navigator.serviceWorker;
+      /**/console.log('[UpdateService] SW controller:', sw.controller ? 'active' : 'none');
+      /**/console.log('[UpdateService] SW ready state:', sw.controller?.state ?? 'no controller');
+
+      // Fetch NGSW debug state to detect SAFE_MODE
+      fetch('/ngsw/state').then(res => res.text()).then(state => {
+        /**/console.log('[UpdateService] NGSW state:', state.includes('SAFE_MODE') ? 'SAFE_MODE (broken!)' : state.split('\n')[1] ?? 'unknown');
+        if (state.includes('SAFE_MODE')) {
+          /**/console.error('[UpdateService] SW is in SAFE_MODE - updates will not work! User must hard refresh or clear SW.');
+        }
+      }).catch(() => {
+        /**/console.log('[UpdateService] Could not fetch /ngsw/state');
+      });
+    }
+
     // Capture current version BEFORE checking for updates
     // This prevents race condition where VERSION_READY fires before checkForUpdate() resolves
     /**/console.log('[UpdateService] Capturing previous version before check:', this.changeLogService.getCurrentVersion());
@@ -131,10 +149,18 @@ export class UpdateService {
     /**/console.log('[UpdateService] checkServiceWorkerUpdate: Calling SwUpdate.checkForUpdate()...');
 
     // Race between checkForUpdate and timeout to prevent indefinite hangs
+    const startTime = Date.now();
+    /**/console.log('[UpdateService] checkForUpdate() started at:', new Date(startTime).toISOString());
     const checkPromise = this.updates.checkForUpdate();
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('Update check timed out')), UPDATE_CONFIG.CHECK_TIMEOUT_MS);
     });
+
+    // Log when the original promise settles (even if timeout wins the race)
+    checkPromise.then(
+      result => /**/console.log(`[UpdateService] checkForUpdate() resolved after ${Date.now() - startTime}ms:`, result),
+      err => /**/console.log(`[UpdateService] checkForUpdate() rejected after ${Date.now() - startTime}ms:`, err)
+    );
 
     Promise.race([checkPromise, timeoutPromise]).then(available => {
       this.checkInProgress = false;

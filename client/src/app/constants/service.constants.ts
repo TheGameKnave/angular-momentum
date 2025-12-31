@@ -22,10 +22,10 @@ export const NOTIFICATION_CONFIG = {
 export const UPDATE_CONFIG = {
   /**
    * Interval for checking updates in milliseconds.
-   * Set to 2.5 minutes (150,000 ms) for testing update detection.
+   * Set to ~1 minute (61,800 ms) for testing update detection.
    * TODO: Restore to 15 minutes (900,000 ms) after testing.
    */
-  CHECK_INTERVAL_MS: 1.02 * 60 * 1000,
+  CHECK_INTERVAL_MS: 1.04 * 60 * 1000,
   /**
    * Timeout for update check in milliseconds.
    * If checkForUpdate() doesn't resolve within this time, abort and allow retry.
