@@ -21,23 +21,21 @@
 
     <!-- Dynamic components -->
     @for (p of helpersService.enabledComponents(); track p.name; let i = $index) {
-      @if (featureFlagService.getFeature(p.name)) {
-        <li #itemEl>
-          <a
-            [routerLink]="[p.name | slug]"
-            routerLinkActive="selected"
-            [attr.aria-label]="t('nav.' + p.name)"
-            [pTooltip]="showTooltip() ? t('nav.' + p.name) : null"
-            tooltipPosition="top"
-            [tooltipDisabled]="!showTooltip()"
-            [showDelay]="tooltipShowDelay"
-            [hideDelay]="tooltipHideDelay"
-          >
-            <i class="{{ p.icon }}"></i>
-            @if (!isMobile()) { <span class="label">{{ t('nav.' + p.name) }}</span> }
-          </a>
-        </li>
-      }
+      <li #itemEl>
+        <a
+          [routerLink]="[p.name | slug]"
+          routerLinkActive="selected"
+          [attr.aria-label]="t('nav.' + p.name)"
+          [pTooltip]="showTooltip() ? t('nav.' + p.name) : null"
+          tooltipPosition="top"
+          [tooltipDisabled]="!showTooltip()"
+          [showDelay]="tooltipShowDelay"
+          [hideDelay]="tooltipHideDelay"
+        >
+          <i class="{{ p.icon }}"></i>
+          @if (!isMobile()) { <span class="label">{{ t('nav.' + p.name) }}</span> }
+        </a>
+      </li>
     }
     
     <!-- Donation button -->

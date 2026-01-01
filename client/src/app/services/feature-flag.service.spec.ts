@@ -100,16 +100,25 @@ describe('FeatureFlagService', () => {
   });
   
 
-  it('should return true for unknown feature (fail-open)', () => {
-    const features = { 'GraphQL API': true, 'IndexedDB': true };
-    service.features.set(features);
-    // Fail-open: unknown features return true (not explicitly false)
-    expect(service.getFeature('Environment')).toBe(true);
+  it('should return false for unknown feature (fail-closed)', () => {
+    service.loaded.set(true);
+    service.features.set({ 'GraphQL API': true, 'IndexedDB': true });
+    // Fail-closed: unknown features return false (not explicitly true)
+    expect(service.getFeature('Environment')).toBe(false);
   });
 
-  it('should return false only when feature is explicitly false', () => {
+  it('should return true only when loaded AND feature is explicitly true', () => {
+    service.loaded.set(true);
     service.features.set({ 'GraphQL API': true, 'IndexedDB': false });
     expect(service.getFeature('GraphQL API')).toBe(true);
+    expect(service.getFeature('IndexedDB')).toBe(false);
+  });
+
+  it('should return false when flags are not loaded (fail-closed)', () => {
+    service.loaded.set(false);
+    service.features.set({ 'GraphQL API': true, 'IndexedDB': true });
+    // Even if feature is true, should return false when not loaded
+    expect(service.getFeature('GraphQL API')).toBe(false);
     expect(service.getFeature('IndexedDB')).toBe(false);
   });
 

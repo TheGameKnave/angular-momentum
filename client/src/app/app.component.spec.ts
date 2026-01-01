@@ -41,6 +41,7 @@ describe('AppComponent', () => {
   beforeEach(() => {
     updateService = jasmine.createSpyObj('UpdateService', ['checkForUpdates']);
     featureFlagService = jasmine.createSpyObj('FeatureFlagService', ['getFeature']);
+    featureFlagService.getFeature.and.returnValue(true); // Default: features enabled
     slugPipe = jasmine.createSpyObj('SlugPipe', ['transform']);
 
     routerEvents$ = new Subject<any>();

@@ -63,15 +63,14 @@ export class FeatureFlagService {
     }
 
     // Retry failed load when connectivity is restored (browser only)
+    // Note: No takeUntilDestroyed needed - this is a root service that lives for app lifetime
     if (isPlatformBrowser(this.platformId)) {
       effect(() => {
         const isOnline = this.connectivityService.isOnline();
 
         // Detect transition from offline to online
         if (isOnline && this.wasOffline && this.loadFailed) {
-          this.getFeatureFlags()
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe();
+          this.getFeatureFlags().subscribe();
         }
 
         this.wasOffline = !isOnline;
@@ -134,14 +133,13 @@ export class FeatureFlagService {
 
   /**
    * Get the value of a specific feature flag.
-   * Uses fail-open logic: returns true if the flag is not explicitly set to false.
-   * This allows non-feature-flagged components (like Features) to always be visible,
-   * while feature-flagged components are controlled by their flag value.
+   * Uses fail-closed logic: returns false until flags are loaded AND feature is explicitly true.
+   * This ensures feature-flagged components are hidden when offline or during loading.
    * @param feature - The feature flag key to retrieve
-   * @returns Boolean value of the feature flag (defaults to true if not set)
+   * @returns Boolean value of the feature flag (defaults to false if not loaded or not set)
    */
   getFeature<T extends FeatureFlagKeys>(feature: T): boolean {
-    return this.features()[feature] !== false;
+    return this.loaded() && this.features()[feature] === true;
   }
 
 }
