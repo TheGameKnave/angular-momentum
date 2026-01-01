@@ -16,8 +16,8 @@ interface CachedScreenshot {
   hash: string;
 }
 
-// Dynamic import types - avoid bundling Playwright at build time
-type PlaywrightBrowser = Awaited<ReturnType<typeof import('playwright')['chromium']['launch']>>;
+// Dynamic import types - playwright-chromium uses playwright-core types
+type PlaywrightBrowser = Awaited<ReturnType<typeof import('playwright-core')['chromium']['launch']>>;
 type PlaywrightPage = Awaited<ReturnType<PlaywrightBrowser['newPage']>>;
 
 /**
@@ -83,14 +83,17 @@ export class ScreenshotService {
 
   /**
    * Initializes the Playwright browser instance if not already running.
+   * Downloads browser at runtime if not present (for Heroku slug size limits).
    * Uses dynamic import to avoid bundling issues with ESM.
    * @returns Promise that resolves when browser is ready
    */
   private async initBrowser(): Promise<void> {
     if (!this.browser) {
       // Dynamic import to avoid ESM bundling issues with Playwright
-      const { chromium } = await import('playwright');
-      this.browser = await chromium.launch({
+      // Using playwright-chromium (smaller than full playwright package)
+      const playwright = await import('playwright-chromium');
+
+      this.browser = await playwright.chromium.launch({
         headless: true,
         args: [
           '--no-sandbox',

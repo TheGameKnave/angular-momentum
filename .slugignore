@@ -5,9 +5,7 @@ tests/
 *.spec.ts
 **/*.spec.ts
 
-# Source TypeScript (compiled to JS)
-client/src/
-server/src/
+# Note: Can't exclude client/src/ or server/src/ - needed during build
 
 # Development/build tools
 node_modules/karma/
