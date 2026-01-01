@@ -1,9 +1,10 @@
-import { Injectable, inject, PLATFORM_ID, REQUEST } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
 
 import packageJson from 'src/../package.json';
+import { EXPRESS_REQUEST } from '../providers/express-request.token';
 
 export interface SeoConfig {
   title?: string;
@@ -32,7 +33,7 @@ export class SeoService {
   private readonly titleService = inject(Title);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly request = inject(REQUEST, { optional: true });
+  private readonly request = inject(EXPRESS_REQUEST, { optional: true });
 
   /** Base URL from package.json siteUrl field */
   private readonly siteUrl: string = packageJson.siteUrl;

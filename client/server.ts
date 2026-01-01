@@ -1,5 +1,4 @@
 import { CommonEngine } from '@angular/ssr/node';
-import { REQUEST } from '@angular/core';
 import express from 'express';
 import compression from 'compression';
 import { createServer } from 'node:http';
@@ -8,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import bootstrap from './src/main.server';
 import { ACCEPT_LANGUAGE } from './src/app/providers/ssr-language.provider';
+import { EXPRESS_REQUEST } from './src/app/providers/express-request.token';
 import { getScreenshotService } from './screenshot-service';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
@@ -156,7 +156,7 @@ app.get('*', (req, res) => {
     url: `${protocol}://${headers.host}${originalUrl}`,
     publicPath: browserDistFolder,
     providers: [
-      { provide: REQUEST, useValue: req },
+      { provide: EXPRESS_REQUEST, useValue: req },
       { provide: ACCEPT_LANGUAGE, useValue: acceptLanguage },
     ],
   });

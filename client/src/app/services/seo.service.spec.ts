@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { Meta, Title } from '@angular/platform-browser';
 import { Router } from '@angular/router';
-import { PLATFORM_ID, REQUEST } from '@angular/core';
+import { PLATFORM_ID } from '@angular/core';
 import { SeoService } from './seo.service';
+import { EXPRESS_REQUEST } from '../providers/express-request.token';
 
 describe('SeoService', () => {
   let service: SeoService;
@@ -107,7 +108,7 @@ describe('SeoService (SSR)', () => {
         { provide: Title, useValue: mockTitle },
         { provide: Router, useValue: mockRouter },
         { provide: PLATFORM_ID, useValue: 'server' },
-        { provide: REQUEST, useValue: mockRequest },
+        { provide: EXPRESS_REQUEST, useValue: mockRequest },
       ],
     });
 
@@ -163,7 +164,7 @@ describe('SeoService (SSR with Express headers)', () => {
         { provide: Title, useValue: mockTitle },
         { provide: Router, useValue: mockRouter },
         { provide: PLATFORM_ID, useValue: 'server' },
-        { provide: REQUEST, useValue: mockRequest },
+        { provide: EXPRESS_REQUEST, useValue: mockRequest },
       ],
     });
 
@@ -207,7 +208,7 @@ describe('SeoService (SSR without host)', () => {
         { provide: Title, useValue: mockTitle },
         { provide: Router, useValue: mockRouter },
         { provide: PLATFORM_ID, useValue: 'server' },
-        { provide: REQUEST, useValue: mockRequest },
+        { provide: EXPRESS_REQUEST, useValue: mockRequest },
       ],
     });
 
