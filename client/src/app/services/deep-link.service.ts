@@ -26,6 +26,7 @@ export class DeepLinkService {
    * Should be called once during app startup (e.g., in AppComponent).
    * Only runs on Tauri mobile platforms (iOS/Android).
    */
+  // istanbul ignore next - Tauri plugin requires native mobile environment, cannot be unit tested
   async initialize(): Promise<void> {
     if (this.initialized) return;
     this.initialized = true;
@@ -59,6 +60,7 @@ export class DeepLinkService {
    * Handle an incoming deep link URL.
    * Extracts the path and navigates to it.
    */
+  // istanbul ignore next - only called from initialize() which requires Tauri mobile environment
   private handleDeepLink(url: string): void {
     this.log.log('[DeepLink] Received deep link:', url);
 
