@@ -4,6 +4,15 @@
  */
 export const changeLog = [
   
+  
+  {
+    version: "21.1.12",
+    date: "2025-12-31",
+    description: "New patch",
+    changes: [
+      "",
+    ]
+  },
   {
     version: "21.1.11",
     date: "2025-12-31",
