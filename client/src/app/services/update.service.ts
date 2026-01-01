@@ -143,6 +143,12 @@ export class UpdateService {
         // istanbul ignore next - guards against rapid duplicate VERSION_READY events
         if (this.confirming) return;
 
+        // Skip if hashes match - no actual update (can happen with navigationRequestStrategy: freshness)
+        if (event.currentVersion.hash === event.latestVersion.hash) {
+          this.logService.log('SW: Hashes match, no update needed');
+          return;
+        }
+
         // Skip dialog if previousVersion wasn't captured (page loaded fresh with new code)
         // This happens when SW cache is stale but page already loaded new code from network
         if (!this.changeLogService.previousVersion()) {

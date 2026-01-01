@@ -228,6 +228,19 @@ describe('UpdateService', () => {
       expect(logMock.log).toHaveBeenCalledWith('SW: No previous version captured, skipping dialog');
       expect(updateDialogMock.show).not.toHaveBeenCalled();
     }));
+
+    it('should skip dialog if hashes match', fakeAsync(async () => {
+      const versionReadyEvent: VersionReadyEvent = {
+        type: 'VERSION_READY',
+        currentVersion: { hash: 'same-hash' },
+        latestVersion: { hash: 'same-hash' }
+      };
+
+      await (service as any).handleSwEvent(versionReadyEvent);
+      tick();
+      expect(logMock.log).toHaveBeenCalledWith('SW: Hashes match, no update needed');
+      expect(updateDialogMock.show).not.toHaveBeenCalled();
+    }));
   });
 
   describe('Tauri updates', () => {
