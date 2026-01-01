@@ -21,7 +21,13 @@
       "updateMode": "prefetch",
       "resources": {
         "files": [
-          "/assets/**",
+          "/assets/browserconfig.xml",
+          "/assets/docs/**",
+          "/assets/fonts/**",
+          "/assets/i18n/**",
+          "/assets/icons/*",
+          "/assets/styles/**",
+          "/media/**",
           "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
         ]
       }

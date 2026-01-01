@@ -59,8 +59,6 @@ export class UpdateService {
     if (!this.isBrowser) return;
     if (!['production', 'staging', 'local'].includes(ENVIRONMENT.env)) return;
 
-    /**/console.log('[UpdateService] init() starting');
-
     // Clear session flag on every page load/refresh
     // This ensures VERSION_READY from the first check cycle is ignored
     sessionStorage.removeItem(UpdateService.SESSION_KEY);
