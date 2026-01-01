@@ -143,6 +143,7 @@ describe('UpdateService', () => {
     }));
 
     it('should handle VERSION_READY and reload if confirmed', fakeAsync(async () => {
+      (service as any).hasInitiatedCheck = true;
       updateDialogMock.show.and.returnValue(Promise.resolve(true));
 
       const versionReadyEvent: VersionReadyEvent = {
@@ -215,6 +216,7 @@ describe('UpdateService', () => {
     }));
 
     it('should skip dialog if no previousVersion was captured', fakeAsync(async () => {
+      (service as any).hasInitiatedCheck = true;
       changeLogMock.previousVersion.and.returnValue(null);
 
       const versionReadyEvent: VersionReadyEvent = {
@@ -230,6 +232,7 @@ describe('UpdateService', () => {
     }));
 
     it('should skip dialog if hashes match', fakeAsync(async () => {
+      // Hash check happens before hasInitiatedCheck, so no need to set it
       const versionReadyEvent: VersionReadyEvent = {
         type: 'VERSION_READY',
         currentVersion: { hash: 'same-hash' },
@@ -239,6 +242,21 @@ describe('UpdateService', () => {
       await (service as any).handleSwEvent(versionReadyEvent);
       tick();
       expect(logMock.log).toHaveBeenCalledWith('SW: Hashes match, no update needed');
+      expect(updateDialogMock.show).not.toHaveBeenCalled();
+    }));
+
+    it('should skip dialog if no check has been initiated yet', fakeAsync(async () => {
+      (service as any).hasInitiatedCheck = false;
+
+      const versionReadyEvent: VersionReadyEvent = {
+        type: 'VERSION_READY',
+        currentVersion: { hash: 'old' },
+        latestVersion: { hash: 'new' }
+      };
+
+      await (service as any).handleSwEvent(versionReadyEvent);
+      tick();
+      expect(logMock.log).toHaveBeenCalledWith('SW: Update from previous session, user already has fresh code');
       expect(updateDialogMock.show).not.toHaveBeenCalled();
     }));
   });

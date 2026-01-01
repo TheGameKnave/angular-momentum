@@ -41,6 +41,7 @@ export class UpdateService {
 
   private confirming = false;
   private checkInProgress = false;
+  private hasInitiatedCheck = false;
 
   constructor() {
     this.init();
@@ -97,6 +98,7 @@ export class UpdateService {
     // This prevents race condition where VERSION_READY fires before checkForUpdate() resolves
     this.changeLogService.capturePreviousVersion();
 
+    this.hasInitiatedCheck = true;
     this.checkInProgress = true;
 
     // Race between checkForUpdate and timeout to prevent indefinite hangs
@@ -146,6 +148,13 @@ export class UpdateService {
         // Skip if hashes match - no actual update (can happen with navigationRequestStrategy: freshness)
         if (event.currentVersion.hash === event.latestVersion.hash) {
           this.logService.log('SW: Hashes match, no update needed');
+          return;
+        }
+
+        // Skip if we haven't initiated a check yet - SW is catching up from previous session
+        // User already has fresh code from this page load
+        if (!this.hasInitiatedCheck) {
+          this.logService.log('SW: Update from previous session, user already has fresh code');
           return;
         }
 
