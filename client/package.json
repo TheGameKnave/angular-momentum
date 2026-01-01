@@ -12,7 +12,7 @@
     "test:debug": "NODE_ENV=development KARMA_CONSOLE=true ng test --configuration test --browsers=ChromeHeadless --watch=false",
     "watch": "NODE_ENV=development ng test",
     "build-heroku": "ng build --configuration=${NODE_ENV} && node scripts/prune-flags.js",
-    "heroku-postbuild": "npm run build-heroku",
+    "heroku-postbuild": "npm run build-heroku && npx playwright install chromium --with-deps",
     "setLocal": "node ./scripts/set-local-env.js",
     "tauri": "tauri",
     "tauri:dev": "npm run setLocal && tauri dev",
