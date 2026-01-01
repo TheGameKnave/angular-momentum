@@ -87,23 +87,25 @@ export class UpdateService {
   }
 
   /**
-   * Capture the manifest hash from ngsw/state at page load time.
-   * This tells us which version the user actually loaded.
+   * Capture the manifest hash from ngsw.json at page load time.
+   * This tells us which version the server is currently serving.
    */
   private captureInitialManifestHash(): void {
-    fetch('/ngsw/state')
-      .then(res => res.text())
-      .then(text => {
-        const match = /Latest manifest hash: ([a-f0-9]+)/.exec(text);
-        if (match) {
-          this.initialManifestHash = match[1];
-          /**/console.log('[UpdateService] initialManifestHash:', this.initialManifestHash);
-        } else {
-          /**/console.log('[UpdateService] Could not parse manifest hash from ngsw/state');
-        }
+    // Fetch the current ngsw.json from server (with cache bust)
+    fetch('/ngsw.json?t=' + Date.now())
+      .then(res => res.json())
+      .then((manifest: { hashTable?: Record<string, string> }) => {
+        /**/console.log('[UpdateService] ngsw.json hashTable sample:', {
+          indexHtml: manifest.hashTable?.['/index.html'],
+          keys: Object.keys(manifest.hashTable || {}).slice(0, 5)
+        });
+        // Actually, let's just log the full state for debugging
+        fetch('/ngsw/state').then(r => r.text()).then(t => {
+          /**/console.log('[UpdateService] /ngsw/state:\n', t);
+        });
       })
       .catch(err => {
-        /**/console.log('[UpdateService] Failed to fetch ngsw/state:', err);
+        /**/console.log('[UpdateService] Failed to fetch ngsw.json:', err);
       });
   }
 
