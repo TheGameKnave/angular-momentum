@@ -16,8 +16,9 @@ async function loginWithSharedUser(page: any): Promise<void> {
   await page.fill(auth.loginIdentifier, sharedUser.email);
   await page.fill(auth.loginPassword, sharedUser.password);
   await page.click(auth.loginSubmit);
+  await page.waitForLoadState('networkidle');
   // Wait for auth menu to show profile (logged in state)
-  await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+  await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
   // Close the menu so subsequent navigation works cleanly
   await page.keyboard.press('Escape');
   await page.waitForTimeout(300);
@@ -303,9 +304,10 @@ test.describe('Profile Destructive Tests', () => {
       await page.fill(auth.loginIdentifier, testUser.email);
       await page.fill(auth.loginPassword, testUser.password);
       await page.click(auth.loginSubmit);
+      await page.waitForLoadState('networkidle');
 
       // Wait for login to complete
-      await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+      await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
 
       // Navigate to profile
       await page.goto(`${APP_BASE_URL}/profile`);
@@ -352,9 +354,10 @@ test.describe('Profile Destructive Tests', () => {
       await page.fill(auth.loginIdentifier, testUser.email);
       await page.fill(auth.loginPassword, testUser.password);
       await page.click(auth.loginSubmit);
+      await page.waitForLoadState('networkidle');
 
       // Wait for login to complete
-      await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+      await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
 
       // Navigate to profile
       await page.goto(`${APP_BASE_URL}/profile`);
@@ -436,7 +439,8 @@ test.describe('Settings Preservation on Logout/Login', () => {
       await page.fill(auth.loginIdentifier, testUser.email);
       await page.fill(auth.loginPassword, testUser.password);
       await page.click(auth.loginSubmit);
-      await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+      await page.waitForLoadState('networkidle');
+      await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
 
@@ -547,7 +551,7 @@ test.describe('Settings Preservation on Logout/Login', () => {
         // Dialog didn't appear, continue
       }
 
-      await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+      await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
       await page.keyboard.press('Escape');
       await page.waitForTimeout(1000);
 

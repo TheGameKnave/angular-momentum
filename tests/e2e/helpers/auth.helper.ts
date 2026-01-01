@@ -86,6 +86,7 @@ export async function cleanupE2ETestUsers(): Promise<{ success: boolean; deleted
 /**
  * Logs in a user via the UI.
  * Opens the auth menu and fills in credentials.
+ * Waits for either profile menu (success) or error toast (failure).
  */
 export async function loginAsTestUser(page: Page, email: string, password: string): Promise<void> {
   // Click auth menu to open
@@ -105,8 +106,11 @@ export async function loginAsTestUser(page: Page, email: string, password: strin
   await page.fill(auth.loginPassword, password);
   await page.click(auth.loginSubmit);
 
-  // Wait for login to complete
-  await page.waitForTimeout(2000);
+  // Wait for network to settle (auth API call)
+  await page.waitForLoadState('networkidle');
+
+  // Wait for login to complete - profile menu appears on success
+  await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
 }
 
 /**

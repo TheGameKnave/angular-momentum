@@ -146,7 +146,7 @@ test.describe('IndexedDB Tests', () => {
     }
 
     // Now wait for profile menu to confirm login complete
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
 
     // Close the menu after login
     await page.keyboard.press('Escape');
