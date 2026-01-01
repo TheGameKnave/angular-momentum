@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, LOCALE_ID } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, LOCALE_ID, OnInit } from '@angular/core';
 import { formatDate } from '@angular/common';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { CardModule } from 'primeng/card';
@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { MarkdownComponent } from 'ngx-markdown';
 import { APP_METADATA } from '@app/constants/app.constants';
 import { CookieConsentService } from '@app/services/cookie-consent.service';
+import { SeoService } from '@app/services/seo.service';
 
 /**
  * Privacy Policy page component.
@@ -24,13 +25,25 @@ import { CookieConsentService } from '@app/services/cookie-consent.service';
     MarkdownComponent,
   ],
 })
-export class PrivacyPolicyComponent {
+export class PrivacyPolicyComponent implements OnInit {
   private readonly locale = inject(LOCALE_ID);
   protected readonly cookieConsentService = inject(CookieConsentService);
+  private readonly seoService = inject(SeoService);
 
   readonly privacyPolicyUrl = '/assets/docs/privacy.md';
   readonly companyName = APP_METADATA.companyName;
   readonly privacyUpdatedDate = formatDate(APP_METADATA.privacyUpdatedDate, 'mediumDate', this.locale);
+
+  /**
+   * Initializes the component by setting SEO meta tags for the privacy policy page.
+   */
+  ngOnInit(): void {
+    this.seoService.updateTags({
+      title: 'Privacy Policy - Angular Momentum',
+      description: 'Privacy policy for Angular Momentum. Learn how we collect, use, and protect your data.',
+      type: 'article',
+    });
+  }
 
   /**
    * Accept analytics cookies.

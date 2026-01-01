@@ -26,6 +26,9 @@
             "ssr": {
               "entry": "server.ts"
             },
+            "externalDependencies": [
+              "playwright"
+            ],
             "polyfills": [],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",

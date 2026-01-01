@@ -1,8 +1,9 @@
-import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID, REQUEST } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
-import { Router, NavigationEnd } from '@angular/router';
-import { isPlatformBrowser } from '@angular/common';
-import { filter } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { isPlatformBrowser, isPlatformServer } from '@angular/common';
+
+import packageJson from 'src/../package.json';
 
 export interface SeoConfig {
   title?: string;
@@ -19,6 +20,9 @@ export interface SeoConfig {
 /**
  * Service for managing SEO meta tags including Open Graph and Twitter Cards.
  * Automatically generates dynamic screenshot URLs for social media previews.
+ *
+ * During SSR, meta tags are rendered into the HTML for crawlers.
+ * The service uses the request URL to construct proper absolute URLs.
  */
 @Injectable({
   providedIn: 'root',
@@ -28,6 +32,10 @@ export class SeoService {
   private readonly titleService = inject(Title);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly request = inject(REQUEST, { optional: true });
+
+  /** Base URL from package.json siteUrl field */
+  private readonly siteUrl: string = packageJson.siteUrl;
 
   private defaultConfig: SeoConfig = {
     title: 'Angular Momentum',
@@ -37,24 +45,6 @@ export class SeoService {
     twitterCard: 'summary_large_image',
   };
 
-  constructor() {
-    this.setupRouterListener();
-  }
-
-  /**
-   * Sets up router event listener to update canonical URL on navigation.
-   */
-  private setupRouterListener(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      this.router.events
-        .pipe(filter((event) => event instanceof NavigationEnd))
-        .subscribe(() => {
-          // Update canonical URL on route change
-          this.updateCanonicalUrl(this.getCurrentUrl());
-        });
-    }
-  }
-
   /**
    * Updates SEO meta tags with the provided configuration.
    * Merges with default config and auto-generates screenshot URL if no image provided.
@@ -62,6 +52,8 @@ export class SeoService {
    */
   updateTags(config: SeoConfig): void {
     const mergedConfig = { ...this.defaultConfig, ...config };
+    const baseUrl = this.getBaseUrl();
+    const currentUrl = mergedConfig.url || this.getCurrentUrl();
 
     // Update title
     if (mergedConfig.title) {
@@ -77,20 +69,17 @@ export class SeoService {
       this.meta.updateTag({ name: 'twitter:description', content: mergedConfig.description });
     }
 
-    // Update image - dynamic screenshot
-    const imageUrl = mergedConfig.image || this.generateDynamicImageUrl(mergedConfig.url);
+    // Update image - use provided image or generate dynamic screenshot URL
+    const imageUrl = mergedConfig.image || this.generateDynamicImageUrl(currentUrl, baseUrl);
     this.meta.updateTag({ property: 'og:image', content: imageUrl });
     this.meta.updateTag({ name: 'twitter:image', content: imageUrl });
-
-    // Add image dimensions for better social media display
     this.meta.updateTag({ property: 'og:image:width', content: '1200' });
     this.meta.updateTag({ property: 'og:image:height', content: '630' });
 
     // Update URL
-    const url = mergedConfig.url || this.getCurrentUrl();
-    this.meta.updateTag({ property: 'og:url', content: url });
-    this.meta.updateTag({ name: 'twitter:url', content: url });
-    this.updateCanonicalUrl(url);
+    this.meta.updateTag({ property: 'og:url', content: currentUrl });
+    this.meta.updateTag({ name: 'twitter:url', content: currentUrl });
+    this.updateCanonicalUrl(currentUrl);
 
     // Update type
     if (mergedConfig.type) {
@@ -107,35 +96,48 @@ export class SeoService {
       this.meta.updateTag({ name: 'twitter:card', content: mergedConfig.twitterCard });
     }
 
-    // Update Twitter site
+    // Update Twitter site handle
     if (mergedConfig.twitterSite) {
       this.meta.updateTag({ name: 'twitter:site', content: mergedConfig.twitterSite });
     }
 
-    // Update Twitter creator
+    // Update Twitter creator handle
     if (mergedConfig.twitterCreator) {
       this.meta.updateTag({ name: 'twitter:creator', content: mergedConfig.twitterCreator });
     }
   }
 
   /**
-   * Generates a dynamic screenshot URL for the given page.
-   * @param pageUrl - Optional URL to generate screenshot for (defaults to current URL)
-   * @returns Full URL to the screenshot API endpoint
+   * Gets the base URL for the application.
+   * During SSR, extracts from the request. In browser, uses window.location.
+   * Falls back to siteUrl from package.json.
    */
-  private generateDynamicImageUrl(pageUrl?: string): string {
-    const url = pageUrl || this.getCurrentUrl();
-    const encodedUrl = encodeURIComponent(url);
-
-    // Generate screenshot URL pointing to our API endpoint
-    // In production, you'd use your actual domain
-    if (isPlatformBrowser(this.platformId)) {
-      return `${window.location.origin}/api/og-image?url=${encodedUrl}`;
+  private getBaseUrl(): string {
+    if (isPlatformServer(this.platformId) && this.request) {
+      // SSR: construct from request headers
+      const host = this.request.headers.get('host');
+      const protocol = this.request.headers.get('x-forwarded-proto') || 'https';
+      if (host) {
+        return `${protocol}://${host}`;
+      }
     }
 
-    // For SSR, we need to construct the full URL
-    // You may want to use an environment variable for the base URL
-    const baseUrl = process.env['SITE_URL'] || 'http://localhost:4000';
+    if (isPlatformBrowser(this.platformId)) {
+      return globalThis.location.origin;
+    }
+
+    // Fallback to configured site URL
+    return this.siteUrl;
+  }
+
+  /**
+   * Generates a dynamic screenshot URL for the given page.
+   * @param pageUrl - The full URL of the page to screenshot
+   * @param baseUrl - The base URL to use for the screenshot API endpoint
+   * @returns Full URL to the screenshot API endpoint
+   */
+  private generateDynamicImageUrl(pageUrl: string, baseUrl: string): string {
+    const encodedUrl = encodeURIComponent(pageUrl);
     return `${baseUrl}/api/og-image?url=${encodedUrl}`;
   }
 
@@ -144,11 +146,13 @@ export class SeoService {
    * @returns The current page URL
    */
   private getCurrentUrl(): string {
+    const baseUrl = this.getBaseUrl();
+
     if (isPlatformBrowser(this.platformId)) {
-      return window.location.href;
+      return globalThis.location.href;
     }
-    // For SSR, construct URL from router state
-    const baseUrl = process.env['SITE_URL'] || 'http://localhost:4000';
+
+    // SSR: construct from router state
     return `${baseUrl}${this.router.url}`;
   }
 

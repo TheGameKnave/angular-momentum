@@ -58,8 +58,8 @@ app.get('/api/og-image', async (req, res): Promise<void> => {
     const screenshotService = getScreenshotService();
     const screenshot = await screenshotService.capture({
       url,
-      width: width ? parseInt(width as string) : 1200,
-      height: height ? parseInt(height as string) : 630,
+      width: width ? Number.parseInt(width as string, 10) : 1200,
+      height: height ? Number.parseInt(height as string, 10) : 630,
       deviceScaleFactor: 2,
       fullPage: false,
     });

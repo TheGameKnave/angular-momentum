@@ -144,7 +144,8 @@ describe('RelativeTimePipe', () => {
     });
 
     it('should return hours for times 2+ hours in the future', () => {
-      const threeHoursFromNow = new Date(Date.now() + 3 * 60 * 60 * 1000);
+      // Add 30s buffer to avoid flaky test when Date.now() shifts between setup and assertion
+      const threeHoursFromNow = new Date(Date.now() + 3 * 60 * 60 * 1000 + 30 * 1000);
       expect(pipe.transform(threeHoursFromNow)).toBe('in 3h');
     });
 

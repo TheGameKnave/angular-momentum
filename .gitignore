@@ -156,3 +156,4 @@ playwright-report/
 
 # Dynamic screenshot cache
 .screenshots-cache/
+test.png

@@ -1,6 +1,6 @@
 # Dynamic Screenshot Generation for SSR
 
-This guide explains how to use the dynamic screenshot generation system for creating live Open Graph images and social media previews that update as your site changes.
+This guide explains how to use the dynamic screenshot generation system for creating live Open Graph images and social media previews.
 
 ## Overview
 
@@ -10,19 +10,18 @@ The system automatically generates screenshots of your pages for social media pr
 
 ### Components
 
-1. **Screenshot Service** ([client/screenshot-service.ts](client/screenshot-service.ts))
-   - Uses Puppeteer to capture page screenshots
+1. **Screenshot Service** (`client/screenshot-service.ts`)
+   - Uses Playwright to capture page screenshots (same library used for e2e tests)
    - Implements caching with configurable expiration
    - Handles browser lifecycle management
    - Generates unique cache keys based on URL and viewport settings
 
-2. **API Endpoint** ([client/server.ts](client/server.ts):69)
+2. **API Endpoint** (`client/server.ts`)
    - Exposes `/api/og-image` endpoint
    - Accepts URL, width, and height parameters
    - Returns PNG images with proper caching headers
-   - Handles errors gracefully
 
-3. **SEO Service** ([client/src/app/services/seo.service.ts](client/src/app/services/seo.service.ts))
+3. **SEO Service** (`client/src/app/services/seo.service.ts`)
    - Angular service for managing meta tags
    - Automatically generates screenshot URLs
    - Updates Open Graph and Twitter Card tags
@@ -95,7 +94,7 @@ Response:
 
 ### Cache Duration
 
-Modify the cache duration in [screenshot-service.ts](client/screenshot-service.ts):
+Modify the cache duration in `screenshot-service.ts`:
 
 ```typescript
 const screenshotService = getScreenshotService();
@@ -122,16 +121,6 @@ export class AppComponent {
 }
 ```
 
-### Environment Variables
-
-For production, set the `SITE_URL` environment variable:
-
-```bash
-SITE_URL=https://yourdomain.com
-```
-
-This ensures correct URLs are generated during SSR.
-
 ## How It Works
 
 ### Screenshot Generation Flow
@@ -141,7 +130,7 @@ This ensures correct URLs are generated during SSR.
 3. **Meta Tags**: SEO service injects Open Graph image URL pointing to `/api/og-image`
 4. **Image Request**: Crawler requests the image from `/api/og-image`
 5. **Cache Check**: Server checks if cached screenshot exists and is valid
-6. **Screenshot**: If no cache, Puppeteer generates new screenshot
+6. **Screenshot**: If no cache, Playwright generates new screenshot
 7. **Caching**: Screenshot is saved to disk with 24-hour expiration
 8. **Response**: Image is returned to crawler with cache headers
 
@@ -155,43 +144,34 @@ This ensures correct URLs are generated during SSR.
 
 ## Testing
 
-### Test with Social Media Debuggers
-
-After deploying, verify your implementation:
-
-1. **Facebook Sharing Debugger**
-   - URL: https://developers.facebook.com/tools/debug/
-   - Enter your page URL
-   - Click "Scrape Again" to refresh
-
-2. **Twitter Card Validator**
-   - URL: https://cards-dev.twitter.com/validator
-   - Enter your page URL
-   - Preview how cards appear
-
-3. **LinkedIn Post Inspector**
-   - URL: https://www.linkedin.com/post-inspector/
-   - Enter your page URL
-   - Verify preview appearance
-
 ### Local Testing
 
 Run the SSR server:
 
 ```bash
 npm run build
-node dist/angular-momentum/server/server.mjs
+npm run start:ssr
 ```
 
 Test the API endpoint:
 
 ```bash
-curl "http://localhost:4000/api/og-image?url=http://localhost:4000/" > test.png
+curl "http://localhost:4000/api/og-image?url=http://localhost:4000/" -o test.png
 ```
 
-### Example Component
+Verify meta tags:
 
-See [dynamic-seo-example.component.ts](client/src/app/examples/dynamic-seo-example.component.ts) for a complete working example.
+```bash
+curl -s http://localhost:4000/ | grep -E "og:|twitter:"
+```
+
+### Social Media Debuggers
+
+After deploying, verify your implementation:
+
+1. **Facebook Sharing Debugger**: https://developers.facebook.com/tools/debug/
+2. **Twitter Card Validator**: https://cards-dev.twitter.com/validator
+3. **LinkedIn Post Inspector**: https://www.linkedin.com/post-inspector/
 
 ## Performance Considerations
 
@@ -211,40 +191,12 @@ See [dynamic-seo-example.component.ts](client/src/app/examples/dynamic-seo-examp
    - Cleanup happens automatically on server shutdown
    - Failed screenshots don't block page rendering
 
-4. **Production Deployment**:
-   - Ensure sufficient memory for Puppeteer
-   - Consider using persistent storage for cache
-   - Monitor cache directory size
-
-### Heroku Configuration
-
-If deploying to Heroku, add the Puppeteer buildpack:
-
-```bash
-heroku buildpacks:add jontewks/puppeteer
-```
-
-Or add to your `app.json`:
-
-```json
-{
-  "buildpacks": [
-    {
-      "url": "heroku/nodejs"
-    },
-    {
-      "url": "https://github.com/jontewks/puppeteer-heroku-buildpack"
-    }
-  ]
-}
-```
-
 ## Troubleshooting
 
 ### Screenshots not generating
 
 - Check server logs for errors
-- Verify Puppeteer dependencies are installed
+- Verify Playwright dependencies are installed
 - Ensure sufficient memory is available
 - Check that the URL is accessible from the server
 
@@ -270,22 +222,6 @@ Or add to your `app.json`:
 ## Security Considerations
 
 1. **URL Validation**: The API validates URL parameters to prevent injection
-2. **Resource Limits**: Puppeteer has timeouts to prevent hanging
+2. **Resource Limits**: Playwright has timeouts to prevent hanging
 3. **Sandboxing**: Browser runs with security flags enabled
 4. **Rate Limiting**: Consider adding rate limiting for production
-
-## Future Enhancements
-
-Potential improvements:
-
-- Add Redis caching for distributed systems
-- Implement screenshot queue for high traffic
-- Add custom viewport presets (mobile, tablet)
-- Support multiple image formats (JPEG, WebP)
-- Add watermarking or overlays
-- Implement CDN integration
-- Add monitoring and analytics
-
-## License
-
-Part of Angular Momentum - see main LICENSE file

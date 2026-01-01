@@ -1,4 +1,3 @@
-import puppeteer, { Browser, Page } from 'puppeteer';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -17,13 +16,18 @@ interface CachedScreenshot {
   hash: string;
 }
 
+// Dynamic import types - avoid bundling Playwright at build time
+type PlaywrightBrowser = Awaited<ReturnType<typeof import('playwright')['chromium']['launch']>>;
+type PlaywrightPage = Awaited<ReturnType<PlaywrightBrowser['newPage']>>;
+
 /**
- * Service for generating and caching page screenshots using Puppeteer.
+ * Service for generating and caching page screenshots using Playwright.
+ * Uses dynamic import to avoid ESM/CommonJS bundling issues.
  * Implements file-based caching with configurable expiration.
  */
 export class ScreenshotService {
-  private browser: Browser | null = null;
-  private cacheDir: string;
+  private browser: PlaywrightBrowser | null = null;
+  private readonly cacheDir: string;
   private cacheDuration: number = 24 * 60 * 60 * 1000; // 24 hours
   private screenshotCache: Map<string, CachedScreenshot> = new Map();
 
@@ -48,7 +52,7 @@ export class ScreenshotService {
       try {
         const data = JSON.parse(readFileSync(indexPath, 'utf-8'));
         this.screenshotCache = new Map(Object.entries(data));
-      } catch (err) {
+      } catch {
         // Failed to load cache index, starting fresh
       }
     }
@@ -62,7 +66,7 @@ export class ScreenshotService {
     try {
       const data = Object.fromEntries(this.screenshotCache);
       writeFileSync(indexPath, JSON.stringify(data, null, 2));
-    } catch (err) {
+    } catch {
       // Failed to save cache index
     }
   }
@@ -78,12 +82,15 @@ export class ScreenshotService {
   }
 
   /**
-   * Initializes the Puppeteer browser instance if not already running.
+   * Initializes the Playwright browser instance if not already running.
+   * Uses dynamic import to avoid bundling issues with ESM.
    * @returns Promise that resolves when browser is ready
    */
   private async initBrowser(): Promise<void> {
     if (!this.browser) {
-      this.browser = await puppeteer.launch({
+      // Dynamic import to avoid ESM bundling issues with Playwright
+      const { chromium } = await import('playwright');
+      this.browser = await chromium.launch({
         headless: true,
         args: [
           '--no-sandbox',
@@ -123,32 +130,51 @@ export class ScreenshotService {
     }
 
     await this.initBrowser();
-    let page: Page | null = null;
+    let page: PlaywrightPage | null = null;
 
     try {
-      page = await this.browser!.newPage();
-
-      await page.setViewport({
-        width,
-        height,
+      page = await this.browser!.newPage({
+        viewport: {
+          width,
+          height,
+        },
         deviceScaleFactor,
       });
 
       // Set a reasonable timeout for page load
       await page.goto(url, {
-        waitUntil: 'networkidle2',
+        waitUntil: 'networkidle',
         timeout: 10000,
       });
 
       // Wait a bit for dynamic content to render
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await page.waitForTimeout(1000);
+
+      // Hide UI elements that shouldn't appear in social previews
+      await page.evaluate(() => {
+        const selectorsToHide = [
+          'app-cookie-banner',      // Cookie consent banner
+          '.cookie-banner',         // Alternative cookie banner class
+          '.p-toast',               // PrimeNG toast notifications
+          '[role="alertdialog"]',   // Alert dialogs
+        ];
+        for (const selector of selectorsToHide) {
+          const elements = document.querySelectorAll(selector);
+          elements.forEach(el => {
+            (el as HTMLElement).style.display = 'none';
+          });
+        }
+      });
 
       const screenshot = await page.screenshot({
         type: 'png',
         fullPage,
       });
 
-      // Cache the screenshot
+      // Cache the screenshot (ensure directory exists in case it was deleted)
+      if (!existsSync(this.cacheDir)) {
+        mkdirSync(this.cacheDir, { recursive: true });
+      }
       const filename = `${cacheKey}.png`;
       const filePath = join(this.cacheDir, filename);
       writeFileSync(filePath, screenshot);
@@ -160,9 +186,7 @@ export class ScreenshotService {
       });
       this.saveCacheIndex();
 
-      return screenshot as Buffer;
-    } catch (err) {
-      throw err;
+      return screenshot;
     } finally {
       if (page) {
         await page.close();
@@ -199,15 +223,13 @@ export class ScreenshotService {
 }
 
 // Singleton instance
-let screenshotService: ScreenshotService | null = null;
+let screenshotService: ScreenshotService | null;
 
 /**
  * Gets or creates the singleton screenshot service instance.
  * @returns The shared ScreenshotService instance
  */
 export function getScreenshotService(): ScreenshotService {
-  if (!screenshotService) {
-    screenshotService = new ScreenshotService();
-  }
+  screenshotService ??= new ScreenshotService();
   return screenshotService;
 }

@@ -10,6 +10,7 @@ import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { ConnectivityService } from '@app/services/connectivity.service';
 import { AuthService } from '@app/services/auth.service';
+import { SeoService } from '@app/services/seo.service';
 
 /**
  * Features component that provides a UI for managing application feature flags.
@@ -37,6 +38,7 @@ export class FeaturesComponent implements OnInit {
   readonly destroyRef = inject(DestroyRef);
   protected readonly connectivity = inject(ConnectivityService);
   protected readonly authService = inject(AuthService);
+  private readonly seoService = inject(SeoService);
 
   Object = Object;
   featureForm = new FormGroup<Record<string, FormControl>>({});
@@ -78,6 +80,13 @@ export class FeaturesComponent implements OnInit {
    */
   ngOnInit(): void {
     this.connectivity.start();
+
+    // Set SEO meta tags for the features page
+    this.seoService.updateTags({
+      title: 'Features - Angular Momentum',
+      description: 'Manage application feature flags. Enable or disable features in real-time with instant synchronization across all clients.',
+      type: 'website',
+    });
 
     // Build form controls based on current feature flags
     const features = this.featureFlagService.features();
