@@ -1,6 +1,6 @@
 [package]
 name = "angular-momentum"
-version = "21.1.10"
+version = "21.1.11"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
