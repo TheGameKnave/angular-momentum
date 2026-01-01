@@ -205,6 +205,7 @@ export class AppComponent implements OnInit {
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd){
         this.routePath = event.urlAfterRedirects.replace('/', '').replace(/\//, '_') || 'index';
+        this.breadcrumb = '';
         COMPONENT_LIST.forEach((component) => {
           if(this.slugPipe.transform(component.name) === this.routePath){
             this.breadcrumb = component.name;
