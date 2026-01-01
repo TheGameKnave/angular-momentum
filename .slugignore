@@ -1,8 +1,19 @@
 # .slugignore
 
-# Ignore test-related dependencies and files
+# Test files and directories
+tests/
+*.spec.ts
+**/*.spec.ts
+
+# Source TypeScript (compiled to JS)
+client/src/
+server/src/
+
+# Development/build tools
 node_modules/karma/
-node_modules/jest-runner/
+node_modules/karma-*/
+node_modules/jasmine*/
+node_modules/jest*/
 node_modules/typescript/
 node_modules/webpack/
 node_modules/webpack-dev-server/
@@ -14,7 +25,21 @@ node_modules/esbuild-wasm/
 node_modules/@types/
 node_modules/sass/
 node_modules/less/
+node_modules/@angular/cli/
+node_modules/@angular-devkit/
+node_modules/eslint*/
+node_modules/@eslint/
+node_modules/@typescript-eslint/
+node_modules/prettier/
+node_modules/source-map/
+node_modules/source-map-support/
 
-# Other potential candidates
-# *.ts
-# *.map
+# Tauri (desktop app - not needed for web)
+client/src-tauri/
+
+# Documentation
+*.md
+!README.md
+
+# Source maps (large)
+*.map
