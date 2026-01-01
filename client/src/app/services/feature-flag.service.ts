@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Injectable, makeStateKey, PLATFORM_ID, signal, TransferState } from '@angular/core';
+import { DestroyRef, effect, inject, Injectable, makeStateKey, PLATFORM_ID, signal, TransferState } from '@angular/core';
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Socket } from 'ngx-socket-io';
@@ -7,6 +7,7 @@ import { catchError, map, Observable, of, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import equal from 'fast-deep-equal';
 import { ArbitraryFeatures, FeatureFlagResponse } from '@app/models/data.model';
+import { ConnectivityService } from './connectivity.service';
 
 const FEATURE_FLAGS_KEY = makeStateKey<FeatureFlagResponse>('featureFlags');
 
@@ -33,11 +34,16 @@ export class FeatureFlagService {
   protected readonly socket = inject(Socket, { optional: true }); // Optional for SSR
   private readonly transferState = inject(TransferState);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly connectivityService = inject(ConnectivityService);
 
   features = signal<Partial<Record<FeatureFlagKeys, boolean>>>({});
   /** Indicates whether feature flags have been loaded (for fail-closed behavior) */
   loaded = signal(false);
   private readonly destroyRef = inject(DestroyRef);
+
+  /** Tracks if initial load failed due to offline/network error */
+  private loadFailed = false;
+  private wasOffline = false;
 
   constructor() {
     // Check TransferState first (for SSR hydration)
@@ -53,6 +59,22 @@ export class FeatureFlagService {
       this.socket.on('update-feature-flags', (update: FeatureFlagResponse) => {
         const newFeatures: ArbitraryFeatures = { ...this.features(), ...update };
         this.features.set(newFeatures);
+      });
+    }
+
+    // Retry failed load when connectivity is restored (browser only)
+    if (isPlatformBrowser(this.platformId)) {
+      effect(() => {
+        const isOnline = this.connectivityService.isOnline();
+
+        // Detect transition from offline to online
+        if (isOnline && this.wasOffline && this.loadFailed) {
+          this.getFeatureFlags()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe();
+        }
+
+        this.wasOffline = !isOnline;
       });
     }
   }
@@ -75,6 +97,7 @@ export class FeatureFlagService {
       tap((featureFlags) => {
         this.features.set(featureFlags);
         this.loaded.set(true);
+        this.loadFailed = false; // Clear failure flag on success
 
         // Store in TransferState on server for SSR hydration
         if (isPlatformServer(this.platformId)) {
@@ -82,7 +105,8 @@ export class FeatureFlagService {
         }
       }),
       catchError((error: unknown) => {
-        /**/console.error('Error getting feature flags:', error);
+        console.error('Error getting feature flags:', error);
+        this.loadFailed = true; // Mark for retry when online
         // Return a default value or an empty observable
         return of({} as FeatureFlagResponse);
       })
