@@ -27,7 +27,9 @@
               "entry": "server.ts"
             },
             "externalDependencies": [
-              "playwright"
+              "playwright",
+              "playwright-chromium",
+              "playwright-core"
             ],
             "polyfills": [],
             "tsConfig": "tsconfig.app.json",
