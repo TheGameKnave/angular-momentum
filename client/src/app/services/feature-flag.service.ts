@@ -63,14 +63,13 @@ export class FeatureFlagService {
     }
 
     // Retry failed load when connectivity is restored (browser only)
-    // Note: No takeUntilDestroyed needed - this is a root service that lives for app lifetime
     if (isPlatformBrowser(this.platformId)) {
       effect(() => {
         const isOnline = this.connectivityService.isOnline();
 
         // Detect transition from offline to online
         if (isOnline && this.wasOffline && this.loadFailed) {
-          this.getFeatureFlags().subscribe();
+          this.getFeatureFlags().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
         }
 
         this.wasOffline = !isOnline;

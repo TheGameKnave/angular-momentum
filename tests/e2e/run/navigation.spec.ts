@@ -182,4 +182,52 @@ test.describe('Navigation & Layout Tests', () => {
     // Should be back on landing page
     expect(page.url()).toMatch(/\/$/);
   });
+
+  // ============================================================================
+  // BREADCRUMB TESTS
+  // ============================================================================
+
+  test('Breadcrumb shows component name when on component page', async ({ page }) => {
+    // Navigate to features page
+    await page.click(menus.featureLink('features'));
+    await waitForAngular(page);
+
+    // Breadcrumb should show "Momentum | Features"
+    const breadcrumbs = page.locator('.breadcrumbs');
+    await expect(breadcrumbs).toContainText('Features');
+  });
+
+  test('Breadcrumb clears when navigating to root', async ({ page }) => {
+    // First navigate to a component page
+    await page.click(menus.featureLink('features'));
+    await waitForAngular(page);
+
+    // Verify breadcrumb is set
+    const breadcrumbs = page.locator('.breadcrumbs');
+    await expect(breadcrumbs).toContainText('Features');
+
+    // Navigate back to root
+    await page.click(common.homeLink);
+    await waitForAngular(page);
+
+    // Breadcrumb should only show "Momentum" (no component name)
+    await expect(breadcrumbs).not.toContainText('|');
+  });
+
+  test('Breadcrumb updates when navigating between components', async ({ page }) => {
+    // Navigate to features page
+    await page.click(menus.featureLink('features'));
+    await waitForAngular(page);
+
+    const breadcrumbs = page.locator('.breadcrumbs');
+    await expect(breadcrumbs).toContainText('Features');
+
+    // Navigate to a different component (if available)
+    const graphqlLink = page.locator(menus.featureLink('graphql'));
+    if (await graphqlLink.isVisible().catch(() => false)) {
+      await graphqlLink.click();
+      await waitForAngular(page);
+      await expect(breadcrumbs).toContainText('GraphQL API');
+    }
+  });
 });
