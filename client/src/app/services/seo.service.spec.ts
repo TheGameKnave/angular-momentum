@@ -134,6 +134,52 @@ describe('SeoService (SSR)', () => {
   });
 });
 
+describe('SeoService (SSR with Express headers)', () => {
+  let service: SeoService;
+  let mockMeta: jasmine.SpyObj<Meta>;
+  let mockTitle: jasmine.SpyObj<Title>;
+  let mockRouter: jasmine.SpyObj<Router>;
+  let mockRequest: { headers: Record<string, string> };
+
+  beforeEach(() => {
+    mockMeta = jasmine.createSpyObj('Meta', ['updateTag']);
+    mockTitle = jasmine.createSpyObj('Title', ['setTitle']);
+    mockRouter = jasmine.createSpyObj('Router', [], {
+      url: '/test-page',
+      events: { pipe: () => ({ subscribe: () => ({}) }) },
+    });
+    // Express-style headers (object properties, not .get() method)
+    mockRequest = {
+      headers: {
+        'host': 'staging.example.com',
+        'x-forwarded-proto': 'https',
+      },
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        SeoService,
+        { provide: Meta, useValue: mockMeta },
+        { provide: Title, useValue: mockTitle },
+        { provide: Router, useValue: mockRouter },
+        { provide: PLATFORM_ID, useValue: 'server' },
+        { provide: REQUEST, useValue: mockRequest },
+      ],
+    });
+
+    service = TestBed.inject(SeoService);
+  });
+
+  it('should use Express-style headers for base URL during SSR', () => {
+    service.updateTags({ title: 'Express SSR Test' });
+
+    expect(mockMeta.updateTag).toHaveBeenCalledWith({
+      property: 'og:url',
+      content: 'https://staging.example.com/test-page',
+    });
+  });
+});
+
 describe('SeoService (SSR without host)', () => {
   let service: SeoService;
   let mockMeta: jasmine.SpyObj<Meta>;

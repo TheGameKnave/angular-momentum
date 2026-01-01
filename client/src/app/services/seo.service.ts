@@ -115,8 +115,14 @@ export class SeoService {
   private getBaseUrl(): string {
     if (isPlatformServer(this.platformId) && this.request) {
       // SSR: construct from request headers
-      const host = this.request.headers.get('host');
-      const protocol = this.request.headers.get('x-forwarded-proto') || 'https';
+      // Express uses req.headers['name'], not req.headers.get('name')
+      const headers = this.request.headers as unknown as Record<string, string | undefined> & { get?: (name: string) => string | null };
+      const host = typeof headers.get === 'function'
+        ? headers.get('host')
+        : headers['host'];
+      const protocol = (typeof headers.get === 'function'
+        ? headers.get('x-forwarded-proto')
+        : headers['x-forwarded-proto']) || 'https';
       if (host) {
         return `${protocol}://${host}`;
       }
