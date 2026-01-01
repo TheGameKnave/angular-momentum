@@ -1,4 +1,5 @@
 import { CommonEngine } from '@angular/ssr/node';
+import { REQUEST } from '@angular/core';
 import express from 'express';
 import compression from 'compression';
 import { createServer } from 'node:http';
@@ -155,7 +156,7 @@ app.get('*', (req, res) => {
     url: `${protocol}://${headers.host}${originalUrl}`,
     publicPath: browserDistFolder,
     providers: [
-      { provide: 'REQUEST', useValue: req },
+      { provide: REQUEST, useValue: req },
       { provide: ACCEPT_LANGUAGE, useValue: acceptLanguage },
     ],
   });
