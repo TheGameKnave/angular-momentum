@@ -24,7 +24,7 @@ export const UPDATE_CONFIG = {
    * Interval for checking updates in milliseconds.
    * Set to 15 minutes (900,000 ms) to balance responsiveness with network efficiency.
    */
-  CHECK_INTERVAL_MS: 1.05 * 60 * 1000,
+  CHECK_INTERVAL_MS: 10.05 * 60 * 1000,
   /**
    * Timeout for update check in milliseconds.
    * If checkForUpdate() doesn't resolve within this time, abort and allow retry.
