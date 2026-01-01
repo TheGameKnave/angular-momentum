@@ -41,7 +41,9 @@ export class UpdateService {
 
   private confirming = false;
   private checkInProgress = false;
-  private initialManifestHash: string | null = null;
+
+  // Key used to track if the app has been active in this browser session
+  private static readonly SESSION_KEY = 'sw_session_active';
 
   constructor() {
     this.init();
@@ -58,9 +60,7 @@ export class UpdateService {
     if (!['production', 'staging', 'local'].includes(ENVIRONMENT.env)) return;
 
     /**/console.log('[UpdateService] init() starting');
-
-    // Capture the manifest hash at page load time - this represents the version the user loaded
-    this.captureInitialManifestHash();
+    /**/console.log('[UpdateService] sessionStorage[sw_session_active]:', sessionStorage.getItem(UpdateService.SESSION_KEY));
 
     // Clear any stale previousVersion on fresh page load
     // If user reloaded the page, they already have the new code - no update dialog needed
@@ -83,30 +83,15 @@ export class UpdateService {
         this.checkServiceWorkerUpdate();
         this.checkTauriUpdate();
       });
-    /**/console.log('[UpdateService] init() done');
-  }
 
-  /**
-   * Capture the manifest hash from ngsw.json at page load time.
-   * This tells us which version the server is currently serving.
-   */
-  private captureInitialManifestHash(): void {
-    // Fetch the current ngsw.json from server (with cache bust)
-    fetch('/ngsw.json?t=' + Date.now())
-      .then(res => res.json())
-      .then((manifest: { hashTable?: Record<string, string> }) => {
-        /**/console.log('[UpdateService] ngsw.json hashTable sample:', {
-          indexHtml: manifest.hashTable?.['/index.html'],
-          keys: Object.keys(manifest.hashTable || {}).slice(0, 5)
-        });
-        // Actually, let's just log the full state for debugging
-        fetch('/ngsw/state').then(r => r.text()).then(t => {
-          /**/console.log('[UpdateService] /ngsw/state:\n', t);
-        });
-      })
-      .catch(err => {
-        /**/console.log('[UpdateService] Failed to fetch ngsw.json:', err);
-      });
+    // Mark session as active AFTER first update check completes
+    // This ensures we don't show dialogs on fresh page loads
+    setTimeout(() => {
+      sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
+      /**/console.log('[UpdateService] Session marked as active');
+    }, 5000);
+
+    /**/console.log('[UpdateService] init() done');
   }
 
   // --- Angular SW ---
@@ -176,29 +161,21 @@ export class UpdateService {
     /**/console.log('[UpdateService] handleSwEvent:', event.type, event);
     switch (event.type) {
       case 'VERSION_READY': {
-        /**/console.log('[UpdateService] VERSION_READY - initialManifestHash:', this.initialManifestHash);
-        /**/console.log('[UpdateService] VERSION_READY - currentHash (SW cached):', event.currentVersion.hash);
-        /**/console.log('[UpdateService] VERSION_READY - latestHash (new version):', event.latestVersion.hash);
+        const isSessionActive = sessionStorage.getItem(UpdateService.SESSION_KEY) === 'true';
+        /**/console.log('[UpdateService] VERSION_READY - isSessionActive:', isSessionActive);
         // istanbul ignore next - guards against rapid duplicate VERSION_READY events
         if (this.confirming) return;
 
-        // Skip if hashes match - no actual update (can happen with navigationRequestStrategy: freshness)
-        if (event.currentVersion.hash === event.latestVersion.hash) {
-          /**/console.log('[UpdateService] SKIPPING: SW hashes match');
-          this.logService.log('SW: Hashes match, no update needed');
+        // Skip if this is a fresh page load (session not yet active)
+        // On fresh load, user already has the latest code from the server
+        // Only show update dialog if user has been actively using the app
+        if (!isSessionActive) {
+          /**/console.log('[UpdateService] SKIPPING: fresh page load (session not active)');
+          this.logService.log('SW: Fresh page load, skipping update dialog');
           return;
         }
 
-        // Skip if user already loaded the latest version (fresh page load after deploy)
-        // The initialManifestHash is captured from /ngsw/state at page load time
-        if (this.initialManifestHash && this.initialManifestHash === event.latestVersion.hash) {
-          /**/console.log('[UpdateService] SKIPPING: already running latest (hash match)');
-          this.logService.log('SW: Already running latest version, skipping dialog');
-          return;
-        }
-
-        // Skip dialog if previousVersion wasn't captured (page loaded fresh with new code)
-        // This happens when SW cache is stale but page already loaded new code from network
+        // Skip dialog if previousVersion wasn't captured
         if (!this.changeLogService.previousVersion()) {
           /**/console.log('[UpdateService] SKIPPING: no previousVersion');
           this.logService.log('SW: No previous version captured, skipping dialog');
