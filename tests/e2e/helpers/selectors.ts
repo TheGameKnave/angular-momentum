@@ -122,6 +122,11 @@ export const common = {
   // Navigation
   homeLink: '.link-home',
 
+  // Footer elements (feature-gated)
+  footer: '.footer',
+  footerVersion: 'app-menu-change-log',
+  footerLanguage: 'app-menu-language',
+
   // Toast messages
   toast: 'p-toast',
   toastMessage: 'p-toast .p-toast-message',

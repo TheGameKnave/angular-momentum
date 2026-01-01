@@ -33,7 +33,7 @@ export type ChangeImpact = 'patch' | 'minor' | 'major';
  * Defines the structure for navigable page components with their metadata.
  *
  * @property name - Display name (used in UI, routing, and as translation key)
- * @property loadComponent - Lazy load function returning the component class
+ * @property component - The component class to render
  * @property icon - PrimeIcons CSS class for the component's icon
  * @property route - Optional custom route path (defaults to slugified name)
  * @property featureFlagged - If true, visibility is controlled by feature flags (fail-closed)
@@ -41,7 +41,7 @@ export type ChangeImpact = 'patch' | 'minor' | 'major';
 export interface ComponentListEntry {
   readonly name: string;
   readonly route?: string;
-  readonly loadComponent: () => Promise<Type<unknown>>;
+  readonly component: Type<unknown>;
   readonly icon: string;
   readonly featureFlagged?: boolean;
 }

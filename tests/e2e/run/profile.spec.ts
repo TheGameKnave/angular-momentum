@@ -564,11 +564,12 @@ test.describe('Settings Preservation on Logout/Login', () => {
       const afterLoginTheme = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
       expect(afterLoginTheme).toBe(false);
 
-      // Verify timezone contains "Asia" (we selected the first Asia option)
+      // Verify timezone was restored (we selected Asia/Tokyo which shows as "Tokio" in Spanish)
+      // Check for Tokyo/Tokio since the display is translated but the value was Asia/Tokyo
       const timezoneValue = await page.locator(`${pages.profileTimezone} span.p-select-label`).textContent();
-      expect(timezoneValue).toContain('Asia');
+      expect(timezoneValue).toMatch(/Tok[iy]o/i);
 
-      console.log('After login: lang=es, theme=light, timezone=Asia/... (verified)');
+      console.log('After login: lang=es, theme=light, timezone=Asia/Tokyo (verified)');
 
       // ========================================================================
       // STEP 5: Logout again - verify anonymous language (de) is preserved

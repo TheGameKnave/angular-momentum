@@ -4,7 +4,7 @@ import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { filter } from 'rxjs';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { SlugPipe } from '@app/pipes/slug.pipe';
-import { FeatureFlagService } from '@app/services/feature-flag.service';
+import { ScrollIndicatorDirective } from '@app/directives/scroll-indicator.directive';
 import { HelpersService } from '@app/services/helpers.service';
 import { SCREEN_SIZES, TOOLTIP_CONFIG } from '@app/constants/ui.constants';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -28,10 +28,10 @@ import { ConnectivityService } from '@app/services/connectivity.service';
     RouterModule,
     TranslocoDirective,
     TooltipModule,
+    ScrollIndicatorDirective,
   ],
 })
 export class MenuFeatureComponent implements OnInit, AfterViewInit {
-  protected featureFlagService = inject(FeatureFlagService);
   protected readonly helpersService = inject(HelpersService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);

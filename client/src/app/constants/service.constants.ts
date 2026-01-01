@@ -22,9 +22,15 @@ export const NOTIFICATION_CONFIG = {
 export const UPDATE_CONFIG = {
   /**
    * Interval for checking updates in milliseconds.
-   * Set to 15 minutes (900,000 ms) to balance freshness with server load.
+   * Set to 15 minutes (900,000 ms) to balance responsiveness with network efficiency.
    */
   CHECK_INTERVAL_MS: 15 * 60 * 1000,
+  /**
+   * Timeout for update check in milliseconds.
+   * If checkForUpdate() doesn't resolve within this time, abort and allow retry.
+   * Set to 30 seconds to handle slow networks while avoiding indefinite hangs.
+   */
+  CHECK_TIMEOUT_MS: 30 * 1000,
 } as const;
 
 /**

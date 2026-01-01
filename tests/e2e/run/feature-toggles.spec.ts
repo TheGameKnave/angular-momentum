@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { APP_BASE_URL, API_BASE_URL } from '../data/constants';
 import { assertNoMissingTranslations, waitForAngular, dismissCookieBanner } from '../helpers/assertions.helper';
-import { pages, getFeatureToggleByName } from '../helpers/selectors';
+import { pages, common, getFeatureToggleByName } from '../helpers/selectors';
 
 /**
  * Feature flags that control page visibility.
@@ -30,10 +30,18 @@ async function setFeatureFlag(feature: string, value: boolean): Promise<void> {
 }
 
 /**
+ * Footer-related feature flags.
+ */
+const FOOTER_FEATURES = ['App Version', 'Language'] as const;
+
+/**
  * Helper to enable all feature flags.
  */
 async function enableAllFeatures(): Promise<void> {
   for (const feature of Object.keys(FEATURE_PAGES)) {
+    await setFeatureFlag(feature, true);
+  }
+  for (const feature of FOOTER_FEATURES) {
     await setFeatureFlag(feature, true);
   }
 }
@@ -208,5 +216,55 @@ test.describe('Feature Toggle Tests', () => {
     const authPrompt = page.locator('text=Register or log in to access all features');
     await expect(authPrompt).toBeVisible();
 
+  });
+
+  // ============================================================================
+  // FEATURE-GATED FOOTER TESTS
+  // ============================================================================
+
+  test('Footer version is visible when App Version flag is enabled', async ({ page }) => {
+    // Ensure flag is enabled
+    await setFeatureFlag('App Version', true);
+    await page.reload();
+    await waitForAngular(page);
+
+    // Version element should be visible
+    await expect(page.locator(common.footerVersion)).toBeVisible();
+  });
+
+  test('Footer version is hidden when App Version flag is disabled', async ({ page }) => {
+    // Disable the flag
+    await setFeatureFlag('App Version', false);
+    await page.reload();
+    await waitForAngular(page);
+
+    // Version element should not be visible
+    await expect(page.locator(common.footerVersion)).not.toBeVisible();
+
+    // Re-enable for cleanup
+    await setFeatureFlag('App Version', true);
+  });
+
+  test('Footer language selector is visible when Language flag is enabled', async ({ page }) => {
+    // Ensure flag is enabled
+    await setFeatureFlag('Language', true);
+    await page.reload();
+    await waitForAngular(page);
+
+    // Language element should be visible
+    await expect(page.locator(common.footerLanguage)).toBeVisible();
+  });
+
+  test('Footer language selector is hidden when Language flag is disabled', async ({ page }) => {
+    // Disable the flag
+    await setFeatureFlag('Language', false);
+    await page.reload();
+    await waitForAngular(page);
+
+    // Language element should not be visible
+    await expect(page.locator(common.footerLanguage)).not.toBeVisible();
+
+    // Re-enable for cleanup
+    await setFeatureFlag('Language', true);
   });
 });

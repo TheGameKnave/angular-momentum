@@ -41,6 +41,7 @@ describe('AppComponent', () => {
   beforeEach(() => {
     updateService = jasmine.createSpyObj('UpdateService', ['checkForUpdates']);
     featureFlagService = jasmine.createSpyObj('FeatureFlagService', ['getFeature']);
+    featureFlagService.getFeature.and.returnValue(true); // Default: features enabled
     slugPipe = jasmine.createSpyObj('SlugPipe', ['transform']);
 
     routerEvents$ = new Subject<any>();
@@ -113,17 +114,20 @@ describe('AppComponent', () => {
       expect(component.breadcrumb).toBe('Features');
     });
 
-    it('should clear breadcrumb if no routePath', () => {
-      component.breadcrumb = '';
-      component.routePath = '';
+    it('should clear breadcrumb when navigating from component to root', () => {
+      // Start on a component page with breadcrumb set
+      component.breadcrumb = 'Features';
+      component.routePath = 'features';
       slugPipe.transform.calls.reset();
       slugPipe.transform.and.callFake((name: string) => {
         return name.toLowerCase().replace(/\s+/g, '-');
       });
 
+      // Navigate to root
       const navEvent = new NavigationEnd(1, '/', '/');
       routerEvents$.next(navEvent);
 
+      // Breadcrumb should be cleared (no component matches 'index')
       expect(component.breadcrumb).toBe('');
       expect(component.routePath).toBe('index');
     });
@@ -197,6 +201,33 @@ describe('AppComponent', () => {
       expect(document.body.classList.contains('screen-sm')).toBeTrue();
       expect(document.body.classList.contains('not-md')).toBeFalse();
       expect(document.body.classList.contains('screen-md')).toBeTrue();
+    });
+
+    it('should preserve viewport-ready class when updating route classes', () => {
+      document.body.classList.add('viewport-ready');
+      component.routePath = 'test-route';
+      component.bodyClasses();
+      expect(document.body.classList.contains('viewport-ready')).toBeTrue();
+      expect(document.body.classList.contains('test-route')).toBeTrue();
+    });
+
+    it('should preserve app- prefixed classes when updating route classes', () => {
+      document.body.classList.add('app-theme-dark');
+      component.routePath = 'new-route';
+      component.bodyClasses();
+      expect(document.body.classList.contains('app-theme-dark')).toBeTrue();
+      expect(document.body.classList.contains('new-route')).toBeTrue();
+    });
+
+    it('should remove old route class when route changes', () => {
+      component.routePath = 'old-route';
+      component.bodyClasses();
+      expect(document.body.classList.contains('old-route')).toBeTrue();
+
+      component.routePath = 'new-route';
+      component.bodyClasses();
+      expect(document.body.classList.contains('old-route')).toBeFalse();
+      expect(document.body.classList.contains('new-route')).toBeTrue();
     });
   });
 

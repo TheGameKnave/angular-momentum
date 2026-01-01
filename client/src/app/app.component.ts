@@ -159,12 +159,15 @@ export class AppComponent implements OnInit {
     this.logService.log('[Dev] Triggering update dialog (Ctrl+Shift+U)...');
 
     // Spoof an older version to show all changelog entries
+    // Set previousVersion first (simulates VERSION_DETECTED capturing it)
+    this.changeLogService.previousVersion.set('0.0.0');
     this.changeLogService.devVersionOverride.set('0.0.0');
 
     this.updateDialogService.show().then(confirmed => {
       // istanbul ignore next - promise callback for dev tool, covered by triggering the dialog
       this.logService.log('[Dev] Update dialog result:', confirmed ? 'confirmed' : 'dismissed');
       this.changeLogService.devVersionOverride.set(null);
+      this.changeLogService.clearPreviousVersion();
     });
   }
 
@@ -202,6 +205,7 @@ export class AppComponent implements OnInit {
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd){
         this.routePath = event.urlAfterRedirects.replace('/', '').replace(/\//, '_') || 'index';
+        this.breadcrumb = '';
         COMPONENT_LIST.forEach((component) => {
           if(this.slugPipe.transform(component.name) === this.routePath){
             this.breadcrumb = component.name;

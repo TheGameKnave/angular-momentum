@@ -1,6 +1,8 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, effect, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Socket } from 'ngx-socket-io';
 import { Observable, EMPTY } from 'rxjs';
+import { ConnectivityService } from './connectivity.service';
 
 /**
  * Service for WebSocket communication using Socket.IO.
@@ -10,13 +12,32 @@ import { Observable, EMPTY } from 'rxjs';
  * Wraps the ngx-socket-io Socket for easier testing and usage.
  *
  * During SSR, the socket is not available and all operations are no-ops.
+ *
+ * Automatically disconnects when offline and reconnects when online
+ * to prevent unnecessary reconnection attempts flooding the console.
  */
 @Injectable({
   providedIn: 'root',
 })
 export class SocketIoService {
   readonly socket = inject(Socket, { optional: true }); // Optional for SSR
+  private readonly connectivity = inject(ConnectivityService);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
+  constructor() {
+    // Auto-manage socket connection based on connectivity
+    // istanbul ignore next - effect runs in browser only
+    if (this.isBrowser && this.socket) {
+      effect(() => {
+        if (this.connectivity.isOnline()) {
+          this.socket?.connect();
+        } else {
+          this.socket?.disconnect();
+        }
+      });
+    }
+  }
 
   /**
    * Listen to a WebSocket event.

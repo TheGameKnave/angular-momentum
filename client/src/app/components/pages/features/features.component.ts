@@ -43,9 +43,17 @@ export class FeaturesComponent implements OnInit {
   featureKey = getFeatureTranslationKey;
 
   constructor(){
-    // Keep form in sync with signal changes
+    // Keep form in sync with signal changes (including when flags load after offline recovery)
     effect(() => {
       const features = this.featureFlagService.features();
+
+      // Add any missing controls (e.g., when flags load after component init)
+      for (const [key, value] of Object.entries(features)) {
+        if (!this.featureForm.contains(key)) {
+          this.featureForm.addControl(key, new FormControl(value), { emitEvent: false });
+        }
+      }
+
       this.featureForm.patchValue(features, { emitEvent: false });
     });
 

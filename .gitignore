@@ -147,6 +147,7 @@ tests/e2e/screenshots/**/out.png
 # Playwright
 test-results/
 tests/e2e/screenshots/test-results/
+tests/e2e/screenshots/smoke-results/
 tests/e2e/playwright-report/
 playwright-report/
 

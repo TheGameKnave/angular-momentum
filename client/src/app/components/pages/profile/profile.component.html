@@ -424,7 +424,7 @@
           <dt>{{ t('profile.Timezone') }}:</dt>
           <dd class="timezone-select">
             <p-select
-              [options]="commonTimezones"
+              [options]="commonTimezones()"
               [ngModel]="userSettingsService.timezonePreference()"
               (onChange)="onTimezoneChange($event)"
               [loading]="timezoneLoading()"

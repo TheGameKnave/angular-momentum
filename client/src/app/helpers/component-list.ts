@@ -1,19 +1,24 @@
 import { COMPONENT_NAMES } from "@app/constants/translations.constants";
 import { ComponentListEntry } from "@app/models/data.model";
+import { FeaturesComponent } from "@app/components/pages/features/features.component";
+import { GraphqlApiComponent } from "@app/components/pages/graphql-api/graphql-api.component";
+import { IndexedDBComponent } from "@app/components/pages/indexeddb/indexeddb.component";
+import { InstallersComponent } from "@app/components/pages/installers/installers.component";
+import { NotificationsComponent } from "@app/components/pages/notifications/notifications.component";
 
 /**
  * Registry of available page components with their metadata.
  * This constant defines all navigable components in the application,
- * including their display names, lazy loaders, and associated icons.
+ * including their display names, component references, and associated icons.
  *
  * Used for:
- * - Dynamic component loading (lazy-loaded for performance)
+ * - Route configuration
  * - Navigation menu generation
  * - Feature flag mapping
  *
  * Each entry contains:
  * - name: Display name for the component (used in UI and routing, also a translation key)
- * - loadComponent: Async function that lazy-loads the component
+ * - component: The component class to render
  * - icon: PrimeIcons CSS class for the component's icon
  * - route: Optional custom route path (defaults to slugified name)
  * - featureFlagged: If true, component visibility is controlled by feature flags (fail-closed).
@@ -25,30 +30,30 @@ export const COMPONENT_LIST: readonly ComponentListEntry[] = [
   {
     name: COMPONENT_NAMES.FEATURES,
     route: 'features',
-    loadComponent: () => import('@app/components/pages/features/features.component').then(m => m.FeaturesComponent),
+    component: FeaturesComponent,
     icon: 'pi pi-list-check'
   },
   {
     name: COMPONENT_NAMES.GRAPHQL_API,
-    loadComponent: () => import('@app/components/pages/graphql-api/graphql-api.component').then(m => m.GraphqlApiComponent),
+    component: GraphqlApiComponent,
     icon: 'pi pi-cloud-download',
     featureFlagged: true
   },
   {
     name: COMPONENT_NAMES.INDEXEDDB,
-    loadComponent: () => import('@app/components/pages/indexeddb/indexeddb.component').then(m => m.IndexedDBComponent),
+    component: IndexedDBComponent,
     icon: 'pi pi-database',
     featureFlagged: true
   },
   {
     name: COMPONENT_NAMES.INSTALLERS,
-    loadComponent: () => import('@app/components/pages/installers/installers.component').then(m => m.InstallersComponent),
+    component: InstallersComponent,
     icon: 'pi pi-box',
     featureFlagged: true
   },
   {
     name: COMPONENT_NAMES.NOTIFICATIONS,
-    loadComponent: () => import('@app/components/pages/notifications/notifications.component').then(m => m.NotificationsComponent),
+    component: NotificationsComponent,
     icon: 'pi pi-bell',
     featureFlagged: true
   },

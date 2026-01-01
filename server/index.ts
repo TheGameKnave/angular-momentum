@@ -17,6 +17,7 @@ import { securityHeaders } from './middleware/security';
 /**
  * Configures static file serving for the Angular application based on the environment.
  * Sets up static file serving with 1-hour caching and SPA routing fallback for production, staging, and development environments.
+ * The ngsw.json service worker manifest is explicitly set to no-cache to ensure update detection works.
  * All routes are redirected to index.html to support client-side routing.
  * @param app - Express application instance to configure
  * @param env - Environment string (production, staging, or development)
@@ -24,6 +25,15 @@ import { securityHeaders } from './middleware/security';
 function setupStaticFileServing(app: express.Application, env: string) {
   if (env === 'production' || env === 'staging' || env === 'development') {
     const dirname = path.resolve(__dirname, '../client/dist/angular-momentum/browser');
+
+    // Service worker manifest must never be cached - it tells the SW when updates are available
+    app.get('/ngsw.json', (req, res) => {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.sendFile(path.join(dirname, 'ngsw.json'));
+    });
+
     app.use(express.static(dirname, { maxAge: 3600000 }));
 
     app.get('/{*splat}', (req, res) => {

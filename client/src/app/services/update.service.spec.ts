@@ -27,7 +27,8 @@ describe('UpdateService', () => {
     swUpdateMock = {
       checkForUpdate: jasmine.createSpy('checkForUpdate').and.returnValue(Promise.resolve(true)),
       activateUpdate: jasmine.createSpy('activateUpdate').and.returnValue(Promise.resolve()),
-      versionUpdates: versionUpdates$
+      versionUpdates: versionUpdates$,
+      isEnabled: true
     };
 
     destroyRefMock = jasmine.createSpyObj('DestroyRef', ['']);
@@ -36,10 +37,13 @@ describe('UpdateService', () => {
       visible: signal(false)
     });
     updateDialogMock.show.and.returnValue(Promise.resolve(true));
-    changeLogMock = jasmine.createSpyObj('ChangeLogService', ['refresh', 'getCurrentVersion'], {
+    changeLogMock = jasmine.createSpyObj('ChangeLogService', ['refresh', 'getCurrentVersion', 'capturePreviousVersion', 'clearPreviousVersion', 'previousVersion'], {
       appVersion: signal('1.0.0'),
       appDiff: signal({ impact: 'patch', major: 0, minor: 0, patch: 1 })
     });
+    // Default: previousVersion returns '0.9.0' (different from current '1.0.0')
+    changeLogMock.previousVersion.and.returnValue('0.9.0');
+    changeLogMock.getCurrentVersion.and.returnValue('1.0.0');
 
     TestBed.configureTestingModule({
       providers: [
@@ -64,6 +68,7 @@ describe('UpdateService', () => {
       value: 'development',
       configurable: true,
     });
+    sessionStorage.clear();
   });
 
   it('should be created', () => {
@@ -116,7 +121,7 @@ describe('UpdateService', () => {
 
     expect(swUpdateMock.checkForUpdate).toHaveBeenCalled();
     expect(consoleSpy).toHaveBeenCalledWith(
-      'SW: Failed to check for update:',
+      '[UpdateService] checkForUpdate() failed:',
       jasmine.any(Error)
     );
   });
@@ -129,7 +134,6 @@ describe('UpdateService', () => {
       tick();
       expect(swUpdateMock.checkForUpdate).toHaveBeenCalled();
       expect(swUpdateMock.activateUpdate).toHaveBeenCalled();
-      expect(logMock.log).toHaveBeenCalledWith('SW: Update available, activating...');
     }));
 
     it('should log if no SW update', fakeAsync(() => {
@@ -140,6 +144,8 @@ describe('UpdateService', () => {
     }));
 
     it('should handle VERSION_READY and reload if confirmed', fakeAsync(async () => {
+      // Mark first check as complete (simulating subsequent update check)
+      sessionStorage.setItem('sw_first_check_complete', 'true');
       updateDialogMock.show.and.returnValue(Promise.resolve(true));
 
       const versionReadyEvent: VersionReadyEvent = {
@@ -163,6 +169,86 @@ describe('UpdateService', () => {
       (service as any).handleSwEvent(versionDetectedEvent);
       expect(logMock.log).toHaveBeenCalledWith('SW: New version detected:', { hash: 'v1.2.3' });
     });
+
+    it('should capture previous version before checking for update', fakeAsync(() => {
+      (service as any).checkServiceWorkerUpdate();
+      tick();
+      expect(changeLogMock.capturePreviousVersion).toHaveBeenCalled();
+      expect(swUpdateMock.checkForUpdate).toHaveBeenCalled();
+      expect(swUpdateMock.activateUpdate).toHaveBeenCalled();
+    }));
+
+    it('should clear previous version if no update available', fakeAsync(() => {
+      swUpdateMock.checkForUpdate.and.returnValue(Promise.resolve(false));
+      (service as any).checkServiceWorkerUpdate();
+      tick();
+      expect(changeLogMock.capturePreviousVersion).toHaveBeenCalled();
+      expect(changeLogMock.clearPreviousVersion).toHaveBeenCalled();
+    }));
+
+    it('should skip check if one is already in progress', fakeAsync(() => {
+      // First check - will hang (never resolves)
+      swUpdateMock.checkForUpdate.and.returnValue(new Promise(() => {}));
+      (service as any).checkServiceWorkerUpdate();
+
+      // Second check - should skip
+      (service as any).checkServiceWorkerUpdate();
+      tick();
+
+      // checkForUpdate should only be called once
+      expect(swUpdateMock.checkForUpdate).toHaveBeenCalledTimes(1);
+
+      // Clean up: advance past timeout to avoid pending timers
+      tick(30000);
+    }));
+
+    it('should timeout and clear state if check hangs too long', fakeAsync(() => {
+      const consoleSpy = spyOn(console, 'error');
+      // Check that never resolves
+      swUpdateMock.checkForUpdate.and.returnValue(new Promise(() => {}));
+      (service as any).checkServiceWorkerUpdate();
+
+      // Advance past timeout (30 seconds)
+      tick(30000);
+
+      expect(consoleSpy).toHaveBeenCalledWith('[UpdateService] checkForUpdate() failed:', jasmine.any(Error));
+      expect(changeLogMock.clearPreviousVersion).toHaveBeenCalled();
+      // checkInProgress should be reset
+      expect((service as any).checkInProgress).toBe(false);
+    }));
+
+    it('should skip dialog if no previousVersion was captured', fakeAsync(async () => {
+      // Mark first check as complete
+      sessionStorage.setItem('sw_first_check_complete', 'true');
+      changeLogMock.previousVersion.and.returnValue(null);
+
+      const versionReadyEvent: VersionReadyEvent = {
+        type: 'VERSION_READY',
+        currentVersion: { hash: 'old' },
+        latestVersion: { hash: 'new' }
+      };
+
+      await (service as any).handleSwEvent(versionReadyEvent);
+      tick();
+      expect(logMock.log).toHaveBeenCalledWith('SW: No previous version captured, skipping dialog');
+      expect(updateDialogMock.show).not.toHaveBeenCalled();
+    }));
+
+    it('should skip dialog on fresh page load (first check not complete)', fakeAsync(async () => {
+      // First check NOT complete (fresh page load)
+      sessionStorage.removeItem('sw_first_check_complete');
+
+      const versionReadyEvent: VersionReadyEvent = {
+        type: 'VERSION_READY',
+        currentVersion: { hash: 'old' },
+        latestVersion: { hash: 'new' }
+      };
+
+      await (service as any).handleSwEvent(versionReadyEvent);
+      tick();
+      expect(logMock.log).toHaveBeenCalledWith('SW: Fresh page load, skipping update dialog');
+      expect(updateDialogMock.show).not.toHaveBeenCalled();
+    }));
   });
 
   describe('Tauri updates', () => {

@@ -1,12 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Angular Momentum",
-  "version": "21.0.1",
+  "version": "21.1.12",
   "identifier": "app.angularmomentum",
   "build": {
     "beforeDevCommand": "ng serve --hmr --proxy-config src/proxy.conf.js --configuration=tauri-local",
     "devUrl": "http://localhost:4200",
-    "beforeBuildCommand": "npm run build --configuration=production",
+    "beforeBuildCommand": "npm run build -- --configuration=production && node -e \"require('fs').copyFileSync('dist/angular-momentum/browser/index.csr.html','dist/angular-momentum/browser/index.html')\"",
     "frontendDist": "../dist/angular-momentum/browser"
   },
   "app": {
@@ -48,11 +48,11 @@
       }
     },
     "iOS": {
-      "bundleVersion": "119"
+      "bundleVersion": "133"
     },
     "android": {
       "minSdkVersion": 35,
-      "versionCode": 119
+      "versionCode": 133
     }
   },
   "plugins": {

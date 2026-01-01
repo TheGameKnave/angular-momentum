@@ -180,6 +180,7 @@ from `client`, while remote server is running:
 * `npm run tauri build` to build a standalone dev release for Windows, MacOS, and Linux.
 * `npm run tauri android dev` to build a standalone dev release for Android. (set `tauri.conf.json` devUrl to `https://angularmomentum.app`) to enable live server features.
 * `npm run tauri ios build -- --export-method app-store-connect` to build a release for iOS.
+* `npx tauri ios build --debug --target aarch64-sim` to build a debug prod release for iOS.
 
 ### Tauri configuration
 
@@ -251,11 +252,11 @@ mutation {
 - **Tauri Desktop**: Native OS notifications, works even when app is closed
 - **Tauri Mobile**: Requires notification permissions in platform-specific configs
 
-## CDN
+~~## CDN~~
 
-This repo relies on serving assets from a CDN. The current implementation is linode/akamai but you'll want to replace that with your preferred provider.
+~~This repo relies on serving assets from a CDN. The current implementation is linode/akamai but you'll want to replace that with your preferred provider.~~
 
-### Structure
+~~### Structure~~
 
 ```
 angularmomentum/

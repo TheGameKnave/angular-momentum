@@ -2,7 +2,126 @@
  * Application version history and changelog
  * @description Array of changelog entries tracking version releases, dates, descriptions, and changes
  */
-export const changeLog = [  
+export const changeLog = [
+  
+  
+  {
+    version: "21.1.12",
+    date: "2025-12-31",
+    description: "New patch",
+    changes: [
+      "",
+    ]
+  },
+  {
+    version: "21.1.11",
+    date: "2025-12-31",
+    description: "New patch",
+    changes: [
+      "",
+    ]
+  },
+  {
+    version: "21.1.10",
+    date: "2025-12-31",
+    description: "version dialog testing",
+    changes: [
+      "version dialog testing",
+    ]
+  },
+  {
+    version: "21.1.9",
+    date: "2025-12-30",
+    description: "version dialog testing",
+    changes: [
+      "version dialog testing",
+    ]
+  },
+  {
+    version: "21.1.8",
+    date: "2025-12-30",
+    description: "version dialog testing",
+    changes: [
+      "version dialog testing",
+    ]
+  },
+  {
+    version: "21.1.7",
+    date: "2025-12-30",
+    description: "version dialog testing",
+    changes: [
+      "version dialog testing",
+    ]
+  },
+  {
+    version: "21.1.6",
+    date: "2025-12-28",
+    description: "version dialog testing",
+    changes: [
+      "version dialog testing",
+    ]
+  },
+  {
+    version: "21.1.5",
+    date: "2025-12-28",
+    description: "version dialog testing",
+    changes: [
+      "version dialog testing",
+    ]
+  },
+  {
+    version: "21.1.4",
+    date: "2025-12-28",
+    description: "Update dialog, scroll, tests",
+    changes: [
+      "Fix update dialog showing same version twice",
+      "Bottom menu scroll indicator",
+      "Connectivity service improvements",
+      "E2E phone screenshot isolation",
+      "Service worker analytics bypass",
+      "Turnstile token required in production",
+    ]
+  },
+  {
+    version: "21.1.3",
+    date: "2025-12-28",
+    description: "android tauri build update",
+    changes: [
+      "android tauri build update",
+    ]
+  },
+  {
+    version: "21.1.2",
+    date: "2025-12-27",
+    description: "translations/feature gate",
+    changes: [
+      "Translate timezones",
+      "Translate notification statuses",
+      "Correct feature gate behavior"
+    ]
+  },
+  {
+    version: "21.1.1",
+    date: "2025-12-27",
+    description: "New build",
+    changes: [
+      "dependencies",
+    ]
+  },
+  {
+    version: "21.1.0",
+    date: "2025-12-26",
+    description: "SSR, i18n, testing",
+    changes: [
+      "Server-side rendering (SSR) with Angular 21",
+      "Turkish translation",
+      "Lighthouse CI integration",
+      "E2E visual regression testing with Playwright",
+      "Smoke tests for deployed environments",
+      "Security headers (CSP, HSTS, etc.)",
+      "Menu CLS fix for smoother page loads",
+    ]
+  },
   {
     version: "21.0.1",
     date: "2025-12-13",

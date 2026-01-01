@@ -208,6 +208,17 @@ export const NOTIFICATION_KEYS = Object.values(NOTIFICATION_KEY_MAP).flatMap(
 );
 
 /**
+ * Notification permission status keys used in notifications.component.ts
+ */
+export const NOTIFICATION_STATUS_KEYS = [
+  "notification.Granted",
+  "notification.Not granted",
+  "notification.Not supported",
+  "notification.Tauri (Native)",
+  "notification.Web/PWA",
+] as const;
+
+/**
  * Change log translation keys.
  * Used in menu-change-log.component.ts for version update messages.
  */
@@ -379,6 +390,29 @@ export const PROFILE_PAGE_KEYS = [
 ] as const;
 
 /**
+ * Timezone keys used dynamically in profile component
+ */
+export const TIMEZONE_KEYS = [
+  "timezone.UTC",
+  "timezone.America/New_York (Eastern)",
+  "timezone.America/Chicago (Central)",
+  "timezone.America/Denver (Mountain)",
+  "timezone.America/Los_Angeles (Pacific)",
+  "timezone.America/Anchorage (Alaska)",
+  "timezone.Pacific/Honolulu (Hawaii)",
+  "timezone.Europe/London",
+  "timezone.Europe/Paris",
+  "timezone.Europe/Berlin",
+  "timezone.Asia/Tokyo",
+  "timezone.Asia/Shanghai",
+  "timezone.Asia/Singapore",
+  "timezone.Asia/Dubai",
+  "timezone.Australia/Sydney",
+  "timezone.Australia/Melbourne",
+  "timezone.Pacific/Auckland",
+] as const;
+
+/**
  * Dialog default label translation keys.
  * Used as fallbacks in DialogConfirmComponent when options don't specify labels.
  */
@@ -400,6 +434,7 @@ export const ALL_PROGRAMMATIC_KEYS = [
   ...COMPONENT_NAME_KEYS,
   ...FEATURE_FLAG_KEYS,
   ...NOTIFICATION_KEYS,
+  ...NOTIFICATION_STATUS_KEYS,
   ...CHANGE_LOG_KEYS,
   ...SUPABASE_ERROR_KEYS,
   ...VALIDATION_KEYS,
@@ -413,6 +448,7 @@ export const ALL_PROGRAMMATIC_KEYS = [
   ...MIGRATION_KEYS,
   ...PAGE_CONTENT_KEYS,
   ...PROFILE_PAGE_KEYS,
+  ...TIMEZONE_KEYS,
   ...DIALOG_LABEL_KEYS,
 ] as const;
 

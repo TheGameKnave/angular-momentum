@@ -166,7 +166,12 @@
     "Unread Count": "Unreed Cuoont",
     "Welcome!": "Velcume-a! Bork bork bork!",
     "Welcome Message": "Velcume-a Messege-a",
-    "You successfully tested the notification system!": "Yuoo soocccessffoollee tested zee nootifficesshun system! Bork bork bork!"
+    "You successfully tested the notification system!": "Yuoo soocccessffoollee tested zee nootifficesshun system! Bork bork bork!",
+    "Granted": "Grunted. Bork!",
+    "Not granted": "Nut grunted",
+    "Not supported": "Nut sooppurted",
+    "Tauri (Native)": "Tooree (Neteefe-a)",
+    "Web/PWA": "Veb/PVA"
   },
 
   "page": {
@@ -258,6 +263,26 @@
     "Username updated successfully!": "Userneme-a updeted soocccessffoollee! Bork!",
     "Verification email sent! Please check your new email address and enter the confirmation code.": "Fereefficeshun ee-meil sent! Pleese-a check yuoor noo ee-meil eddress und inter zee cunffurmeshun cude-a. Bork!",
     "Without a username, your profile is private": "Veethuoot a userneme-a, yuoor pruffeele-a is preefete-a"
+  },
+
+  "timezone": {
+    "UTC": "UTC! Bork!",
+    "America/New_York (Eastern)": "Noo Yurk (Eestern)! Bork!",
+    "America/Chicago (Central)": "Cheecegu (Centrel)! Bork!",
+    "America/Denver (Mountain)": "Denfeer (Muoonteen)! Bork!",
+    "America/Los_Angeles (Pacific)": "Lus Ungeles (Peceeffic)! Bork!",
+    "America/Anchorage (Alaska)": "Unchuoege-a (Eleska)! Bork!",
+    "Pacific/Honolulu (Hawaii)": "Hunuloloo (Heveii)! Bork!",
+    "Europe/London": "Lundun! Bork!",
+    "Europe/Paris": "Perees! Bork!",
+    "Europe/Berlin": "Berleen! Bork!",
+    "Asia/Tokyo": "Tukyu! Bork!",
+    "Asia/Shanghai": "Shunghei! Bork!",
+    "Asia/Singapore": "Seengepure-a! Bork!",
+    "Asia/Dubai": "Duobei! Bork!",
+    "Australia/Sydney": "Seedney! Bork!",
+    "Australia/Melbourne": "Melbuoorne-a! Bork!",
+    "Pacific/Auckland": "Ooklund! Bork!"
   },
 
   "time": {

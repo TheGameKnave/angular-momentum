@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@angular/service-worker/config/schema.json",
-  "index": "/index.html",
+  "index": "/index.csr.html",
   "assetGroups": [
     {
       "name": "app",
@@ -8,10 +8,11 @@
       "resources": {
         "files": [
           "/favicon.ico",
-          "/index.html",
+          "/index.csr.html",
           "/manifest.webmanifest",
           "/*.css",
-          "/*.js"
+          "/*.js",
+          "/media/primeicons-*"
         ]
       }
     },
@@ -21,9 +22,37 @@
       "updateMode": "prefetch",
       "resources": {
         "files": [
-          "/assets/**",
+          "/assets/browserconfig.xml",
+          "/assets/docs/**",
+          "/assets/fonts/**",
+          "/assets/i18n/**",
+          "/assets/icons/*",
+          "/assets/styles/**",
+          "/media/**",
           "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
         ]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "external-analytics",
+      "urls": [
+        "https://static.cloudflareinsights.com/**",
+        "https://cloudflareinsights.com/**",
+        "https://static.hotjar.com/**",
+        "https://script.hotjar.com/**",
+        "https://vars.hotjar.com/**",
+        "https://*.contentsquare.net/**",
+        "https://www.googletagmanager.com/**",
+        "https://www.google-analytics.com/**",
+        "https://challenges.cloudflare.com/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 1,
+        "maxAge": "1s",
+        "timeout": "10s"
       }
     }
   ]

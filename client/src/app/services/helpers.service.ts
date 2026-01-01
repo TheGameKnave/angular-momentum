@@ -25,19 +25,28 @@ export class HelpersService {
 
   /**
    * Computed signal providing list of components that are enabled.
-   * - Components with `featureFlagged: true` are controlled by feature flags (fail-closed)
    * - Components without `featureFlagged` or with `featureFlagged: false` are always enabled
+   * - Components with `featureFlagged: true` use fail-closed logic: only shown when explicitly enabled
    * Automatically updates when feature flags change.
    * @returns Array of enabled components
    */
-  enabledComponents = computed(() =>
-    COMPONENT_LIST.filter((component) => {
+  enabledComponents = computed(() => {
+    // Read signals directly to establish reactive dependencies
+    const loaded = this.featureFlagService.loaded();
+    const features = this.featureFlagService.features();
+
+    return COMPONENT_LIST.filter((component) => {
       // Components not governed by feature flags are always enabled
       if (!('featureFlagged' in component) || !component.featureFlagged) {
         return true;
       }
-      // Feature-flagged components use fail-closed logic
-      return this.featureFlagService.getFeature(component.name);
-    })
-  );
+      // Feature-flagged components use fail-closed logic:
+      // - Hidden until flags have loaded
+      // - Only shown when explicitly set to true
+      if (!loaded) {
+        return false;
+      }
+      return features[component.name] === true;
+    });
+  });
 }
