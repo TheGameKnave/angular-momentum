@@ -42,8 +42,8 @@ export class UpdateService {
   private confirming = false;
   private checkInProgress = false;
 
-  // Key used to track if the app has been active in this browser session
-  private static readonly SESSION_KEY = 'sw_session_active';
+  // Key used to track if the first update check cycle has completed
+  private static readonly SESSION_KEY = 'sw_first_check_complete';
 
   constructor() {
     this.init();
@@ -62,7 +62,7 @@ export class UpdateService {
     /**/console.log('[UpdateService] init() starting');
 
     // Clear session flag on every page load/refresh
-    // This ensures refreshes are treated the same as fresh loads
+    // This ensures VERSION_READY from the first check cycle is ignored
     sessionStorage.removeItem(UpdateService.SESSION_KEY);
 
     // Clear any stale previousVersion on fresh page load
@@ -86,13 +86,6 @@ export class UpdateService {
         this.checkServiceWorkerUpdate();
         this.checkTauriUpdate();
       });
-
-    // Mark session as active AFTER first update check completes
-    // This ensures we don't show dialogs on fresh page loads
-    setTimeout(() => {
-      sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
-      /**/console.log('[UpdateService] Session marked as active');
-    }, 5000);
 
     /**/console.log('[UpdateService] init() done');
   }
@@ -134,19 +127,26 @@ export class UpdateService {
         // istanbul ignore next - activateUpdate rarely fails, requires corrupted SW state
         this.updates!.activateUpdate().then(() => {
           this.logService.log('SW: Update activated. Awaiting VERSION_READY...');
+          // Mark first check complete AFTER activation finishes
+          // VERSION_READY from this activation should still be ignored
+          sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
         }).catch(err => {
           console.error('[UpdateService] activateUpdate() failed:', err);
+          sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
         });
       } else {
         this.logService.log('SW: No update available.');
         // Clear captured version since no update was found
         this.changeLogService.clearPreviousVersion();
+        // Mark first check complete - subsequent checks can show dialogs
+        sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
       }
     }).catch(err => {
       this.checkInProgress = false;
       console.error('[UpdateService] checkForUpdate() failed:', err);
       // Clear captured version on error/timeout
       this.changeLogService.clearPreviousVersion();
+      sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
     });
   }
 
@@ -164,17 +164,20 @@ export class UpdateService {
     /**/console.log('[UpdateService] handleSwEvent:', event.type, event);
     switch (event.type) {
       case 'VERSION_READY': {
-        const isSessionActive = sessionStorage.getItem(UpdateService.SESSION_KEY) === 'true';
-        /**/console.log('[UpdateService] VERSION_READY - isSessionActive:', isSessionActive);
+        const firstCheckComplete = sessionStorage.getItem(UpdateService.SESSION_KEY) === 'true';
+        /**/console.log('[UpdateService] VERSION_READY - firstCheckComplete:', firstCheckComplete, 'confirming:', this.confirming);
         // istanbul ignore next - guards against rapid duplicate VERSION_READY events
         if (this.confirming) return;
 
-        // Skip if this is a fresh page load (session not yet active)
-        // On fresh load, user already has the latest code from the server
-        // Only show update dialog if user has been actively using the app
-        if (!isSessionActive) {
-          /**/console.log('[UpdateService] SKIPPING: fresh page load (session not active)');
+        // Set confirming immediately to prevent race conditions with duplicate events
+        this.confirming = true;
+
+        // Skip if first check cycle hasn't completed yet
+        // This means we're on a fresh page load and the update was already applied
+        if (!firstCheckComplete) {
+          /**/console.log('[UpdateService] SKIPPING: first check not complete (fresh page load)');
           this.logService.log('SW: Fresh page load, skipping update dialog');
+          this.confirming = false;
           return;
         }
 
@@ -182,11 +185,11 @@ export class UpdateService {
         if (!this.changeLogService.previousVersion()) {
           /**/console.log('[UpdateService] SKIPPING: no previousVersion');
           this.logService.log('SW: No previous version captured, skipping dialog');
+          this.confirming = false;
           return;
         }
 
         /**/console.log('[UpdateService] SHOWING UPDATE DIALOG');
-        this.confirming = true;
 
         // Refresh changelog to get canonical new version from API
         // This ensures appDiff reflects the actual new version, not cached data

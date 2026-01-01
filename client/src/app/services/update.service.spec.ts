@@ -68,6 +68,7 @@ describe('UpdateService', () => {
       value: 'development',
       configurable: true,
     });
+    sessionStorage.clear();
   });
 
   it('should be created', () => {
@@ -143,7 +144,8 @@ describe('UpdateService', () => {
     }));
 
     it('should handle VERSION_READY and reload if confirmed', fakeAsync(async () => {
-      (service as any).hasInitiatedCheck = true;
+      // Mark first check as complete (simulating subsequent update check)
+      sessionStorage.setItem('sw_first_check_complete', 'true');
       updateDialogMock.show.and.returnValue(Promise.resolve(true));
 
       const versionReadyEvent: VersionReadyEvent = {
@@ -216,7 +218,8 @@ describe('UpdateService', () => {
     }));
 
     it('should skip dialog if no previousVersion was captured', fakeAsync(async () => {
-      (service as any).hasInitiatedCheck = true;
+      // Mark first check as complete
+      sessionStorage.setItem('sw_first_check_complete', 'true');
       changeLogMock.previousVersion.and.returnValue(null);
 
       const versionReadyEvent: VersionReadyEvent = {
@@ -231,22 +234,9 @@ describe('UpdateService', () => {
       expect(updateDialogMock.show).not.toHaveBeenCalled();
     }));
 
-    it('should skip dialog if hashes match', fakeAsync(async () => {
-      // Hash check happens before hasInitiatedCheck, so no need to set it
-      const versionReadyEvent: VersionReadyEvent = {
-        type: 'VERSION_READY',
-        currentVersion: { hash: 'same-hash' },
-        latestVersion: { hash: 'same-hash' }
-      };
-
-      await (service as any).handleSwEvent(versionReadyEvent);
-      tick();
-      expect(logMock.log).toHaveBeenCalledWith('SW: Hashes match, no update needed');
-      expect(updateDialogMock.show).not.toHaveBeenCalled();
-    }));
-
-    it('should skip dialog if no check has been initiated yet', fakeAsync(async () => {
-      (service as any).hasInitiatedCheck = false;
+    it('should skip dialog on fresh page load (first check not complete)', fakeAsync(async () => {
+      // First check NOT complete (fresh page load)
+      sessionStorage.removeItem('sw_first_check_complete');
 
       const versionReadyEvent: VersionReadyEvent = {
         type: 'VERSION_READY',
@@ -256,7 +246,7 @@ describe('UpdateService', () => {
 
       await (service as any).handleSwEvent(versionReadyEvent);
       tick();
-      expect(logMock.log).toHaveBeenCalledWith('SW: Update from previous session, user already has fresh code');
+      expect(logMock.log).toHaveBeenCalledWith('SW: Fresh page load, skipping update dialog');
       expect(updateDialogMock.show).not.toHaveBeenCalled();
     }));
   });
