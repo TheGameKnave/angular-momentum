@@ -4,6 +4,14 @@
  */
 export const changeLog = [
   {
+    version: "21.1.10",
+    date: "2025-12-31",
+    description: "version dialog testing",
+    changes: [
+      "version dialog testing",
+    ]
+  },
+  {
     version: "21.1.9",
     date: "2025-12-30",
     description: "version dialog testing",
