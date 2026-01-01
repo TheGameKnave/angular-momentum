@@ -130,6 +130,27 @@ export function setupApp(): express.Application {
   // Create API routes with dependency injection
   const apiRoutes = createApiRoutes(supabase, usernameService, turnstileService);
 
+  // Universal Links (iOS) & App Links (Android) verification
+  app.get('/.well-known/apple-app-site-association', (req, res) => {
+    res.json({
+      applinks: {
+        apps: [],
+        details: [{ appID: '7386GL7C2C.app.angularmomentum', paths: ['*'] }]
+      }
+    });
+  });
+
+  app.get('/.well-known/assetlinks.json', (req, res) => {
+    res.json([{
+      relation: ['delegate_permission/common.handle_all_urls'],
+      target: {
+        namespace: 'android_app',
+        package_name: 'app.angularmomentum',
+        sha256_cert_fingerprints: ['73:3C:0F:6A:2D:30:27:D0:48:00:68:21:B5:E7:F7:17:3F:1A:E0:AD:90:82:F0:98:E6:99:FD:A3:B3:C0:CD:13']
+      }
+    }]);
+  });
+
   // REST API routes (preferred) - MUST come before static file serving
   app.use('/api', apiLimiter, apiRoutes);
 
