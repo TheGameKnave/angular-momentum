@@ -89,6 +89,12 @@ export class ScreenshotService {
    */
   private async initBrowser(): Promise<void> {
     if (!this.browser) {
+      // Set browser path for Heroku deployment
+      // Browsers are installed to /app/client/pw-browsers during heroku-postbuild
+      if (!process.env['PLAYWRIGHT_BROWSERS_PATH']) {
+        process.env['PLAYWRIGHT_BROWSERS_PATH'] = '/app/client/pw-browsers';
+      }
+
       // Dynamic import to avoid ESM bundling issues with Playwright
       // Using playwright-chromium (smaller than full playwright package)
       const playwright = await import('playwright-chromium');
