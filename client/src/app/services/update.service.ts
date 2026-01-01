@@ -41,7 +41,7 @@ export class UpdateService {
 
   private confirming = false;
   private checkInProgress = false;
-  private hasInitiatedCheck = false;
+  private initialManifestHash: string | null = null;
 
   constructor() {
     this.init();
@@ -58,6 +58,9 @@ export class UpdateService {
     if (!['production', 'staging', 'local'].includes(ENVIRONMENT.env)) return;
 
     /**/console.log('[UpdateService] init() starting');
+
+    // Capture the manifest hash at page load time - this represents the version the user loaded
+    this.captureInitialManifestHash();
 
     // Clear any stale previousVersion on fresh page load
     // If user reloaded the page, they already have the new code - no update dialog needed
@@ -83,6 +86,27 @@ export class UpdateService {
     /**/console.log('[UpdateService] init() done');
   }
 
+  /**
+   * Capture the manifest hash from ngsw/state at page load time.
+   * This tells us which version the user actually loaded.
+   */
+  private captureInitialManifestHash(): void {
+    fetch('/ngsw/state')
+      .then(res => res.text())
+      .then(text => {
+        const match = /Latest manifest hash: ([a-f0-9]+)/.exec(text);
+        if (match) {
+          this.initialManifestHash = match[1];
+          /**/console.log('[UpdateService] initialManifestHash:', this.initialManifestHash);
+        } else {
+          /**/console.log('[UpdateService] Could not parse manifest hash from ngsw/state');
+        }
+      })
+      .catch(err => {
+        /**/console.log('[UpdateService] Failed to fetch ngsw/state:', err);
+      });
+  }
+
   // --- Angular SW ---
 
   /**
@@ -104,9 +128,7 @@ export class UpdateService {
     // This prevents race condition where VERSION_READY fires before checkForUpdate() resolves
     this.changeLogService.capturePreviousVersion();
 
-    this.hasInitiatedCheck = true;
     this.checkInProgress = true;
-    /**/console.log('[UpdateService] hasInitiatedCheck =', this.hasInitiatedCheck);
 
     // Race between checkForUpdate and timeout to prevent indefinite hangs
     /**/console.log('[UpdateService] calling checkForUpdate()');
@@ -152,25 +174,24 @@ export class UpdateService {
     /**/console.log('[UpdateService] handleSwEvent:', event.type, event);
     switch (event.type) {
       case 'VERSION_READY': {
-        /**/console.log('[UpdateService] VERSION_READY - hasInitiatedCheck:', this.hasInitiatedCheck);
-        /**/console.log('[UpdateService] VERSION_READY - previousVersion:', this.changeLogService.previousVersion());
-        /**/console.log('[UpdateService] VERSION_READY - currentHash:', event.currentVersion.hash);
-        /**/console.log('[UpdateService] VERSION_READY - latestHash:', event.latestVersion.hash);
+        /**/console.log('[UpdateService] VERSION_READY - initialManifestHash:', this.initialManifestHash);
+        /**/console.log('[UpdateService] VERSION_READY - currentHash (SW cached):', event.currentVersion.hash);
+        /**/console.log('[UpdateService] VERSION_READY - latestHash (new version):', event.latestVersion.hash);
         // istanbul ignore next - guards against rapid duplicate VERSION_READY events
         if (this.confirming) return;
 
         // Skip if hashes match - no actual update (can happen with navigationRequestStrategy: freshness)
         if (event.currentVersion.hash === event.latestVersion.hash) {
-          /**/console.log('[UpdateService] SKIPPING: hashes match');
+          /**/console.log('[UpdateService] SKIPPING: SW hashes match');
           this.logService.log('SW: Hashes match, no update needed');
           return;
         }
 
-        // Skip if we haven't initiated a check yet - SW is catching up from previous session
-        // User already has fresh code from this page load
-        if (!this.hasInitiatedCheck) {
-          /**/console.log('[UpdateService] SKIPPING: no check initiated yet');
-          this.logService.log('SW: Update from previous session, user already has fresh code');
+        // Skip if user already loaded the latest version (fresh page load after deploy)
+        // The initialManifestHash is captured from /ngsw/state at page load time
+        if (this.initialManifestHash && this.initialManifestHash === event.latestVersion.hash) {
+          /**/console.log('[UpdateService] SKIPPING: already running latest (hash match)');
+          this.logService.log('SW: Already running latest version, skipping dialog');
           return;
         }
 
