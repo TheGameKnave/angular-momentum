@@ -57,6 +57,8 @@ export class UpdateService {
     if (!this.isBrowser) return;
     if (!['production', 'staging', 'local'].includes(ENVIRONMENT.env)) return;
 
+    /**/console.log('[UpdateService] init() starting');
+
     // Clear any stale previousVersion on fresh page load
     // If user reloaded the page, they already have the new code - no update dialog needed
     this.changeLogService.clearPreviousVersion();
@@ -64,18 +66,21 @@ export class UpdateService {
     // Listen for Angular Service Worker version events (only if SwUpdate is available)
     // istanbul ignore next - SwUpdate observable subscription requires real service worker context
     if (this.updates) {
+      /**/console.log('[UpdateService] subscribing to versionUpdates');
       this.updates.versionUpdates
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(event => this.handleSwEvent(event));
     }
 
     // Run immediate and interval-based update checks
+    /**/console.log('[UpdateService] starting interval check');
     interval(UPDATE_CONFIG.CHECK_INTERVAL_MS)
       .pipe(startWith(0), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.checkServiceWorkerUpdate();
         this.checkTauriUpdate();
       });
+    /**/console.log('[UpdateService] init() done');
   }
 
   // --- Angular SW ---
@@ -86,6 +91,7 @@ export class UpdateService {
    * Automatically activates updates if available.
    */
   private checkServiceWorkerUpdate(): void {
+    /**/console.log('[UpdateService] checkServiceWorkerUpdate() called');
     // istanbul ignore next - Tauri platform detection, isTauri() always returns false in unit tests
     if (isTauri()) return;
     // istanbul ignore next - SSR guard, SwUpdate is null during server rendering
@@ -100,14 +106,17 @@ export class UpdateService {
 
     this.hasInitiatedCheck = true;
     this.checkInProgress = true;
+    /**/console.log('[UpdateService] hasInitiatedCheck =', this.hasInitiatedCheck);
 
     // Race between checkForUpdate and timeout to prevent indefinite hangs
+    /**/console.log('[UpdateService] calling checkForUpdate()');
     const checkPromise = this.updates.checkForUpdate();
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('Update check timed out')), UPDATE_CONFIG.CHECK_TIMEOUT_MS);
     });
 
     Promise.race([checkPromise, timeoutPromise]).then(available => {
+      /**/console.log('[UpdateService] checkForUpdate() returned:', available);
       this.checkInProgress = false;
       if (available) {
         // istanbul ignore next - activateUpdate rarely fails, requires corrupted SW state
@@ -140,13 +149,19 @@ export class UpdateService {
    * @param event - Service Worker version event
    */
   private async handleSwEvent(event: VersionEvent): Promise<void> {
+    /**/console.log('[UpdateService] handleSwEvent:', event.type, event);
     switch (event.type) {
       case 'VERSION_READY': {
+        /**/console.log('[UpdateService] VERSION_READY - hasInitiatedCheck:', this.hasInitiatedCheck);
+        /**/console.log('[UpdateService] VERSION_READY - previousVersion:', this.changeLogService.previousVersion());
+        /**/console.log('[UpdateService] VERSION_READY - currentHash:', event.currentVersion.hash);
+        /**/console.log('[UpdateService] VERSION_READY - latestHash:', event.latestVersion.hash);
         // istanbul ignore next - guards against rapid duplicate VERSION_READY events
         if (this.confirming) return;
 
         // Skip if hashes match - no actual update (can happen with navigationRequestStrategy: freshness)
         if (event.currentVersion.hash === event.latestVersion.hash) {
+          /**/console.log('[UpdateService] SKIPPING: hashes match');
           this.logService.log('SW: Hashes match, no update needed');
           return;
         }
@@ -154,6 +169,7 @@ export class UpdateService {
         // Skip if we haven't initiated a check yet - SW is catching up from previous session
         // User already has fresh code from this page load
         if (!this.hasInitiatedCheck) {
+          /**/console.log('[UpdateService] SKIPPING: no check initiated yet');
           this.logService.log('SW: Update from previous session, user already has fresh code');
           return;
         }
@@ -161,10 +177,12 @@ export class UpdateService {
         // Skip dialog if previousVersion wasn't captured (page loaded fresh with new code)
         // This happens when SW cache is stale but page already loaded new code from network
         if (!this.changeLogService.previousVersion()) {
+          /**/console.log('[UpdateService] SKIPPING: no previousVersion');
           this.logService.log('SW: No previous version captured, skipping dialog');
           return;
         }
 
+        /**/console.log('[UpdateService] SHOWING UPDATE DIALOG');
         this.confirming = true;
 
         // Refresh changelog to get canonical new version from API
