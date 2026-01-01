@@ -177,7 +177,7 @@ export class ScreenshotService {
       }
       const filename = `${cacheKey}.png`;
       const filePath = join(this.cacheDir, filename);
-      writeFileSync(filePath, screenshot);
+      writeFileSync(filePath, new Uint8Array(screenshot));
 
       this.screenshotCache.set(cacheKey, {
         path: filename,
