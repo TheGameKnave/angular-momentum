@@ -60,7 +60,10 @@ export class UpdateService {
     if (!['production', 'staging', 'local'].includes(ENVIRONMENT.env)) return;
 
     /**/console.log('[UpdateService] init() starting');
-    /**/console.log('[UpdateService] sessionStorage[sw_session_active]:', sessionStorage.getItem(UpdateService.SESSION_KEY));
+
+    // Clear session flag on every page load/refresh
+    // This ensures refreshes are treated the same as fresh loads
+    sessionStorage.removeItem(UpdateService.SESSION_KEY);
 
     // Clear any stale previousVersion on fresh page load
     // If user reloaded the page, they already have the new code - no update dialog needed
