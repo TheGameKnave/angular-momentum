@@ -102,21 +102,7 @@ app.get('/ngsw.json', (_req, res) => {
   res.sendFile(join(browserDistFolder, 'ngsw.json'));
 });
 
-// Serve static files from browser dist folder
-app.use(
-  express.static(browserDistFolder, {
-    maxAge: '1y',
-    index: false,
-    setHeaders: (res, path) => {
-      // Ensure markdown files are served with correct MIME type
-      if (path.endsWith('.md')) {
-        res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
-      }
-    },
-  })
-);
-
-// Explicit route for markdown files - fallback if static middleware misses them
+// Serve markdown files explicitly - must be before static middleware
 app.get('*.md', (req, res, next) => {
   // Sanitize path to prevent directory traversal attacks
   const safePath = req.path.replaceAll('..', '').replaceAll(/\/+/g, '/');
@@ -135,6 +121,14 @@ app.get('*.md', (req, res, next) => {
     }
   });
 });
+
+// Serve static files from browser dist folder
+app.use(
+  express.static(browserDistFolder, {
+    maxAge: '1y',
+    index: false,
+  })
+);
 
 // SSR render timeout to prevent hanging
 const SSR_TIMEOUT = 5000;
