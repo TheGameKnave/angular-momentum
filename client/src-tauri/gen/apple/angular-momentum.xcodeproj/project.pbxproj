@@ -319,8 +319,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = app.angularmomentum;
 				PRODUCT_NAME = "Angular Momentum";
-				PROVISIONING_PROFILE_SPECIFIER = "db2c3081-dc63-4dc7-9cb4-cdfa69ba23f7";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "db2c3081-dc63-4dc7-9cb4-cdfa69ba23f7";
+				PROVISIONING_PROFILE_SPECIFIER = angularMomentum;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = angularMomentum;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = arm64;
@@ -488,8 +488,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = app.angularmomentum;
 				PRODUCT_NAME = "Angular Momentum";
-				PROVISIONING_PROFILE_SPECIFIER = "db2c3081-dc63-4dc7-9cb4-cdfa69ba23f7";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "db2c3081-dc63-4dc7-9cb4-cdfa69ba23f7";
+				PROVISIONING_PROFILE_SPECIFIER = angularMomentum;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = angularMomentum;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = arm64;

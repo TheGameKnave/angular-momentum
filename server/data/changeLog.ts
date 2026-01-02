@@ -4,6 +4,14 @@
  */
 export const changeLog = [
   {
+    version: "21.2.2",
+    date: "2026-01-01",
+    description: "New patch",
+    changes: [
+      "iOS project UUID",
+    ]
+  },
+  {
     version: "21.2.1",
     date: "2026-01-01",
     description: "New patch",
