@@ -7,7 +7,6 @@ echo "🧹 Running post-build cleanup..."
 rm -rf node_modules/mermaid \
   node_modules/@rolldown \
   node_modules/vite \
-  node_modules/typescript \
   node_modules/@babel \
   node_modules/@schematics \
   node_modules/esbuild-wasm \

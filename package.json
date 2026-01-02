@@ -15,7 +15,6 @@
     "server": "cd server && NODE_ENV=development node-env-run --exec nodemon | pino-colada",
     "server:prod": "cd server && NODE_ENV=production node-env-run --exec nodemon",
     "heroku-postbuild": "cd client && npm install && npm run heroku-postbuild",
-    "heroku-cleanup": "rm -rf node_modules/mermaid node_modules/@rolldown node_modules/vite node_modules/typescript node_modules/@babel node_modules/@schematics node_modules/esbuild-wasm node_modules/cytoscape* node_modules/lightningcss-* node_modules/@esbuild node_modules/webpack node_modules/@modelcontextprotocol node_modules/emoji-toolkit node_modules/sass node_modules/zod-to-json-schema node_modules/@lmdb && echo 'Cleanup complete'",
     "start": "echo \"Run server and client, in parallel, in dev mode\" && run-p client server",
     "start:ssr": "echo \"Run server and SSR client, in parallel\" && run-p client:ssr server",
     "start:e2e": "run-p client:e2e server",
