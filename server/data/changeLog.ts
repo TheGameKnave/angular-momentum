@@ -4,11 +4,22 @@
  */
 export const changeLog = [
   {
+    version: "21.2.3",
+    date: "2026-01-02",
+    description: "Markdown assets, OG images",
+    changes: [
+      "Fix .slugignore excluding markdown files from Heroku builds",
+      "Fix service worker navigation fallback for asset files",
+      "OG image buildpacks for production",
+    ]
+  },
+  {
     version: "21.2.2",
     date: "2026-01-01",
-    description: "New patch",
+    description: "iOS provisioning",
     changes: [
-      "iOS project UUID",
+      "Fix iOS provisioning profile specifier (use name instead of UUID)",
+      "Add Associated Domains capability for Universal Links",
     ]
   },
   {
