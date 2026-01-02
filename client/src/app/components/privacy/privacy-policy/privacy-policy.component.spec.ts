@@ -4,14 +4,17 @@ import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.mo
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { CookieConsentService } from '@app/services/cookie-consent.service';
+import { SeoService } from '@app/services/seo.service';
 import { signal } from '@angular/core';
 
 describe('PrivacyPolicyComponent', () => {
   let component: PrivacyPolicyComponent;
   let fixture: ComponentFixture<PrivacyPolicyComponent>;
   let mockCookieConsentService: jasmine.SpyObj<CookieConsentService>;
+  let mockSeoService: jasmine.SpyObj<SeoService>;
 
   beforeEach(async () => {
+    mockSeoService = jasmine.createSpyObj('SeoService', ['updateTags']);
     mockCookieConsentService = jasmine.createSpyObj('CookieConsentService',
       ['acceptCookies', 'declineCookies'],
       { consentStatus: signal<'accepted' | 'declined' | 'pending'>('pending') }
@@ -26,6 +29,7 @@ describe('PrivacyPolicyComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: CookieConsentService, useValue: mockCookieConsentService },
+        { provide: SeoService, useValue: mockSeoService },
       ]
     }).compileComponents();
 
@@ -60,5 +64,14 @@ describe('PrivacyPolicyComponent', () => {
   it('should call declineCookies when onDeclineCookies is called', () => {
     component.onDeclineCookies();
     expect(mockCookieConsentService.declineCookies).toHaveBeenCalled();
+  });
+
+  it('should set SEO tags on init', () => {
+    fixture.detectChanges();
+    expect(mockSeoService.updateTags).toHaveBeenCalledWith({
+      title: 'Privacy Policy - Angular Momentum',
+      description: 'Privacy policy for Angular Momentum. Learn how we collect, use, and protect your data.',
+      type: 'article',
+    });
   });
 });

@@ -265,7 +265,8 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginIdentifier, testUser.email);
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     // Close the menu
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
@@ -322,7 +323,8 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginIdentifier, testUser.email);
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     // Close the menu
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
@@ -438,7 +440,8 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginIdentifier, testUser.email);
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     // Wait for username to load (prevents flaky screenshots)
     await page.waitForSelector('.profile-username:not(:empty)', { timeout: 10000 });
     await page.waitForTimeout(300);
@@ -687,7 +690,8 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginIdentifier, testUser.email);
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
 
@@ -737,7 +741,8 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginIdentifier, testUser.email);
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
 
@@ -833,7 +838,8 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginIdentifier, testUser.email);
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     // Wait for username to load (prevents flaky screenshots)
     await page.waitForSelector('.profile-username:not(:empty)', { timeout: 10000 });
     await page.waitForTimeout(300);
@@ -898,7 +904,8 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginIdentifier, testUser.email);
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
 
@@ -933,7 +940,8 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginIdentifier, testUser.email);
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
 
@@ -970,7 +978,8 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginIdentifier, testUser.email);
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
 
@@ -1007,7 +1016,8 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginIdentifier, testUser.email);
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
 

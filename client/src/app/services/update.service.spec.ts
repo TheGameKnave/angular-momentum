@@ -68,6 +68,7 @@ describe('UpdateService', () => {
       value: 'development',
       configurable: true,
     });
+    sessionStorage.clear();
   });
 
   it('should be created', () => {
@@ -143,6 +144,8 @@ describe('UpdateService', () => {
     }));
 
     it('should handle VERSION_READY and reload if confirmed', fakeAsync(async () => {
+      // Mark first check as complete (simulating subsequent update check)
+      sessionStorage.setItem('sw_first_check_complete', 'true');
       updateDialogMock.show.and.returnValue(Promise.resolve(true));
 
       const versionReadyEvent: VersionReadyEvent = {
@@ -215,6 +218,8 @@ describe('UpdateService', () => {
     }));
 
     it('should skip dialog if no previousVersion was captured', fakeAsync(async () => {
+      // Mark first check as complete
+      sessionStorage.setItem('sw_first_check_complete', 'true');
       changeLogMock.previousVersion.and.returnValue(null);
 
       const versionReadyEvent: VersionReadyEvent = {
@@ -226,6 +231,22 @@ describe('UpdateService', () => {
       await (service as any).handleSwEvent(versionReadyEvent);
       tick();
       expect(logMock.log).toHaveBeenCalledWith('SW: No previous version captured, skipping dialog');
+      expect(updateDialogMock.show).not.toHaveBeenCalled();
+    }));
+
+    it('should skip dialog on fresh page load (first check not complete)', fakeAsync(async () => {
+      // First check NOT complete (fresh page load)
+      sessionStorage.removeItem('sw_first_check_complete');
+
+      const versionReadyEvent: VersionReadyEvent = {
+        type: 'VERSION_READY',
+        currentVersion: { hash: 'old' },
+        latestVersion: { hash: 'new' }
+      };
+
+      await (service as any).handleSwEvent(versionReadyEvent);
+      tick();
+      expect(logMock.log).toHaveBeenCalledWith('SW: Fresh page load, skipping update dialog');
       expect(updateDialogMock.show).not.toHaveBeenCalled();
     }));
   });

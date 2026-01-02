@@ -95,10 +95,8 @@ else
 fi
 
 echo "🧪 Running smoke tests against $APP_URL..."
-cd tests/e2e
-APP_BASE_URL="$APP_URL" npx playwright test -c playwright.smoke.config.ts --reporter=list
+APP_BASE_URL="$APP_URL" node node_modules/@playwright/test/cli.js test --config=tests/e2e/playwright.smoke.config.ts --reporter=list
 SMOKE_EXIT=$?
-cd ../..
 
 if [[ $SMOKE_EXIT -ne 0 ]]; then
   echo ""

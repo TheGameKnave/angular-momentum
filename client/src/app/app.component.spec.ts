@@ -41,6 +41,7 @@ describe('AppComponent', () => {
   beforeEach(() => {
     updateService = jasmine.createSpyObj('UpdateService', ['checkForUpdates']);
     featureFlagService = jasmine.createSpyObj('FeatureFlagService', ['getFeature']);
+    featureFlagService.getFeature.and.returnValue(true); // Default: features enabled
     slugPipe = jasmine.createSpyObj('SlugPipe', ['transform']);
 
     routerEvents$ = new Subject<any>();
@@ -113,17 +114,20 @@ describe('AppComponent', () => {
       expect(component.breadcrumb).toBe('Features');
     });
 
-    it('should clear breadcrumb if no routePath', () => {
-      component.breadcrumb = '';
-      component.routePath = '';
+    it('should clear breadcrumb when navigating from component to root', () => {
+      // Start on a component page with breadcrumb set
+      component.breadcrumb = 'Features';
+      component.routePath = 'features';
       slugPipe.transform.calls.reset();
       slugPipe.transform.and.callFake((name: string) => {
         return name.toLowerCase().replace(/\s+/g, '-');
       });
 
+      // Navigate to root
       const navEvent = new NavigationEnd(1, '/', '/');
       routerEvents$.next(navEvent);
 
+      // Breadcrumb should be cleared (no component matches 'index')
       expect(component.breadcrumb).toBe('');
       expect(component.routePath).toBe('index');
     });

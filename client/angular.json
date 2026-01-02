@@ -26,6 +26,11 @@
             "ssr": {
               "entry": "server.ts"
             },
+            "externalDependencies": [
+              "playwright",
+              "playwright-chromium",
+              "playwright-core"
+            ],
             "polyfills": [],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",

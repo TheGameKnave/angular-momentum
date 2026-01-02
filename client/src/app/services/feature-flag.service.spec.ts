@@ -1,9 +1,10 @@
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
-import { PLATFORM_ID, TransferState } from '@angular/core';
+import { PLATFORM_ID, signal, TransferState } from '@angular/core';
 import { FeatureFlagService } from './feature-flag.service';
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Socket } from 'ngx-socket-io';
+import { ConnectivityService } from './connectivity.service';
 
 describe('FeatureFlagService', () => {
   let service: FeatureFlagService;
@@ -99,16 +100,25 @@ describe('FeatureFlagService', () => {
   });
   
 
-  it('should return true for unknown feature (fail-open)', () => {
-    const features = { 'GraphQL API': true, 'IndexedDB': true };
-    service.features.set(features);
-    // Fail-open: unknown features return true (not explicitly false)
-    expect(service.getFeature('Environment')).toBe(true);
+  it('should return false for unknown feature (fail-closed)', () => {
+    service.loaded.set(true);
+    service.features.set({ 'GraphQL API': true, 'IndexedDB': true });
+    // Fail-closed: unknown features return false (not explicitly true)
+    expect(service.getFeature('Environment')).toBe(false);
   });
 
-  it('should return false only when feature is explicitly false', () => {
+  it('should return true only when loaded AND feature is explicitly true', () => {
+    service.loaded.set(true);
     service.features.set({ 'GraphQL API': true, 'IndexedDB': false });
     expect(service.getFeature('GraphQL API')).toBe(true);
+    expect(service.getFeature('IndexedDB')).toBe(false);
+  });
+
+  it('should return false when flags are not loaded (fail-closed)', () => {
+    service.loaded.set(false);
+    service.features.set({ 'GraphQL API': true, 'IndexedDB': true });
+    // Even if feature is true, should return false when not loaded
+    expect(service.getFeature('GraphQL API')).toBe(false);
     expect(service.getFeature('IndexedDB')).toBe(false);
   });
 
@@ -218,5 +228,91 @@ describe('FeatureFlagService', () => {
       TestBed.inject(FeatureFlagService);
       expect(serverSocketSpy.on).not.toHaveBeenCalled();
     });
+  });
+
+  describe('Connectivity retry', () => {
+    it('should retry getFeatureFlags when connectivity is restored after failure', fakeAsync(() => {
+      TestBed.resetTestingModule();
+
+      // Create a writable signal for testing
+      const isOnlineSignal = signal(false);
+      const mockConnectivityService = {
+        isOnline: isOnlineSignal.asReadonly()
+      };
+
+      TestBed.configureTestingModule({
+        providers: [
+          FeatureFlagService,
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          { provide: Socket, useValue: socketSpy },
+          { provide: PLATFORM_ID, useValue: 'browser' },
+          { provide: ConnectivityService, useValue: mockConnectivityService },
+        ],
+      });
+
+      const newService = TestBed.inject(FeatureFlagService);
+      const newHttpMock = TestBed.inject(HttpTestingController);
+
+      // First request fails (offline)
+      newService.getFeatureFlags().subscribe();
+      const req1 = newHttpMock.expectOne((request) => request.url.endsWith('/api/feature-flags'));
+      req1.error(new ProgressEvent('error'), { status: 0, statusText: 'Network Error' });
+      tick();
+
+      expect(newService.loaded()).toBe(false);
+
+      // Simulate connectivity restored
+      isOnlineSignal.set(true);
+      tick();
+
+      // Should retry the request
+      const req2 = newHttpMock.expectOne((request) => request.url.endsWith('/api/feature-flags'));
+      req2.flush([{ key: 'Environment', value: true }]);
+      tick();
+
+      expect(newService.loaded()).toBe(true);
+      expect(newService.features()).toEqual({ 'Environment': true });
+    }));
+
+    it('should not retry when load succeeded initially', fakeAsync(() => {
+      TestBed.resetTestingModule();
+
+      const isOnlineSignal = signal(true);
+      const mockConnectivityService = {
+        isOnline: isOnlineSignal.asReadonly()
+      };
+
+      TestBed.configureTestingModule({
+        providers: [
+          FeatureFlagService,
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          { provide: Socket, useValue: socketSpy },
+          { provide: PLATFORM_ID, useValue: 'browser' },
+          { provide: ConnectivityService, useValue: mockConnectivityService },
+        ],
+      });
+
+      const newService = TestBed.inject(FeatureFlagService);
+      const newHttpMock = TestBed.inject(HttpTestingController);
+
+      // First request succeeds
+      newService.getFeatureFlags().subscribe();
+      const req1 = newHttpMock.expectOne((request) => request.url.endsWith('/api/feature-flags'));
+      req1.flush([{ key: 'Environment', value: true }]);
+      tick();
+
+      expect(newService.loaded()).toBe(true);
+
+      // Simulate going offline then online
+      isOnlineSignal.set(false);
+      tick();
+      isOnlineSignal.set(true);
+      tick();
+
+      // Should NOT make another request since initial load succeeded
+      newHttpMock.expectNone((request) => request.url.endsWith('/api/feature-flags'));
+    }));
   });
 });

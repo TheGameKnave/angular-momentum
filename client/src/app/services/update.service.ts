@@ -42,6 +42,9 @@ export class UpdateService {
   private confirming = false;
   private checkInProgress = false;
 
+  // Key used to track if the first update check cycle has completed
+  private static readonly SESSION_KEY = 'sw_first_check_complete';
+
   constructor() {
     this.init();
   }
@@ -56,6 +59,10 @@ export class UpdateService {
     if (!this.isBrowser) return;
     if (!['production', 'staging', 'local'].includes(ENVIRONMENT.env)) return;
 
+    // Clear session flag on every page load/refresh
+    // This ensures VERSION_READY from the first check cycle is ignored
+    sessionStorage.removeItem(UpdateService.SESSION_KEY);
+
     // Clear any stale previousVersion on fresh page load
     // If user reloaded the page, they already have the new code - no update dialog needed
     this.changeLogService.clearPreviousVersion();
@@ -63,18 +70,22 @@ export class UpdateService {
     // Listen for Angular Service Worker version events (only if SwUpdate is available)
     // istanbul ignore next - SwUpdate observable subscription requires real service worker context
     if (this.updates) {
+      /**/console.log('[UpdateService] subscribing to versionUpdates');
       this.updates.versionUpdates
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(event => this.handleSwEvent(event));
     }
 
     // Run immediate and interval-based update checks
+    /**/console.log('[UpdateService] starting interval check');
     interval(UPDATE_CONFIG.CHECK_INTERVAL_MS)
       .pipe(startWith(0), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.checkServiceWorkerUpdate();
         this.checkTauriUpdate();
       });
+
+    /**/console.log('[UpdateService] init() done');
   }
 
   // --- Angular SW ---
@@ -85,6 +96,7 @@ export class UpdateService {
    * Automatically activates updates if available.
    */
   private checkServiceWorkerUpdate(): void {
+    /**/console.log('[UpdateService] checkServiceWorkerUpdate() called');
     // istanbul ignore next - Tauri platform detection, isTauri() always returns false in unit tests
     if (isTauri()) return;
     // istanbul ignore next - SSR guard, SwUpdate is null during server rendering
@@ -100,30 +112,39 @@ export class UpdateService {
     this.checkInProgress = true;
 
     // Race between checkForUpdate and timeout to prevent indefinite hangs
+    /**/console.log('[UpdateService] calling checkForUpdate()');
     const checkPromise = this.updates.checkForUpdate();
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('Update check timed out')), UPDATE_CONFIG.CHECK_TIMEOUT_MS);
     });
 
     Promise.race([checkPromise, timeoutPromise]).then(available => {
+      /**/console.log('[UpdateService] checkForUpdate() returned:', available);
       this.checkInProgress = false;
       if (available) {
         // istanbul ignore next - activateUpdate rarely fails, requires corrupted SW state
         this.updates!.activateUpdate().then(() => {
           this.logService.log('SW: Update activated. Awaiting VERSION_READY...');
+          // Mark first check complete AFTER activation finishes
+          // VERSION_READY from this activation should still be ignored
+          sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
         }).catch(err => {
           console.error('[UpdateService] activateUpdate() failed:', err);
+          sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
         });
       } else {
         this.logService.log('SW: No update available.');
         // Clear captured version since no update was found
         this.changeLogService.clearPreviousVersion();
+        // Mark first check complete - subsequent checks can show dialogs
+        sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
       }
     }).catch(err => {
       this.checkInProgress = false;
       console.error('[UpdateService] checkForUpdate() failed:', err);
       // Clear captured version on error/timeout
       this.changeLogService.clearPreviousVersion();
+      sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
     });
   }
 
@@ -138,19 +159,35 @@ export class UpdateService {
    * @param event - Service Worker version event
    */
   private async handleSwEvent(event: VersionEvent): Promise<void> {
+    /**/console.log('[UpdateService] handleSwEvent:', event.type, event);
     switch (event.type) {
       case 'VERSION_READY': {
+        const firstCheckComplete = sessionStorage.getItem(UpdateService.SESSION_KEY) === 'true';
+        /**/console.log('[UpdateService] VERSION_READY - firstCheckComplete:', firstCheckComplete, 'confirming:', this.confirming);
         // istanbul ignore next - guards against rapid duplicate VERSION_READY events
         if (this.confirming) return;
 
-        // Skip dialog if previousVersion wasn't captured (page loaded fresh with new code)
-        // This happens when SW cache is stale but page already loaded new code from network
-        if (!this.changeLogService.previousVersion()) {
-          this.logService.log('SW: No previous version captured, skipping dialog');
+        // Set confirming immediately to prevent race conditions with duplicate events
+        this.confirming = true;
+
+        // Skip if first check cycle hasn't completed yet
+        // This means we're on a fresh page load and the update was already applied
+        if (!firstCheckComplete) {
+          /**/console.log('[UpdateService] SKIPPING: first check not complete (fresh page load)');
+          this.logService.log('SW: Fresh page load, skipping update dialog');
+          this.confirming = false;
           return;
         }
 
-        this.confirming = true;
+        // Skip dialog if previousVersion wasn't captured
+        if (!this.changeLogService.previousVersion()) {
+          /**/console.log('[UpdateService] SKIPPING: no previousVersion');
+          this.logService.log('SW: No previous version captured, skipping dialog');
+          this.confirming = false;
+          return;
+        }
+
+        /**/console.log('[UpdateService] SHOWING UPDATE DIALOG');
 
         // Refresh changelog to get canonical new version from API
         // This ensures appDiff reflects the actual new version, not cached data

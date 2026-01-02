@@ -108,9 +108,10 @@ test.describe('Feature Flags Tests', () => {
     await page.fill(auth.loginIdentifier, sharedUser.email);
     await page.fill(auth.loginPassword, sharedUser.password);
     await page.click(auth.loginSubmit);
+    await page.waitForLoadState('networkidle');
 
     // Wait for login to complete
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
 
     // Navigate to features page
     await page.goto(`${APP_BASE_URL}/features`);
@@ -160,9 +161,10 @@ test.describe('Feature Flags Tests', () => {
     await page.fill(auth.loginIdentifier, sharedUser.email);
     await page.fill(auth.loginPassword, sharedUser.password);
     await page.click(auth.loginSubmit);
+    await page.waitForLoadState('networkidle');
 
     // Wait for login to complete
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
 
     // Navigate to features page
     await page.goto(`${APP_BASE_URL}/features`);

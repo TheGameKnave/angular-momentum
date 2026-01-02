@@ -128,6 +128,28 @@ describe('FeaturesComponent', () => {
     expect(appVersionFormControl.value).toBe(!features[featureName]);
   });
 
+  it('should add form controls when new features load after init (offline recovery)', () => {
+    // Start with initial features
+    const initialFeatures = { ...features };
+    mockFeaturesSignal.set(initialFeatures);
+    fixture.detectChanges();
+
+    const initialControlCount = Object.keys(component.featureForm.controls).length;
+
+    // Simulate new feature appearing after connectivity restored
+    const newFeatureName = 'New Feature After Offline';
+    mockFeaturesSignal.set({
+      ...initialFeatures,
+      [newFeatureName]: true,
+    } as typeof features);
+    fixture.detectChanges();
+
+    // Should have added the new control
+    expect(Object.keys(component.featureForm.controls).length).toBe(initialControlCount + 1);
+    expect(component.featureForm.get(newFeatureName)).toBeDefined();
+    expect(component.featureForm.get(newFeatureName)?.value).toBe(true);
+  });
+
   it('should disable form controls when user is not authenticated', waitForAsync(() => {
     const mockAuthService = jasmine.createSpyObj('AuthService', ['isAuthenticated'], {
       currentUser: signal(null),

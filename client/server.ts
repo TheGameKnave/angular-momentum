@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import bootstrap from './src/main.server';
 import { ACCEPT_LANGUAGE } from './src/app/providers/ssr-language.provider';
+import { EXPRESS_REQUEST } from './src/app/providers/express-request.token';
+import { getScreenshotService } from './screenshot-service';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
@@ -43,6 +45,34 @@ app.use((_req, res, next) => {
 app.use(compression());
 
 const commonEngine = new CommonEngine();
+
+// Screenshot generation endpoint - MUST be before API proxy
+app.get('/api/og-image', async (req, res): Promise<void> => {
+  try {
+    const { url, width, height } = req.query;
+
+    if (!url || typeof url !== 'string') {
+      res.status(400).json({ error: 'URL parameter is required' });
+      return;
+    }
+
+    const screenshotService = getScreenshotService();
+    const screenshot = await screenshotService.capture({
+      url,
+      width: width ? Number.parseInt(width as string, 10) : 1200,
+      height: height ? Number.parseInt(height as string, 10) : 630,
+      deviceScaleFactor: 2,
+      fullPage: false,
+    });
+
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+    res.send(screenshot);
+  } catch (err) {
+    console.error('[OG Image] Error generating screenshot:', err);
+    res.status(500).json({ error: 'Failed to generate screenshot' });
+  }
+});
 
 /**
  * Proxy /api, /gql, and /socket.io requests to the backend server.
@@ -126,7 +156,7 @@ app.get('*', (req, res) => {
     url: `${protocol}://${headers.host}${originalUrl}`,
     publicPath: browserDistFolder,
     providers: [
-      { provide: 'REQUEST', useValue: req },
+      { provide: EXPRESS_REQUEST, useValue: req },
       { provide: ACCEPT_LANGUAGE, useValue: acceptLanguage },
     ],
   });

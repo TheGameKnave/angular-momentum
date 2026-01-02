@@ -29,6 +29,7 @@ import { MenuAuthComponent } from './components/menus/menu-auth/menu-auth.compon
 import { CookieBannerComponent } from './components/privacy/cookie-banner/cookie-banner.component';
 import { SCREEN_SIZES, TOOLTIP_CONFIG } from './constants/ui.constants';
 import { ResourcePreloadService } from './services/resource-preload.service';
+import { DeepLinkService } from './services/deep-link.service';
 import { ScrollIndicatorDirective } from './directives/scroll-indicator.directive';
 import { TooltipModule } from 'primeng/tooltip';
 import { ToastModule } from 'primeng/toast';
@@ -80,12 +81,14 @@ export class AppComponent implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly resourcePreload = inject(ResourcePreloadService);
+  private readonly deepLink = inject(DeepLinkService);
 
   constructor() {
     // Preload resources (flags, etc.) after first render to avoid blocking startup
     // istanbul ignore next - afterNextRender doesn't execute in unit tests
     afterNextRender(() => {
       this.resourcePreload.preloadAll();
+      this.deepLink.initialize();
 
       // Run data migrations after view is ready (so p-toast is mounted)
       // This runs on all platforms: web, Tauri desktop, and mobile
@@ -205,6 +208,7 @@ export class AppComponent implements OnInit {
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd){
         this.routePath = event.urlAfterRedirects.replace('/', '').replace(/\//, '_') || 'index';
+        this.breadcrumb = '';
         COMPONENT_LIST.forEach((component) => {
           if(this.slugPipe.transform(component.name) === this.routePath){
             this.breadcrumb = component.name;

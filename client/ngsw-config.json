@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@angular/service-worker/config/schema.json",
-  "index": "/index.html",
+  "index": "/index.csr.html",
   "assetGroups": [
     {
       "name": "app",
@@ -8,10 +8,11 @@
       "resources": {
         "files": [
           "/favicon.ico",
-          "/index.html",
+          "/index.csr.html",
           "/manifest.webmanifest",
           "/*.css",
-          "/*.js"
+          "/*.js",
+          "/media/primeicons-*"
         ]
       }
     },
@@ -21,13 +22,33 @@
       "updateMode": "prefetch",
       "resources": {
         "files": [
-          "/assets/**",
+          "/assets/browserconfig.xml",
+          "/assets/docs/**",
+          "/assets/fonts/**",
+          "/assets/i18n/**",
+          "/assets/icons/*",
+          "/assets/styles/**",
+          "/media/**",
           "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
         ]
       }
     }
   ],
   "dataGroups": [
+    {
+      "name": "api",
+      "urls": [
+        "/api/**",
+        "/gql/**",
+        "/socket.io/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 0,
+        "maxAge": "0s",
+        "timeout": "10s"
+      }
+    },
     {
       "name": "external-analytics",
       "urls": [

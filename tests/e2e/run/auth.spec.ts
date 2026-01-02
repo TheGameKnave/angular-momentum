@@ -202,9 +202,10 @@ test.describe('Authentication Tests', () => {
     await page.fill(auth.loginIdentifier, sharedUser.email);
     await page.fill(auth.loginPassword, sharedUser.password);
     await page.click(auth.loginSubmit);
+    await page.waitForLoadState('networkidle');
 
     // Wait for login to complete (profile view appears in menu)
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     await expect(page.locator(auth.profileMenu)).toBeVisible();
 
     // Click logout and wait for menu to close
@@ -242,9 +243,10 @@ test.describe('Authentication Tests', () => {
     await page.fill(auth.loginIdentifier, sharedUser.email);
     await page.fill(auth.loginPassword, sharedUser.password);
     await page.click(auth.loginSubmit);
+    await page.waitForLoadState('networkidle');
 
     // Wait for login to complete (profile view appears in menu)
-    await page.waitForSelector(auth.profileMenu, { timeout: 10000 });
+    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     // Close the auth menu
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);

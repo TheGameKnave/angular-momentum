@@ -4,43 +4,15 @@
  */
 export const changeLog = [
   {
-    version: "21.1.9",
-    date: "2025-12-30",
-    description: "version dialog testing",
+    version: "21.2.0",
+    date: "2026-01-01",
+    description: "Deep linking, service worker fixes",
     changes: [
-      "version dialog testing",
-    ]
-  },
-  {
-    version: "21.1.8",
-    date: "2025-12-30",
-    description: "version dialog testing",
-    changes: [
-      "version dialog testing",
-    ]
-  },
-  {
-    version: "21.1.7",
-    date: "2025-12-30",
-    description: "version dialog testing",
-    changes: [
-      "version dialog testing",
-    ]
-  },
-  {
-    version: "21.1.6",
-    date: "2025-12-28",
-    description: "version dialog testing",
-    changes: [
-      "version dialog testing",
-    ]
-  },
-  {
-    version: "21.1.5",
-    date: "2025-12-28",
-    description: "version dialog testing",
-    changes: [
-      "version dialog testing",
+      "Universal Links (iOS) and App Links (Android) for mobile apps",
+      "Fix service worker caching API/GraphQL/WebSocket requests",
+      "Fix version indicator showing when client is ahead of server",
+      "Separate ANGULAR_ENV from NODE_ENV for Heroku builds",
+      "Post-deploy smoke tests",
     ]
   },
   {

@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Angular Momentum",
-  "version": "21.1.9",
+  "version": "21.2.0",
   "identifier": "app.angularmomentum",
   "build": {
     "beforeDevCommand": "ng serve --hmr --proxy-config src/proxy.conf.js --configuration=tauri-local",
@@ -48,11 +48,11 @@
       }
     },
     "iOS": {
-      "bundleVersion": "130"
+      "bundleVersion": "134"
     },
     "android": {
       "minSdkVersion": 35,
-      "versionCode": 130
+      "versionCode": 134
     }
   },
   "plugins": {
@@ -63,6 +63,13 @@
         "https://github.com/TheGameKnave/angular-momentum/releases/latest/download/latest.json"
       ],
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDk4RTQ5MDU4NUUxREQyQTcKUldTbjBoMWVXSkRrbUs0RS93d2dza2VLQ01pMkhTWHQvdFozV0hjbjJ0Vk9SYVRmYkxrc2FzK1oK"
+    },
+    "deep-link": {
+      "mobile": [
+        {
+          "host": "angularmomentum.app"
+        }
+      ]
     }
   }
 }
