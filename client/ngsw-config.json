@@ -36,6 +36,20 @@
   ],
   "dataGroups": [
     {
+      "name": "api",
+      "urls": [
+        "/api/**",
+        "/gql/**",
+        "/socket.io/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 0,
+        "maxAge": "0s",
+        "timeout": "10s"
+      }
+    },
+    {
       "name": "external-analytics",
       "urls": [
         "https://static.cloudflareinsights.com/**",

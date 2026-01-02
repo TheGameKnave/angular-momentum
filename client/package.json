@@ -11,7 +11,7 @@
     "test": "NODE_ENV=development ng test --configuration test --browsers=ChromeHeadless --watch=false",
     "test:debug": "NODE_ENV=development KARMA_CONSOLE=true ng test --configuration test --browsers=ChromeHeadless --watch=false",
     "watch": "NODE_ENV=development ng test",
-    "build-heroku": "ng build --configuration=${NODE_ENV} && node scripts/prune-flags.js",
+    "build-heroku": "ng build --configuration=${ANGULAR_ENV:-${NODE_ENV:-production}} && node scripts/prune-flags.js",
     "heroku-postbuild": "npm run build-heroku && PLAYWRIGHT_BROWSERS_PATH=./pw-browsers npx playwright install chromium --only-shell",
     "setLocal": "node ./scripts/set-local-env.js",
     "tauri": "tauri",

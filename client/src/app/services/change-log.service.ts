@@ -88,13 +88,15 @@ export class ChangeLogService {
         tap((changeLogArr) => {
           this.changes.set(changeLogArr);
           this.appVersion.set(changeLogArr[0].version);
-          const { impact, delta } = semverDiff(
+          const { impact, delta, direction } = semverDiff(
             this.getCurrentVersion(),
             changeLogArr[0].version,
           );
           // Map 'none' to 'patch' for backwards compatibility
           const mappedImpact: ChangeImpact = impact === 'none' ? 'patch' : impact;
-          this.appDiff.set({ impact: mappedImpact, delta });
+          // Only show update indicator when behind, not when ahead
+          const effectiveDelta = direction === 'behind' ? delta : 0;
+          this.appDiff.set({ impact: mappedImpact, delta: effectiveDelta });
         }),
         catchError((error: unknown) => {
           console.error('Error fetching change log:', error);
