@@ -107,8 +107,34 @@ app.use(
   express.static(browserDistFolder, {
     maxAge: '1y',
     index: false,
+    setHeaders: (res, path) => {
+      // Ensure markdown files are served with correct MIME type
+      if (path.endsWith('.md')) {
+        res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+      }
+    },
   })
 );
+
+// Explicit route for markdown files - fallback if static middleware misses them
+app.get('*.md', (req, res, next) => {
+  // Sanitize path to prevent directory traversal attacks
+  const safePath = req.path.replaceAll('..', '').replaceAll(/\/+/g, '/');
+  const filePath = join(browserDistFolder, safePath);
+
+  // Ensure the resolved path is still within browserDistFolder
+  if (!filePath.startsWith(browserDistFolder)) {
+    res.status(403).send('Forbidden');
+    return;
+  }
+
+  res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      next(); // Fall through to SSR if file not found
+    }
+  });
+});
 
 // SSR render timeout to prevent hanging
 const SSR_TIMEOUT = 5000;
