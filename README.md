@@ -39,6 +39,10 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 
 (* indicates a feature that’s visible in the sample app)
 
+## Pending features
+
+* CDN for static assets and binary distros, depending on Tauri's ability to cache assets
+
 ## License
 This project is licensed under the MIT License (see [LICENSE](https://github.com/TheGameKnave/angular-momentum/blob/main/LICENSE) file for details).
 
