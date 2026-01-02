@@ -102,26 +102,6 @@ app.get('/ngsw.json', (_req, res) => {
   res.sendFile(join(browserDistFolder, 'ngsw.json'));
 });
 
-// Serve markdown files explicitly - must be before static middleware
-app.get('*.md', (req, res, next) => {
-  // Sanitize path to prevent directory traversal attacks
-  const safePath = req.path.replaceAll('..', '').replaceAll(/\/+/g, '/');
-  const filePath = join(browserDistFolder, safePath);
-
-  // Ensure the resolved path is still within browserDistFolder
-  if (!filePath.startsWith(browserDistFolder)) {
-    res.status(403).send('Forbidden');
-    return;
-  }
-
-  res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
-  res.sendFile(filePath, (err) => {
-    if (err) {
-      next(); // Fall through to SSR if file not found
-    }
-  });
-});
-
 // Serve static files from browser dist folder
 app.use(
   express.static(browserDistFolder, {

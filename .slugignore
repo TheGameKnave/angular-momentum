@@ -35,9 +35,8 @@ node_modules/source-map-support/
 # Tauri (desktop app - not needed for web)
 client/src-tauri/
 
-# Documentation
-*.md
-!README.md
+# Documentation (exclude root docs/ but keep client/src/assets/docs/)
+/docs/
 
 # Source maps (large)
 *.map
