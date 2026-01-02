@@ -4,6 +4,14 @@
  */
 export const changeLog = [
   {
+    version: "21.2.1",
+    date: "2026-01-01",
+    description: "New patch",
+    changes: [
+      "empty change for prod incrementation",
+    ]
+  },
+  {
     version: "21.2.0",
     date: "2026-01-01",
     description: "Deep linking, service worker fixes",
