@@ -4,6 +4,15 @@
  */
 export const changeLog = [
   {
+    version: "21.2.4",
+    date: "2026-01-02",
+    description: "macOS signing fix",
+    changes: [
+      "Fix macOS code signing by removing Associated Domains entitlement from desktop builds",
+      "Add Check for Updates menu item in desktop app toolbar",
+    ]
+  },
+  {
     version: "21.2.3",
     date: "2026-01-02",
     description: "Markdown assets, OG images",
