@@ -3,6 +3,15 @@
  * @description Array of changelog entries tracking version releases, dates, descriptions, and changes
  */
 export const changeLog = [
+  
+  {
+    version: "21.2.7",
+    date: "2026-01-02",
+    description: "Stagger desktop builds",
+    changes: [
+      "Stagger desktop builds",
+    ]
+  },
   {
     version: "21.2.6",
     date: "2026-01-02",
