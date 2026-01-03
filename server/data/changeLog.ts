@@ -4,6 +4,14 @@
  */
 export const changeLog = [
   {
+    version: "21.2.6",
+    date: "2026-01-02",
+    description: "iOS build requirements",
+    changes: [
+      "iOS build requirements",
+    ]
+  },
+  {
     version: "21.2.5",
     date: "2026-01-02",
     description: "Deep link routing through proxy",
