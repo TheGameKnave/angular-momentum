@@ -16,5 +16,11 @@ module.exports = {
     target: 'http://localhost:4201',
     secure: false,
     changeOrigin: true
+  },
+  // Universal Links (iOS) & App Links (Android) verification
+  '/.well-known': {
+    target: 'http://localhost:4201',
+    secure: false,
+    changeOrigin: true
   }
 };

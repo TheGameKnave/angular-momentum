@@ -4,6 +4,14 @@
  */
 export const changeLog = [
   {
+    version: "21.2.5",
+    date: "2026-01-02",
+    description: "Deep link routing through proxy",
+    changes: [
+      "Deep link routing through proxy",
+    ]
+  },
+  {
     version: "21.2.4",
     date: "2026-01-02",
     description: "macOS signing fix",

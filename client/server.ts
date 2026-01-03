@@ -82,7 +82,7 @@ const apiProxy = createProxyMiddleware({
   target: `http://localhost:${API_PORT}`,
   changeOrigin: true,
   ws: true,
-  pathFilter: ['/api', '/gql', '/socket.io'],
+  pathFilter: ['/api', '/gql', '/socket.io', '/.well-known'],
   on: {
     error: (err, _req, res) => {
       console.error('[Proxy Error]', err.message);
