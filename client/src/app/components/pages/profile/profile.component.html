@@ -12,6 +12,15 @@
           <h2>@if (usernameService.username()?.username) {{{ usernameService.username()?.username }}'s }{{ t('profile.Profile') }}</h2>
           <p>{{ authService.currentUser()?.email }}</p>
         </div>
+        @if (!usernameService.username()?.username) {
+          <i
+            class="pi pi-eye-slash profile-private-indicator"
+            pTooltip="{{ t('profile.Without a username, your profile is private') }}"
+            tooltipPosition="left"
+            [showDelay]="tooltipShowDelay"
+            [hideDelay]="tooltipHideDelay"
+          ></i>
+        }
       </div>
     </ng-template>
 

@@ -1846,6 +1846,7 @@ app-profile {
     gap: 1.6rem;
     padding: 1.6rem;
     overflow: hidden;
+    position: relative;
 
     .profile-header-info {
       flex: 1;
@@ -1861,6 +1862,15 @@ app-profile {
         text-overflow: ellipsis;
         white-space: nowrap;
       }
+    }
+
+    .profile-private-indicator {
+      font-size: 2rem;
+      opacity: 0.6;
+      cursor: help;
+      position: absolute;
+      top: 1.6rem;
+      right: 1.6rem;
     }
   }
 
