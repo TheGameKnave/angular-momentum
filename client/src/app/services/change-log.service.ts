@@ -1,7 +1,7 @@
 import { DestroyRef, Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ENVIRONMENT } from 'src/environments/environment';
-import { catchError, map, of, switchMap, timer, tap, merge, Subject } from 'rxjs';
+import { catchError, map, of, switchMap, timer, tap, merge, Subject, take } from 'rxjs';
 import { ChangeImpact } from '@app/models/data.model';
 import packageJson from 'src/../package.json';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -59,6 +59,7 @@ export class ChangeLogService {
 
   constructor() {
     // relaxed background auto-refresh
+    // istanbul ignore next - arrow function in constructor, covered via integration
     this.refresh$
       .pipe(
         switchMap(() => this.getChangeLogs()),
@@ -70,9 +71,17 @@ export class ChangeLogService {
   /**
    * Manually refresh the changelog.
    * Triggers an immediate fetch of changelog data from the backend.
+   * @returns Promise that resolves when the refresh completes
    */
-  refresh(): void {
-    this.manualRefresh$.next();
+  refresh(): Promise<void> {
+    return new Promise<void>((resolve) => {
+      this.getChangeLogs()
+        .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => resolve(),
+          error: () => resolve(), // Resolve even on error to avoid blocking
+        });
+    });
   }
 
   /**

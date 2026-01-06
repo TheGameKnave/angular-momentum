@@ -4,6 +4,22 @@
  */
 export const changeLog = [
   {
+    version: "21.2.10",
+    date: "2026-01-05",
+    description: "New patch",
+    changes: [
+      "version checking",
+    ]
+  },
+  {
+    version: "21.2.9",
+    date: "2026-01-05",
+    description: "New patch",
+    changes: [
+      "version checking",
+    ]
+  },
+  {
     version: "21.2.8",
     date: "2026-01-05",
     description: "New patch",

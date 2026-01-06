@@ -70,22 +70,18 @@ export class UpdateService {
     // Listen for Angular Service Worker version events (only if SwUpdate is available)
     // istanbul ignore next - SwUpdate observable subscription requires real service worker context
     if (this.updates) {
-      /**/console.log('[UpdateService] subscribing to versionUpdates');
       this.updates.versionUpdates
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(event => this.handleSwEvent(event));
     }
 
     // Run immediate and interval-based update checks
-    /**/console.log('[UpdateService] starting interval check');
     interval(UPDATE_CONFIG.CHECK_INTERVAL_MS)
       .pipe(startWith(0), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.checkServiceWorkerUpdate();
         this.checkTauriUpdate();
       });
-
-    /**/console.log('[UpdateService] init() done');
   }
 
   // --- Angular SW ---
@@ -96,7 +92,6 @@ export class UpdateService {
    * Automatically activates updates if available.
    */
   private checkServiceWorkerUpdate(): void {
-    /**/console.log('[UpdateService] checkServiceWorkerUpdate() called');
     // istanbul ignore next - Tauri platform detection, isTauri() always returns false in unit tests
     if (isTauri()) return;
     // istanbul ignore next - SSR guard, SwUpdate is null during server rendering
@@ -112,24 +107,32 @@ export class UpdateService {
     this.checkInProgress = true;
 
     // Race between checkForUpdate and timeout to prevent indefinite hangs
-    /**/console.log('[UpdateService] calling checkForUpdate()');
     const checkPromise = this.updates.checkForUpdate();
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('Update check timed out')), UPDATE_CONFIG.CHECK_TIMEOUT_MS);
     });
 
     Promise.race([checkPromise, timeoutPromise]).then(available => {
-      /**/console.log('[UpdateService] checkForUpdate() returned:', available);
       this.checkInProgress = false;
       if (available) {
         // istanbul ignore next - activateUpdate rarely fails, requires corrupted SW state
-        this.updates!.activateUpdate().then(() => {
-          this.logService.log('SW: Update activated. Awaiting VERSION_READY...');
-          // Mark first check complete AFTER activation finishes
-          // VERSION_READY from this activation should still be ignored
+        this.updates!.activateUpdate().then(async (activated) => {
           sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
+          if (activated) {
+            this.logService.log('SW: Update activated. Awaiting VERSION_READY...');
+            // VERSION_READY event will trigger the dialog
+          } else {
+            // activateUpdate returned false - SW state is inconsistent
+            // checkForUpdate said update exists, but activateUpdate couldn't apply it
+            // Show dialog to let user reload and get the new version
+            await this.changeLogService.refresh();
+            const confirmed = await this.updateDialogService.show();
+            if (confirmed) {
+              this.reloadPage();
+            }
+          }
         }).catch(err => {
-          console.error('[UpdateService] activateUpdate() failed:', err);
+          console.error('SW: activateUpdate() failed:', err);
           sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
         });
       } else {
@@ -141,7 +144,7 @@ export class UpdateService {
       }
     }).catch(err => {
       this.checkInProgress = false;
-      console.error('[UpdateService] checkForUpdate() failed:', err);
+      console.error('SW: checkForUpdate() failed:', err);
       // Clear captured version on error/timeout
       this.changeLogService.clearPreviousVersion();
       sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
@@ -159,11 +162,9 @@ export class UpdateService {
    * @param event - Service Worker version event
    */
   private async handleSwEvent(event: VersionEvent): Promise<void> {
-    /**/console.log('[UpdateService] handleSwEvent:', event.type, event);
     switch (event.type) {
       case 'VERSION_READY': {
         const firstCheckComplete = sessionStorage.getItem(UpdateService.SESSION_KEY) === 'true';
-        /**/console.log('[UpdateService] VERSION_READY - firstCheckComplete:', firstCheckComplete, 'confirming:', this.confirming);
         // istanbul ignore next - guards against rapid duplicate VERSION_READY events
         if (this.confirming) return;
 
@@ -173,7 +174,6 @@ export class UpdateService {
         // Skip if first check cycle hasn't completed yet
         // This means we're on a fresh page load and the update was already applied
         if (!firstCheckComplete) {
-          /**/console.log('[UpdateService] SKIPPING: first check not complete (fresh page load)');
           this.logService.log('SW: Fresh page load, skipping update dialog');
           this.confirming = false;
           return;
@@ -181,17 +181,14 @@ export class UpdateService {
 
         // Skip dialog if previousVersion wasn't captured
         if (!this.changeLogService.previousVersion()) {
-          /**/console.log('[UpdateService] SKIPPING: no previousVersion');
           this.logService.log('SW: No previous version captured, skipping dialog');
           this.confirming = false;
           return;
         }
 
-        /**/console.log('[UpdateService] SHOWING UPDATE DIALOG');
-
         // Refresh changelog to get canonical new version from API
         // This ensures appDiff reflects the actual new version, not cached data
-        this.changeLogService.refresh();
+        await this.changeLogService.refresh();
 
         // Show update dialog
         const confirmed = await this.updateDialogService.show();
@@ -206,9 +203,13 @@ export class UpdateService {
       case 'VERSION_DETECTED':
         this.logService.log('SW: New version detected:', event.version);
         break;
-      // istanbul ignore next - VERSION_INSTALLATION_FAILED is rare, requires network/hash errors during SW install
+      // VERSION_INSTALLATION_FAILED - cache full, network error, or hash mismatch
       case 'VERSION_INSTALLATION_FAILED':
-        console.error('[UpdateService] VERSION_INSTALLATION_FAILED:', event);
+        console.error('SW: VERSION_INSTALLATION_FAILED:', event);
+        // If cache is full, clear it and prompt user to reload
+        if (event.error?.includes('Operation too large') || event.error?.includes('QuotaExceeded')) {
+          this.clearCachesAndPromptReload();
+        }
         break;
     }
   }
@@ -277,6 +278,33 @@ export class UpdateService {
   }
 
   // --- Wrappers that can be spied on in tests ---
+
+  /**
+   * Clear all service worker caches and prompt user to reload.
+   * Used when cache quota is exceeded and update installation fails.
+   */
+  // istanbul ignore next - cache API, integration test scope
+  private async clearCachesAndPromptReload(): Promise<void> {
+    try {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+
+      // Unregister the service worker to force a clean reinstall
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(reg => reg.unregister()));
+
+      // Show dialog and reload
+      await this.changeLogService.refresh();
+      const confirmed = await this.updateDialogService.show();
+      if (confirmed) {
+        this.reloadPage();
+      }
+    } catch (err) {
+      console.error('SW: Failed to clear caches:', err);
+      // Still try to reload
+      this.reloadPage();
+    }
+  }
 
   /**
    * Reload the current page.

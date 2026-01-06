@@ -110,6 +110,25 @@ describe('ChangeLogService', () => {
     );
   }));
 
+  it('should resolve refresh() even when getChangeLogs throws', fakeAsync(() => {
+    // Spy on getChangeLogs to throw an error directly
+    spyOn(service as any, 'getChangeLogs').and.returnValue({
+      pipe: () => ({
+        subscribe: (callbacks: { error: () => void }) => {
+          callbacks.error();
+        },
+      }),
+    });
+
+    let resolved = false;
+    service.refresh().then(() => {
+      resolved = true;
+    });
+    tick();
+
+    expect(resolved).toBeTrue();
+  }));
+
   describe('previousVersion', () => {
     it('should initially be null', () => {
       expect(service.previousVersion()).toBeNull();
