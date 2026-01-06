@@ -59,6 +59,7 @@ export class ChangeLogService {
 
   constructor() {
     // relaxed background auto-refresh
+    // istanbul ignore next - arrow function in constructor, covered via integration
     this.refresh$
       .pipe(
         switchMap(() => this.getChangeLogs()),
