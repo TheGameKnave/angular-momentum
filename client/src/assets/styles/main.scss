@@ -1400,6 +1400,10 @@ app-dialog-menu {
   .error-block {
     margin-bottom: 1.6rem;
 
+    .p-message {
+      margin: 0;
+    }
+
     .retry-hint {
       font-size: 1.4rem;
       margin-top: 0.8rem;

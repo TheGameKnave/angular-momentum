@@ -133,11 +133,6 @@
             <p-message severity="error" [text]="passwordError()!" />
           }
 
-          <!-- Success Message -->
-          @if (passwordSuccess()) {
-            <p-message severity="success" [text]="t('auth.Password updated successfully!')" />
-          }
-
           <!-- Submit Button -->
           <div class="form-actions">
             <p-button
@@ -249,14 +244,6 @@
             }
           </div>
 
-          <!-- Success Message -->
-          @if (emailSuccess()) {
-            <p-message
-              severity="success"
-              [text]="t('profile.Verification email sent! Please check your new email address and enter the confirmation code.')"
-            />
-          }
-
           <!-- Error Message -->
           @if (emailError()) {
             <p-message severity="error" [text]="emailError()!" />
@@ -324,11 +311,6 @@
         <!-- Error Message -->
         @if (usernameError()) {
           <p-message severity="error" [text]="usernameError()!" />
-        }
-
-        <!-- Success Message -->
-        @if (usernameSuccess()) {
-          <p-message severity="success" [text]="t('profile.Username updated successfully!')" />
         }
 
         <!-- Submit Button -->

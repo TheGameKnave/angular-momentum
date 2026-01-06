@@ -15,6 +15,7 @@ import { MessageModule } from 'primeng/message';
 import { TooltipModule } from 'primeng/tooltip';
 import { SelectModule } from 'primeng/select';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { MessageService } from 'primeng/api';
 import { ConfirmDialogService } from '@app/services/confirm-dialog.service';
 import { AuthService } from '@app/services/auth.service';
 import { UserSettingsService } from '@app/services/user-settings.service';
@@ -74,13 +75,13 @@ export class ProfileComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly translocoService = inject(TranslocoService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
+  private readonly messageService = inject(MessageService);
   private readonly platformId = inject(PLATFORM_ID);
 
   // Password change panel state
   readonly passwordPanelExpanded = signal(false);
   readonly passwordLoading = signal(false);
   readonly passwordError = signal<string | null>(null);
-  readonly passwordSuccess = signal(false);
   readonly showNewPassword = signal(false);
   readonly showConfirmPassword = signal(false);
   readonly showCurrentPassword = signal(false);
@@ -96,7 +97,6 @@ export class ProfileComponent implements OnInit {
   readonly usernamePanelExpanded = signal(false);
   readonly usernameLoading = signal(false);
   readonly usernameError = signal<string | null>(null);
-  readonly usernameSuccess = signal(false);
   readonly editedUsername = signal<string>('');
   readonly originalUsername = signal<string>(''); // Track original username to detect changes
   readonly isUsernameDirty = computed(() => this.editedUsername() !== this.originalUsername());
@@ -105,7 +105,6 @@ export class ProfileComponent implements OnInit {
   readonly emailPanelExpanded = signal(false);
   readonly emailLoading = signal(false);
   readonly emailError = signal<string | null>(null);
-  readonly emailSuccess = signal(false);
   readonly emailOtpSent = signal(false); // True when OTP has been sent
   readonly emailChangeComplete = signal(false); // True when email change is fully completed
   readonly pendingNewEmail = signal<string | null>(null); // Email awaiting OTP verification
@@ -298,7 +297,6 @@ export class ProfileComponent implements OnInit {
     if (!collapsed) {
       // Expanding - reset form
       this.passwordError.set(null);
-      this.passwordSuccess.set(false);
       this.passwordForm.reset();
     }
   }
@@ -313,7 +311,6 @@ export class ProfileComponent implements OnInit {
 
     this.passwordLoading.set(true);
     this.passwordError.set(null);
-    this.passwordSuccess.set(false);
 
     const { currentPassword, newPassword } = this.passwordForm.value;
 
@@ -347,8 +344,12 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
-    // Success!
-    this.passwordSuccess.set(true);
+    // Success! Show toast notification
+    this.messageService.add({
+      severity: 'success',
+      summary: this.translocoService.translate('auth.Password updated successfully!'),
+      life: 3000,
+    });
     this.passwordForm.reset();
   }
 
@@ -361,7 +362,6 @@ export class ProfileComponent implements OnInit {
     if (!collapsed) {
       // Expanding - reset form
       this.emailError.set(null);
-      this.emailSuccess.set(false);
       this.emailForm.reset();
     }
   }
@@ -376,7 +376,6 @@ export class ProfileComponent implements OnInit {
 
     this.emailLoading.set(true);
     this.emailError.set(null);
-    this.emailSuccess.set(false);
 
     const { newEmail } = this.emailForm.value;
 
@@ -393,7 +392,11 @@ export class ProfileComponent implements OnInit {
     // OTP sent! Show OTP input form
     this.pendingNewEmail.set(newEmail);
     this.emailOtpSent.set(true);
-    this.emailSuccess.set(true);
+    this.messageService.add({
+      severity: 'success',
+      summary: this.translocoService.translate('auth.New verification code sent!'),
+      life: 3000,
+    });
   }
 
   /**
@@ -457,6 +460,11 @@ export class ProfileComponent implements OnInit {
     this.pendingNewEmail.set(null);
     this.emailOtp.set('');
     this.emailForm.reset();
+    this.messageService.add({
+      severity: 'success',
+      summary: this.translocoService.translate('profile.Email address updated successfully!'),
+      life: 3000,
+    });
   }
 
   /**
@@ -468,7 +476,6 @@ export class ProfileComponent implements OnInit {
     this.pendingNewEmail.set(null);
     this.emailOtp.set('');
     this.emailError.set(null);
-    this.emailSuccess.set(false);
   }
 
   /**
@@ -490,8 +497,12 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
-    // Show success message for resend
-    this.emailSuccess.set(true);
+    // Show success toast for resend
+    this.messageService.add({
+      severity: 'success',
+      summary: this.translocoService.translate('auth.New verification code sent!'),
+      life: 3000,
+    });
   }
 
   /**
@@ -563,7 +574,6 @@ export class ProfileComponent implements OnInit {
     if (!collapsed) {
       // Expanding - reset form
       this.usernameError.set(null);
-      this.usernameSuccess.set(false);
       // Initialize with current username or empty string
       const currentUsername = this.usernameService.username()?.username ?? '';
       this.editedUsername.set(currentUsername);
@@ -579,7 +589,6 @@ export class ProfileComponent implements OnInit {
 
     this.usernameLoading.set(true);
     this.usernameError.set(null);
-    this.usernameSuccess.set(false);
 
     try {
       if (newUsername) {
@@ -592,13 +601,12 @@ export class ProfileComponent implements OnInit {
         this.originalUsername.set('');
       }
 
-      // Success!
-      this.usernameSuccess.set(true);
-
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        this.usernameSuccess.set(false);
-      }, 3000);
+      // Success! Show toast notification
+      this.messageService.add({
+        severity: 'success',
+        summary: this.translocoService.translate('profile.Username updated successfully!'),
+        life: 3000,
+      });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'error.Failed to update username';
       this.usernameError.set(this.translocoService.translate(message));
