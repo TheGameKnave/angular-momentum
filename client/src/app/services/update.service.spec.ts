@@ -121,7 +121,7 @@ describe('UpdateService', () => {
 
     expect(swUpdateMock.checkForUpdate).toHaveBeenCalled();
     expect(consoleSpy).toHaveBeenCalledWith(
-      '[UpdateService] checkForUpdate() failed:',
+      'SW: checkForUpdate() failed:',
       jasmine.any(Error)
     );
   });
@@ -211,7 +211,7 @@ describe('UpdateService', () => {
       // Advance past timeout (30 seconds)
       tick(30000);
 
-      expect(consoleSpy).toHaveBeenCalledWith('[UpdateService] checkForUpdate() failed:', jasmine.any(Error));
+      expect(consoleSpy).toHaveBeenCalledWith('SW: checkForUpdate() failed:', jasmine.any(Error));
       expect(changeLogMock.clearPreviousVersion).toHaveBeenCalled();
       // checkInProgress should be reset
       expect((service as any).checkInProgress).toBe(false);
@@ -248,6 +248,37 @@ describe('UpdateService', () => {
       tick();
       expect(logMock.log).toHaveBeenCalledWith('SW: Fresh page load, skipping update dialog');
       expect(updateDialogMock.show).not.toHaveBeenCalled();
+    }));
+
+    it('should log VERSION_INSTALLATION_FAILED events', fakeAsync(async () => {
+      const consoleSpy = spyOn(console, 'error');
+
+      const installFailedEvent = {
+        type: 'VERSION_INSTALLATION_FAILED' as const,
+        version: { hash: 'abc123' },
+        error: 'Network error',
+      };
+
+      await (service as any).handleSwEvent(installFailedEvent);
+      tick();
+
+      expect(consoleSpy).toHaveBeenCalledWith('SW: VERSION_INSTALLATION_FAILED:', installFailedEvent);
+    }));
+
+    it('should clear caches when VERSION_INSTALLATION_FAILED with quota error', fakeAsync(async () => {
+      spyOn(console, 'error');
+      const clearCachesSpy = spyOn<any>(service, 'clearCachesAndPromptReload');
+
+      const quotaExceededEvent = {
+        type: 'VERSION_INSTALLATION_FAILED' as const,
+        version: { hash: 'abc123' },
+        error: 'Operation too large to store',
+      };
+
+      await (service as any).handleSwEvent(quotaExceededEvent);
+      tick();
+
+      expect(clearCachesSpy).toHaveBeenCalled();
     }));
   });
 

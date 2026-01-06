@@ -1,7 +1,7 @@
 import { DestroyRef, Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ENVIRONMENT } from 'src/environments/environment';
-import { catchError, map, of, switchMap, timer, tap, merge, Subject } from 'rxjs';
+import { catchError, map, of, switchMap, timer, tap, merge, Subject, take } from 'rxjs';
 import { ChangeImpact } from '@app/models/data.model';
 import packageJson from 'src/../package.json';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -74,10 +74,12 @@ export class ChangeLogService {
    */
   refresh(): Promise<void> {
     return new Promise<void>((resolve) => {
-      this.getChangeLogs().subscribe({
-        next: () => resolve(),
-        error: () => resolve(), // Resolve even on error to avoid blocking
-      });
+      this.getChangeLogs()
+        .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => resolve(),
+          error: () => resolve(), // Resolve even on error to avoid blocking
+        });
     });
   }
 
