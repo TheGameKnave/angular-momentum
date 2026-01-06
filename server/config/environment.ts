@@ -23,7 +23,7 @@ interface Config {
  * @description Loads configuration from .env file using dotenv
  */
 const config: Config = {
-  // API_PORT takes precedence for the API server (default 4201 for SSR proxy compatibility)
+  // API_PORT for the API server (default 4201 for SSR proxy compatibility)
   server_port: process.env.API_PORT || /* istanbul ignore next */ '4201',
   server_id: process.env.SERVER_ID,
   data_key: process.env.DATA_KEY,

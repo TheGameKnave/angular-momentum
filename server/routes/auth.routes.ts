@@ -618,7 +618,8 @@ export function createAuthRoutes(
         user: data.user,
         session: data.session
       });
-    } catch {
+    } catch (error: unknown) {
+      console.error('Login failed:', error);
       return res.status(500).json({
         success: false,
         error: AUTH_ERROR_CODES.LOGIN_FAILED
@@ -684,7 +685,8 @@ export function createAuthRoutes(
         username: usernameData.username,
         fingerprint: usernameData.fingerprint
       });
-    } catch {
+    } catch (error: unknown) {
+      console.error('GET /username failed:', error);
       res.status(500).json({
         success: false,
         error: GENERIC_ERROR_CODES.UNKNOWN
@@ -788,7 +790,8 @@ export function createAuthRoutes(
         username: result.data.username,
         fingerprint: result.data.fingerprint
       });
-    } catch {
+    } catch (error: unknown) {
+      console.error('PUT /username failed:', error);
       res.status(500).json({
         success: false,
         error: USERNAME_ERROR_CODES.UPDATE_FAILED
@@ -841,7 +844,8 @@ export function createAuthRoutes(
       res.json({
         success: true
       });
-    } catch {
+    } catch (error: unknown) {
+      console.error('DELETE /username failed:', error);
       res.status(500).json({
         success: false,
         error: USERNAME_ERROR_CODES.DELETE_FAILED
@@ -936,7 +940,8 @@ export function createAuthRoutes(
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.json(exportData);
-    } catch {
+    } catch (error: unknown) {
+      console.error('GET /export-data failed:', error);
       res.status(500).json({
         success: false,
         error: DATA_ERROR_CODES.EXPORT_FAILED
@@ -1008,7 +1013,8 @@ export function createAuthRoutes(
       res.json({
         success: true
       });
-    } catch {
+    } catch (error: unknown) {
+      console.error('DELETE /delete-account failed:', error);
       res.status(500).json({
         success: false,
         error: DATA_ERROR_CODES.DELETE_FAILED

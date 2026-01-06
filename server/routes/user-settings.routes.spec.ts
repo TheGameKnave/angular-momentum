@@ -700,13 +700,11 @@ describe('User Settings Routes', () => {
       };
 
       mockSupabase.from.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: mockSettings,
-                error: null,
-              }),
+        upsert: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: mockSettings,
+              error: null,
             }),
           }),
         }),
@@ -738,13 +736,11 @@ describe('User Settings Routes', () => {
       };
 
       mockSupabase.from.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: mockSettings,
-                error: null,
-              }),
+        upsert: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: mockSettings,
+              error: null,
             }),
           }),
         }),
@@ -779,13 +775,11 @@ describe('User Settings Routes', () => {
       });
 
       mockSupabase.from.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: null,
-                error: { message: 'Update failed' },
-              }),
+        upsert: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: null,
+              error: { message: 'Upsert failed' },
             }),
           }),
         }),
@@ -797,7 +791,7 @@ describe('User Settings Routes', () => {
         .send({ timezone: 'Europe/London' });
 
       expect(response.status).toBe(500);
-      expect(response.body).toEqual({ error: 'Update failed' });
+      expect(response.body).toEqual({ error: 'Upsert failed' });
     });
 
     it('should handle exceptions during update', async () => {
@@ -854,13 +848,11 @@ describe('User Settings Routes', () => {
       };
 
       mockSupabase.from.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: mockSettings,
-                error: null,
-              }),
+        upsert: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: mockSettings,
+              error: null,
             }),
           }),
         }),
@@ -891,13 +883,11 @@ describe('User Settings Routes', () => {
       };
 
       mockSupabase.from.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: mockSettings,
-                error: null,
-              }),
+        upsert: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: mockSettings,
+              error: null,
             }),
           }),
         }),
@@ -927,19 +917,17 @@ describe('User Settings Routes', () => {
         updated_at: '2024-01-02',
       };
 
-      const mockUpdate = jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: mockSettings,
-              error: null,
-            }),
+      const mockUpsert = jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          single: jest.fn().mockResolvedValue({
+            data: mockSettings,
+            error: null,
           }),
         }),
       });
 
       mockSupabase.from.mockReturnValue({
-        update: mockUpdate,
+        upsert: mockUpsert,
       });
 
       const response = await request(app)
@@ -949,10 +937,10 @@ describe('User Settings Routes', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ data: mockSettings });
-      expect(mockUpdate).toHaveBeenCalledWith({
-        timezone: 'America/New_York',
-        theme_preference: 'light',
-      });
+      expect(mockUpsert).toHaveBeenCalledWith(
+        { user_id: 'user-123', timezone: 'America/New_York', theme_preference: 'light' },
+        { onConflict: 'user_id', ignoreDuplicates: false }
+      );
     });
 
     it('should update language successfully', async () => {
@@ -971,13 +959,11 @@ describe('User Settings Routes', () => {
       };
 
       mockSupabase.from.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: mockSettings,
-                error: null,
-              }),
+        upsert: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: mockSettings,
+              error: null,
             }),
           }),
         }),
@@ -1008,19 +994,17 @@ describe('User Settings Routes', () => {
         updated_at: '2024-01-02',
       };
 
-      const mockUpdate = jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: mockSettings,
-              error: null,
-            }),
+      const mockUpsert = jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          single: jest.fn().mockResolvedValue({
+            data: mockSettings,
+            error: null,
           }),
         }),
       });
 
       mockSupabase.from.mockReturnValue({
-        update: mockUpdate,
+        upsert: mockUpsert,
       });
 
       const response = await request(app)
@@ -1030,11 +1014,10 @@ describe('User Settings Routes', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ data: mockSettings });
-      expect(mockUpdate).toHaveBeenCalledWith({
-        timezone: 'America/New_York',
-        theme_preference: 'light',
-        language: 'fr',
-      });
+      expect(mockUpsert).toHaveBeenCalledWith(
+        { user_id: 'user-123', timezone: 'America/New_York', theme_preference: 'light', language: 'fr' },
+        { onConflict: 'user_id', ignoreDuplicates: false }
+      );
     });
 
     it('should return 400 if language is invalid type', async () => {

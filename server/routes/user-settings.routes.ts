@@ -164,11 +164,13 @@ export function createUserSettingsRoutes(supabase: SupabaseClient | null): Route
         if (error.code === 'PGRST116') {
           return res.status(404).json({ data: null });
         }
+        console.error('GET /user-settings DB error:', error);
         return errorResponse(res, 500, error.message);
       }
 
       res.json({ data });
     } catch (error: unknown) {
+      console.error('GET /user-settings failed:', error);
       errorResponse(res, 500, getErrorMessage(error));
     }
   });
@@ -189,9 +191,13 @@ export function createUserSettingsRoutes(supabase: SupabaseClient | null): Route
         .select()
         .single();
 
-      if (error) return errorResponse(res, 500, error.message);
+      if (error) {
+        console.error('POST /user-settings DB error:', error);
+        return errorResponse(res, 500, error.message);
+      }
       res.status(201).json({ data });
     } catch (error: unknown) {
+      console.error('POST /user-settings failed:', error);
       errorResponse(res, 500, getErrorMessage(error));
     }
   });
@@ -215,14 +221,18 @@ export function createUserSettingsRoutes(supabase: SupabaseClient | null): Route
         .select()
         .single();
 
-      if (error) return errorResponse(res, 500, error.message);
+      if (error) {
+        console.error('PUT /user-settings DB error:', error);
+        return errorResponse(res, 500, error.message);
+      }
       res.json({ data });
     } catch (error: unknown) {
+      console.error('PUT /user-settings failed:', error);
       errorResponse(res, 500, getErrorMessage(error));
     }
   });
 
-  /** PATCH /api/user-settings - Update user settings */
+  /** PATCH /api/user-settings - Update user settings (upserts if not exists) */
   router.patch('/', async (req: AuthenticatedRequest, res: Response) => {
     const userId = getUserId(req, res);
     // istanbul ignore next - defensive: getUserId handles auth failure
@@ -232,14 +242,20 @@ export function createUserSettingsRoutes(supabase: SupabaseClient | null): Route
     if (!fields) return errorResponse(res, 400, 'At least one valid field is required (timezone, theme_preference, or language)');
 
     try {
+      // Use upsert to handle case where user_settings row doesn't exist yet
       const { data, error } = await db
         .from('user_settings')
-        .update(fields)
-        .eq('user_id', userId)
+        .upsert(
+          { user_id: userId, ...fields },
+          { onConflict: 'user_id', ignoreDuplicates: false }
+        )
         .select()
         .single();
 
-      if (error) return errorResponse(res, 500, error.message);
+      if (error) {
+        console.error('PATCH /user-settings DB error:', error);
+        return errorResponse(res, 500, error.message);
+      }
 
       // Broadcast settings update to all user's connected devices
       const io = req.app.get('io');
@@ -254,6 +270,7 @@ export function createUserSettingsRoutes(supabase: SupabaseClient | null): Route
 
       res.json({ data });
     } catch (error: unknown) {
+      console.error('PATCH /user-settings failed:', error);
       errorResponse(res, 500, getErrorMessage(error));
     }
   });
@@ -270,9 +287,13 @@ export function createUserSettingsRoutes(supabase: SupabaseClient | null): Route
         .delete()
         .eq('user_id', userId);
 
-      if (error) return errorResponse(res, 500, error.message);
+      if (error) {
+        console.error('DELETE /user-settings DB error:', error);
+        return errorResponse(res, 500, error.message);
+      }
       res.status(204).send();
     } catch (error: unknown) {
+      console.error('DELETE /user-settings failed:', error);
       errorResponse(res, 500, getErrorMessage(error));
     }
   });
