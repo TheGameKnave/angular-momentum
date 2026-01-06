@@ -24,6 +24,8 @@ DROP POLICY IF EXISTS "Users can read their own settings" ON public.user_setting
 DROP POLICY IF EXISTS "Users can insert their own settings" ON public.user_settings;
 DROP POLICY IF EXISTS "Users can update their own settings" ON public.user_settings;
 DROP POLICY IF EXISTS "Users can delete their own settings" ON public.user_settings;
+DROP POLICY IF EXISTS "Users and service role can insert settings" ON public.user_settings;
+DROP POLICY IF EXISTS "Users and service role can update settings" ON public.user_settings;
 
 -- Drop triggers (must be dropped before their functions)
 DROP TRIGGER IF EXISTS update_user_settings_updated_at ON public.user_settings;
@@ -152,15 +154,28 @@ CREATE POLICY "Users can read their own settings"
   ON public.user_settings FOR SELECT
   USING (auth.uid() = user_id);
 
--- Users can only insert their own settings
-CREATE POLICY "Users can insert their own settings"
+-- Users and service role can insert settings
+CREATE POLICY "Users and service role can insert settings"
   ON public.user_settings FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (
+    auth.uid() = user_id
+    OR
+    current_setting('request.jwt.claims', true)::json->>'role' = 'service_role'
+  );
 
--- Users can only update their own settings
-CREATE POLICY "Users can update their own settings"
+-- Users and service role can update settings
+CREATE POLICY "Users and service role can update settings"
   ON public.user_settings FOR UPDATE
-  USING (auth.uid() = user_id);
+  USING (
+    auth.uid() = user_id
+    OR
+    current_setting('request.jwt.claims', true)::json->>'role' = 'service_role'
+  )
+  WITH CHECK (
+    auth.uid() = user_id
+    OR
+    current_setting('request.jwt.claims', true)::json->>'role' = 'service_role'
+  );
 
 -- Users can only delete their own settings
 CREATE POLICY "Users can delete their own settings"

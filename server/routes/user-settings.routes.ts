@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { SupabaseClient } from '@supabase/supabase-js';
 import { broadcastUserSettingsUpdate } from '../services/userSettingsSocketService';
+import { SupabaseClientPair } from './index';
 
 /** Extended request with userId from auth middleware */
 interface AuthenticatedRequest extends Request {
@@ -101,17 +101,26 @@ function extractSettingsFields(body: Record<string, unknown>): { timezone?: stri
 
 /**
  * Creates user settings routes with injected dependencies (testable).
- * @param supabase - Supabase client instance
+ *
+ * Uses separate Supabase clients for auth and database operations:
+ * - supabase.auth: Used for token validation (getUser) - may be contaminated by user sessions
+ * - supabase.db: Used for database operations - pure service role, always bypasses RLS
+ *
+ * This separation ensures the db client always bypasses RLS.
+ * See: https://supabase.com/docs/guides/troubleshooting/why-is-my-service-role-key-client-getting-rls-errors-or-not-returning-data-7_1K9z
+ *
+ * @param supabase - Supabase client pair (auth + db) or null
  * @returns Express router with user settings routes
  */
-export function createUserSettingsRoutes(supabase: SupabaseClient | null): Router {
+export function createUserSettingsRoutes(supabase: SupabaseClientPair | null): Router {
   const router = Router();
 
   /**
-   * Auth middleware: validates supabase config and extracts userId from token
+   * Auth middleware: validates supabase config and extracts userId from token.
+   * Uses supabase.auth client for token validation (may be contaminated by user sessions).
    */
   async function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-    // istanbul ignore next - defensive: early return at line 71 handles null supabase
+    // istanbul ignore next - defensive: early return below handles null supabase
     if (!supabase) {
       return errorResponse(res, 500, 'Supabase not configured');
     }
@@ -123,7 +132,8 @@ export function createUserSettingsRoutes(supabase: SupabaseClient | null): Route
 
     try {
       const token = authHeader.substring(7);
-      const { data, error } = await supabase.auth.getUser(token);
+      // Use auth client for token validation - this may contaminate the client
+      const { data, error } = await supabase.auth.auth.getUser(token);
       if (error || !data.user) {
         return errorResponse(res, 401, 'Unauthorized');
       }
@@ -140,8 +150,8 @@ export function createUserSettingsRoutes(supabase: SupabaseClient | null): Route
     return router;
   }
 
-  // Capture as non-null for use in route handlers (middleware validates this)
-  const db = supabase;
+  // Use the db client for all database operations - never exposed to user tokens
+  const db = supabase.db;
 
   // Apply auth middleware to all routes
   router.use(authMiddleware);
@@ -253,6 +263,11 @@ export function createUserSettingsRoutes(supabase: SupabaseClient | null): Route
         .single();
 
       if (error) {
+        // 23503 = foreign key violation - user was deleted, token still valid momentarily
+        // This is expected during account deletion, not a real error
+        if (error.code === '23503') {
+          return errorResponse(res, 404, 'User not found');
+        }
         console.error('PATCH /user-settings DB error:', error);
         return errorResponse(res, 500, error.message);
       }

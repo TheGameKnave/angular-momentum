@@ -21,7 +21,7 @@ import {
   PASSWORD_REQUIREMENT_KEYS,
   EMAIL_REQUIREMENT_KEYS
 } from '@app/helpers/validation';
-import { parseApiError } from '@app/helpers/api-error.helper';
+import { parseSupabaseError } from '@app/helpers/supabase-error.helper';
 import { TOOLTIP_CONFIG } from '@app/constants/ui.constants';
 
 /**
@@ -173,7 +173,7 @@ export class AuthSignupComponent {
     this.loading.set(false);
 
     if (result.error) {
-      const parsed = parseApiError(result.error.message);
+      const parsed = parseSupabaseError(result.error);
       this.errorMessage.set(parsed.key);
       return;
     }

@@ -51,20 +51,44 @@ function setupStaticFileServing(app: express.Application, env: string) {
 }
 
 /**
- * Initialize Supabase client
- * @returns Supabase client or null if not configured
+ * Supabase client pair - separate clients for auth and database operations.
+ * This separation is required because auth methods (like getUser) can contaminate
+ * the client's Authorization header, causing RLS to not be bypassed.
  */
-function initializeSupabase(): SupabaseClient | null {
+interface SupabaseClientPair {
+  /** Client for auth operations (token validation) - may be contaminated by user tokens */
+  auth: SupabaseClient;
+  /** Client for database operations - pure service role, always bypasses RLS */
+  db: SupabaseClient;
+}
+
+/**
+ * Initialize Supabase clients.
+ * Creates TWO separate clients:
+ * - auth: Used for token validation (getUser) - can be contaminated by user sessions
+ * - db: Used for database operations - pure service role, never exposed to user tokens
+ *
+ * This separation ensures the db client always bypasses RLS.
+ * See: https://supabase.com/docs/guides/troubleshooting/why-is-my-service-role-key-client-getting-rls-errors-or-not-returning-data-7_1K9z
+ *
+ * @returns Supabase client pair or null if not configured
+ */
+function initializeSupabase(): SupabaseClientPair | null {
   if (!config.supabase_url || !config.supabase_service_key) {
     return null;
   }
 
-  return createClient(config.supabase_url, config.supabase_service_key, {
+  const clientOptions = {
     auth: {
       autoRefreshToken: false,
       persistSession: false
     }
-  });
+  };
+
+  return {
+    auth: createClient(config.supabase_url, config.supabase_service_key, clientOptions),
+    db: createClient(config.supabase_url, config.supabase_service_key, clientOptions),
+  };
 }
 
 /**
@@ -171,8 +195,9 @@ if (require.main === module) {
   const server = createServer(app);
 
   // Initialize Supabase for WebSocket auth
+  // WebSocket only does token validation, so it can use the auth client
   const supabase = initializeSupabase();
-  const io = setupWebSocket(server, supabase);
+  const io = setupWebSocket(server, supabase?.auth ?? null);
 
   app.set('io', io);
 

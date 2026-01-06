@@ -4,6 +4,7 @@ import { createUserSettingsRoutes } from './user-settings.routes';
 
 describe('User Settings Routes', () => {
   let app: Express;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockSupabase: any;
 
   beforeEach(() => {
@@ -15,11 +16,16 @@ describe('User Settings Routes', () => {
     jest.spyOn(console, 'warn').mockImplementation();
     jest.spyOn(console, 'error').mockImplementation();
 
-    // Mock Supabase client - create fresh mock for each test
-    mockSupabase = {
+    // Mock Supabase client pair - separate auth and db clients
+    // This matches the new architecture where auth client handles token validation
+    // and db client handles database operations (to ensure service role bypasses RLS)
+    const mockAuthClient = {
       auth: {
         getUser: jest.fn(),
       },
+    };
+
+    const mockDbClient = {
       from: jest.fn().mockReturnThis(),
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
@@ -27,6 +33,11 @@ describe('User Settings Routes', () => {
       insert: jest.fn().mockReturnThis(),
       update: jest.fn().mockReturnThis(),
       upsert: jest.fn().mockReturnThis(),
+    };
+
+    mockSupabase = {
+      auth: mockAuthClient as any,
+      db: mockDbClient as any,
     };
 
     // Create fresh Express app for each test
@@ -78,7 +89,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 401 if token is invalid', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: null },
         error: { message: 'Invalid token' },
       });
@@ -94,7 +105,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should return user settings if found', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -107,7 +118,7 @@ describe('User Settings Routes', () => {
         updated_at: '2024-01-02',
       };
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
@@ -124,16 +135,16 @@ describe('User Settings Routes', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ data: mockSettings });
-      expect(mockSupabase.auth.getUser).toHaveBeenCalledWith('valid-token');
+      expect(mockSupabase.auth.auth.getUser).toHaveBeenCalledWith('valid-token');
     });
 
     it('should return 404 if settings not found', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
@@ -153,12 +164,12 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 500 for other database errors', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
@@ -178,12 +189,12 @@ describe('User Settings Routes', () => {
     });
 
     it('should handle exceptions during query', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockImplementation(() => {
+      mockSupabase.db.from.mockImplementation(() => {
         throw new Error('Unexpected error');
       });
 
@@ -196,12 +207,12 @@ describe('User Settings Routes', () => {
     });
 
     it('should handle non-Error throws in GET catch block', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockImplementation(() => {
+      mockSupabase.db.from.mockImplementation(() => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
@@ -243,7 +254,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 400 if timezone is missing', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -260,7 +271,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 400 if timezone is not a string', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -277,7 +288,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should create user settings successfully', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -290,7 +301,7 @@ describe('User Settings Routes', () => {
         updated_at: '2024-01-01',
       };
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         insert: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
@@ -311,12 +322,12 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 500 if database insert fails', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         insert: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
@@ -337,12 +348,12 @@ describe('User Settings Routes', () => {
     });
 
     it('should handle exceptions during insert', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockImplementation(() => {
+      mockSupabase.db.from.mockImplementation(() => {
         throw new Error('Unexpected error');
       });
 
@@ -356,12 +367,12 @@ describe('User Settings Routes', () => {
     });
 
     it('should handle non-Error throws in POST catch block', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockImplementation(() => {
+      mockSupabase.db.from.mockImplementation(() => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
@@ -404,7 +415,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 400 if timezone is missing', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -421,7 +432,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 400 if timezone is not a string', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -438,7 +449,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should upsert user settings successfully (create new)', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -451,7 +462,7 @@ describe('User Settings Routes', () => {
         updated_at: '2024-01-01',
       };
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         upsert: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
@@ -472,7 +483,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should upsert user settings successfully (update existing)', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -485,7 +496,7 @@ describe('User Settings Routes', () => {
         updated_at: '2024-01-02',
       };
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         upsert: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
@@ -506,7 +517,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should call upsert with correct parameters', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -520,7 +531,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         upsert: mockUpsert,
       });
 
@@ -542,12 +553,12 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 500 if database upsert fails', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         upsert: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
@@ -568,12 +579,12 @@ describe('User Settings Routes', () => {
     });
 
     it('should handle exceptions during upsert', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockImplementation(() => {
+      mockSupabase.db.from.mockImplementation(() => {
         throw new Error('Unexpected error');
       });
 
@@ -587,12 +598,12 @@ describe('User Settings Routes', () => {
     });
 
     it('should handle non-Error throws in PUT catch block', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockImplementation(() => {
+      mockSupabase.db.from.mockImplementation(() => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
@@ -635,7 +646,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 400 if no valid fields provided', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -652,7 +663,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 400 if timezone is invalid type', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -669,7 +680,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 400 if theme_preference is invalid', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -686,7 +697,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should update timezone successfully', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -699,7 +710,7 @@ describe('User Settings Routes', () => {
         updated_at: '2024-01-02',
       };
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         upsert: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
@@ -720,7 +731,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should broadcast settings update via WebSocket when io is configured', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -735,7 +746,7 @@ describe('User Settings Routes', () => {
         updated_at: '2024-01-02T12:00:00Z',
       };
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         upsert: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
@@ -769,12 +780,12 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 500 if database update fails', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         upsert: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
@@ -794,13 +805,39 @@ describe('User Settings Routes', () => {
       expect(response.body).toEqual({ error: 'Upsert failed' });
     });
 
-    it('should handle exceptions during update', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+    it('should return 404 if user was deleted (foreign key violation)', async () => {
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockImplementation(() => {
+      mockSupabase.db.from.mockReturnValue({
+        upsert: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: null,
+              error: { code: '23503', message: 'foreign key violation' },
+            }),
+          }),
+        }),
+      });
+
+      const response = await request(app)
+        .patch('/api/user-settings')
+        .set('Authorization', 'Bearer valid-token')
+        .send({ timezone: 'Europe/London' });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ error: 'User not found' });
+    });
+
+    it('should handle exceptions during update', async () => {
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      mockSupabase.db.from.mockImplementation(() => {
         throw new Error('Unexpected error');
       });
 
@@ -814,12 +851,12 @@ describe('User Settings Routes', () => {
     });
 
     it('should handle non-Error throws in PATCH catch block', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockImplementation(() => {
+      mockSupabase.db.from.mockImplementation(() => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
@@ -833,7 +870,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should update theme_preference to dark successfully', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -847,7 +884,7 @@ describe('User Settings Routes', () => {
         updated_at: '2024-01-02',
       };
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         upsert: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
@@ -868,7 +905,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should update theme_preference to light successfully', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -882,7 +919,7 @@ describe('User Settings Routes', () => {
         updated_at: '2024-01-02',
       };
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         upsert: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
@@ -903,7 +940,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should update both timezone and theme_preference together', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -926,7 +963,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         upsert: mockUpsert,
       });
 
@@ -944,7 +981,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should update language successfully', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -958,7 +995,7 @@ describe('User Settings Routes', () => {
         updated_at: '2024-01-02',
       };
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         upsert: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
@@ -979,7 +1016,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should update all fields together', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -1003,7 +1040,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         upsert: mockUpsert,
       });
 
@@ -1021,7 +1058,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 400 if language is invalid type', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
@@ -1065,12 +1102,12 @@ describe('User Settings Routes', () => {
     });
 
     it('should delete user settings successfully', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         delete: jest.fn().mockReturnValue({
           eq: jest.fn().mockResolvedValue({
             error: null,
@@ -1086,12 +1123,12 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 500 if database delete fails', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         delete: jest.fn().mockReturnValue({
           eq: jest.fn().mockResolvedValue({
             error: { message: 'Delete failed' },
@@ -1108,12 +1145,12 @@ describe('User Settings Routes', () => {
     });
 
     it('should handle exceptions during delete', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockImplementation(() => {
+      mockSupabase.db.from.mockImplementation(() => {
         throw new Error('Unexpected error');
       });
 
@@ -1126,12 +1163,12 @@ describe('User Settings Routes', () => {
     });
 
     it('should handle non-Error throws in DELETE catch block', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockImplementation(() => {
+      mockSupabase.db.from.mockImplementation(() => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
@@ -1146,12 +1183,12 @@ describe('User Settings Routes', () => {
 
   describe('Authentication helper', () => {
     it('should extract user ID from valid Bearer token', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
@@ -1166,7 +1203,7 @@ describe('User Settings Routes', () => {
         .get('/api/user-settings')
         .set('Authorization', 'Bearer test-token-123');
 
-      expect(mockSupabase.auth.getUser).toHaveBeenCalledWith('test-token-123');
+      expect(mockSupabase.auth.auth.getUser).toHaveBeenCalledWith('test-token-123');
       expect(response.status).toBe(200);
     });
 
@@ -1189,7 +1226,7 @@ describe('User Settings Routes', () => {
 
   describe('Error handling', () => {
     it('should return 401 if auth service throws error', async () => {
-      mockSupabase.auth.getUser.mockRejectedValue(new Error('Network error'));
+      mockSupabase.auth.auth.getUser.mockRejectedValue(new Error('Network error'));
 
       const response = await request(app)
         .get('/api/user-settings')
@@ -1200,12 +1237,12 @@ describe('User Settings Routes', () => {
     });
 
     it('should handle database errors gracefully', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({
+      mockSupabase.auth.auth.getUser.mockResolvedValue({
         data: { user: { id: 'user-123' } },
         error: null,
       });
 
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.db.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: jest.fn().mockRejectedValue(new Error('Database connection failed')),
