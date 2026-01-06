@@ -4,6 +4,17 @@
  */
 export const changeLog = [
   {
+    version: "21.2.12",
+    date: "2026-01-06",
+    description: "Auth session validation",
+    changes: [
+      "Validate session with Supabase before allowing access to protected routes",
+      "Detect invalidated sessions when password changed on another device",
+      "Redirect from protected routes on logout or session expiry",
+      "Skip noisy refresh logging after logout",
+    ]
+  },
+  {
     version: "21.2.11",
     date: "2026-01-06",
     description: "Supabase RLS fix",

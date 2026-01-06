@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Angular Momentum",
-  "version": "21.2.11",
+  "version": "21.2.12",
   "identifier": "app.angularmomentum",
   "build": {
     "beforeDevCommand": "ng serve --hmr --proxy-config src/proxy.conf.js --configuration=tauri-local",
@@ -48,11 +48,11 @@
       }
     },
     "iOS": {
-      "bundleVersion": "145"
+      "bundleVersion": "146"
     },
     "android": {
       "minSdkVersion": 35,
-      "versionCode": 145
+      "versionCode": 146
     }
   },
   "plugins": {
