@@ -120,6 +120,14 @@ describe('supabase-error.helper', () => {
 
         expect(result.key).toBe(SUPABASE_ERROR_MESSAGES.OTP_EXPIRED);
       });
+
+      it('should replace "Email address is invalid" with email in message', () => {
+        const error = createAuthError('Email address "test@bad" is invalid');
+
+        const result = parseSupabaseError(error);
+
+        expect(result.key).toBe('error.Invalid email address');
+      });
     });
 
     describe('fallback behavior', () => {

@@ -119,6 +119,10 @@ const MESSAGE_REPLACEMENTS: MessageReplacement[] = [
     match: /^invalid.*token$/i,
     replacement: SUPABASE_ERROR_MESSAGES.OTP_EXPIRED,
   },
+  {
+    match: /^Email address ".+" is invalid$/i,
+    replacement: SUPABASE_ERROR_MESSAGES.INVALID_EMAIL,
+  },
 ];
 
 /**

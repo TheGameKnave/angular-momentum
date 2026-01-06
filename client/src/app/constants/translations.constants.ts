@@ -241,6 +241,7 @@ export const SUPABASE_ERROR_MESSAGES = {
   OTP_EXPIRED: "error.Your verification code has expired or is invalid. Please request a new one.",
   EMAIL_NOT_CONFIRMED: "error.Please verify your email address before signing in.",
   INVALID_OTP: "error.Invalid or expired code. Please try again.",
+  INVALID_EMAIL: "error.Invalid email address",
 } as const satisfies TranslationKeyRecord;
 
 export const SUPABASE_ERROR_KEYS = Object.values(SUPABASE_ERROR_MESSAGES);
