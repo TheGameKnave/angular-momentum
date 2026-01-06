@@ -135,7 +135,7 @@ export class UpdateService {
             // checkForUpdate said update exists, but activateUpdate couldn't apply it
             // Show dialog to let user reload and get the new version
             /**/console.log('[UpdateService] activateUpdate() returned false - showing dialog anyway');
-            this.changeLogService.refresh();
+            await this.changeLogService.refresh();
             const confirmed = await this.updateDialogService.show();
             if (confirmed) {
               this.reloadPage();
@@ -204,7 +204,7 @@ export class UpdateService {
 
         // Refresh changelog to get canonical new version from API
         // This ensures appDiff reflects the actual new version, not cached data
-        this.changeLogService.refresh();
+        await this.changeLogService.refresh();
 
         // Show update dialog
         const confirmed = await this.updateDialogService.show();
@@ -313,7 +313,7 @@ export class UpdateService {
       /**/console.log('[UpdateService] Unregistered service workers');
 
       // Show dialog and reload
-      this.changeLogService.refresh();
+      await this.changeLogService.refresh();
       const confirmed = await this.updateDialogService.show();
       if (confirmed) {
         this.reloadPage();

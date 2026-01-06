@@ -70,9 +70,15 @@ export class ChangeLogService {
   /**
    * Manually refresh the changelog.
    * Triggers an immediate fetch of changelog data from the backend.
+   * @returns Promise that resolves when the refresh completes
    */
-  refresh(): void {
-    this.manualRefresh$.next();
+  refresh(): Promise<void> {
+    return new Promise<void>((resolve) => {
+      this.getChangeLogs().subscribe({
+        next: () => resolve(),
+        error: () => resolve(), // Resolve even on error to avoid blocking
+      });
+    });
   }
 
   /**
