@@ -122,12 +122,25 @@ export class UpdateService {
       /**/console.log('[UpdateService] checkForUpdate() returned:', available);
       this.checkInProgress = false;
       if (available) {
+        /**/console.log('[UpdateService] calling activateUpdate()...');
         // istanbul ignore next - activateUpdate rarely fails, requires corrupted SW state
-        this.updates!.activateUpdate().then(() => {
-          this.logService.log('SW: Update activated. Awaiting VERSION_READY...');
-          // Mark first check complete AFTER activation finishes
-          // VERSION_READY from this activation should still be ignored
+        this.updates!.activateUpdate().then(async (activated) => {
+          /**/console.log('[UpdateService] activateUpdate() resolved:', activated);
           sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
+          if (activated) {
+            this.logService.log('SW: Update activated. Awaiting VERSION_READY...');
+            // VERSION_READY event will trigger the dialog
+          } else {
+            // activateUpdate returned false - SW state is inconsistent
+            // checkForUpdate said update exists, but activateUpdate couldn't apply it
+            // Show dialog to let user reload and get the new version
+            /**/console.log('[UpdateService] activateUpdate() returned false - showing dialog anyway');
+            this.changeLogService.refresh();
+            const confirmed = await this.updateDialogService.show();
+            if (confirmed) {
+              this.reloadPage();
+            }
+          }
         }).catch(err => {
           console.error('[UpdateService] activateUpdate() failed:', err);
           sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
@@ -206,9 +219,14 @@ export class UpdateService {
       case 'VERSION_DETECTED':
         this.logService.log('SW: New version detected:', event.version);
         break;
-      // istanbul ignore next - VERSION_INSTALLATION_FAILED is rare, requires network/hash errors during SW install
+      // VERSION_INSTALLATION_FAILED - cache full, network error, or hash mismatch
       case 'VERSION_INSTALLATION_FAILED':
         console.error('[UpdateService] VERSION_INSTALLATION_FAILED:', event);
+        // If cache is full, clear it and prompt user to reload
+        if (event.error?.includes('Operation too large') || event.error?.includes('QuotaExceeded')) {
+          /**/console.log('[UpdateService] Cache quota exceeded - clearing caches');
+          this.clearCachesAndPromptReload();
+        }
         break;
     }
   }
@@ -277,6 +295,35 @@ export class UpdateService {
   }
 
   // --- Wrappers that can be spied on in tests ---
+
+  /**
+   * Clear all service worker caches and prompt user to reload.
+   * Used when cache quota is exceeded and update installation fails.
+   */
+  // istanbul ignore next - cache API, integration test scope
+  private async clearCachesAndPromptReload(): Promise<void> {
+    try {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+      /**/console.log('[UpdateService] Cleared', cacheNames.length, 'caches');
+
+      // Unregister the service worker to force a clean reinstall
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(reg => reg.unregister()));
+      /**/console.log('[UpdateService] Unregistered service workers');
+
+      // Show dialog and reload
+      this.changeLogService.refresh();
+      const confirmed = await this.updateDialogService.show();
+      if (confirmed) {
+        this.reloadPage();
+      }
+    } catch (err) {
+      console.error('[UpdateService] Failed to clear caches:', err);
+      // Still try to reload
+      this.reloadPage();
+    }
+  }
 
   /**
    * Reload the current page.
