@@ -77,6 +77,7 @@ describe('AuthService', () => {
     mockLogService = jasmine.createSpyObj('LogService', ['log']);
 
     mockRouter = jasmine.createSpyObj('Router', ['navigate'], {
+      url: '/',
       routerState: {
         root: {
           firstChild: null,
@@ -898,24 +899,10 @@ describe('AuthService', () => {
       expect(mockRouter.navigate).not.toHaveBeenCalled();
     });
 
-    it('should redirect when on protected route with AuthGuard', async () => {
-      // Use a class declaration instead of function expression
-      class AuthGuard {}
-
-      // Update routerState with protected route
-      Object.defineProperty(mockRouter, 'routerState', {
-        get: () => ({
-          root: {
-            firstChild: {
-              snapshot: {
-                routeConfig: {
-                  canActivate: [AuthGuard]
-                }
-              } as any,
-              firstChild: null
-            }
-          }
-        }),
+    it('should redirect when on protected route /profile', async () => {
+      // Set current URL to protected route
+      Object.defineProperty(mockRouter, 'url', {
+        get: () => '/profile',
         configurable: true
       });
 
@@ -928,23 +915,42 @@ describe('AuthService', () => {
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
     });
 
-    it('should not redirect when route has guards but not AuthGuard', async () => {
-      // Create a different guard
-      const OtherGuard = function OtherGuard() {};
+    it('should redirect when on protected route with query params', async () => {
+      // Set current URL to protected route with query params
+      Object.defineProperty(mockRouter, 'url', {
+        get: () => '/profile?tab=settings',
+        configurable: true
+      });
 
-      // Update routerState with non-auth route
-      Object.defineProperty(mockRouter, 'routerState', {
-        get: () => ({
-          root: {
-            firstChild: {
-              snapshot: {
-                routeConfig: {
-                  canActivate: [OtherGuard]
-                }
-              } as any
-            }
-          }
-        }),
+      mockSupabaseAuth.signOut.and.returnValue(
+        Promise.resolve({ error: null })
+      );
+
+      await service.logout();
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
+    });
+
+    it('should redirect when on nested protected route', async () => {
+      // Set current URL to nested protected route
+      Object.defineProperty(mockRouter, 'url', {
+        get: () => '/profile/settings',
+        configurable: true
+      });
+
+      mockSupabaseAuth.signOut.and.returnValue(
+        Promise.resolve({ error: null })
+      );
+
+      await service.logout();
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
+    });
+
+    it('should not redirect when on public route', async () => {
+      // Set current URL to public route
+      Object.defineProperty(mockRouter, 'url', {
+        get: () => '/features',
         configurable: true
       });
 
@@ -955,69 +961,6 @@ describe('AuthService', () => {
       await service.logout();
 
       expect(mockRouter.navigate).not.toHaveBeenCalled();
-    });
-
-    it('should handle nested route structure when checking auth', async () => {
-      // Use a class declaration
-      class AuthGuard {}
-
-      // Update routerState with nested route structure
-      Object.defineProperty(mockRouter, 'routerState', {
-        get: () => ({
-          root: {
-            firstChild: {
-              firstChild: {
-                snapshot: {
-                  routeConfig: {
-                    canActivate: [AuthGuard]
-                  }
-                } as any,
-                firstChild: null
-              }
-            }
-          }
-        }),
-        configurable: true
-      });
-
-      mockSupabaseAuth.signOut.and.returnValue(
-        Promise.resolve({ error: null })
-      );
-
-      await service.logout();
-
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
-    });
-
-    it('should recognize AuthGuard as class instance', async () => {
-      // Mock guard as class instance (not function)
-      const mockAuthGuardInstance = {
-        constructor: { name: 'AuthGuard' }
-      };
-
-      // Update routerState with class instance guard
-      Object.defineProperty(mockRouter, 'routerState', {
-        get: () => ({
-          root: {
-            firstChild: {
-              snapshot: {
-                routeConfig: {
-                  canActivate: [mockAuthGuardInstance as any]
-                }
-              } as any
-            }
-          }
-        }),
-        configurable: true
-      });
-
-      mockSupabaseAuth.signOut.and.returnValue(
-        Promise.resolve({ error: null })
-      );
-
-      await service.logout();
-
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
     });
   });
 
@@ -1595,7 +1538,7 @@ describe('AuthService', () => {
       expect(mockSupabaseAuth.refreshSession).not.toHaveBeenCalled();
     });
 
-    it('should not refresh when session is not expiring soon', async () => {
+    it('should always refresh to validate token even when not expiring soon', async () => {
       const mockUser = createMockUser('test@example.com');
       const expiresAt = Math.floor(Date.now() / 1000) + 3600; // Expires in 1 hour
       const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
@@ -1603,12 +1546,16 @@ describe('AuthService', () => {
       mockSupabaseAuth.getSession.and.returnValue(
         Promise.resolve({ data: { session: mockSession }, error: null })
       );
-      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession');
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+        Promise.resolve({ error: null })
+      );
 
       // Call the private method directly
       await (service as any).refreshSessionOnResume('test');
 
-      expect(mockSupabaseAuth.refreshSession).not.toHaveBeenCalled();
+      // Should always refresh to validate refresh token is still valid
+      // (e.g., password may have been changed on another device)
+      expect(mockSupabaseAuth.refreshSession).toHaveBeenCalled();
     });
 
     it('should logout when refresh fails and token is expired', async () => {
@@ -1629,7 +1576,7 @@ describe('AuthService', () => {
       expect(mockSupabaseAuth.signOut).toHaveBeenCalled();
     });
 
-    it('should not logout when refresh fails but token is not expired', async () => {
+    it('should logout when refresh fails even if token is not expired', async () => {
       const mockUser = createMockUser('test@example.com');
       const expiresAt = Math.floor(Date.now() / 1000) + 300; // Expires in 5 minutes
       const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
@@ -1640,10 +1587,13 @@ describe('AuthService', () => {
       mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
         Promise.resolve({ error: { message: 'Refresh failed' } })
       );
+      mockSupabaseAuth.signOut.and.returnValue(Promise.resolve({ error: null }));
 
       await (service as any).refreshSessionOnResume('test');
 
-      expect(mockSupabaseAuth.signOut).not.toHaveBeenCalled();
+      // Should logout because refresh token may be invalid
+      // (e.g., password changed on another device invalidates all refresh tokens)
+      expect(mockSupabaseAuth.signOut).toHaveBeenCalled();
     });
 
     it('should handle no session gracefully', async () => {
@@ -1686,6 +1636,70 @@ describe('AuthService', () => {
 
       // Should not throw
       await expectAsync((service as any).refreshSessionOnResume('test')).toBeResolved();
+    });
+  });
+
+  describe('validateSession', () => {
+    it('should return true when session is valid and refresh succeeds', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const mockSession = createMockSession(mockUser);
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+        Promise.resolve({ error: null })
+      );
+
+      const result = await service.validateSession();
+
+      expect(result).toBe(true);
+      expect(mockSupabaseAuth.getSession).toHaveBeenCalled();
+      expect(mockSupabaseAuth.refreshSession).toHaveBeenCalled();
+    });
+
+    it('should return false when no session exists', async () => {
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: null }, error: null })
+      );
+
+      const result = await service.validateSession();
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false and logout when refresh fails', async () => {
+      const mockUser = createMockUser('test@example.com');
+      const mockSession = createMockSession(mockUser);
+
+      mockSupabaseAuth.getSession.and.returnValue(
+        Promise.resolve({ data: { session: mockSession }, error: null })
+      );
+      mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+        Promise.resolve({ error: { message: 'Invalid refresh token' } })
+      );
+      mockSupabaseAuth.signOut.and.returnValue(Promise.resolve({ error: null }));
+
+      const result = await service.validateSession();
+
+      expect(result).toBe(false);
+      expect(mockSupabaseAuth.signOut).toHaveBeenCalled();
+    });
+
+    it('should return false when supabase is null', async () => {
+      (service as any).supabase = null;
+
+      const result = await service.validateSession();
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false on exception', async () => {
+      mockSupabaseAuth.getSession.and.returnValue(Promise.reject(new Error('Network error')));
+
+      const result = await service.validateSession();
+
+      expect(result).toBe(false);
     });
   });
 

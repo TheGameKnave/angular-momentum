@@ -11,7 +11,7 @@ describe('AuthGuard', () => {
   let mockState: RouterStateSnapshot;
 
   beforeEach(() => {
-    mockAuthService = jasmine.createSpyObj('AuthService', ['isAuthenticated', 'setReturnUrl']);
+    mockAuthService = jasmine.createSpyObj('AuthService', ['validateSession', 'setReturnUrl']);
     mockRouter = jasmine.createSpyObj('Router', ['createUrlTree']);
 
     TestBed.configureTestingModule({
@@ -32,38 +32,49 @@ describe('AuthGuard', () => {
   });
 
   describe('canActivate', () => {
-    it('should allow access when user is authenticated', () => {
-      mockAuthService.isAuthenticated.and.returnValue(true);
+    it('should allow access when session is valid', async () => {
+      mockAuthService.validateSession.and.returnValue(Promise.resolve(true));
 
-      const result = guard.canActivate(mockRoute, mockState);
+      const result = await guard.canActivate(mockRoute, mockState);
 
       expect(result).toBe(true);
-      expect(mockAuthService.isAuthenticated).toHaveBeenCalled();
+      expect(mockAuthService.validateSession).toHaveBeenCalled();
       expect(mockAuthService.setReturnUrl).not.toHaveBeenCalled();
       expect(mockRouter.createUrlTree).not.toHaveBeenCalled();
     });
 
-    it('should redirect to home and set return URL when user is not authenticated', () => {
+    it('should redirect to home and set return URL when session is invalid', async () => {
       const mockUrlTree = {} as UrlTree;
-      mockAuthService.isAuthenticated.and.returnValue(false);
+      mockAuthService.validateSession.and.returnValue(Promise.resolve(false));
       mockRouter.createUrlTree.and.returnValue(mockUrlTree);
 
-      const result = guard.canActivate(mockRoute, mockState);
+      const result = await guard.canActivate(mockRoute, mockState);
 
       expect(result).toBe(mockUrlTree);
-      expect(mockAuthService.isAuthenticated).toHaveBeenCalled();
+      expect(mockAuthService.validateSession).toHaveBeenCalled();
       expect(mockAuthService.setReturnUrl).toHaveBeenCalledWith('/profile');
       expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/']);
     });
 
-    it('should set correct return URL from state', () => {
+    it('should set correct return URL from state', async () => {
       const customState = { url: '/custom/path' } as RouterStateSnapshot;
-      mockAuthService.isAuthenticated.and.returnValue(false);
+      mockAuthService.validateSession.and.returnValue(Promise.resolve(false));
       mockRouter.createUrlTree.and.returnValue({} as UrlTree);
 
-      guard.canActivate(mockRoute, customState);
+      await guard.canActivate(mockRoute, customState);
 
       expect(mockAuthService.setReturnUrl).toHaveBeenCalledWith('/custom/path');
+    });
+
+    it('should redirect when session validation fails', async () => {
+      const mockUrlTree = {} as UrlTree;
+      mockAuthService.validateSession.and.returnValue(Promise.resolve(false));
+      mockRouter.createUrlTree.and.returnValue(mockUrlTree);
+
+      const result = await guard.canActivate(mockRoute, mockState);
+
+      expect(result).toBe(mockUrlTree);
+      expect(mockAuthService.setReturnUrl).toHaveBeenCalledWith('/profile');
     });
   });
 });
