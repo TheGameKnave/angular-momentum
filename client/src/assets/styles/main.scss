@@ -2189,7 +2189,7 @@ body:not(.viewport-ready):not(.not-sm) {
     inset: 0 !important;
     overflow-y: auto;
     display: block;
-    padding: calc(2rem + env(safe-area-inset-top) + env(safe-area-inset-bottom)) 2.5vw;
+    padding: calc(2rem + env(safe-area-inset-top)) 2.5vw calc(2rem + env(safe-area-inset-bottom));
     pointer-events: auto; // iOS Safari requires pointer-events to allow touch scrolling
     width: 100%;
   }
