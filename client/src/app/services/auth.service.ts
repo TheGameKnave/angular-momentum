@@ -167,13 +167,15 @@ export class AuthService {
 
   /**
    * Refresh session when app resumes from background.
-   * Always attempts refresh for authenticated sessions to handle Safari's
-   * aggressive timer suspension. Uses Supabase's built-in token validation.
+   * Always attempts refresh for authenticated sessions to validate the
+   * refresh token is still valid (e.g., not invalidated by password change
+   * on another device). Uses Supabase's built-in token validation.
    *
    * @param trigger - What triggered the refresh (for logging)
    */
   private async refreshSessionOnResume(trigger: string): Promise<void> {
-    if (!this.supabase) return;
+    // Skip if not authenticated (avoid noisy logging after logout)
+    if (!this.supabase || !this.isAuthenticated()) return;
 
     try {
       const { data } = await this.supabase.auth.getSession();
@@ -182,22 +184,19 @@ export class AuthService {
       const expiresAt = data.session.expires_at;
       const expiresIn = expiresAt ? expiresAt - Math.floor(Date.now() / 1000) : 0;
 
-      // Always refresh if expired, or proactively if expiring within 10 minutes
-      // Safari can suspend for long periods, so be aggressive about refreshing
-      if (expiresIn < 600) {
-        this.logService.log(`Session refresh on ${trigger}`, {
-          expiresIn,
-          expired: expiresIn <= 0
-        });
-        const { error } = await this.supabase.auth.refreshSession();
-        if (error) {
-          this.logService.log(`Session refresh failed on ${trigger}`, error.message);
-          // If refresh fails and token is expired, log out
-          if (expiresIn <= 0) {
-            this.logService.log('Session expired and refresh failed, logging out');
-            await this.logout();
-          }
-        }
+      // Always attempt refresh on visibility change to validate refresh token
+      // This catches cases where password was changed on another device
+      this.logService.log(`Session refresh on ${trigger}`, {
+        expiresIn,
+        expired: expiresIn <= 0
+      });
+      const { error } = await this.supabase.auth.refreshSession();
+      if (error) {
+        this.logService.log(`Session refresh failed on ${trigger}`, error.message);
+        // Refresh failed - token may be invalid (password changed elsewhere)
+        // Log out to clear invalid session
+        this.logService.log('Refresh token invalid, logging out');
+        await this.logout();
       }
     } catch (error) {
       this.logService.log(`Error refreshing session on ${trigger}`, error);
@@ -288,6 +287,12 @@ export class AuthService {
           // It will be cleared when user updates password or navigates away
         } else if (event === 'SIGNED_OUT') {
           this.isPasswordRecovery.set(false);
+          // Redirect away from protected routes when signed out
+          // This handles cases where session expires or refresh fails
+          if (this.currentRouteRequiresAuth()) {
+            this.logService.log('User logged out, resetting to anonymous settings');
+            this.router.navigate(['/']);
+          }
         }
       });
 
@@ -738,31 +743,54 @@ export class AuthService {
 
   /**
    * Check if the current route requires authentication.
-   * @returns True if the current route has AuthGuard applied
+   * Uses the route path to determine if it's a protected route.
+   * @returns True if the current route requires authentication
    */
   private currentRouteRequiresAuth(): boolean {
-    const currentRoute = this.router.routerState.root;
-    let route = currentRoute;
+    // Get the current URL path (without query params)
+    const currentUrl = this.router.url.split('?')[0];
 
-    // Traverse route tree to find the activated route
-    while (route.firstChild) {
-      route = route.firstChild;
-    }
+    // List of paths that require authentication
+    // Must be kept in sync with routes that use AuthGuard
+    const protectedPaths = ['/profile'];
 
-    // Check if route has canActivate guards
-    const guards = route.snapshot.routeConfig?.canActivate;
-    if (!guards || guards.length === 0) {
+    return protectedPaths.some(path => currentUrl === path || currentUrl.startsWith(path + '/'));
+  }
+
+  /**
+   * Validate the current session with Supabase.
+   * Used by AuthGuard to verify session is still valid before allowing access.
+   * This catches invalidated sessions (e.g., password changed on another device).
+   *
+   * @returns True if session is valid, false otherwise
+   */
+  async validateSession(): Promise<boolean> {
+    if (!this.supabase || this.platformService.isSSR()) {
       return false;
     }
 
-    // Check if AuthGuard is in the guards array
-    // We check by constructor name since guards can be classes or functions
-    return guards.some(guard => {
-      if (typeof guard === 'function') {
-        return guard.name === 'AuthGuard';
+    try {
+      // First check if we have a local session
+      const { data } = await this.supabase.auth.getSession();
+      if (!data.session) {
+        return false;
       }
-      return guard.constructor?.name === 'AuthGuard';
-    });
+
+      // Attempt to refresh the session to validate the refresh token
+      // This will fail if the session has been invalidated (e.g., password changed)
+      const { error } = await this.supabase.auth.refreshSession();
+      if (error) {
+        this.logService.log('Session validation failed', error.message);
+        // Clear the invalid session
+        await this.logout();
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      this.logService.log('Error validating session', error);
+      return false;
+    }
   }
 
   /**

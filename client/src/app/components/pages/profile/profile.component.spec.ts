@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProfileComponent } from './profile.component';
 import { AuthService } from '@app/services/auth.service';
 import { UserSettingsService } from '@app/services/user-settings.service';
@@ -13,6 +13,7 @@ import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.mo
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
+import { MessageService } from 'primeng/api';
 
 describe('ProfileComponent', () => {
   let component: ProfileComponent;
@@ -26,6 +27,7 @@ describe('ProfileComponent', () => {
   let mockIndexedDbService: jasmine.SpyObj<IndexedDbService>;
   let mockNotificationService: jasmine.SpyObj<NotificationService>;
   let mockDataMigrationService: jasmine.SpyObj<DataMigrationService>;
+  let mockMessageService: jasmine.SpyObj<MessageService>;
 
   beforeEach(async () => {
     const currentUserSignal = signal({ email: 'test@example.com', id: '123' });
@@ -87,6 +89,8 @@ describe('ProfileComponent', () => {
     mockDataMigrationService.getDataBackup.and.returnValue(Promise.resolve(null));
     mockDataMigrationService.deleteDataBackup.and.returnValue(Promise.resolve());
 
+    mockMessageService = jasmine.createSpyObj('MessageService', ['add']);
+
     await TestBed.configureTestingModule({
       imports: [
         ProfileComponent,
@@ -103,6 +107,7 @@ describe('ProfileComponent', () => {
         { provide: IndexedDbService, useValue: mockIndexedDbService },
         { provide: NotificationService, useValue: mockNotificationService },
         { provide: DataMigrationService, useValue: mockDataMigrationService },
+        { provide: MessageService, useValue: mockMessageService },
         provideHttpClient(),
         provideHttpClientTesting(),
       ]
@@ -318,7 +323,7 @@ describe('ProfileComponent', () => {
       expect(component.passwordError()).toBe('Update failed');
     });
 
-    it('should show success on successful password update', async () => {
+    it('should show toast on successful password update', async () => {
       component.isPasswordResetFlow.set(true);
       component.passwordForm.patchValue({
         newPassword: 'Newpass123!',
@@ -327,7 +332,9 @@ describe('ProfileComponent', () => {
 
       await component.onSubmitPasswordChange();
 
-      expect(component.passwordSuccess()).toBe(true);
+      expect(mockMessageService.add).toHaveBeenCalledWith(jasmine.objectContaining({
+        severity: 'success',
+      }));
     });
 
     it('should handle missing user email in regular flow', async () => {
@@ -349,14 +356,12 @@ describe('ProfileComponent', () => {
   describe('onEmailPanelCollapsedChange', () => {
     it('should expand panel and reset form when collapsed is false', () => {
       component.emailError.set('error');
-      component.emailSuccess.set(true);
       spyOn(component.emailForm, 'reset');
 
       component.onEmailPanelCollapsedChange(false);
 
       expect(component.emailPanelExpanded()).toBe(true);
       expect(component.emailError()).toBeNull();
-      expect(component.emailSuccess()).toBe(false);
       expect(component.emailForm.reset).toHaveBeenCalled();
     });
   });
@@ -376,7 +381,9 @@ describe('ProfileComponent', () => {
       expect(mockAuthService.updateEmail).toHaveBeenCalledWith('new@example.com');
       expect(component.emailOtpSent()).toBe(true);
       expect(component.pendingNewEmail()).toBe('new@example.com');
-      expect(component.emailSuccess()).toBe(true);
+      expect(mockMessageService.add).toHaveBeenCalledWith(jasmine.objectContaining({
+        severity: 'success',
+      }));
     });
 
     it('should show error when email update fails', async () => {
@@ -514,7 +521,6 @@ describe('ProfileComponent', () => {
       component['pendingNewEmail'].set('new@example.com');
       component['emailOtp'].set('123456');
       component['emailError'].set('Some error');
-      component['emailSuccess'].set(true);
 
       component.onCancelEmailChange();
 
@@ -523,7 +529,6 @@ describe('ProfileComponent', () => {
       expect(component.pendingNewEmail()).toBeNull();
       expect(component.emailOtp()).toBe('');
       expect(component.emailError()).toBeNull();
-      expect(component.emailSuccess()).toBe(false);
     });
   });
 
@@ -542,7 +547,9 @@ describe('ProfileComponent', () => {
       await component.onResendEmailOtp();
 
       expect(mockAuthService.updateEmail).toHaveBeenCalledWith('new@example.com');
-      expect(component.emailSuccess()).toBe(true);
+      expect(mockMessageService.add).toHaveBeenCalledWith(jasmine.objectContaining({
+        severity: 'success',
+      }));
     });
 
     it('should show error when resend fails', async () => {
@@ -632,7 +639,9 @@ describe('ProfileComponent', () => {
 
       expect(mockUsernameService.deleteUsername).toHaveBeenCalled();
       expect(component.originalUsername()).toBe('');
-      expect(component.usernameSuccess()).toBe(true);
+      expect(mockMessageService.add).toHaveBeenCalledWith(jasmine.objectContaining({
+        severity: 'success',
+      }));
     });
 
     it('should update username when non-blank', async () => {
@@ -642,20 +651,10 @@ describe('ProfileComponent', () => {
 
       expect(mockUsernameService.updateUsername).toHaveBeenCalledWith('newuser');
       expect(component.originalUsername()).toBe('newuser');
-      expect(component.usernameSuccess()).toBe(true);
+      expect(mockMessageService.add).toHaveBeenCalledWith(jasmine.objectContaining({
+        severity: 'success',
+      }));
     });
-
-    it('should clear success message after 3 seconds', fakeAsync(async () => {
-      component.editedUsername.set('newuser');
-
-      await component.onSaveUsername();
-
-      expect(component.usernameSuccess()).toBe(true);
-
-      tick(3000);
-
-      expect(component.usernameSuccess()).toBe(false);
-    }));
 
     it('should handle update error', async () => {
       mockUsernameService.updateUsername.and.returnValue(Promise.reject(new Error('Username taken')));

@@ -12,6 +12,15 @@
           <h2>@if (usernameService.username()?.username) {{{ usernameService.username()?.username }}'s }{{ t('profile.Profile') }}</h2>
           <p>{{ authService.currentUser()?.email }}</p>
         </div>
+        @if (!usernameService.username()?.username) {
+          <i
+            class="pi pi-eye-slash profile-private-indicator"
+            pTooltip="{{ t('profile.Without a username, your profile is private') }}"
+            tooltipPosition="left"
+            [showDelay]="tooltipShowDelay"
+            [hideDelay]="tooltipHideDelay"
+          ></i>
+        }
       </div>
     </ng-template>
 
@@ -122,11 +131,6 @@
           <!-- Error Message -->
           @if (passwordError()) {
             <p-message severity="error" [text]="passwordError()!" />
-          }
-
-          <!-- Success Message -->
-          @if (passwordSuccess()) {
-            <p-message severity="success" [text]="t('auth.Password updated successfully!')" />
           }
 
           <!-- Submit Button -->
@@ -240,14 +244,6 @@
             }
           </div>
 
-          <!-- Success Message -->
-          @if (emailSuccess()) {
-            <p-message
-              severity="success"
-              [text]="t('profile.Verification email sent! Please check your new email address and enter the confirmation code.')"
-            />
-          }
-
           <!-- Error Message -->
           @if (emailError()) {
             <p-message severity="error" [text]="emailError()!" />
@@ -315,11 +311,6 @@
         <!-- Error Message -->
         @if (usernameError()) {
           <p-message severity="error" [text]="usernameError()!" />
-        }
-
-        <!-- Success Message -->
-        @if (usernameSuccess()) {
-          <p-message severity="success" [text]="t('profile.Username updated successfully!')" />
         }
 
         <!-- Submit Button -->
