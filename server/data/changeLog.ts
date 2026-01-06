@@ -4,6 +4,15 @@
  */
 export const changeLog = [
   {
+    version: "21.2.11",
+    date: "2026-01-06",
+    description: "Supabase RLS fix",
+    changes: [
+      "Fix Supabase RLS bypass by separating auth and db clients",
+      "Handle foreign key violations during account deletion gracefully",
+    ]
+  },
+  {
     version: "21.2.10",
     date: "2026-01-05",
     description: "New patch",
