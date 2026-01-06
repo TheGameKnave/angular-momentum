@@ -962,6 +962,18 @@ describe('AuthService', () => {
 
       expect(mockRouter.navigate).not.toHaveBeenCalled();
     });
+
+    it('should handle exception during logout', async () => {
+      service['currentUser'].set(createMockUser('test@example.com'));
+
+      mockSupabaseAuth.signOut.and.returnValue(
+        Promise.reject(new Error('Network error'))
+      );
+
+      // Should not throw
+      await expectAsync(service.logout()).toBeResolved();
+      expect(mockLogService.log).toHaveBeenCalledWith('Logout exception', jasmine.any(Error));
+    });
   });
 
   describe('getToken', () => {
@@ -1456,6 +1468,9 @@ describe('AuthService', () => {
       const expiresAt = Math.floor(Date.now() / 1000) + 300; // Expires in 5 minutes
       const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
 
+      // Set authenticated state so refreshSessionOnResume doesn't exit early
+      service['currentUser'].set(mockUser);
+
       mockSupabaseAuth.getSession.and.returnValue(
         Promise.resolve({ data: { session: mockSession }, error: null })
       );
@@ -1490,6 +1505,9 @@ describe('AuthService', () => {
       const expiresAt = Math.floor(Date.now() / 1000) + 300; // Expires in 5 minutes
       const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
 
+      // Set authenticated state so refreshSessionOnResume doesn't exit early
+      service['currentUser'].set(mockUser);
+
       mockSupabaseAuth.getSession.and.returnValue(
         Promise.resolve({ data: { session: mockSession }, error: null })
       );
@@ -1509,6 +1527,9 @@ describe('AuthService', () => {
       const mockUser = createMockUser('test@example.com');
       const expiresAt = Math.floor(Date.now() / 1000) + 300; // Expires in 5 minutes
       const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
+
+      // Set authenticated state so refreshSessionOnResume doesn't exit early
+      service['currentUser'].set(mockUser);
 
       mockSupabaseAuth.getSession.and.returnValue(
         Promise.resolve({ data: { session: mockSession }, error: null })
@@ -1543,6 +1564,9 @@ describe('AuthService', () => {
       const expiresAt = Math.floor(Date.now() / 1000) + 3600; // Expires in 1 hour
       const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
 
+      // Set authenticated state so refreshSessionOnResume doesn't exit early
+      service['currentUser'].set(mockUser);
+
       mockSupabaseAuth.getSession.and.returnValue(
         Promise.resolve({ data: { session: mockSession }, error: null })
       );
@@ -1563,6 +1587,9 @@ describe('AuthService', () => {
       const expiresAt = Math.floor(Date.now() / 1000) - 60; // Expired 1 minute ago
       const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
 
+      // Set authenticated state so refreshSessionOnResume doesn't exit early
+      service['currentUser'].set(mockUser);
+
       mockSupabaseAuth.getSession.and.returnValue(
         Promise.resolve({ data: { session: mockSession }, error: null })
       );
@@ -1581,6 +1608,9 @@ describe('AuthService', () => {
       const expiresAt = Math.floor(Date.now() / 1000) + 300; // Expires in 5 minutes
       const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
 
+      // Set authenticated state so refreshSessionOnResume doesn't exit early
+      service['currentUser'].set(mockUser);
+
       mockSupabaseAuth.getSession.and.returnValue(
         Promise.resolve({ data: { session: mockSession }, error: null })
       );
@@ -1597,6 +1627,11 @@ describe('AuthService', () => {
     });
 
     it('should handle no session gracefully', async () => {
+      const mockUser = createMockUser('test@example.com');
+
+      // Set authenticated state so refreshSessionOnResume doesn't exit early at isAuthenticated check
+      service['currentUser'].set(mockUser);
+
       mockSupabaseAuth.getSession.and.returnValue(
         Promise.resolve({ data: { session: null }, error: null })
       );
@@ -1604,12 +1639,16 @@ describe('AuthService', () => {
 
       await (service as any).refreshSessionOnResume('test');
 
+      // Should exit early when no session is found
       expect(mockSupabaseAuth.refreshSession).not.toHaveBeenCalled();
     });
 
     it('should refresh when session has no expires_at', async () => {
       const mockUser = createMockUser('test@example.com');
       const mockSession = { ...createMockSession(mockUser), expires_at: undefined };
+
+      // Set authenticated state so refreshSessionOnResume doesn't exit early
+      service['currentUser'].set(mockUser);
 
       mockSupabaseAuth.getSession.and.returnValue(
         Promise.resolve({ data: { session: mockSession }, error: null })
@@ -1625,10 +1664,16 @@ describe('AuthService', () => {
     });
 
     it('should handle exception during refresh', async () => {
+      const mockUser = createMockUser('test@example.com');
+
+      // Set authenticated state so refreshSessionOnResume doesn't exit early
+      service['currentUser'].set(mockUser);
+
       mockSupabaseAuth.getSession.and.returnValue(Promise.reject(new Error('Network error')));
 
       // Should not throw
       await expectAsync((service as any).refreshSessionOnResume('test')).toBeResolved();
+      expect(mockLogService.log).toHaveBeenCalledWith('Error refreshing session on test', jasmine.any(Error));
     });
 
     it('should do nothing when supabase is null', async () => {

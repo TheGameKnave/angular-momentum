@@ -174,7 +174,8 @@ export class AuthService {
    * @param trigger - What triggered the refresh (for logging)
    */
   private async refreshSessionOnResume(trigger: string): Promise<void> {
-    if (!this.supabase) return;
+    // Skip if not authenticated (avoid noisy logging after logout)
+    if (!this.supabase || !this.isAuthenticated()) return;
 
     try {
       const { data } = await this.supabase.auth.getSession();
