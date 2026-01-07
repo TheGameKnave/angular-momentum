@@ -114,10 +114,12 @@ export class UpdateService {
 
     Promise.race([checkPromise, timeoutPromise]).then(available => {
       this.checkInProgress = false;
+      // Mark first check complete BEFORE activateUpdate to avoid race condition
+      // where VERSION_READY fires before this .then() completes
+      sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
       if (available) {
         // istanbul ignore next - activateUpdate rarely fails, requires corrupted SW state
         this.updates!.activateUpdate().then(async (activated) => {
-          sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
           if (activated) {
             this.logService.log('SW: Update activated. Awaiting VERSION_READY...');
             // VERSION_READY event will trigger the dialog
@@ -133,14 +135,11 @@ export class UpdateService {
           }
         }).catch(err => {
           console.error('SW: activateUpdate() failed:', err);
-          sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
         });
       } else {
         this.logService.log('SW: No update available.');
         // Clear captured version since no update was found
         this.changeLogService.clearPreviousVersion();
-        // Mark first check complete - subsequent checks can show dialogs
-        sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
       }
     }).catch(err => {
       this.checkInProgress = false;
