@@ -4,6 +4,14 @@
  */
 export const changeLog = [
   {
+    version: "21.2.14",
+    date: "2026-01-07",
+    description: "New patch",
+    changes: [
+      "testing sw",
+    ]
+  },
+  {
     version: "21.2.13",
     date: "2026-01-07",
     description: "SW update race condition",
