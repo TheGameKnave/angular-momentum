@@ -116,9 +116,17 @@ export class UpdateService {
       this.checkInProgress = false;
       if (available) {
         // istanbul ignore next - activateUpdate rarely fails, requires corrupted SW state
+        const firstCheckComplete = sessionStorage.getItem(UpdateService.SESSION_KEY) === 'true';
         this.updates!.activateUpdate().then(async (activated) => {
           sessionStorage.setItem(UpdateService.SESSION_KEY, 'true');
           if (activated) {
+            // On fresh page load, VERSION_READY may have already fired before we got here
+            // Reload immediately instead of waiting for an event that won't come
+            if (!firstCheckComplete) {
+              this.logService.log('SW: Fresh page load, reloading to apply update');
+              this.reloadPage();
+              return;
+            }
             this.logService.log('SW: Update activated. Awaiting VERSION_READY...');
             // VERSION_READY event will trigger the dialog
           } else {
@@ -172,9 +180,9 @@ export class UpdateService {
         this.confirming = true;
 
         // Skip if first check cycle hasn't completed yet
-        // This means we're on a fresh page load and the update was already applied
+        // This means we're on a fresh page load - the checkServiceWorkerUpdate flow will handle it
         if (!firstCheckComplete) {
-          this.logService.log('SW: Fresh page load, skipping update dialog');
+          this.logService.log('SW: Fresh page load, deferring to check flow');
           this.confirming = false;
           return;
         }
