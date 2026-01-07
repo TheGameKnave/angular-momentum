@@ -246,7 +246,7 @@ describe('UpdateService', () => {
 
       await (service as any).handleSwEvent(versionReadyEvent);
       tick();
-      expect(logMock.log).toHaveBeenCalledWith('SW: Fresh page load, skipping update dialog');
+      expect(logMock.log).toHaveBeenCalledWith('SW: Fresh page load, deferring to check flow');
       expect(updateDialogMock.show).not.toHaveBeenCalled();
     }));
 
