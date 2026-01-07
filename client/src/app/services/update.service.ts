@@ -170,11 +170,10 @@ export class UpdateService {
         // Set confirming immediately to prevent race conditions with duplicate events
         this.confirming = true;
 
-        // Skip if first check cycle hasn't completed yet
-        // This means we're on a fresh page load and the update was already applied
+        // Fresh page load with update ready - reload immediately to apply
         if (!firstCheckComplete) {
-          this.logService.log('SW: Fresh page load, skipping update dialog');
-          this.confirming = false;
+          this.logService.log('SW: Fresh page load with update, reloading');
+          this.reloadPage();
           return;
         }
 
