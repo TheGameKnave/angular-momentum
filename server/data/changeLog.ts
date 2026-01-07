@@ -4,6 +4,14 @@
  */
 export const changeLog = [
   {
+    version: "21.2.15",
+    date: "2026-01-07",
+    description: "Reload on page load with new version",
+    changes: [
+      "Reload on page load with new version",
+    ]
+  },
+  {
     version: "21.2.14",
     date: "2026-01-07",
     description: "New patch",

@@ -178,6 +178,44 @@ describe('UpdateService', () => {
       expect(swUpdateMock.activateUpdate).toHaveBeenCalled();
     }));
 
+    it('should reload immediately on fresh page load when update activates', fakeAsync(() => {
+      // Fresh page load - first check NOT complete
+      sessionStorage.removeItem('sw_first_check_complete');
+      swUpdateMock.activateUpdate.and.returnValue(Promise.resolve(true));
+
+      (service as any).checkServiceWorkerUpdate();
+      tick();
+
+      expect(swUpdateMock.activateUpdate).toHaveBeenCalled();
+      expect(logMock.log).toHaveBeenCalledWith('SW: Fresh page load, reloading to apply update');
+      expect((service as any).reloadPage).toHaveBeenCalled();
+    }));
+
+    it('should wait for VERSION_READY when first check already complete', fakeAsync(() => {
+      // First check already complete - not a fresh page load
+      sessionStorage.setItem('sw_first_check_complete', 'true');
+      swUpdateMock.activateUpdate.and.returnValue(Promise.resolve(true));
+
+      (service as any).checkServiceWorkerUpdate();
+      tick();
+
+      expect(swUpdateMock.activateUpdate).toHaveBeenCalled();
+      expect(logMock.log).toHaveBeenCalledWith('SW: Update activated. Awaiting VERSION_READY...');
+      expect((service as any).reloadPage).not.toHaveBeenCalled();
+    }));
+
+    it('should log error and set session key when activateUpdate fails', fakeAsync(() => {
+      const consoleSpy = spyOn(console, 'error');
+      sessionStorage.removeItem('sw_first_check_complete');
+      swUpdateMock.activateUpdate.and.returnValue(Promise.reject(new Error('activation failed')));
+
+      (service as any).checkServiceWorkerUpdate();
+      tick();
+
+      expect(consoleSpy).toHaveBeenCalledWith('SW: activateUpdate() failed:', jasmine.any(Error));
+      expect(sessionStorage.getItem('sw_first_check_complete')).toBe('true');
+    }));
+
     it('should clear previous version if no update available', fakeAsync(() => {
       swUpdateMock.checkForUpdate.and.returnValue(Promise.resolve(false));
       (service as any).checkServiceWorkerUpdate();
