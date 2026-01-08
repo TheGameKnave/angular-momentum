@@ -4,9 +4,17 @@
  */
 export const changeLog = [
   {
+    version: "21.2.18",
+    date: "2026-01-08",
+    description: "New patch",
+    changes: [
+      "restore update frequency",
+    ]
+  },
+  {
     version: "21.2.17",
     date: "2026-01-08",
-    description: "tauri bundles to ignore cookie consent banner",
+    description: "New patch",
     changes: [
       "tauri bundles to ignore cookie consent banner",
     ]
@@ -23,7 +31,7 @@ export const changeLog = [
   {
     version: "21.2.15",
     date: "2026-01-07",
-    description: "Reload on page load with new version",
+    description: "New patch",
     changes: [
       "Reload on page load with new version",
     ]
