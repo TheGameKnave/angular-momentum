@@ -4,6 +4,15 @@
  */
 export const changeLog = [
   {
+    version: "21.2.16",
+    date: "2026-01-07",
+    description: "desktop app improvements",
+    changes: [
+      "win app not loading index",
+      "'clear data' option for desktop apps",
+    ]
+  },
+  {
     version: "21.2.15",
     date: "2026-01-07",
     description: "Reload on page load with new version",
