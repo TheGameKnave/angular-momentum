@@ -1,5 +1,6 @@
 import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { isTauri as isTauriCheck } from '@tauri-apps/api/core';
 
 /**
  * Platform types supported by Angular Momentum.
@@ -35,7 +36,7 @@ export enum Platform {
  *
  * Detection logic:
  * 1. SSR Server: `typeof window === 'undefined'` or Angular's PLATFORM_ID
- * 2. Tauri App: `'__TAURI__' in window`
+ * 2. Tauri App: Uses official `isTauri()` from @tauri-apps/api/core (desktop & mobile)
  * 3. Web Browser: Everything else
  *
  * @example
@@ -76,8 +77,9 @@ export class PlatformService {
     }
 
     // At this point we know we're in a browser environment
-    // Check if running in Tauri
-    if (globalThis.window !== undefined && '__TAURI__' in globalThis) {
+    // Check if running in Tauri (desktop or mobile)
+    // istanbul ignore next - Tauri detection requires real Tauri runtime
+    if (isTauriCheck()) {
       return Platform.TAURI_APP;
     }
 

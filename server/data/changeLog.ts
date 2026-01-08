@@ -4,6 +4,14 @@
  */
 export const changeLog = [
   {
+    version: "21.2.17",
+    date: "2026-01-08",
+    description: "tauri bundles to ignore cookie consent banner",
+    changes: [
+      "tauri bundles to ignore cookie consent banner",
+    ]
+  },
+  {
     version: "21.2.16",
     date: "2026-01-07",
     description: "desktop app improvements",

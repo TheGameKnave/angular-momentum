@@ -27,7 +27,7 @@ pub fn run() {
         .setup(|app| {
             // App menu (Angular Momentum)
             let check_updates = MenuItem::with_id(app, "check_updates", "Check for Updates...", true, None::<&str>)?;
-            let clear_cache = MenuItem::with_id(app, "clear_cache", "Clear Cache & Restart...", true, None::<&str>)?;
+            let clear_cache = MenuItem::with_id(app, "clear_cache", "Clear Cache and Restart...", true, None::<&str>)?;
             let separator = PredefinedMenuItem::separator(app)?;
             let hide = PredefinedMenuItem::hide(app, Some("Hide Angular Momentum"))?;
             let hide_others = PredefinedMenuItem::hide_others(app, Some("Hide Others"))?;
