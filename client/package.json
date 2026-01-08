@@ -7,6 +7,7 @@
     "ng": "ng",
     "start": "ng serve --proxy-config src/proxy.conf.js",
     "build": "ng build && node scripts/prune-flags.js",
+    "build:tauri": "npm run build -- --configuration=production && node scripts/copy-index.js",
     "dev": "NODE_ENV=development npm run start",
     "test": "NODE_ENV=development ng test --configuration test --browsers=ChromeHeadless --watch=false",
     "test:debug": "NODE_ENV=development KARMA_CONSOLE=true ng test --configuration test --browsers=ChromeHeadless --watch=false",
