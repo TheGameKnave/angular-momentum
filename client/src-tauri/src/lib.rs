@@ -4,6 +4,8 @@ use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri_plugin_updater::UpdaterExt;
 #[cfg(desktop)]
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
+#[cfg(desktop)]
+use tauri::Manager;
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -25,6 +27,7 @@ pub fn run() {
         .setup(|app| {
             // App menu (Angular Momentum)
             let check_updates = MenuItem::with_id(app, "check_updates", "Check for Updates...", true, None::<&str>)?;
+            let clear_cache = MenuItem::with_id(app, "clear_cache", "Clear Cache & Restart...", true, None::<&str>)?;
             let separator = PredefinedMenuItem::separator(app)?;
             let hide = PredefinedMenuItem::hide(app, Some("Hide Angular Momentum"))?;
             let hide_others = PredefinedMenuItem::hide_others(app, Some("Hide Others"))?;
@@ -35,7 +38,7 @@ pub fn run() {
                 app,
                 "Angular Momentum",
                 true,
-                &[&check_updates, &separator, &hide, &hide_others, &show_all, &separator2, &quit],
+                &[&check_updates, &clear_cache, &separator, &hide, &hide_others, &show_all, &separator2, &quit],
             )?;
 
             // Edit menu
@@ -124,6 +127,22 @@ pub fn run() {
                         }
                     }
                 });
+            } else if event.id().as_ref() == "clear_cache" {
+                let app_handle = app.clone();
+                let confirmed = app_handle.dialog()
+                    .message("This will clear all cached data and restart the app. You may need to log in again. Continue?")
+                    .title("Clear Cache")
+                    .buttons(MessageDialogButtons::OkCancel)
+                    .blocking_show();
+
+                if confirmed {
+                    // Clear WebView data
+                    if let Some(window) = app_handle.get_webview_window("main") {
+                        let _ = window.clear_all_browsing_data();
+                    }
+                    // Restart the app
+                    app_handle.restart();
+                }
             }
         });
 
