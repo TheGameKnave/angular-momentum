@@ -87,10 +87,7 @@ async function screenshotMenu(
   await fixBackdropForScreenshot(page);
   await hideTooltipsForScreenshot(page);
 
-  await expect(element).toHaveScreenshot(name, {
-    maxDiffPixelRatio: 0.001,
-    animations: 'disabled',
-  });
+  await expect(element).toHaveScreenshot(name);
 }
 
 /**
@@ -122,11 +119,7 @@ async function screenshotMenuClipped(
     height: Math.min(box.height, viewport.height - Math.max(0, box.y)),
   };
 
-  await expect(page).toHaveScreenshot(name, {
-    maxDiffPixelRatio: 0.001,
-    animations: 'disabled',
-    clip,
-  });
+  await expect(page).toHaveScreenshot(name, { clip });
 }
 
 test.describe('Visual Regression Tests', () => {
@@ -193,8 +186,6 @@ test.describe('Visual Regression Tests', () => {
     });
 
     await expect(page).toHaveScreenshot(name, {
-      maxDiffPixelRatio: 0.001,
-      animations: 'disabled',
       clip: {
         x: box.x,
         y: box.y,
@@ -467,8 +458,6 @@ test.describe('Visual Regression Tests', () => {
     });
 
     await expect(page).toHaveScreenshot('menu-auth-profile.png', {
-      maxDiffPixelRatio: 0.001,
-      animations: 'disabled',
       clip: box,
     });
 
@@ -483,10 +472,7 @@ test.describe('Visual Regression Tests', () => {
     await dismissCookieBanner(page);
 
     const featureMenu = page.locator(menus.featureSidebar);
-    await expect(featureMenu).toHaveScreenshot('menu-feature.png', {
-      maxDiffPixelRatio: 0.001,
-      animations: 'disabled',
-    });
+    await expect(featureMenu).toHaveScreenshot('menu-feature.png');
   });
 
   test('menu-language', async ({ page }) => {
@@ -511,6 +497,17 @@ test.describe('Visual Regression Tests', () => {
     await screenshotMenu(page, '.dialog-menu-panel', 'menu-notification.png');
   });
 
+  test('menu-share', async ({ page }) => {
+    await page.goto(APP_BASE_URL);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+
+    await page.click(menus.shareMenuButton);
+    await page.waitForTimeout(300);
+
+    await screenshotMenu(page, '.dialog-menu-panel', 'menu-share.png');
+  });
+
   test('banner-cookie', async ({ page }) => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
@@ -521,10 +518,7 @@ test.describe('Visual Regression Tests', () => {
     await expect(cookieBanner).toBeVisible({ timeout: 5000 });
 
     await fixCookieBannerForScreenshot(page);
-    await expect(cookieBanner).toHaveScreenshot('banner-cookie.png', {
-      maxDiffPixelRatio: 0.001,
-      animations: 'disabled',
-    });
+    await expect(cookieBanner).toHaveScreenshot('banner-cookie.png');
 
     // Dismiss for cleanup
     await dismissCookieBanner(page);
@@ -547,10 +541,7 @@ test.describe('Visual Regression Tests', () => {
     await dismissCookieBanner(page);
     await page.waitForTimeout(500); // Wait for layout to stabilize
 
-    await expect(page).toHaveScreenshot('layout-phone.png', {
-      maxDiffPixelRatio: 0.001,
-      animations: 'disabled',
-    });
+    await expect(page).toHaveScreenshot('layout-phone.png');
   });
 
   test('layout-tablet', async ({ page }) => {
@@ -565,10 +556,7 @@ test.describe('Visual Regression Tests', () => {
       if (versionEl) versionEl.textContent = 'vX.X.X';
     });
 
-    await expect(page).toHaveScreenshot('layout-tablet.png', {
-      maxDiffPixelRatio: 0.001,
-      animations: 'disabled',
-    });
+    await expect(page).toHaveScreenshot('layout-tablet.png');
   });
 
   // ============================================================================
@@ -886,6 +874,18 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForTimeout(300);
 
     await screenshotMenuClipped(page, '.dialog-menu-panel', 'menu-notification-phone.png');
+  });
+
+  test('menu-share-phone', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT_PHONE);
+    await page.goto(APP_BASE_URL);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+
+    await page.click(menus.shareMenuButton);
+    await page.waitForTimeout(300);
+
+    await screenshotMenuClipped(page, '.dialog-menu-panel', 'menu-share-phone.png');
   });
 
   // ============================================================================

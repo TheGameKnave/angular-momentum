@@ -20,6 +20,10 @@ export const menus = {
   changelogMenuButton: 'app-menu-change-log .change-log-button',
   changelogMenuContent: '.dialog-menu-panel',
 
+  // Share menu
+  shareMenuButton: 'app-menu-share .dialog-menu-trigger',
+  shareMenuContent: '.dialog-menu-panel',
+
   // Notification center
   notificationCenterButton: 'app-notification-center .dialog-menu-trigger',
   notificationCenterContent: '.dialog-menu-panel',
