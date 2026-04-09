@@ -24,7 +24,7 @@ import { securityHeaders } from './middleware/security';
  */
 function setupStaticFileServing(app: express.Application, env: string) {
   if (env === 'production' || env === 'staging' || env === 'development') {
-    const dirname = path.resolve(__dirname, '../client/dist/angular-momentum/browser');
+    const dirname = path.resolve(process.cwd(), '../client/dist/angular-momentum/browser');
 
     // Service worker manifest must never be cached - it tells the SW when updates are available
     app.get('/ngsw.json', (req, res) => {

@@ -127,24 +127,16 @@ Playwright captures screenshots during tests and compares them against baseline 
 * from root, run `npm run test:e2e:accept`
 Accept all screenshot diffs and overwrite baseline snapshots.
 
-### SonarQube code hygeine testing
+### SonarCloud code hygiene testing
 
-Install Docker from website (not homebrew).
+The scanner is included as a dev dependency (`sonarqube-scanner`) — no separate download needed.
 
-from `tests`, create docker instance with `docker run -d --name sonarqube -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true -p 9000:9000 sonarqube:latest`
-
-Navigate to [SonarQube Server](http://localhost:9000) instance
-
-* Log in to your SonarQube server as an administrator.
-* Go to the Security page (usually located in the top-right corner of the page).
-* Click on My Account.
-* Scroll down to the Security section.
-* Click on Generate Tokens.
-* Enter a name for the token (e.g., "My Token").
-* Click Generate.
-* add token to .env file
-
-Download SonarScanner and run from project root: `npm run sonar`
+1. Get a token from [SonarCloud](https://sonarcloud.io/account/security)
+2. Add it to `server/.env`:
+   ```
+   SONAR_TOKEN=your_token_here
+   ```
+3. Run from project root: `npm run sonar`
 
 ## Deployment
 
