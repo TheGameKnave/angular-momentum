@@ -146,7 +146,13 @@
     "GraphQL API": "GraphQL API",
     "IndexedDB": "IndexedDB",
     "Installers": "安装程序",
-    "Notifications": "通知"
+    "Notifications": "通知",
+    "Share": "分享"
+  },
+
+  "share": {
+    "Download QR Code": "下载二维码",
+    "Share via": "分享方式"
   },
 
   "notification": {

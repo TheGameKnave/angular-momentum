@@ -146,7 +146,13 @@
     "GraphQL API": "GrafQL API",
     "IndexedDB": "IndeksdDB",
     "Installers": "Instolrs",
-    "Notifications": "Notifikashns"
+    "Notifications": "Notifikashns",
+    "Share": "Sher"
+  },
+
+  "share": {
+    "Download QR Code": "Dawnloed QR Coed",
+    "Share via": "Sher vya"
   },
 
   "notification": {

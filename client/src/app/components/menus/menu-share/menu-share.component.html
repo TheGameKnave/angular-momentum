@@ -1,0 +1,74 @@
+<app-dialog-menu position="top-right" width="32rem" *transloco="let t">
+  <!-- Trigger: Share Button -->
+  <span
+    menu-trigger
+    class="share-menu-button"
+    [attr.title]="t('nav.Share')"
+  >
+    <i class="pi pi-share-alt"></i>
+  </span>
+
+  <!-- Menu Content -->
+  <div menu-content>
+    <div menu-header class="share-menu-header">
+      <h3>{{ t('nav.Share') }}</h3>
+      <hr />
+    </div>
+
+    <div menu-body class="share-menu-body">
+      <!-- Native share (mobile/desktop share sheet) -->
+      @if (canNativeShare) {
+        <button class="share-native-button" (click)="nativeShare()">
+          <i class="pi pi-share-alt"></i>
+          {{ t('share.Share via') }}…
+        </button>
+      }
+
+      <!-- Share buttons -->
+      <div class="share-buttons-grid">
+        @for (btn of shareButtons; track btn.type) {
+          <span
+            [pTooltip]="btn.label"
+            tooltipPosition="top"
+            [showDelay]="tooltipShowDelay"
+            [hideDelay]="tooltipHideDelay"
+          >
+            <share-button
+              [button]="btn.type"
+              [url]="currentUrl()"
+              [title]="pageTitle()"
+              [description]="pageTitle()"
+            />
+          </span>
+        }
+      </div>
+
+      <!-- QR Code (browser only — canvas not available during SSR) -->
+      @if (isBrowser) {
+      <div class="share-qr-section">
+        <button class="share-qr-download" (click)="downloadQrCode()">
+          <i class="pi pi-download"></i>
+          {{ t('share.Download QR Code') }}
+        </button>
+        <qrcode
+          #qr
+          [qrdata]="currentUrl()"
+          [allowEmptyString]="true"
+          [ariaLabel]="'QR code link to ' + pageTitle()"
+          [colorDark]="'#278'"
+          [colorLight]="'#fff'"
+          [elementType]="'canvas'"
+          [errorCorrectionLevel]="'H'"
+          [imageSrc]="'assets/icons/favicon-stroke.png'"
+          [imageHeight]="35"
+          [imageWidth]="35"
+          [margin]="3"
+          [scale]="1"
+          [title]="pageTitle()"
+          [width]="(window?.innerWidth ?? 0) >= SCREEN_SIZES.md ? 240 : 188"
+        />
+      </div>
+      }
+    </div>
+  </div>
+</app-dialog-menu>

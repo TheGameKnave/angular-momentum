@@ -5,6 +5,7 @@
 // =============================================================================
 
 @use "tailwindcss";
+@use "ngx-sharebuttons/themes/default";
 
 @import "./vendor/flag-icons.css";
 @import "primeicons/primeicons.css";
@@ -429,11 +430,23 @@ p-panel {
 
   &.p-tooltip-top .p-tooltip-arrow {
     border-top-color: var(--tooltip-border-color) !important;
+  }
+
+  &.p-tooltip-bottom .p-tooltip-arrow {
     border-bottom-color: var(--tooltip-border-color) !important;
+  }
+
+  &.p-tooltip-left .p-tooltip-arrow {
+    border-left-color: var(--tooltip-border-color) !important;
+  }
+
+  &.p-tooltip-right .p-tooltip-arrow {
+    border-right-color: var(--tooltip-border-color) !important;
   }
 }
 
-.p-tooltip-top {
+.p-tooltip-top,
+.p-tooltip-bottom {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
@@ -1106,6 +1119,104 @@ app-dialog-menu {
 // -----------------------------------------------------------------------------
 // Notification Center
 // -----------------------------------------------------------------------------
+
+// Share menu
+.share-menu-button {
+  position: relative;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  border-radius: .4rem;
+  transition: background-color 0.2s;
+}
+
+.share-menu-header {
+  position: relative;
+  h3 {
+    margin: 0;
+    font-size: 1.8rem;
+  }
+}
+
+.share-menu-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1rem 0;
+
+  .share-buttons-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .4rem;
+
+    share-button .sb-wrapper {
+      --sb-border-radius: .6rem;
+      --sb-height: 4.4rem;
+      --sb-min-width: 4.4rem;
+      --sb-icon-size: 2rem;
+      transition: transform 0.15s ease, filter 0.15s ease;
+
+      &:hover {
+        transform: scale(1.12);
+        filter: brightness(1.15);
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+  }
+}
+
+.share-native-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .8rem;
+  padding: .8rem 1.6rem;
+  border: 1px solid var(--color-border-primary);
+  border-radius: .6rem;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--color-bg-tertiary, rgba(0, 0, 0, 0.05));
+  }
+}
+
+.share-qr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+
+  /* stylelint-disable-next-line selector-type-no-unknown -- angularx-qrcode component */
+  qrcode {
+    border-radius: .8rem;
+    overflow: hidden;
+  }
+}
+
+.share-qr-download {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  color: var(--color-link);
+  font-size: 1.4rem;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
 
 .notification-center-button {
   position: relative;

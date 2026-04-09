@@ -26,6 +26,7 @@ import { MenuChangeLogComponent } from './components/menus/menu-change-log/menu-
 import { ChangeLogService } from './services/change-log.service';
 import { NotificationCenterComponent } from './components/menus/notification-center/notification-center.component';
 import { MenuAuthComponent } from './components/menus/menu-auth/menu-auth.component';
+import { MenuShareComponent } from './components/menus/menu-share/menu-share.component';
 import { CookieBannerComponent } from './components/privacy/cookie-banner/cookie-banner.component';
 import { SCREEN_SIZES, TOOLTIP_CONFIG } from './constants/ui.constants';
 import { ResourcePreloadService } from './services/resource-preload.service';
@@ -55,6 +56,7 @@ import { DialogUpdateComponent } from './components/dialogs/dialog-update/dialog
     TranslocoDirective,
     NotificationCenterComponent,
     MenuAuthComponent,
+    MenuShareComponent,
     CookieBannerComponent,
     ScrollIndicatorDirective,
     TooltipModule,

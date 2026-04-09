@@ -146,7 +146,13 @@
     "GraphQL API": "GrepphQL API",
     "IndexedDB": "IndeksedDB",
     "Installers": "Instellers",
-    "Notifications": "Nootifficesshuns"
+    "Notifications": "Nootifficesshuns",
+    "Share": "Shere-a"
+  },
+
+  "share": {
+    "Download QR Code": "Duoonlued QR Cude-a",
+    "Share via": "Shere-a veeya"
   },
 
   "notification": {

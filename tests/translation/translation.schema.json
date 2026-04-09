@@ -674,6 +674,10 @@
         "Notifications": {
           "type": "string",
           "description": "Navigation: Notifications page link"
+        },
+        "Share": {
+          "type": "string",
+          "description": "Navigation: Share menu label"
         }
       },
       "required": [
@@ -681,7 +685,8 @@
         "GraphQL API",
         "IndexedDB",
         "Installers",
-        "Notifications"
+        "Notifications",
+        "Share"
       ],
       "additionalProperties": false
     },
@@ -1247,6 +1252,25 @@
       "additionalProperties": false
     },
 
+    "share": {
+      "type": "object",
+      "properties": {
+        "Download QR Code": {
+          "type": "string",
+          "description": "Share: Download QR code image button"
+        },
+        "Share via": {
+          "type": "string",
+          "description": "Share: Native OS share button label"
+        }
+      },
+      "required": [
+        "Download QR Code",
+        "Share via"
+      ],
+      "additionalProperties": false
+    },
+
     "time": {
       "type": "object",
       "properties": {
@@ -1531,6 +1555,7 @@
     "page",
     "privacy",
     "profile",
+    "share",
     "time",
     "timezone",
     "update",

@@ -24,6 +24,8 @@ import { MessageService } from 'primeng/api';
 import Lara from '@primeng/themes/lara';
 import { authInterceptor } from '@app/interceptors/auth.interceptor';
 import { platformAwareStorageFactory } from '@app/helpers/transloco-storage';
+import { provideShareButtonsOptions, withConfig } from 'ngx-sharebuttons';
+import { shareIcons } from 'ngx-sharebuttons/icons';
 import { getLangFn } from '@app/helpers/language.helper';
 import { provideSsrLanguage } from '@app/providers/ssr-language.provider';
 import { provideSsrTheme } from '@app/providers/ssr-theme.provider';
@@ -106,6 +108,12 @@ export const serverProviders = [
     ripple: true,
   }),
   MessageService,
+  provideShareButtonsOptions(
+    shareIcons(),
+    withConfig({
+      debug: isDevMode(),
+    }),
+  ),
 ];
 
 /**
