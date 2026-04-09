@@ -130,7 +130,7 @@ describe('ConnectivityService', () => {
     expect(window.setTimeout).not.toHaveBeenCalled();
   }));
 
-  it('should handle ping failed response', fakeAsync(() => {
+  it('should treat non-2xx health check as offline', fakeAsync(() => {
     spyOn(window, 'fetch').and.returnValue(
       Promise.resolve(new Response(null, { status: 500 }))
     );

@@ -17,6 +17,19 @@ router.get('/version', (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/health
+ * Lightweight health check for connectivity monitoring.
+ *
+ * Response:
+ * {
+ *   "status": "ok"
+ * }
+ */
+router.get('/health', (req: Request, res: Response) => {
+  res.json({ status: 'ok' });
+});
+
+/**
  * GET /api/changelog
  * Returns the application changelog.
  *

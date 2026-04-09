@@ -53,7 +53,7 @@ export class ConnectivityService {
       return;
     }
 
-    this.pingUrl = globalThis.location.origin + '/favicon.ico';
+    this.pingUrl = globalThis.location.origin + '/api/health';
 
     window.addEventListener('online', () => {
       this._osOnline.set(true);
@@ -118,41 +118,39 @@ export class ConnectivityService {
   }
 
   /**
-   * Perform ping to check connectivity.
-   * Fetches favicon with cache-busting to verify real connectivity.
+   * Perform health check to verify app connectivity.
+   * Hits /api/health with cache-busting to verify the server is up and responsive.
    * Updates isOnline signal and manages offline banner display.
    */
   private async verify() {
     if (!this.stopped) {
       this.verifyAbortController = new AbortController();
       const { signal } = this.verifyAbortController;
-  
+
       try {
         const res = await fetch(`${this.pingUrl}?ts=${Date.now()}`, {
           cache: 'no-store',
           signal,
           headers: { 'ngsw-bypass': 'true' },  // Skip service worker cache
         });
-  
-        const success = res.ok;
-        this._isOnline.set(success);             // immediate source-of-truth update
-  
-        if (success) {
+
+        if (res.ok) {
+          this._isOnline.set(true);
           this._lastVerifiedOnline.set(new Date());
           this.currentInterval = this.baseInterval;
           this.clearOfflineBanner();
-  
+
           if (this.lastLoggedOnline !== true) {
             this.logService.log(`✅ Verified online at ${new Date().toLocaleTimeString()}`);
             this.lastLoggedOnline = true;
           }
         } else {
-          this._isOnline.set(false);             // logical offline
+          this._isOnline.set(false);
           this.currentInterval = Math.min(this.currentInterval * 2, this.maxInterval);
           this.scheduleOfflineBanner();
-  
+
           if (this.lastLoggedOnline !== false) {
-            this.logService.log('⚠️ Ping failed — treating as offline');
+            this.logService.log(`⚠️ Health check failed (${res.status}) — treating as offline`);
             this.lastLoggedOnline = false;
           }
         }
@@ -161,9 +159,9 @@ export class ConnectivityService {
           this._isOnline.set(false);
           this.currentInterval = Math.min(this.currentInterval * 2, this.maxInterval);
           this.scheduleOfflineBanner();
-  
+
           if (this.lastLoggedOnline !== false) {
-            this.logService.log('⚠️ Ping error — treating as offline');
+            this.logService.log('⚠️ Health check error — treating as offline');
             this.lastLoggedOnline = false;
           }
         }

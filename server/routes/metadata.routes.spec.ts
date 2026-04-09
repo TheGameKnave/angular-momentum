@@ -138,6 +138,21 @@ describe('Metadata Routes', () => {
     });
   });
 
+  describe('GET /health', () => {
+    it('should return status ok', async () => {
+      const response = await request(app).get('/api/health');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ status: 'ok' });
+    });
+
+    it('should return content-type application/json', async () => {
+      const response = await request(app).get('/api/health');
+
+      expect(response.headers['content-type']).toMatch(/application\/json/);
+    });
+  });
+
   describe('Invalid routes', () => {
     it('should return 404 for unknown routes', async () => {
       const response = await request(app).get('/api/nonexistent');
