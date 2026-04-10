@@ -15,6 +15,19 @@ window.turnstile = {
   getResponse: () => 'mock-response',
 };
 
+// Mock /api/health requests so ConnectivityService doesn't spam Karma's web-server with 404s
+const originalFetch = window.fetch;
+window.fetch = function(input, init) {
+  const url = typeof input === 'string' ? input : (input && input.url) || '';
+  if (url.includes('/api/health')) {
+    return Promise.resolve(new Response('{"status":"ok"}', {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }));
+  }
+  return originalFetch.call(this, input, init);
+};
+
 // Helper to convert args to string
 function argsToString(args) {
   return args.map(arg => {

@@ -44,7 +44,9 @@ app.use((_req, res, next) => {
 // Enable gzip compression for all responses
 app.use(compression());
 
-const commonEngine = new CommonEngine();
+const commonEngine = new CommonEngine({
+  allowedHosts: ['localhost', 'angularmomentum.app'],
+});
 
 // Screenshot generation endpoint - MUST be before API proxy
 app.get('/api/og-image', async (req, res): Promise<void> => {
@@ -138,7 +140,7 @@ function hasAuthToken(cookieHeader: string | undefined): boolean {
 }
 
 // All regular routes use the Angular engine
-app.get('*', (req, res) => {
+app.get('/{*splat}', (req, res) => {
   const { protocol, originalUrl, headers } = req;
 
   // Skip SSR for authenticated users - no SEO benefit, reduces server load
