@@ -23,6 +23,11 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    // Pin timezone so time-based screenshots (e.g. notifications page) match
+    // baselines regardless of the runner's system TZ (CI runs in UTC).
+    // Etc/GMT+8 is a fixed UTC-8 offset (POSIX convention inverts the sign),
+    // equivalent to permanent PST — no DST shifts, so baselines stay stable year-round.
+    timezoneId: 'Etc/GMT+8',
   },
   // Disable animations for deterministic screenshots
   expect: {
