@@ -124,15 +124,10 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
-      - name: Install SonarScanner
-        run: |
-          curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-6.2.1.4610-macosx-aarch64.zip
-          unzip -q sonar-scanner-cli.zip -d $HOME/sonar-scanner
-          echo "$HOME/sonar-scanner/sonar-scanner-6.2.1.4610-macosx-aarch64/bin" >> $GITHUB_PATH
-
       - name: Run SonarScanner
         run: |
-          sonar-scanner \
+          npx sonar-scanner \
+            -Dsonar.token=$SONAR_TOKEN \
             -Dsonar.projectKey=TheGameKnave_angular-momentum \
             -Dsonar.organization=thegameknave \
             -Dsonar.host.url=https://sonarcloud.io
