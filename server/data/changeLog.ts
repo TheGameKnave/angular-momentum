@@ -4,31 +4,44 @@
  */
 export const changeLog = [
   
-  
-  
-  
+  {
+    version: "21.3.3",
+    date: "2026-04-09",
+    description: "Heroku build fix",
+    changes: [
+      "move @angular/build to dependencies so Heroku doesn't prune it",
+      "regenerate package-lock.json to match",
+    ]
+  },
   {
     version: "21.3.2",
     date: "2026-04-09",
-    description: "New patch",
+    description: "Heroku build fix",
     changes: [
-      "",
+      "move @angular/cli back to dependencies (Heroku prunes devDeps and ng wasn't on PATH)",
     ]
   },
   {
     version: "21.3.1",
     date: "2026-04-09",
-    description: "New patch",
+    description: "SSR and CI fixes",
     changes: [
-      "",
+      "fix SSR crash on Express 5: replace '*' catch-all route with '/{*splat}'",
+      "add allowedHosts to CommonEngine so localhost SSR doesn't fall back to CSR (Lighthouse)",
+      "bump GitHub Actions checkout/setup-node from v3 to v4",
+      "karma test setup cleanup",
     ]
   },
   {
     version: "21.3.0",
     date: "2026-04-09",
-    description: "New minor version",
+    description: "Share menu",
     changes: [
-      "",
+      "add share menu with social buttons, QR code, and native Web Share API",
+      "add visual regression tests for share menu and tighten screenshot threshold",
+      "fix SSR static path resolution, sonar config, and server tsconfig",
+      "connectivity service and metadata routes",
+      "security: bump @angular/cli, express-rate-limit (IPv6 bypass), and sinon",
     ]
   },
   {
