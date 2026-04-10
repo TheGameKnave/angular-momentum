@@ -6,6 +6,15 @@ export const changeLog = [
   
   
   
+  
+  {
+    version: "21.3.2",
+    date: "2026-04-09",
+    description: "New patch",
+    changes: [
+      "",
+    ]
+  },
   {
     version: "21.3.1",
     date: "2026-04-09",
