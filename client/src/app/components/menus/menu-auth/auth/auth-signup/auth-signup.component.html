@@ -3,6 +3,7 @@
   <div class="form-field">
     <label for="signup-email">{{ t('Email') }}</label>
     <input
+      #emailInput
       pInputText
       pTooltip="{{ emailTooltip }}"
       tooltipPosition="top"
@@ -14,6 +15,7 @@
       type="email"
       [placeholder]="t('auth.Enter your email')"
       autocomplete="email"
+      (blur)="onEmailBlur()"
     />
     @if (signupForm.get('email')?.invalid && signupForm.get('email')?.touched) {
       @if (signupForm.get('email')?.hasError('emailTypo')) {
@@ -81,38 +83,6 @@
     </p-iconfield>
     @if (signupForm.get('password')?.invalid && signupForm.get('password')?.touched) {
       <small class="error-message">{{ t('auth.Password is required') }}</small>
-    }
-  </div>
-
-  <!-- Confirm Password Input -->
-  <div class="form-field">
-    <label for="signup-confirm-password">
-      {{ t('auth.Confirm Password') }}
-    </label>
-    <p-iconfield>
-      <input
-        pInputText
-        id="signup-confirm-password"
-        name="confirm-password"
-        formControlName="confirmPassword"
-        type="password"
-        [attr.type]="showConfirmPassword() ? 'text' : 'password'"
-        [placeholder]="t('auth.Re-enter your password')"
-        autocomplete="new-password"
-      />
-      <p-inputicon
-        styleClass="password-toggle-icon"
-        (mousedown)="onConfirmPasswordPeekStart()"
-        (mouseup)="onConfirmPasswordPeekEnd()"
-        (mouseleave)="onConfirmPasswordPeekEnd()"
-        (touchstart)="onConfirmPasswordPeekStart()"
-        (touchend)="onConfirmPasswordPeekEnd()"
-      >
-        <i [class]="'pi ' + (showConfirmPassword() ? 'pi-eye-slash' : 'pi-eye')"></i>
-      </p-inputicon>
-    </p-iconfield>
-    @if (signupForm.hasError('passwordMismatch') && signupForm.get('confirmPassword')?.touched) {
-      <small class="error-message">{{ t('auth.Passwords do not match') }}</small>
     }
   </div>
 

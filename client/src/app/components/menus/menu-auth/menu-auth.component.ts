@@ -69,6 +69,8 @@ export class MenuAuthComponent implements AfterViewInit {
   private readonly logService = inject(LogService);
 
   @ViewChild(DialogMenuComponent) dialogMenu!: DialogMenuComponent;
+  @ViewChild('loginForm') loginForm?: AuthLoginComponent;
+  @ViewChild('signupForm') signupForm?: AuthSignupComponent;
 
   /**
    * Callback for storage promotion that runs before auth signals update.
@@ -329,6 +331,22 @@ export class MenuAuthComponent implements AfterViewInit {
     // Only redirect if on an auth-guarded route
     if (requiresAuth) {
       await this.router.navigate(['/']);
+    }
+  }
+
+  /**
+   * Handle menu opened - focus the first field of whichever auth form is
+   * currently visible. Fires on every open (including reopens), whereas the
+   * child components' `ngAfterViewInit` only fires when they first mount.
+   */
+  onMenuOpened(): void {
+    // The @if-mounted auth form is already in the view at the time
+    // `opened` fires — the overlay portal attach runs synchronously before
+    // the emit. Call focus directly; no deferred boundary needed.
+    if (this.authUiState.mode() === 'signup') {
+      this.signupForm?.focusFirstField();
+    } else {
+      this.loginForm?.focusFirstField();
     }
   }
 

@@ -99,6 +99,11 @@ export class DialogMenuComponent {
   readonly closed = output<void>();
 
   /**
+   * Emitted each time the menu is opened (including reopens).
+   */
+  readonly opened = output<void>();
+
+  /**
    * Translated aria-label for open menu button.
    */
   readonly ariaLabelOpen = signal('');
@@ -163,6 +168,7 @@ export class DialogMenuComponent {
     );
     this.overlayRef.attach(portal);
     this.isOpen.set(true);
+    this.opened.emit();
   }
 
   /**
