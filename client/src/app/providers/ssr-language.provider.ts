@@ -8,10 +8,13 @@ export const ACCEPT_LANGUAGE = new InjectionToken<string>('ACCEPT_LANGUAGE');
 
 /**
  * Parse Accept-Language header and return the best matching supported language.
+ * Exported so client-side callers can resolve `navigator.languages` against
+ * the same matching rules as SSR (build an Accept-Language-style string and
+ * feed it in).
  * @param acceptLanguage - The Accept-Language header value
  * @returns The best matching language code or null if no match
  */
-function parseAcceptLanguage(acceptLanguage: string): string | null {
+export function parseAcceptLanguage(acceptLanguage: string): string | null {
   if (!acceptLanguage) return null;
 
   const languages = acceptLanguage
