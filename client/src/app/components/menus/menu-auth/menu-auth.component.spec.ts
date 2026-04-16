@@ -425,11 +425,11 @@ describe('MenuAuthComponent', () => {
       const userId = 'test-user-id';
       mockStoragePromotionService.hasAnonymousData.and.returnValue(Promise.resolve(true));
 
-      // Simulate user dismissing the dialog (visible becomes false without onConfirm)
-      let visibleCallCount = 0;
-      (mockConfirmDialogService.visible as jasmine.Spy).and.callFake(() => {
-        visibleCallCount++;
-        return visibleCallCount < 2; // Return true first, then false
+      // Simulate user dismissing the dialog by invoking the options'
+      // onCancel callback that the dialog service would fire on
+      // cancel/backdrop/escape.
+      mockConfirmDialogService.show.and.callFake((options: any) => {
+        options.onCancel?.();
       });
 
       await component.storagePromotionCallback(userId);
