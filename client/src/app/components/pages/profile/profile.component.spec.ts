@@ -148,8 +148,9 @@ describe('ProfileComponent', () => {
     expect(initials).toBe('T'); // First letter of test@example.com
   });
 
-  it('should return ? for initials if no user email', () => {
+  it('should return ? for initials if no user email and no username', () => {
     (mockAuthService.currentUser as any).set({ email: '', id: '123' });
+    (mockUsernameService.username as any).set(null);
     const initials = component.getUserInitials();
     expect(initials).toBe('?');
   });
@@ -244,8 +245,9 @@ describe('ProfileComponent', () => {
   });
 
   describe('getUserInitials', () => {
-    it('should return ? when user is null', () => {
+    it('should return ? when user is null and no username is set', () => {
       (mockAuthService.currentUser as any).set(null);
+      (mockUsernameService.username as any).set(null);
       const initials = component.getUserInitials();
       expect(initials).toBe('?');
     });
