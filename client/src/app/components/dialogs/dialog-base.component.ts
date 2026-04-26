@@ -134,6 +134,15 @@ export abstract class DialogBaseComponent {
             this.onDismiss();
           }
         });
+
+      // On mobile the pane fills the viewport with pointer-events: auto so iOS
+      // Safari accepts touch-scroll, which shadows the backdrop. Treat clicks
+      // landing on the pane itself (gutter around the panel) as dismiss.
+      this.overlayRef.overlayElement.addEventListener('click', (event) => {
+        if (event.target === this.overlayRef?.overlayElement && checkCanDismiss()) {
+          this.onDismiss();
+        }
+      });
     }
   }
 

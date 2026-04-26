@@ -153,6 +153,16 @@ export class DialogMenuComponent {
         this.close();
       });
 
+      // On mobile the pane fills the viewport with pointer-events: auto so iOS
+      // Safari accepts touch-scroll, which shadows the backdrop. Treat clicks
+      // landing on the pane itself (gutter around the panel) as dismiss.
+      // istanbul ignore next - integration tests are out of scope
+      this.overlayRef.overlayElement.addEventListener('click', (event) => {
+        if (event.target === this.overlayRef?.overlayElement) {
+          this.close();
+        }
+      });
+
       // Close on Escape key
       // istanbul ignore next - integration tests are out of scope
       this.overlayRef.keydownEvents().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
