@@ -75,11 +75,18 @@ export class TurnstileService {
         /**/console.log('[Turnstile] Token verified successfully');
         return { success: true };
       } else {
-        console.warn('[Turnstile] Token verification failed:', data['error-codes']);
+        const rawCodes = data['error-codes'];
+        const safeCodes = Array.isArray(rawCodes)
+          ? rawCodes
+              .filter((c: unknown): c is string => typeof c === 'string')
+              .map(c => c.replace(/[^\w-]/g, '').slice(0, 64))
+              .slice(0, 10)
+          : [];
+        console.warn('[Turnstile] Token verification failed:', safeCodes);
         return {
           success: false,
           error: 'Token verification failed',
-          'error-codes': data['error-codes']
+          'error-codes': Array.isArray(rawCodes) ? rawCodes : undefined
         };
       }
     } catch (error) {
