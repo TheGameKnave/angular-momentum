@@ -172,6 +172,25 @@ describe('TurnstileService', () => {
       );
     });
 
+    it('should handle failed verification when error-codes is missing or non-array', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: false }),
+      } as Response);
+
+      const result = await service.verifyToken('invalid-token');
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Token verification failed',
+        'error-codes': undefined,
+      });
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        '[Turnstile] Token verification failed:',
+        []
+      );
+    });
+
     it('should handle API error response (not ok)', async () => {
       mockFetch.mockResolvedValue({
         ok: false,
