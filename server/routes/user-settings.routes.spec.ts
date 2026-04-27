@@ -1,11 +1,30 @@
+import http from 'http';
 import request from 'supertest';
-import express, { Express } from 'express';
+import express, { Express, Router } from 'express';
 import { createUserSettingsRoutes } from './user-settings.routes';
 
 describe('User Settings Routes', () => {
   let app: Express;
+  let server: http.Server;
+  let activeRouter: Router;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockSupabase: any;
+
+  // Single keep-alive listener per file with a swappable inner router.
+  // Per-test listen()/close() churn from supertest collides with parallel jest
+  // workers and produces socket hang ups. Long-lived listener avoids that
+  // without sacrificing per-test mock isolation.
+  beforeAll(async () => {
+    app = express();
+    app.use(express.json());
+    app.use('/api/user-settings', (req, res, next) => activeRouter(req, res, next));
+    server = app.listen(0);
+    await new Promise<void>(resolve => server.once('listening', () => resolve()));
+  });
+
+  afterAll(async () => {
+    await new Promise<void>(resolve => server.close(() => resolve()));
+  });
 
   beforeEach(() => {
     // Reset all mocks completely to prevent state leakage between tests
@@ -40,10 +59,14 @@ describe('User Settings Routes', () => {
       db: mockDbClient as any,
     };
 
-    // Create fresh Express app for each test
-    app = express();
-    app.use(express.json());
-    app.use('/api/user-settings', createUserSettingsRoutes(mockSupabase));
+    // Swap the active router to wire in this test's mocks. The host app and
+    // listener are reused across the file.
+    activeRouter = createUserSettingsRoutes(mockSupabase);
+
+    // Clear any io set by a previous test — the hoisted app preserves
+    // app.set() values across tests, so a stale mockIo with restored mocks
+    // would throw when the route calls .to()/.emit() on it.
+    app.set('io', undefined);
   });
 
   afterEach(() => {
@@ -69,7 +92,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 401 if Authorization header is missing', async () => {
-      const response = await request(app).get('/api/user-settings');
+      const response = await request(server).get('/api/user-settings');
 
       expect(response.status).toBe(401);
       expect(response.body).toEqual({
@@ -78,7 +101,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 401 if Authorization header is invalid', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/user-settings')
         .set('Authorization', 'Invalid token-123');
 
@@ -94,7 +117,7 @@ describe('User Settings Routes', () => {
         error: { message: 'Invalid token' },
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/user-settings')
         .set('Authorization', 'Bearer invalid-token');
 
@@ -129,7 +152,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/user-settings')
         .set('Authorization', 'Bearer valid-token');
 
@@ -155,7 +178,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/user-settings')
         .set('Authorization', 'Bearer valid-token');
 
@@ -180,7 +203,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/user-settings')
         .set('Authorization', 'Bearer valid-token');
 
@@ -198,7 +221,7 @@ describe('User Settings Routes', () => {
         throw new Error('Unexpected error');
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/user-settings')
         .set('Authorization', 'Bearer valid-token');
 
@@ -216,7 +239,7 @@ describe('User Settings Routes', () => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/user-settings')
         .set('Authorization', 'Bearer valid-token');
 
@@ -243,7 +266,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 401 if not authenticated', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/user-settings')
         .send({ timezone: 'America/New_York' });
 
@@ -259,7 +282,7 @@ describe('User Settings Routes', () => {
         error: null,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({});
@@ -276,7 +299,7 @@ describe('User Settings Routes', () => {
         error: null,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 123 });
@@ -312,7 +335,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'America/New_York' });
@@ -338,7 +361,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'America/New_York' });
@@ -357,7 +380,7 @@ describe('User Settings Routes', () => {
         throw new Error('Unexpected error');
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'America/New_York' });
@@ -376,7 +399,7 @@ describe('User Settings Routes', () => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'America/New_York' });
@@ -404,7 +427,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 401 if not authenticated', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/user-settings')
         .send({ timezone: 'America/New_York' });
 
@@ -420,7 +443,7 @@ describe('User Settings Routes', () => {
         error: null,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({});
@@ -437,7 +460,7 @@ describe('User Settings Routes', () => {
         error: null,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: null });
@@ -473,7 +496,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'America/New_York' });
@@ -507,7 +530,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'Europe/London' });
@@ -535,7 +558,7 @@ describe('User Settings Routes', () => {
         upsert: mockUpsert,
       });
 
-      await request(app)
+      await request(server)
         .put('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'Asia/Tokyo' });
@@ -569,7 +592,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'America/New_York' });
@@ -588,7 +611,7 @@ describe('User Settings Routes', () => {
         throw new Error('Unexpected error');
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'America/New_York' });
@@ -607,7 +630,7 @@ describe('User Settings Routes', () => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'America/New_York' });
@@ -635,7 +658,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 401 if not authenticated', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .patch('/api/user-settings')
         .send({ timezone: 'America/New_York' });
 
@@ -651,7 +674,7 @@ describe('User Settings Routes', () => {
         error: null,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .patch('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({});
@@ -668,7 +691,7 @@ describe('User Settings Routes', () => {
         error: null,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .patch('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 123 });
@@ -685,7 +708,7 @@ describe('User Settings Routes', () => {
         error: null,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .patch('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ theme_preference: 'invalid' });
@@ -721,7 +744,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .patch('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'Europe/London' });
@@ -764,7 +787,7 @@ describe('User Settings Routes', () => {
       };
       app.set('io', mockIo);
 
-      const response = await request(app)
+      const response = await request(server)
         .patch('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'America/New_York' });
@@ -796,7 +819,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .patch('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'Europe/London' });
@@ -822,7 +845,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .patch('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'Europe/London' });
@@ -841,7 +864,7 @@ describe('User Settings Routes', () => {
         throw new Error('Unexpected error');
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .patch('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'Europe/London' });
@@ -860,7 +883,7 @@ describe('User Settings Routes', () => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .patch('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'Europe/London' });
@@ -895,7 +918,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .patch('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ theme_preference: 'dark' });
@@ -930,7 +953,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .patch('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ theme_preference: 'light' });
@@ -967,7 +990,7 @@ describe('User Settings Routes', () => {
         upsert: mockUpsert,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .patch('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'America/New_York', theme_preference: 'light' });
@@ -1006,7 +1029,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .patch('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ language: 'es' });
@@ -1044,7 +1067,7 @@ describe('User Settings Routes', () => {
         upsert: mockUpsert,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .patch('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ timezone: 'America/New_York', theme_preference: 'light', language: 'fr' });
@@ -1063,7 +1086,7 @@ describe('User Settings Routes', () => {
         error: null,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .patch('/api/user-settings')
         .set('Authorization', 'Bearer valid-token')
         .send({ language: 123 });
@@ -1092,7 +1115,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should return 401 if not authenticated', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/user-settings');
 
       expect(response.status).toBe(401);
@@ -1115,7 +1138,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/user-settings')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1136,7 +1159,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/user-settings')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1154,7 +1177,7 @@ describe('User Settings Routes', () => {
         throw new Error('Unexpected error');
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/user-settings')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1172,7 +1195,7 @@ describe('User Settings Routes', () => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/user-settings')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1199,7 +1222,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/user-settings')
         .set('Authorization', 'Bearer test-token-123');
 
@@ -1208,7 +1231,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should handle malformed Authorization header', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/user-settings')
         .set('Authorization', 'NotBearer token-123');
 
@@ -1216,7 +1239,7 @@ describe('User Settings Routes', () => {
     });
 
     it('should handle empty Bearer token', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/user-settings')
         .set('Authorization', 'Bearer ');
 
@@ -1228,7 +1251,7 @@ describe('User Settings Routes', () => {
     it('should return 401 if auth service throws error', async () => {
       mockSupabase.auth.auth.getUser.mockRejectedValue(new Error('Network error'));
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/user-settings')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1250,7 +1273,7 @@ describe('User Settings Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/user-settings')
         .set('Authorization', 'Bearer valid-token');
 

@@ -1,3 +1,4 @@
+import http from 'http';
 import request from 'supertest';
 import express, { Express } from 'express';
 import notificationsRoutes from './notifications.routes';
@@ -8,9 +9,24 @@ jest.mock('../services/notificationService');
 
 describe('Notifications Routes', () => {
   let app: Express;
+  let server: http.Server;
   let mockBroadcastNotification: jest.MockedFunction<typeof notificationService.broadcastNotification>;
   let mockSendNotificationToUser: jest.MockedFunction<typeof notificationService.sendNotificationToUser>;
   let mockIo: any;
+
+  // Single keep-alive listener per file. Per-test listen()/close() churn from
+  // supertest collides with parallel jest workers and produces socket hang ups.
+  beforeAll(async () => {
+    app = express();
+    app.use(express.json());
+    app.use('/api/notifications', notificationsRoutes);
+    server = app.listen(0);
+    await new Promise<void>(resolve => server.once('listening', () => resolve()));
+  });
+
+  afterAll(async () => {
+    await new Promise<void>(resolve => server.close(() => resolve()));
+  });
 
   beforeEach(() => {
     // Reset all mocks completely to prevent state leakage
@@ -24,17 +40,13 @@ describe('Notifications Routes', () => {
     mockBroadcastNotification.mockImplementation(() => Promise.resolve());
     mockSendNotificationToUser.mockImplementation(() => Promise.resolve());
 
-    // Setup mock WebSocket io
+    // Setup mock WebSocket io. The route reads req.app.get('io') at request
+    // time so mutating this on the hoisted app between tests is safe.
     mockIo = {
       emit: jest.fn(),
       to: jest.fn().mockReturnThis(),
     };
-
-    // Create fresh Express app for each test
-    app = express();
-    app.use(express.json());
     app.set('io', mockIo);
-    app.use('/api/notifications', notificationsRoutes);
   });
 
   afterEach(() => {
@@ -50,7 +62,7 @@ describe('Notifications Routes', () => {
         data: { url: '/profile' },
       };
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/notifications/broadcast')
         .send(notificationPayload);
 
@@ -69,7 +81,7 @@ describe('Notifications Routes', () => {
         body: 'Test Body',
       };
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/notifications/broadcast')
         .send(notificationPayload);
 
@@ -87,7 +99,7 @@ describe('Notifications Routes', () => {
     });
 
     it('should return 400 when title is missing', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/notifications/broadcast')
         .send({ body: 'Test Body' });
 
@@ -100,7 +112,7 @@ describe('Notifications Routes', () => {
     });
 
     it('should return 400 when body is missing', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/notifications/broadcast')
         .send({ title: 'Test Title' });
 
@@ -113,7 +125,7 @@ describe('Notifications Routes', () => {
     });
 
     it('should return 400 when both title and body are missing', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/notifications/broadcast')
         .set('Content-Type', 'application/json')
         .send('{}');
@@ -129,7 +141,7 @@ describe('Notifications Routes', () => {
     it('should return 500 when WebSocket io is not available', async () => {
       app.set('io', null);
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/notifications/broadcast')
         .send({ title: 'Test Title', body: 'Test Body' });
 
@@ -146,7 +158,7 @@ describe('Notifications Routes', () => {
         throw new Error('Mock error');
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/notifications/broadcast')
         .send({ title: 'Test Title', body: 'Test Body' });
 
@@ -158,7 +170,7 @@ describe('Notifications Routes', () => {
     });
 
     it('should accept empty string for title if provided', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/notifications/broadcast')
         .send({ title: '', body: 'Test Body' });
 
@@ -174,7 +186,7 @@ describe('Notifications Routes', () => {
         data: { url: '/profile', userId: 123 },
       };
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/notifications/broadcast')
         .send(notificationPayload);
 
@@ -193,7 +205,7 @@ describe('Notifications Routes', () => {
         data: { url: '/profile' },
       };
 
-      const response = await request(app)
+      const response = await request(server)
         .post(`/api/notifications/send/${socketId}`)
         .send(notificationPayload);
 
@@ -213,7 +225,7 @@ describe('Notifications Routes', () => {
         body: 'Test Body',
       };
 
-      const response = await request(app)
+      const response = await request(server)
         .post(`/api/notifications/send/${socketId}`)
         .send(notificationPayload);
 
@@ -231,7 +243,7 @@ describe('Notifications Routes', () => {
     });
 
     it('should return 400 when title is missing', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/notifications/send/socket123')
         .send({ body: 'Test Body' });
 
@@ -244,7 +256,7 @@ describe('Notifications Routes', () => {
     });
 
     it('should return 400 when body is missing', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/notifications/send/socket123')
         .send({ title: 'Test Title' });
 
@@ -257,7 +269,7 @@ describe('Notifications Routes', () => {
     });
 
     it('should return 400 when both title and body are missing', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/notifications/send/socket123')
         .send({});
 
@@ -272,7 +284,7 @@ describe('Notifications Routes', () => {
     it('should return 500 when WebSocket io is not available', async () => {
       app.set('io', null);
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/notifications/send/socket123')
         .send({ title: 'Test Title', body: 'Test Body' });
 
@@ -291,7 +303,7 @@ describe('Notifications Routes', () => {
         throw new Error('Mock error');
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/notifications/send/socket123')
         .set('Content-Type', 'application/json')
         .send({ title: 'Test Title', body: 'Test Body' });
@@ -310,7 +322,7 @@ describe('Notifications Routes', () => {
         body: 'Test Body',
       };
 
-      const response = await request(app)
+      const response = await request(server)
         .post(`/api/notifications/send/${socketId}`)
         .send(notificationPayload);
 
@@ -320,7 +332,7 @@ describe('Notifications Routes', () => {
     });
 
     it('should accept empty socketId parameter', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/notifications/send/')
         .send({ title: 'Test Title', body: 'Test Body' });
 
@@ -337,7 +349,7 @@ describe('Notifications Routes', () => {
         data: { url: '/profile', userId: 123 },
       };
 
-      const response = await request(app)
+      const response = await request(server)
         .post(`/api/notifications/send/${socketId}`)
         .send(notificationPayload);
 
@@ -353,7 +365,7 @@ describe('Notifications Routes', () => {
         body: 'Test Body',
       };
 
-      const response = await request(app)
+      const response = await request(server)
         .post(`/api/notifications/send/${socketId}`)
         .send(notificationPayload);
 
@@ -364,13 +376,13 @@ describe('Notifications Routes', () => {
 
   describe('Invalid routes', () => {
     it('should return 404 for unknown notification routes', async () => {
-      const response = await request(app).get('/api/notifications/nonexistent');
+      const response = await request(server).get('/api/notifications/nonexistent');
 
       expect(response.status).toBe(404);
     });
 
     it('should return 404 for GET requests to broadcast endpoint', async () => {
-      const response = await request(app).get('/api/notifications/broadcast');
+      const response = await request(server).get('/api/notifications/broadcast');
 
       expect(response.status).toBe(404);
     });

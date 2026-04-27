@@ -1,13 +1,33 @@
+import http from 'http';
 import request from 'supertest';
-import express, { Express } from 'express';
+import express, { Express, Router } from 'express';
 import { createAuthRoutes } from './auth.routes';
 
 describe('Auth Routes', () => {
   let app: Express;
+  let server: http.Server;
+  let activeAuthRouter: Router;
   let mockSupabase: any;
   let mockUsernameService: any;
   let mockTurnstileService: any;
   const originalNodeEnv = process.env.NODE_ENV;
+
+  // Hoist the host Express app and HTTP listener to beforeAll/afterAll. Per-test
+  // listen()/close() churn (one cycle per supertest call when passing the bare
+  // app) collides with parallel jest workers under load and produces socket
+  // hang ups. A long-lived listener with a swappable inner router avoids that
+  // without sacrificing per-test mock isolation.
+  beforeAll(async () => {
+    app = express();
+    app.use(express.json());
+    app.use('/api/auth', (req, res, next) => activeAuthRouter(req, res, next));
+    server = app.listen(0);
+    await new Promise<void>(resolve => server.once('listening', () => resolve()));
+  });
+
+  afterAll(async () => {
+    await new Promise<void>(resolve => server.close(() => resolve()));
+  });
 
   beforeEach(() => {
     // Reset all mocks completely to prevent state leakage
@@ -54,10 +74,9 @@ describe('Auth Routes', () => {
       verifyFromMetadata: jest.fn(),
     };
 
-    // Create Express app
-    app = express();
-    app.use(express.json());
-    app.use('/api/auth', createAuthRoutes(mockSupabase, mockUsernameService, mockTurnstileService));
+    // Swap the active router so this test's mocks are wired in. The host app
+    // and listener are reused across the file.
+    activeAuthRouter = createAuthRoutes(mockSupabase, mockUsernameService, mockTurnstileService);
   });
 
   afterEach(() => {
@@ -85,7 +104,7 @@ describe('Auth Routes', () => {
     });
 
     it('should return 400 if webhook payload is invalid', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/webhook/signup-verification')
         .send({});
 
@@ -100,7 +119,7 @@ describe('Auth Routes', () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'development';
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/webhook/signup-verification')
         .send({
           record: {
@@ -124,7 +143,7 @@ describe('Auth Routes', () => {
 
       mockTurnstileService.verifyFromMetadata.mockResolvedValue({ success: true });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/webhook/signup-verification')
         .send({
           record: {
@@ -153,7 +172,7 @@ describe('Auth Routes', () => {
       });
       mockSupabase.auth.admin.deleteUser.mockResolvedValue({ error: null });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/webhook/signup-verification')
         .send({
           record: {
@@ -189,7 +208,7 @@ describe('Auth Routes', () => {
         error: { message: 'Delete failed' },
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/webhook/signup-verification')
         .send({
           record: {
@@ -216,7 +235,7 @@ describe('Auth Routes', () => {
         throw new Error('Turnstile service error');
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/webhook/signup-verification')
         .send({
           record: {
@@ -243,7 +262,7 @@ describe('Auth Routes', () => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/webhook/signup-verification')
         .send({
           record: {
@@ -264,7 +283,7 @@ describe('Auth Routes', () => {
 
   describe('POST /username/validate', () => {
     it('should return 400 if username is missing', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/username/validate')
         .send({});
 
@@ -298,7 +317,7 @@ describe('Auth Routes', () => {
         error: null,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/username/validate')
         .send({ username: 'TestUser' });
 
@@ -317,7 +336,7 @@ describe('Auth Routes', () => {
         error: 'Username too short',
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/username/validate')
         .send({ username: 'ab' });
 
@@ -331,7 +350,7 @@ describe('Auth Routes', () => {
 
   describe('POST /username/check', () => {
     it('should return 400 if username is missing', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/username/check')
         .send({});
 
@@ -364,7 +383,7 @@ describe('Auth Routes', () => {
         error: 'Username contains invalid characters',
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/username/check')
         .send({ username: 'invalid@user' });
 
@@ -384,7 +403,7 @@ describe('Auth Routes', () => {
         available: true,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/username/check')
         .send({ username: 'TestUser' });
 
@@ -406,7 +425,7 @@ describe('Auth Routes', () => {
         error: 'Username already taken',
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/username/check')
         .send({ username: 'TestUser' });
 
@@ -421,7 +440,7 @@ describe('Auth Routes', () => {
 
   describe('POST /username/create', () => {
     it('should return 400 if userId or username is missing', async () => {
-      const response1 = await request(app)
+      const response1 = await request(server)
         .post('/api/auth/username/create')
         .send({ username: 'testuser' });
 
@@ -431,7 +450,7 @@ describe('Auth Routes', () => {
         error: 'USERNAME_REQUIRED',
       });
 
-      const response2 = await request(app)
+      const response2 = await request(server)
         .post('/api/auth/username/create')
         .send({ userId: 'user-123' });
 
@@ -464,7 +483,7 @@ describe('Auth Routes', () => {
         error: 'Username too short',
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/username/create')
         .send({ userId: 'user-123', username: 'ab' });
 
@@ -485,7 +504,7 @@ describe('Auth Routes', () => {
         fingerprint: 'testuser',
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/username/create')
         .send({ userId: 'user-123', username: 'TestUser' });
 
@@ -504,7 +523,7 @@ describe('Auth Routes', () => {
 
   describe('POST /login', () => {
     it('should return 400 if identifier or password is missing', async () => {
-      const response1 = await request(app)
+      const response1 = await request(server)
         .post('/api/auth/login')
         .send({ password: 'password123' });
 
@@ -514,7 +533,7 @@ describe('Auth Routes', () => {
         error: 'AUTH_INVALID_CREDENTIALS',
       });
 
-      const response2 = await request(app)
+      const response2 = await request(server)
         .post('/api/auth/login')
         .send({ identifier: 'user@example.com' });
 
@@ -550,7 +569,7 @@ describe('Auth Routes', () => {
         error: null,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/login')
         .send({ identifier: 'user@example.com', password: 'password123' });
 
@@ -576,7 +595,7 @@ describe('Auth Routes', () => {
         error: null,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/login')
         .send({ identifier: 'testuser', password: 'password123' });
 
@@ -596,7 +615,7 @@ describe('Auth Routes', () => {
     it('should return 401 if username not found', async () => {
       mockUsernameService.getEmailByUsername.mockResolvedValue(null);
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/login')
         .send({ identifier: 'nonexistent', password: 'password123' });
 
@@ -613,7 +632,7 @@ describe('Auth Routes', () => {
         error: { message: 'Invalid credentials' },
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/login')
         .send({ identifier: 'user@example.com', password: 'wrongpassword' });
 
@@ -643,7 +662,7 @@ describe('Auth Routes', () => {
     });
 
     it('should return 401 if Authorization header is missing', async () => {
-      const response = await request(app).get('/api/auth/username');
+      const response = await request(server).get('/api/auth/username');
 
       expect(response.status).toBe(401);
       expect(response.body).toEqual({
@@ -653,7 +672,7 @@ describe('Auth Routes', () => {
     });
 
     it('should return 401 if Authorization header is invalid', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/auth/username')
         .set('Authorization', 'Invalid token-123');
 
@@ -670,7 +689,7 @@ describe('Auth Routes', () => {
         error: { message: 'Invalid token' },
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/auth/username')
         .set('Authorization', 'Bearer invalid-token');
 
@@ -698,7 +717,7 @@ describe('Auth Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/auth/username')
         .set('Authorization', 'Bearer valid-token');
 
@@ -727,7 +746,7 @@ describe('Auth Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/auth/username')
         .set('Authorization', 'Bearer valid-token');
 
@@ -756,7 +775,7 @@ describe('Auth Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/auth/username')
         .set('Authorization', 'Bearer valid-token');
 
@@ -778,7 +797,7 @@ describe('Auth Routes', () => {
         throw new Error('Unexpected database error');
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/auth/username')
         .set('Authorization', 'Bearer valid-token');
 
@@ -800,7 +819,7 @@ describe('Auth Routes', () => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/auth/username')
         .set('Authorization', 'Bearer valid-token');
 
@@ -860,7 +879,7 @@ describe('Auth Routes', () => {
         error: { message: 'Invalid token' },
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer invalid-token')
         .send({ username: 'TestUser' });
@@ -873,7 +892,7 @@ describe('Auth Routes', () => {
     });
 
     it('should return 400 if username is missing', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer valid-token')
         .send({});
@@ -886,7 +905,7 @@ describe('Auth Routes', () => {
     });
 
     it('should return 401 if not authenticated', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .send({ username: 'TestUser' });
 
@@ -903,7 +922,7 @@ describe('Auth Routes', () => {
         error: 'Username too short',
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer valid-token')
         .send({ username: 'ab' });
@@ -964,7 +983,7 @@ describe('Auth Routes', () => {
         .mockReturnValueOnce(getCurrentMock)
         .mockReturnValueOnce(updateMock);
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer valid-token')
         .send({ username: 'TestUser' });
@@ -994,7 +1013,7 @@ describe('Auth Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer valid-token')
         .send({ username: 'TestUser' });
@@ -1055,7 +1074,7 @@ describe('Auth Routes', () => {
         .mockReturnValueOnce(getCurrentMock)
         .mockReturnValueOnce(updateMock);
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer valid-token')
         .send({ username: 'NewUsername' });
@@ -1115,7 +1134,7 @@ describe('Auth Routes', () => {
         .mockReturnValueOnce(getCurrentMock)
         .mockReturnValueOnce(insertMock);
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer valid-token')
         .send({ username: 'TestUser' });
@@ -1146,7 +1165,7 @@ describe('Auth Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer valid-token')
         .send({ username: 'TestUser' });
@@ -1169,7 +1188,7 @@ describe('Auth Routes', () => {
         throw new Error('Unexpected error');
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer valid-token')
         .send({ username: 'TestUser' });
@@ -1215,7 +1234,7 @@ describe('Auth Routes', () => {
         .mockReturnValueOnce(availabilityMock)
         .mockReturnValueOnce(getCurrentMock);
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer valid-token')
         .send({ username: 'TestUser' });
@@ -1252,7 +1271,7 @@ describe('Auth Routes', () => {
           throw new Error('Unexpected error');
         });
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer valid-token')
         .send({ username: 'TestUser' });
@@ -1313,7 +1332,7 @@ describe('Auth Routes', () => {
         .mockReturnValueOnce(getCurrentMock)
         .mockReturnValueOnce(updateMock);
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer valid-token')
         .send({ username: 'NewUsername' });
@@ -1367,7 +1386,7 @@ describe('Auth Routes', () => {
         .mockReturnValueOnce(getCurrentMock)
         .mockReturnValueOnce(updateMock);
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer valid-token')
         .send({ username: 'NewUsername' });
@@ -1426,7 +1445,7 @@ describe('Auth Routes', () => {
         .mockReturnValueOnce(getCurrentMock)
         .mockReturnValueOnce(insertMock);
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer valid-token')
         .send({ username: 'TestUser' });
@@ -1480,7 +1499,7 @@ describe('Auth Routes', () => {
         .mockReturnValueOnce(getCurrentMock)
         .mockReturnValueOnce(insertMock);
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer valid-token')
         .send({ username: 'TestUser' });
@@ -1503,7 +1522,7 @@ describe('Auth Routes', () => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer valid-token')
         .send({ username: 'TestUser' });
@@ -1539,7 +1558,7 @@ describe('Auth Routes', () => {
         error: { message: 'Invalid token' },
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/username')
         .set('Authorization', 'Bearer invalid-token');
 
@@ -1551,7 +1570,7 @@ describe('Auth Routes', () => {
     });
 
     it('should return 401 if not authenticated', async () => {
-      const response = await request(app).delete('/api/auth/username');
+      const response = await request(server).delete('/api/auth/username');
 
       expect(response.status).toBe(401);
       expect(response.body).toEqual({
@@ -1574,7 +1593,7 @@ describe('Auth Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/username')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1598,7 +1617,7 @@ describe('Auth Routes', () => {
         }),
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/username')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1620,7 +1639,7 @@ describe('Auth Routes', () => {
         throw new Error('Unexpected delete error');
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/username')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1642,7 +1661,7 @@ describe('Auth Routes', () => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/username')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1677,7 +1696,7 @@ describe('Auth Routes', () => {
         error: { message: 'Invalid token' },
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/auth/export-data')
         .set('Authorization', 'Bearer invalid-token');
 
@@ -1689,7 +1708,7 @@ describe('Auth Routes', () => {
     });
 
     it('should return 401 if not authenticated', async () => {
-      const response = await request(app).get('/api/auth/export-data');
+      const response = await request(server).get('/api/auth/export-data');
 
       expect(response.status).toBe(401);
       expect(response.body).toEqual({
@@ -1744,7 +1763,7 @@ describe('Auth Routes', () => {
         .mockReturnValueOnce(usernameMock)
         .mockReturnValueOnce(settingsMock);
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/auth/export-data')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1797,7 +1816,7 @@ describe('Auth Routes', () => {
         .mockReturnValueOnce(emptyMock)
         .mockReturnValueOnce(emptyMock);
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/auth/export-data')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1822,7 +1841,7 @@ describe('Auth Routes', () => {
         throw new Error('Failed to export data');
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/auth/export-data')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1849,7 +1868,7 @@ describe('Auth Routes', () => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/auth/export-data')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1871,7 +1890,7 @@ describe('Auth Routes', () => {
         error: { message: 'User not found' },
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .get('/api/auth/export-data')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1906,7 +1925,7 @@ describe('Auth Routes', () => {
         error: { message: 'Invalid token' },
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/delete-account')
         .set('Authorization', 'Bearer invalid-token');
 
@@ -1918,7 +1937,7 @@ describe('Auth Routes', () => {
     });
 
     it('should return 401 if not authenticated', async () => {
-      const response = await request(app).delete('/api/auth/delete-account');
+      const response = await request(server).delete('/api/auth/delete-account');
 
       expect(response.status).toBe(401);
       expect(response.body).toEqual({
@@ -1948,7 +1967,7 @@ describe('Auth Routes', () => {
         error: null,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/delete-account')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1979,7 +1998,7 @@ describe('Auth Routes', () => {
         error: { message: 'Failed to delete user' },
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/delete-account')
         .set('Authorization', 'Bearer valid-token');
 
@@ -2001,7 +2020,7 @@ describe('Auth Routes', () => {
         throw new Error('Unexpected account deletion error');
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/delete-account')
         .set('Authorization', 'Bearer valid-token');
 
@@ -2023,7 +2042,7 @@ describe('Auth Routes', () => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/delete-account')
         .set('Authorization', 'Bearer valid-token');
 
@@ -2042,7 +2061,7 @@ describe('Auth Routes', () => {
         throw new Error('Service unavailable');
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/login')
         .send({ identifier: 'testuser', password: 'password123' });
 
@@ -2065,7 +2084,7 @@ describe('Auth Routes', () => {
     it('should return 403 in production environment', async () => {
       process.env.NODE_ENV = 'production';
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/test/create-user')
         .send({ email: 'test@example.com', password: 'password123' });
 
@@ -2093,7 +2112,7 @@ describe('Auth Routes', () => {
     });
 
     it('should return 400 if email or password is missing', async () => {
-      const response1 = await request(app)
+      const response1 = await request(server)
         .post('/api/auth/test/create-user')
         .send({ password: 'password123' });
 
@@ -2103,7 +2122,7 @@ describe('Auth Routes', () => {
         error: 'Email and password are required',
       });
 
-      const response2 = await request(app)
+      const response2 = await request(server)
         .post('/api/auth/test/create-user')
         .send({ email: 'test@example.com' });
 
@@ -2120,7 +2139,7 @@ describe('Auth Routes', () => {
         error: null,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/test/create-user')
         .send({ email: 'test@example.com', password: 'password123' });
 
@@ -2151,7 +2170,7 @@ describe('Auth Routes', () => {
         success: true,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/test/create-user')
         .send({ email: 'test@example.com', password: 'password123', username: 'TestUser' });
 
@@ -2174,7 +2193,7 @@ describe('Auth Routes', () => {
         error: { message: 'Email already exists' },
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/test/create-user')
         .send({ email: 'test@example.com', password: 'password123' });
 
@@ -2190,7 +2209,7 @@ describe('Auth Routes', () => {
         throw new Error('Unexpected error');
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/test/create-user')
         .send({ email: 'test@example.com', password: 'password123' });
 
@@ -2206,7 +2225,7 @@ describe('Auth Routes', () => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api/auth/test/create-user')
         .send({ email: 'test@example.com', password: 'password123' });
 
@@ -2230,7 +2249,7 @@ describe('Auth Routes', () => {
     it('should return 403 in production environment', async () => {
       process.env.NODE_ENV = 'production';
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/delete-user')
         .send({ email: 'test@example.com' });
 
@@ -2258,7 +2277,7 @@ describe('Auth Routes', () => {
     });
 
     it('should return 400 if email and userId are both missing', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/delete-user')
         .send({});
 
@@ -2278,7 +2297,7 @@ describe('Auth Routes', () => {
       mockSupabase.from.mockReturnValue(deleteMock);
       mockSupabase.auth.admin.deleteUser.mockResolvedValue({ error: null });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/delete-user')
         .send({ userId: 'user-123' });
 
@@ -2303,7 +2322,7 @@ describe('Auth Routes', () => {
       mockSupabase.from.mockReturnValue(deleteMock);
       mockSupabase.auth.admin.deleteUser.mockResolvedValue({ error: null });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/delete-user')
         .send({ email: 'test@example.com' });
 
@@ -2320,7 +2339,7 @@ describe('Auth Routes', () => {
         error: { message: 'Failed to list users' },
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/delete-user')
         .send({ email: 'test@example.com' });
 
@@ -2337,7 +2356,7 @@ describe('Auth Routes', () => {
         error: null,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/delete-user')
         .send({ email: 'test@example.com' });
 
@@ -2359,7 +2378,7 @@ describe('Auth Routes', () => {
         error: { message: 'Failed to delete user' },
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/delete-user')
         .send({ userId: 'user-123' });
 
@@ -2382,7 +2401,7 @@ describe('Auth Routes', () => {
       };
       mockSupabase.from.mockReturnValue(deleteMock);
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/delete-user')
         .send({ userId: 'user-123' });
 
@@ -2405,7 +2424,7 @@ describe('Auth Routes', () => {
       };
       mockSupabase.from.mockReturnValue(deleteMock);
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/delete-user')
         .send({ userId: 'user-123' });
 
@@ -2429,7 +2448,7 @@ describe('Auth Routes', () => {
     it('should return 403 in production environment', async () => {
       process.env.NODE_ENV = 'production';
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/cleanup-e2e-users');
 
       expect(response.status).toBe(403);
@@ -2460,7 +2479,7 @@ describe('Auth Routes', () => {
         error: { message: 'Failed to list users' },
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/cleanup-e2e-users');
 
       expect(response.status).toBe(500);
@@ -2479,7 +2498,7 @@ describe('Auth Routes', () => {
         error: null,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/cleanup-e2e-users');
 
       expect(response.status).toBe(200);
@@ -2508,7 +2527,7 @@ describe('Auth Routes', () => {
       mockSupabase.from.mockReturnValue(deleteMock);
       mockSupabase.auth.admin.deleteUser.mockResolvedValue({ error: null });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/cleanup-e2e-users');
 
       expect(response.status).toBe(200);
@@ -2540,7 +2559,7 @@ describe('Auth Routes', () => {
       mockSupabase.from.mockReturnValue(deleteMock);
       mockSupabase.auth.admin.deleteUser.mockResolvedValue({ error: null });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/cleanup-e2e-users');
 
       expect(response.status).toBe(200);
@@ -2573,7 +2592,7 @@ describe('Auth Routes', () => {
         .mockResolvedValueOnce({ error: null })
         .mockResolvedValueOnce({ error: { message: 'Delete failed' } });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/cleanup-e2e-users');
 
       expect(response.status).toBe(200);
@@ -2604,7 +2623,7 @@ describe('Auth Routes', () => {
           throw new Error('Unexpected deletion error');
         });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/cleanup-e2e-users');
 
       expect(response.status).toBe(200);
@@ -2632,7 +2651,7 @@ describe('Auth Routes', () => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/cleanup-e2e-users');
 
       expect(response.status).toBe(200);
@@ -2647,7 +2666,7 @@ describe('Auth Routes', () => {
         throw new Error('Unexpected error');
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/cleanup-e2e-users');
 
       expect(response.status).toBe(500);
@@ -2662,7 +2681,7 @@ describe('Auth Routes', () => {
         throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .delete('/api/auth/test/cleanup-e2e-users');
 
       expect(response.status).toBe(500);

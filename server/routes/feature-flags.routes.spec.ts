@@ -1,3 +1,4 @@
+import http from 'http';
 import request from 'supertest';
 import express, { Express } from 'express';
 import featureFlagsRoutes from './feature-flags.routes';
@@ -8,9 +9,24 @@ jest.mock('../services/lowDBService');
 
 describe('Feature Flags Routes', () => {
   let app: Express;
+  let server: http.Server;
   let mockReadFeatureFlags: jest.MockedFunction<typeof lowDBService.readFeatureFlags>;
   let mockWriteFeatureFlags: jest.MockedFunction<typeof lowDBService.writeFeatureFlags>;
   let mockIo: any;
+
+  // Single keep-alive listener per file. Per-test listen()/close() churn from
+  // supertest collides with parallel jest workers and produces socket hang ups.
+  beforeAll(async () => {
+    app = express();
+    app.use(express.json());
+    app.use('/api/feature-flags', featureFlagsRoutes);
+    server = app.listen(0);
+    await new Promise<void>(resolve => server.once('listening', () => resolve()));
+  });
+
+  afterAll(async () => {
+    await new Promise<void>(resolve => server.close(() => resolve()));
+  });
 
   beforeEach(() => {
     // Clear all mocks
@@ -20,16 +36,12 @@ describe('Feature Flags Routes', () => {
     mockReadFeatureFlags = lowDBService.readFeatureFlags as jest.MockedFunction<typeof lowDBService.readFeatureFlags>;
     mockWriteFeatureFlags = lowDBService.writeFeatureFlags as jest.MockedFunction<typeof lowDBService.writeFeatureFlags>;
 
-    // Setup mock WebSocket io
+    // Setup mock WebSocket io. The route reads req.app.get('io') at request
+    // time so mutating this on the hoisted app between tests is safe.
     mockIo = {
       emit: jest.fn(),
     };
-
-    // Create Express app
-    app = express();
-    app.use(express.json());
     app.set('io', mockIo);
-    app.use('/api/feature-flags', featureFlagsRoutes);
   });
 
   describe('GET /', () => {
@@ -42,7 +54,7 @@ describe('Feature Flags Routes', () => {
 
       mockReadFeatureFlags.mockReturnValue(mockFlags);
 
-      const response = await request(app).get('/api/feature-flags');
+      const response = await request(server).get('/api/feature-flags');
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
@@ -57,7 +69,7 @@ describe('Feature Flags Routes', () => {
     it('should return empty array when no feature flags exist', async () => {
       mockReadFeatureFlags.mockReturnValue({});
 
-      const response = await request(app).get('/api/feature-flags');
+      const response = await request(server).get('/api/feature-flags');
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual([]);
@@ -66,7 +78,7 @@ describe('Feature Flags Routes', () => {
     it('should call readFeatureFlags', async () => {
       mockReadFeatureFlags.mockReturnValue({});
 
-      await request(app).get('/api/feature-flags');
+      await request(server).get('/api/feature-flags');
 
       expect(mockReadFeatureFlags).toHaveBeenCalledTimes(1);
     });
@@ -79,7 +91,7 @@ describe('Feature Flags Routes', () => {
         newFeature: false,
       });
 
-      const response = await request(app).get('/api/feature-flags/darkMode');
+      const response = await request(server).get('/api/feature-flags/darkMode');
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({
@@ -94,7 +106,7 @@ describe('Feature Flags Routes', () => {
         newFeature: false,
       });
 
-      const response = await request(app).get('/api/feature-flags/newFeature');
+      const response = await request(server).get('/api/feature-flags/newFeature');
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({
@@ -108,7 +120,7 @@ describe('Feature Flags Routes', () => {
         darkMode: true,
       });
 
-      const response = await request(app).get('/api/feature-flags/nonexistent');
+      const response = await request(server).get('/api/feature-flags/nonexistent');
 
       expect(response.status).toBe(404);
       expect(response.body).toEqual({
@@ -119,7 +131,7 @@ describe('Feature Flags Routes', () => {
     it('should call readFeatureFlags', async () => {
       mockReadFeatureFlags.mockReturnValue({ darkMode: true });
 
-      await request(app).get('/api/feature-flags/darkMode');
+      await request(server).get('/api/feature-flags/darkMode');
 
       expect(mockReadFeatureFlags).toHaveBeenCalledTimes(1);
     });
@@ -132,7 +144,7 @@ describe('Feature Flags Routes', () => {
         newFeature: false,
       });
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/feature-flags/darkMode')
         .send({ value: true });
 
@@ -146,7 +158,7 @@ describe('Feature Flags Routes', () => {
     it('should call writeFeatureFlags with correct arguments', async () => {
       mockWriteFeatureFlags.mockResolvedValue({});
 
-      await request(app)
+      await request(server)
         .put('/api/feature-flags/newFeature')
         .send({ value: false });
 
@@ -162,7 +174,7 @@ describe('Feature Flags Routes', () => {
       };
       mockWriteFeatureFlags.mockResolvedValue(updatedFlags);
 
-      await request(app)
+      await request(server)
         .put('/api/feature-flags/darkMode')
         .send({ value: true });
 
@@ -173,7 +185,7 @@ describe('Feature Flags Routes', () => {
       app.set('io', null);
       mockWriteFeatureFlags.mockResolvedValue({});
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/feature-flags/darkMode')
         .send({ value: true });
 
@@ -182,7 +194,7 @@ describe('Feature Flags Routes', () => {
     });
 
     it('should return 400 if value is not a boolean', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/feature-flags/darkMode')
         .send({ value: 'not-a-boolean' });
 
@@ -194,7 +206,7 @@ describe('Feature Flags Routes', () => {
     });
 
     it('should return 400 if value is a number', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/feature-flags/darkMode')
         .send({ value: 1 });
 
@@ -203,7 +215,7 @@ describe('Feature Flags Routes', () => {
     });
 
     it('should return 400 if value is missing', async () => {
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/feature-flags/darkMode')
         .send({});
 
@@ -213,7 +225,7 @@ describe('Feature Flags Routes', () => {
     it('should accept false as a valid value', async () => {
       mockWriteFeatureFlags.mockResolvedValue({ darkMode: false });
 
-      const response = await request(app)
+      const response = await request(server)
         .put('/api/feature-flags/darkMode')
         .send({ value: false });
 
@@ -232,7 +244,7 @@ describe('Feature Flags Routes', () => {
         newFeature: false,
       });
 
-      const response = await request(app).delete('/api/feature-flags/darkMode');
+      const response = await request(server).delete('/api/feature-flags/darkMode');
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({
@@ -252,7 +264,7 @@ describe('Feature Flags Routes', () => {
         betaAccess: true,
       });
 
-      await request(app).delete('/api/feature-flags/darkMode');
+      await request(server).delete('/api/feature-flags/darkMode');
 
       expect(mockWriteFeatureFlags).toHaveBeenCalledWith({
         newFeature: false,
@@ -270,7 +282,7 @@ describe('Feature Flags Routes', () => {
       });
       mockWriteFeatureFlags.mockResolvedValue(remainingFlags);
 
-      await request(app).delete('/api/feature-flags/darkMode');
+      await request(server).delete('/api/feature-flags/darkMode');
 
       expect(mockIo.emit).toHaveBeenCalledWith('update-feature-flags', remainingFlags);
     });
@@ -280,7 +292,7 @@ describe('Feature Flags Routes', () => {
       mockReadFeatureFlags.mockReturnValue({ darkMode: true });
       mockWriteFeatureFlags.mockResolvedValue({});
 
-      const response = await request(app).delete('/api/feature-flags/darkMode');
+      const response = await request(server).delete('/api/feature-flags/darkMode');
 
       expect(response.status).toBe(200);
       expect(mockIo.emit).not.toHaveBeenCalled();
@@ -291,7 +303,7 @@ describe('Feature Flags Routes', () => {
         darkMode: true,
       });
 
-      const response = await request(app).delete('/api/feature-flags/nonexistent');
+      const response = await request(server).delete('/api/feature-flags/nonexistent');
 
       expect(response.status).toBe(404);
       expect(response.body).toEqual({
@@ -306,7 +318,7 @@ describe('Feature Flags Routes', () => {
       });
       mockWriteFeatureFlags.mockResolvedValue({});
 
-      const response = await request(app).delete('/api/feature-flags/darkMode');
+      const response = await request(server).delete('/api/feature-flags/darkMode');
 
       expect(response.status).toBe(200);
       expect(mockWriteFeatureFlags).toHaveBeenCalledWith({});
@@ -325,7 +337,7 @@ describe('Feature Flags Routes', () => {
         featureC: true,
       });
 
-      await request(app).delete('/api/feature-flags/featureB');
+      await request(server).delete('/api/feature-flags/featureB');
 
       // Verify the deleted flag is not in the remaining flags
       expect(mockWriteFeatureFlags).toHaveBeenCalledWith({
@@ -347,7 +359,7 @@ describe('Feature Flags Routes', () => {
         'new-feature': false,
       });
 
-      const response = await request(app).delete('/api/feature-flags/dark-mode');
+      const response = await request(server).delete('/api/feature-flags/dark-mode');
 
       expect(response.status).toBe(200);
       expect(mockWriteFeatureFlags).toHaveBeenCalledWith({
