@@ -228,6 +228,34 @@ describe('FeatureFlagService', () => {
       TestBed.inject(FeatureFlagService);
       expect(serverSocketSpy.on).not.toHaveBeenCalled();
     });
+
+    it('should log fetch failures at debug level on server platform (browser will retry)', () => {
+      TestBed.resetTestingModule();
+
+      TestBed.configureTestingModule({
+        providers: [
+          FeatureFlagService,
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          { provide: Socket, useValue: jasmine.createSpyObj('Socket', ['on']) },
+          { provide: PLATFORM_ID, useValue: 'server' },
+        ],
+      });
+
+      const newService = TestBed.inject(FeatureFlagService);
+      const newHttpMock = TestBed.inject(HttpTestingController);
+
+      spyOn(console, 'debug');
+      spyOn(console, 'error');
+
+      newService.getFeatureFlags().subscribe();
+
+      const req = newHttpMock.expectOne((request) => request.url.endsWith('/api/feature-flags'));
+      req.error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
+
+      expect(console.debug).toHaveBeenCalled();
+      expect(console.error).not.toHaveBeenCalled();
+    });
   });
 
   describe('Connectivity retry', () => {

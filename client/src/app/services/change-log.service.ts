@@ -1,5 +1,6 @@
-import { DestroyRef, Injectable, signal, inject } from '@angular/core';
+import { DestroyRef, Injectable, PLATFORM_ID, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { isPlatformServer } from '@angular/common';
 import { ENVIRONMENT } from 'src/environments/environment';
 import { catchError, map, of, switchMap, timer, tap, merge, Subject, take } from 'rxjs';
 import { ChangeImpact } from '@app/models/data.model';
@@ -36,6 +37,7 @@ export interface ChangeLogResponse {
 export class ChangeLogService {
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly platformId = inject(PLATFORM_ID);
 
   readonly changes = signal<ChangeLogResponse[]>([]);
   readonly appVersion = signal<string>('');
@@ -108,7 +110,11 @@ export class ChangeLogService {
           this.appDiff.set({ impact: mappedImpact, delta: effectiveDelta });
         }),
         catchError((error: unknown) => {
-          console.error('Error fetching change log:', error);
+          if (isPlatformServer(this.platformId)) {
+            /**/console.debug('Error fetching change log (SSR; will retry on client):', error);
+          } else {
+            console.error('Error fetching change log:', error);
+          }
           return of();
         }),
         map(() => void 0),

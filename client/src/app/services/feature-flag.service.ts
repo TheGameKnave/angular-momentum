@@ -103,7 +103,11 @@ export class FeatureFlagService {
         }
       }),
       catchError((error: unknown) => {
-        console.error('Error getting feature flags:', error);
+        if (isPlatformServer(this.platformId)) {
+          /**/console.debug('Error getting feature flags (SSR; will retry on client):', error);
+        } else {
+          console.error('Error getting feature flags:', error);
+        }
         this.loadFailed = true; // Mark for retry when online
         // Return a default value or an empty observable
         return of({} as FeatureFlagResponse);
