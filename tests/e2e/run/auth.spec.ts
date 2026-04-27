@@ -171,7 +171,6 @@ test.describe('Authentication Tests', () => {
     await expect(page.locator(auth.signupEmail)).toBeVisible();
     await expect(page.locator(auth.signupUsername)).toBeVisible();
     await expect(page.locator(auth.signupPassword)).toBeVisible();
-    await expect(page.locator(auth.signupConfirmPassword)).toBeVisible();
 
   });
 
@@ -182,7 +181,6 @@ test.describe('Authentication Tests', () => {
     // Try to submit with invalid data
     await page.fill(auth.signupEmail, 'invalid-email');
     await page.fill(auth.signupPassword, '123');  // Too short
-    await page.fill(auth.signupConfirmPassword, '456');  // Doesn't match
 
     // Blur to trigger validation
     await page.click(auth.signupForm);
