@@ -7,6 +7,12 @@ describe('Auth Routes', () => {
   let app: Express;
   let server: http.Server;
   let activeAuthRouter: Router;
+  // Second hoisted listener: routes built with `null` Supabase to exercise the
+  // 503/SERVICE_NOT_CONFIGURED branch. The "no-supabase" routes never touch
+  // mocks (they short-circuit before reading Supabase), so a single static
+  // build is fine.
+  let noSbApp: Express;
+  let noSbServer: http.Server;
   let mockSupabase: any;
   let mockUsernameService: any;
   let mockTurnstileService: any;
@@ -23,10 +29,23 @@ describe('Auth Routes', () => {
     app.use('/api/auth', (req, res, next) => activeAuthRouter(req, res, next));
     server = app.listen(0);
     await new Promise<void>(resolve => server.once('listening', () => resolve()));
+
+    // Build the no-supabase listener once. Mock services here are stand-ins;
+    // null-supabase paths short-circuit before touching them.
+    noSbApp = express();
+    noSbApp.use(express.json());
+    noSbApp.use('/api/auth', createAuthRoutes(
+      null,
+      { validateUsername: jest.fn(), checkAvailability: jest.fn(), createUsername: jest.fn(), getEmailByUsername: jest.fn() } as any,
+      { verifyFromMetadata: jest.fn() } as any,
+    ));
+    noSbServer = noSbApp.listen(0);
+    await new Promise<void>(resolve => noSbServer.once('listening', () => resolve()));
   });
 
   afterAll(async () => {
     await new Promise<void>(resolve => server.close(() => resolve()));
+    await new Promise<void>(resolve => noSbServer.close(() => resolve()));
   });
 
   beforeEach(() => {
@@ -88,11 +107,7 @@ describe('Auth Routes', () => {
 
   describe('POST /webhook/signup-verification', () => {
     it('should return 503 if Supabase is not configured', async () => {
-      const appWithoutSupabase = express();
-      appWithoutSupabase.use(express.json());
-      appWithoutSupabase.use('/api/auth', createAuthRoutes(null, mockUsernameService, mockTurnstileService));
-
-      const response = await request(appWithoutSupabase)
+      const response = await request(noSbServer)
         .post('/api/auth/webhook/signup-verification')
         .send({ record: { id: 'user-123' } });
 
@@ -646,11 +661,7 @@ describe('Auth Routes', () => {
 
   describe('GET /username', () => {
     it('should return 503 if Supabase is not configured', async () => {
-      const appWithoutSupabase = express();
-      appWithoutSupabase.use(express.json());
-      appWithoutSupabase.use('/api/auth', createAuthRoutes(null, mockUsernameService, mockTurnstileService));
-
-      const response = await request(appWithoutSupabase)
+      const response = await request(noSbServer)
         .get('/api/auth/username')
         .set('Authorization', 'Bearer token-123');
 
@@ -840,11 +851,7 @@ describe('Auth Routes', () => {
     });
 
     it('should return 503 if Supabase is not configured (line 462)', async () => {
-      const appWithoutSupabase = express();
-      appWithoutSupabase.use(express.json());
-      appWithoutSupabase.use('/api/auth', createAuthRoutes(null, mockUsernameService, mockTurnstileService));
-
-      const response = await request(appWithoutSupabase)
+      const response = await request(noSbServer)
         .put('/api/auth/username')
         .set('Authorization', 'Bearer valid-token')
         .send({ username: 'TestUser' });
@@ -1537,11 +1544,7 @@ describe('Auth Routes', () => {
 
   describe('DELETE /username', () => {
     it('should return 503 if Supabase is not configured (line 620)', async () => {
-      const appWithoutSupabase = express();
-      appWithoutSupabase.use(express.json());
-      appWithoutSupabase.use('/api/auth', createAuthRoutes(null, mockUsernameService, mockTurnstileService));
-
-      const response = await request(appWithoutSupabase)
+      const response = await request(noSbServer)
         .delete('/api/auth/username')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1675,11 +1678,7 @@ describe('Auth Routes', () => {
 
   describe('GET /export-data', () => {
     it('should return 503 if Supabase is not configured (line 685)', async () => {
-      const appWithoutSupabase = express();
-      appWithoutSupabase.use(express.json());
-      appWithoutSupabase.use('/api/auth', createAuthRoutes(null, mockUsernameService, mockTurnstileService));
-
-      const response = await request(appWithoutSupabase)
+      const response = await request(noSbServer)
         .get('/api/auth/export-data')
         .set('Authorization', 'Bearer valid-token');
 
@@ -1904,11 +1903,7 @@ describe('Auth Routes', () => {
 
   describe('DELETE /delete-account', () => {
     it('should return 503 if Supabase is not configured (line 788)', async () => {
-      const appWithoutSupabase = express();
-      appWithoutSupabase.use(express.json());
-      appWithoutSupabase.use('/api/auth', createAuthRoutes(null, mockUsernameService, mockTurnstileService));
-
-      const response = await request(appWithoutSupabase)
+      const response = await request(noSbServer)
         .delete('/api/auth/delete-account')
         .set('Authorization', 'Bearer valid-token');
 
@@ -2096,11 +2091,7 @@ describe('Auth Routes', () => {
     });
 
     it('should return 503 if Supabase is not configured', async () => {
-      const appWithoutSupabase = express();
-      appWithoutSupabase.use(express.json());
-      appWithoutSupabase.use('/api/auth', createAuthRoutes(null, mockUsernameService, mockTurnstileService));
-
-      const response = await request(appWithoutSupabase)
+      const response = await request(noSbServer)
         .post('/api/auth/test/create-user')
         .send({ email: 'test@example.com', password: 'password123' });
 
@@ -2261,11 +2252,7 @@ describe('Auth Routes', () => {
     });
 
     it('should return 503 if Supabase is not configured', async () => {
-      const appWithoutSupabase = express();
-      appWithoutSupabase.use(express.json());
-      appWithoutSupabase.use('/api/auth', createAuthRoutes(null, mockUsernameService, mockTurnstileService));
-
-      const response = await request(appWithoutSupabase)
+      const response = await request(noSbServer)
         .delete('/api/auth/test/delete-user')
         .send({ email: 'test@example.com' });
 
@@ -2459,11 +2446,7 @@ describe('Auth Routes', () => {
     });
 
     it('should return 503 if Supabase is not configured', async () => {
-      const appWithoutSupabase = express();
-      appWithoutSupabase.use(express.json());
-      appWithoutSupabase.use('/api/auth', createAuthRoutes(null, mockUsernameService, mockTurnstileService));
-
-      const response = await request(appWithoutSupabase)
+      const response = await request(noSbServer)
         .delete('/api/auth/test/cleanup-e2e-users');
 
       expect(response.status).toBe(503);

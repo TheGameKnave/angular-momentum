@@ -7,6 +7,11 @@ describe('User Settings Routes', () => {
   let app: Express;
   let server: http.Server;
   let activeRouter: Router;
+  // Second hoisted listener: routes built with `null` Supabase to exercise the
+  // 500/"Supabase not configured" branch. Built once; null-supabase paths
+  // short-circuit before reading mocks.
+  let noSbApp: Express;
+  let noSbServer: http.Server;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockSupabase: any;
 
@@ -20,10 +25,17 @@ describe('User Settings Routes', () => {
     app.use('/api/user-settings', (req, res, next) => activeRouter(req, res, next));
     server = app.listen(0);
     await new Promise<void>(resolve => server.once('listening', () => resolve()));
+
+    noSbApp = express();
+    noSbApp.use(express.json());
+    noSbApp.use('/api/user-settings', createUserSettingsRoutes(null));
+    noSbServer = noSbApp.listen(0);
+    await new Promise<void>(resolve => noSbServer.once('listening', () => resolve()));
   });
 
   afterAll(async () => {
     await new Promise<void>(resolve => server.close(() => resolve()));
+    await new Promise<void>(resolve => noSbServer.close(() => resolve()));
   });
 
   beforeEach(() => {
@@ -62,26 +74,21 @@ describe('User Settings Routes', () => {
     // Swap the active router to wire in this test's mocks. The host app and
     // listener are reused across the file.
     activeRouter = createUserSettingsRoutes(mockSupabase);
-
-    // Clear any io set by a previous test — the hoisted app preserves
-    // app.set() values across tests, so a stale mockIo with restored mocks
-    // would throw when the route calls .to()/.emit() on it.
-    app.set('io', undefined);
   });
 
   afterEach(() => {
     // Restore console methods and reset mocks
     jest.restoreAllMocks();
     jest.resetAllMocks();
+    // Clear any per-test app state so it can't leak into the next test on
+    // the hoisted app. This is the contract: any test that sets app.set(...)
+    // does not need to remember to clean up — afterEach does.
+    app.set('io', undefined);
   });
 
   describe('GET /', () => {
     it('should return 500 if Supabase is not configured', async () => {
-      const appWithoutSupabase = express();
-      appWithoutSupabase.use(express.json());
-      appWithoutSupabase.use('/api/user-settings', createUserSettingsRoutes(null));
-
-      const response = await request(appWithoutSupabase)
+      const response = await request(noSbServer)
         .get('/api/user-settings')
         .set('Authorization', 'Bearer token-123');
 
@@ -250,11 +257,7 @@ describe('User Settings Routes', () => {
 
   describe('POST /', () => {
     it('should return 500 if Supabase is not configured', async () => {
-      const appWithoutSupabase = express();
-      appWithoutSupabase.use(express.json());
-      appWithoutSupabase.use('/api/user-settings', createUserSettingsRoutes(null));
-
-      const response = await request(appWithoutSupabase)
+      const response = await request(noSbServer)
         .post('/api/user-settings')
         .set('Authorization', 'Bearer token-123')
         .send({ timezone: 'America/New_York' });
@@ -411,11 +414,7 @@ describe('User Settings Routes', () => {
 
   describe('PUT /', () => {
     it('should return 500 if Supabase is not configured', async () => {
-      const appWithoutSupabase = express();
-      appWithoutSupabase.use(express.json());
-      appWithoutSupabase.use('/api/user-settings', createUserSettingsRoutes(null));
-
-      const response = await request(appWithoutSupabase)
+      const response = await request(noSbServer)
         .put('/api/user-settings')
         .set('Authorization', 'Bearer token-123')
         .send({ timezone: 'America/New_York' });
@@ -642,11 +641,7 @@ describe('User Settings Routes', () => {
 
   describe('PATCH /', () => {
     it('should return 500 if Supabase is not configured', async () => {
-      const appWithoutSupabase = express();
-      appWithoutSupabase.use(express.json());
-      appWithoutSupabase.use('/api/user-settings', createUserSettingsRoutes(null));
-
-      const response = await request(appWithoutSupabase)
+      const response = await request(noSbServer)
         .patch('/api/user-settings')
         .set('Authorization', 'Bearer token-123')
         .send({ timezone: 'America/New_York' });
@@ -1100,11 +1095,7 @@ describe('User Settings Routes', () => {
 
   describe('DELETE /', () => {
     it('should return 500 if Supabase is not configured', async () => {
-      const appWithoutSupabase = express();
-      appWithoutSupabase.use(express.json());
-      appWithoutSupabase.use('/api/user-settings', createUserSettingsRoutes(null));
-
-      const response = await request(appWithoutSupabase)
+      const response = await request(noSbServer)
         .delete('/api/user-settings')
         .set('Authorization', 'Bearer token-123');
 

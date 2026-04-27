@@ -41,7 +41,8 @@ describe('Notifications Routes', () => {
     mockSendNotificationToUser.mockImplementation(() => Promise.resolve());
 
     // Setup mock WebSocket io. The route reads req.app.get('io') at request
-    // time so mutating this on the hoisted app between tests is safe.
+    // time, and afterEach clears app.set('io') so a leak into the next test
+    // is impossible by structure (not by remembering to reset).
     mockIo = {
       emit: jest.fn(),
       to: jest.fn().mockReturnThis(),
@@ -51,6 +52,8 @@ describe('Notifications Routes', () => {
 
   afterEach(() => {
     jest.resetAllMocks();
+    // Clear per-test app state to keep the hoisted app leak-free.
+    app.set('io', undefined);
   });
 
   describe('POST /broadcast', () => {
