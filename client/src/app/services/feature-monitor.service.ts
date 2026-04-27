@@ -26,6 +26,7 @@ export class  FeatureMonitorService {
 
   // Static routes that are not feature-flagged
   private readonly staticRoutes = ['', 'profile', 'privacy'];
+  private hasLatched = false;
 
   constructor() {
     effect(() => {
@@ -33,6 +34,14 @@ export class  FeatureMonitorService {
       const allowed = this.helpersService.enabledComponents().map(c =>
         this.slugPipe.transform(c.name)
       );
+
+      // Skip the synchronous registration tick: enabledComponents is
+      // fail-closed before flags hydrate, so without the latch a deep-link
+      // to a gated route would bounce to / the moment flags arrive.
+      if (!this.hasLatched) {
+        this.hasLatched = true;
+        return;
+      }
 
       // Get current route (not reactive, but effect re-runs when enabledComponents changes)
       const url = this.router.url;

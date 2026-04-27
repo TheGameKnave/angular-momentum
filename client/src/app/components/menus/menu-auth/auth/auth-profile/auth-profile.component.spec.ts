@@ -112,7 +112,8 @@ describe('AuthProfileComponent', () => {
       mockAuthService.isAuthenticated.and.returnValue(false);
 
       mockUsernameService = jasmine.createSpyObj('UsernameService', ['loadUsername'], {
-        username: signal({ username: 'testuser', fingerprint: 'test-fingerprint' }),
+        // No username set — getUserInitials should fall through to email logic.
+        username: signal(null),
         loading: signal(false),
         creationFailed: signal(false)
       });
@@ -145,7 +146,8 @@ describe('AuthProfileComponent', () => {
       mockAuthService.isAuthenticated.and.returnValue(true);
 
       mockUsernameService = jasmine.createSpyObj('UsernameService', ['loadUsername'], {
-        username: signal({ username: 'testuser', fingerprint: 'test-fingerprint' }),
+        // No username set — getUserInitials should fall through to email logic.
+        username: signal(null),
         loading: signal(false),
         creationFailed: signal(false)
       });
@@ -178,7 +180,8 @@ describe('AuthProfileComponent', () => {
       mockAuthService.isAuthenticated.and.returnValue(true);
 
       mockUsernameService = jasmine.createSpyObj('UsernameService', ['loadUsername'], {
-        username: signal({ username: 'testuser', fingerprint: 'test-fingerprint' }),
+        // No username set — getUserInitials should fall through to email logic.
+        username: signal(null),
         loading: signal(false),
         creationFailed: signal(false)
       });

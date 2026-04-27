@@ -275,7 +275,10 @@ export class ProfileComponent implements OnInit {
    * Get user initials for avatar.
    */
   getUserInitials(): string {
-    return getUserInitials(this.authService.currentUser());
+    return getUserInitials(
+      this.authService.currentUser(),
+      this.usernameService.username()?.username,
+    );
   }
 
   /**

@@ -1,4 +1,4 @@
-<app-dialog-menu position="top-right" width="38rem" (closed)="onMenuClosed()">
+<app-dialog-menu position="top-right" width="38rem" (opened)="onMenuOpened()" (closed)="onMenuClosed()">
   <!-- Auth Menu Button -->
   <span
     menu-trigger
@@ -74,6 +74,7 @@
         } @else if (authUiState.mode() === 'signup') {
           <!-- Signup -->
           <app-auth-signup
+            #signupForm
             (switchToLogin)="setMode('login')"
             (signupSuccess)="onSignupSuccess($event)"
           />
@@ -81,6 +82,7 @@
         } @else {
           <!-- Login (default) -->
           <app-auth-login
+            #loginForm
             [beforeSession]="storagePromotionCallback"
             (switchToReset)="onSwitchToReset($event)"
             (switchToSignup)="setMode('signup')"

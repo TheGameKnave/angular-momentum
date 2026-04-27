@@ -1,3 +1,4 @@
+import http from 'http';
 import request from 'supertest'; // For HTTP requests testing
 import express from 'express';
 import { Server } from 'socket.io'; // Import the socket.io server type
@@ -23,14 +24,24 @@ jest.mock('./notificationService', () => ({
 
 describe('GraphQL API', () => {
   let app: express.Application;
+  let server: http.Server;
   let io: Server;
 
-  beforeAll(() => {
+  // Single keep-alive listener per file. Per-test listen()/close() churn from
+  // supertest collides with parallel jest workers and produces socket hang ups.
+  beforeAll(async () => {
     app = express();
     io = new Server();
 
     app.set('io', io);
     app.use(graphqlMiddleware()); // Use the GraphQL middleware
+
+    server = app.listen(0);
+    await new Promise<void>(resolve => server.once('listening', () => resolve()));
+  });
+
+  afterAll(async () => {
+    await new Promise<void>(resolve => server.close(() => resolve()));
   });
 
   beforeEach(() => {
@@ -45,7 +56,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query });
 
@@ -65,7 +76,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query });
 
@@ -87,7 +98,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query });
 
@@ -109,7 +120,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query });
 
@@ -124,7 +135,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query });
 
@@ -149,7 +160,7 @@ describe('GraphQL API', () => {
 
       const emitSpy = jest.spyOn(io, 'emit'); // Spy on the `emit` method
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 
@@ -175,7 +186,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 
@@ -207,7 +218,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 
@@ -241,7 +252,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 
@@ -267,7 +278,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 
@@ -299,7 +310,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 
@@ -334,7 +345,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 
@@ -357,7 +368,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 
@@ -382,7 +393,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 
@@ -406,7 +417,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 
@@ -434,7 +445,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 
@@ -458,7 +469,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 
@@ -484,7 +495,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 
@@ -509,7 +520,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 
@@ -538,7 +549,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 
@@ -552,7 +563,7 @@ describe('GraphQL API', () => {
 
   it('should return 405 for non-POST methods', async () => {
     // Make a GET request to trigger the else case
-    const response = await request(app)
+    const response = await request(server)
       .get('/api');
 
     expect(response.status).toBe(405);
@@ -582,7 +593,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query });
 
@@ -602,7 +613,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query });
 
@@ -626,7 +637,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 
@@ -651,7 +662,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query });
 
@@ -673,7 +684,7 @@ describe('GraphQL API', () => {
         }
       `;
 
-      const response = await request(app)
+      const response = await request(server)
         .post('/api')
         .send({ query: mutation });
 

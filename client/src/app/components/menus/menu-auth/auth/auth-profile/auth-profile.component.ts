@@ -58,11 +58,14 @@ export class AuthProfileComponent implements OnInit {
   }
 
   /**
-   * Get user initials for avatar display.
-   * Uses first letter of email.
+   * Get user initials for avatar display. Uses the chosen username when
+   * available, falling back to the email's first character.
    */
   getUserInitials(): string {
-    return getUserInitials(this.authService.currentUser());
+    return getUserInitials(
+      this.authService.currentUser(),
+      this.usernameService.username()?.username,
+    );
   }
 
   /**

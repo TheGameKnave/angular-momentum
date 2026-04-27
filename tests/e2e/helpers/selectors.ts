@@ -56,7 +56,6 @@ export const auth = {
   signupEmail: 'app-auth-signup input[formControlName="email"]',
   signupUsername: 'app-auth-signup input[formControlName="username"]',
   signupPassword: 'app-auth-signup input[formControlName="password"]',
-  signupConfirmPassword: 'app-auth-signup input[formControlName="confirmPassword"]',
   signupAgeCheckbox: 'app-auth-signup p-checkbox[formControlName="ageVerified"]',
   signupPrivacyCheckbox: 'app-auth-signup p-checkbox[formControlName="privacyAccepted"]',
   signupSubmit: 'app-auth-signup button[type="submit"]',

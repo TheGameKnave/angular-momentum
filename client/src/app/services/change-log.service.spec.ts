@@ -3,7 +3,7 @@ import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ChangeLogService, ChangeLogResponse } from './change-log.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { DestroyRef } from '@angular/core';
+import { DestroyRef, PLATFORM_ID } from '@angular/core';
 
 describe('ChangeLogService', () => {
   let service: ChangeLogService;
@@ -108,6 +108,33 @@ describe('ChangeLogService', () => {
       'Error fetching change log:',
       jasmine.any(Object)
     );
+  }));
+
+  it('should log fetch failures at debug level on server platform (browser will retry)', fakeAsync(() => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: DestroyRef, useValue: jasmine.createSpyObj('DestroyRef', ['onDestroy']) },
+        { provide: PLATFORM_ID, useValue: 'server' },
+      ],
+    });
+
+    const newService = TestBed.inject(ChangeLogService);
+    const newHttpMock = TestBed.inject(HttpTestingController);
+
+    spyOn(console, 'debug');
+    spyOn(console, 'error');
+
+    newService.refresh();
+
+    const req = newHttpMock.expectOne((request) => request.url.endsWith('/api/changelog'));
+    req.error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
+    tick();
+
+    expect(console.debug).toHaveBeenCalled();
+    expect(console.error).not.toHaveBeenCalled();
   }));
 
   it('should resolve refresh() even when getChangeLogs throws', fakeAsync(() => {

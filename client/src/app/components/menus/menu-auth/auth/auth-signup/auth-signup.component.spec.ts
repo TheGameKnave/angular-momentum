@@ -45,7 +45,6 @@ describe('AuthSignupComponent', () => {
       expect(component.signupForm.get('email')?.value).toBe('');
       expect(component.signupForm.get('username')?.value).toBe('');
       expect(component.signupForm.get('password')?.value).toBe('');
-      expect(component.signupForm.get('confirmPassword')?.value).toBe('');
       expect(component.signupForm.get('ageVerification')?.value).toBe(false);
       expect(component.signupForm.get('privacyPolicy')?.value).toBe(false);
       expect(component.signupForm.get('turnstile')?.value).toBe('');
@@ -89,26 +88,6 @@ describe('AuthSignupComponent', () => {
 
       privacyControl?.setValue(true);
       expect(privacyControl?.valid).toBe(true);
-    });
-  });
-
-  describe('Password Matching Validation', () => {
-    it('should validate password match', () => {
-      component.signupForm.patchValue({
-        password: 'ValidPassword123!',
-        confirmPassword: 'DifferentPassword123!'
-      });
-
-      expect(component.signupForm.hasError('passwordMismatch')).toBe(true);
-    });
-
-    it('should pass validation when passwords match', () => {
-      component.signupForm.patchValue({
-        password: 'ValidPassword123!',
-        confirmPassword: 'ValidPassword123!'
-      });
-
-      expect(component.signupForm.hasError('passwordMismatch')).toBeFalsy();
     });
   });
 
@@ -174,7 +153,6 @@ describe('AuthSignupComponent', () => {
         email: 'test@example.com',
         username: 'testuser',
         password: 'ValidPassword123!',
-        confirmPassword: 'ValidPassword123!',
         ageVerification: true,
         privacyPolicy: true,
         turnstile: 'test-token'
@@ -293,17 +271,6 @@ describe('AuthSignupComponent', () => {
       expect(component.showPassword()).toBe(false);
     });
 
-    it('should show confirm password on peek start', () => {
-      expect(component.showConfirmPassword()).toBe(false);
-      component.onConfirmPasswordPeekStart();
-      expect(component.showConfirmPassword()).toBe(true);
-    });
-
-    it('should hide confirm password on peek end', () => {
-      component.showConfirmPassword.set(true);
-      component.onConfirmPasswordPeekEnd();
-      expect(component.showConfirmPassword()).toBe(false);
-    });
   });
 
   describe('onSwitchToLogin', () => {
@@ -325,10 +292,129 @@ describe('AuthSignupComponent', () => {
     });
   });
 
+  describe('focusFirstField', () => {
+    it('should focus the email input when view is ready and turnstile is settled', () => {
+      const input = component.emailInput!.nativeElement;
+      const focusSpy = spyOn(input, 'focus');
+
+      component.onTurnstileResolved('test-token');
+      focusSpy.calls.reset();
+
+      component.focusFirstField();
+
+      expect(focusSpy).toHaveBeenCalled();
+    });
+
+    it('should no-op when turnstile has not settled', () => {
+      const input = component.emailInput!.nativeElement;
+      const focusSpy = spyOn(input, 'focus');
+
+      component.focusFirstField();
+
+      expect(focusSpy).not.toHaveBeenCalled();
+    });
+
+    it('should no-op when emailInput is missing', () => {
+      component.onTurnstileResolved('test-token');
+      component.emailInput = undefined;
+
+      expect(() => component.focusFirstField()).not.toThrow();
+    });
+
+    it('should not steal focus when a different form field is focused', () => {
+      const input = component.emailInput!.nativeElement;
+      const other = document.createElement('input');
+      document.body.appendChild(other);
+      component.onTurnstileResolved('test-token');
+      const focusSpy = spyOn(input, 'focus');
+
+      other.focus();
+      component.focusFirstField();
+
+      expect(focusSpy).not.toHaveBeenCalled();
+      document.body.removeChild(other);
+    });
+  });
+
+  describe('onEmailBlur', () => {
+    it('should prefill username from email prefix when username is empty', () => {
+      component.signupForm.patchValue({ email: 'alice@example.com', username: '' });
+
+      component.onEmailBlur();
+
+      expect(component.signupForm.get('username')?.value).toBe('alice');
+    });
+
+    it('should not overwrite username if user has already typed one', () => {
+      component.signupForm.patchValue({ email: 'alice@example.com', username: 'bob' });
+
+      component.onEmailBlur();
+
+      expect(component.signupForm.get('username')?.value).toBe('bob');
+    });
+
+    it('should sanitize the prefix to allowed characters', () => {
+      component.signupForm.patchValue({ email: 'a.lice+tag@example.com', username: '' });
+
+      component.onEmailBlur();
+
+      expect(component.signupForm.get('username')?.value).toBe('alicetag');
+    });
+
+    it('should truncate long prefixes to 20 chars', () => {
+      component.signupForm.patchValue({ email: 'abcdefghijklmnopqrstuvwxyz@example.com', username: '' });
+
+      component.onEmailBlur();
+
+      expect(component.signupForm.get('username')?.value).toBe('abcdefghijklmnopqrst');
+    });
+
+    it('should bail out when email has no @', () => {
+      component.signupForm.patchValue({ email: 'noatsign', username: '' });
+
+      component.onEmailBlur();
+
+      expect(component.signupForm.get('username')?.value).toBe('');
+    });
+
+    it('should bail out when @ is at position 0', () => {
+      component.signupForm.patchValue({ email: '@example.com', username: '' });
+
+      component.onEmailBlur();
+
+      expect(component.signupForm.get('username')?.value).toBe('');
+    });
+
+    it('should bail out when sanitized prefix is empty', () => {
+      component.signupForm.patchValue({ email: '...@example.com', username: '' });
+
+      component.onEmailBlur();
+
+      expect(component.signupForm.get('username')?.value).toBe('');
+    });
+
+    it('should bail out when username control is missing', () => {
+      spyOn(component.signupForm, 'get').and.returnValue(null);
+
+      expect(() => component.onEmailBlur()).not.toThrow();
+    });
+
+    it('should treat missing email control as empty string', () => {
+      const usernameCtrl = component.signupForm.get('username');
+      spyOn(component.signupForm, 'get').and.callFake((name: string) => {
+        if (name === 'username') return usernameCtrl;
+        return null;
+      });
+
+      component.onEmailBlur();
+
+      expect(component.signupForm.get('username')?.value).toBe('');
+    });
+  });
+
   describe('Signal State Management', () => {
     it('should initialize signals with default values', () => {
       expect(component.showPassword()).toBe(false);
-      expect(component.showConfirmPassword()).toBe(false);
       expect(component.loading()).toBe(false);
       expect(component.errorMessage()).toBeNull();
       expect(component.showRetry()).toBe(false);
@@ -353,7 +439,6 @@ describe('AuthSignupComponent', () => {
       component.signupForm.patchValue({
         email: 'test@example.com',
         password: 'ValidPassword123!',
-        confirmPassword: 'ValidPassword123!',
         ageVerification: true,
         privacyPolicy: true,
         turnstile: 'test-token'

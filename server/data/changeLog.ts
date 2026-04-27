@@ -4,6 +4,20 @@
  */
 export const changeLog = [
   {
+    version: "21.3.5",
+    date: "2026-04-26",
+    description: "Backported UX cleanup",
+    changes: [
+      "streamline signup and auto-focus auth fields; drop Confirm Password",
+      "use username for avatar initial when one is set",
+      "detect browser language when clearing anonymous prefs",
+      "add onCancel callback to ConfirmDialogService",
+      "fix dialog dismiss on iOS WKWebView (tap-outside-panel)",
+      "feature-monitor: skip first-tick redirect until flag state hydrates",
+      "android build: use JDK 17",
+    ]
+  },
+  {
     version: "21.3.4",
     date: "2026-04-09",
     description: "New patch",

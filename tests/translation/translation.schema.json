@@ -118,10 +118,6 @@
           "type": "string",
           "description": "Auth: New password confirmation label"
         },
-        "Confirm Password": {
-          "type": "string",
-          "description": "Auth: Password confirmation field label"
-        },
         "Create Account": {
           "type": "string",
           "description": "Auth: Signup submit button"
@@ -246,10 +242,6 @@
           "type": "string",
           "description": "Auth: New password confirmation placeholder"
         },
-        "Re-enter your password": {
-          "type": "string",
-          "description": "Auth: Password confirmation placeholder"
-        },
         "Register or log in to access all features": {
           "type": "string",
           "description": "Auth menu: Unauthenticated user prompt"
@@ -315,7 +307,6 @@
         "Bot check failed. This may be due to network issues or security restrictions. Please reload the page…",
         "Choose a username",
         "Confirm New Password",
-        "Confirm Password",
         "Create Account",
         "Current Password",
         "Current password is required",
@@ -347,7 +338,6 @@
         "Passwords do not match",
         "Please enter the 6-digit code",
         "Re-enter your new password",
-        "Re-enter your password",
         "Register or log in to access all features",
         "Resend code",
         "Send Reset Code",

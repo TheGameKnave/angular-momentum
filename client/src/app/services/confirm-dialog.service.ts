@@ -26,6 +26,13 @@ export interface ConfirmDialogOptions {
   requireConfirmationText?: string;
   /** Callback executed when user confirms */
   onConfirm: () => Promise<void>;
+  /**
+   * Optional callback invoked when the user dismisses the dialog without
+   * confirming (via Cancel, Escape, or backdrop click). Lets callers
+   * distinguish "skipped" from "confirmed" without polling the `visible`
+   * signal.
+   */
+  onCancel?: () => void;
 }
 
 /**
@@ -85,13 +92,17 @@ export class ConfirmDialogService {
   }
 
   /**
-   * Handle user dismissal (cancel).
+   * Handle user dismissal (cancel). Fires the optional `onCancel` callback
+   * on the current options before clearing them, so callers awaiting the
+   * dialog's outcome don't have to poll.
    */
   dismiss(): void {
+    const opts = this.options();
     this.visible.set(false);
     this.error.set(null);
     this.options.set(null);
     this.confirmationInput.set('');
+    opts?.onCancel?.();
   }
 
   /**

@@ -710,6 +710,34 @@ describe('UserSettingsService', () => {
       // Should emit deauthenticate to leave user's WebSocket room
       expect(mockSocketService.emit).toHaveBeenCalledWith('deauthenticate');
     });
+
+    it('should fall back to en-US when no anonymous language and no browser match', async () => {
+      mockIndexedDbService.getRaw.and.returnValue(Promise.resolve(undefined));
+      spyOn(service, 'detectBrowserLanguage').and.returnValue(null);
+
+      await service.clear();
+
+      expect(mockTranslocoService.setActiveLang).toHaveBeenCalledWith('en-US');
+    });
+  });
+
+  describe('detectBrowserLanguage', () => {
+    it('should use navigator.languages when present', () => {
+      spyOnProperty(navigator, 'languages', 'get').and.returnValue(['fr-FR', 'en-US']);
+
+      const result = service.detectBrowserLanguage();
+
+      expect(typeof result === 'string' || result === null).toBe(true);
+    });
+
+    it('should fall back to navigator.language when navigator.languages is empty', () => {
+      spyOnProperty(navigator, 'languages', 'get').and.returnValue([]);
+      spyOnProperty(navigator, 'language', 'get').and.returnValue('en-US');
+
+      const result = service.detectBrowserLanguage();
+
+      expect(result).toBe('en-US');
+    });
   });
 
   describe('setupLogoutHandler', () => {

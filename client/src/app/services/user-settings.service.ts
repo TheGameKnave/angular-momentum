@@ -9,6 +9,7 @@ import { IndexedDbService, IDB_STORES } from './indexeddb.service';
 import { UserStorageService } from './user-storage.service';
 import { SocketIoService } from './socket.io.service';
 import { AuthService } from './auth.service';
+import { parseAcceptLanguage } from '@app/providers/ssr-language.provider';
 
 /** Storage keys for local preferences */
 const STORAGE_KEYS = {
@@ -225,6 +226,22 @@ export class UserSettingsService {
       this.logService.log('Error detecting timezone', error);
       return 'UTC'; // Fallback to UTC
     }
+  }
+
+  /**
+   * Detect the user's preferred language from the browser, matched against
+   * the app's supported languages via the same logic as SSR. Returns `null`
+   * if the browser exposes no language hint or none of its preferences match
+   * anything we support — callers are expected to supply their own fallback.
+   */
+  detectBrowserLanguage(): string | null {
+    // istanbul ignore next - navigator is undefined in SSR/node tests
+    if (typeof navigator === 'undefined') return null;
+    const langs = navigator.languages?.length ? navigator.languages : [navigator.language];
+    const acceptLanguage = langs
+      .map((lang, i) => `${lang};q=${(1 - i * 0.1).toFixed(1)}`)
+      .join(',');
+    return parseAcceptLanguage(acceptLanguage);
   }
 
   // ===========================================================================
@@ -824,12 +841,32 @@ export class UserSettingsService {
     this.timezonePreference.set(timezone);
     this.languagePreference.set(language);
 
-    // Apply language to Transloco
+    // Apply language to Transloco. If the anonymous scope has no stored
+    // language we still need to reset the active lang (the logged-in user
+    // may have been on a different one), but the persist-lang plugin will
+    // write `anonymous_translocoLang` as a side effect. Clear that key
+    // afterward so a user who never picked a language doesn't leave a
+    // trail that later looks like "anonymous data to import".
     if (language) {
       this.translocoService.setActiveLang(language);
     } else {
-      // No stored anonymous language - use default
-      this.translocoService.setActiveLang('en-US');
+      // No anonymous language stored — fall back to the browser's preferred
+      // language (matched against SUPPORTED_LANGUAGES via the same logic as
+      // SSR), with `en-US` as a final safety net. Then clear the persist
+      // key afterward so a user who never explicitly picked a language
+      // doesn't leave an `anonymous_translocoLang` trail that later trips
+      // the import-local-data dialog.
+      const detected = this.detectBrowserLanguage() ?? 'en-US';
+      this.translocoService.setActiveLang(detected);
+      const persistKey = this.userStorageService.prefixKeyForAnonymous('translocoLang');
+      const clearPersistedLang = (): void => {
+        try {
+          localStorage.removeItem(persistKey);
+        } catch {
+          // istanbul ignore next - localStorage can throw in private modes
+        }
+      };
+      clearPersistedLang();
     }
 
     this.logService.log('Settings cleared, loaded anonymous preferences', { theme, timezone, language });

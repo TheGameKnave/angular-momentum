@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, output, signal, inject, input } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, ViewChild, output, signal, inject, input } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
@@ -33,9 +33,11 @@ import { parseApiError } from '@app/helpers/api-error.helper';
     MessageModule,
   ],
 })
-export class AuthLoginComponent {
+export class AuthLoginComponent implements AfterViewInit {
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
+
+  @ViewChild('emailInput') emailInput?: ElementRef<HTMLInputElement>;
 
   // Input for pre-session callback (e.g., storage promotion)
   readonly beforeSession = input<((userId: string) => Promise<void>) | undefined>();
@@ -57,6 +59,21 @@ export class AuthLoginComponent {
       email: ['', [Validators.required]], // Accept email or username
       password: ['', [Validators.required, passwordComplexityValidator()]],
     });
+  }
+
+  /** Focus the identifier field on initial mount. */
+  ngAfterViewInit(): void {
+    this.focusFirstField();
+  }
+
+  /**
+   * Focus the email/username input. Called on mount and whenever the parent
+   * menu reopens. Synchronous — the `@ViewChild` ref has already resolved
+   * by the time `ngAfterViewInit` fires, and the parent defers the reopen
+   * case into its own microtask boundary.
+   */
+  focusFirstField(): void {
+    this.emailInput?.nativeElement.focus();
   }
 
   /**

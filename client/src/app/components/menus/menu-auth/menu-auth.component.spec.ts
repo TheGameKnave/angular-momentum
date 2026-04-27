@@ -374,6 +374,42 @@ describe('MenuAuthComponent', () => {
     });
   });
 
+  describe('onMenuOpened', () => {
+    it('should focus signup form when mode is signup', () => {
+      (mockAuthUiState.mode as any).set('signup');
+      const signupSpy = jasmine.createSpyObj('AuthSignupComponent', ['focusFirstField']);
+      const loginSpy = jasmine.createSpyObj('AuthLoginComponent', ['focusFirstField']);
+      component.signupForm = signupSpy;
+      component.loginForm = loginSpy;
+
+      component.onMenuOpened();
+
+      expect(signupSpy.focusFirstField).toHaveBeenCalled();
+      expect(loginSpy.focusFirstField).not.toHaveBeenCalled();
+    });
+
+    it('should focus login form when mode is not signup', () => {
+      (mockAuthUiState.mode as any).set('login');
+      const signupSpy = jasmine.createSpyObj('AuthSignupComponent', ['focusFirstField']);
+      const loginSpy = jasmine.createSpyObj('AuthLoginComponent', ['focusFirstField']);
+      component.signupForm = signupSpy;
+      component.loginForm = loginSpy;
+
+      component.onMenuOpened();
+
+      expect(loginSpy.focusFirstField).toHaveBeenCalled();
+      expect(signupSpy.focusFirstField).not.toHaveBeenCalled();
+    });
+
+    it('should not error when forms are undefined', () => {
+      (mockAuthUiState.mode as any).set('signup');
+      component.signupForm = undefined;
+      component.loginForm = undefined;
+
+      expect(() => component.onMenuOpened()).not.toThrow();
+    });
+  });
+
   describe('onMenuClosed', () => {
     it('should reset auth UI state', () => {
       component.onMenuClosed();
@@ -425,11 +461,11 @@ describe('MenuAuthComponent', () => {
       const userId = 'test-user-id';
       mockStoragePromotionService.hasAnonymousData.and.returnValue(Promise.resolve(true));
 
-      // Simulate user dismissing the dialog (visible becomes false without onConfirm)
-      let visibleCallCount = 0;
-      (mockConfirmDialogService.visible as jasmine.Spy).and.callFake(() => {
-        visibleCallCount++;
-        return visibleCallCount < 2; // Return true first, then false
+      // Simulate user dismissing the dialog by invoking the options'
+      // onCancel callback that the dialog service would fire on
+      // cancel/backdrop/escape.
+      mockConfirmDialogService.show.and.callFake((options: any) => {
+        options.onCancel?.();
       });
 
       await component.storagePromotionCallback(userId);
@@ -515,6 +551,23 @@ describe('MenuAuthComponent', () => {
 
       // Should NOT have switched language
       expect(setActiveLangSpy).not.toHaveBeenCalled();
+    });
+
+    it('should only resolve once when both onConfirm and onCancel fire', async () => {
+      const userId = 'test-user-id';
+      mockStoragePromotionService.hasAnonymousData.and.returnValue(Promise.resolve(true));
+
+      // Dialog service invokes both callbacks in sequence — the Promise must
+      // still resolve exactly once and only the first result wins.
+      mockConfirmDialogService.show.and.callFake((options: any) => {
+        options.onConfirm();
+        options.onCancel();
+      });
+
+      await component.storagePromotionCallback(userId);
+
+      // First call (onConfirm → true) wins; promotion ran once.
+      expect(mockStoragePromotionService.promoteAnonymousToUser).toHaveBeenCalledTimes(1);
     });
 
     it('should not switch language when target user language is same as current', async () => {

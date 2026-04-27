@@ -99,6 +99,11 @@ export class DialogMenuComponent {
   readonly closed = output<void>();
 
   /**
+   * Emitted each time the menu is opened (including reopens).
+   */
+  readonly opened = output<void>();
+
+  /**
    * Translated aria-label for open menu button.
    */
   readonly ariaLabelOpen = signal('');
@@ -148,6 +153,16 @@ export class DialogMenuComponent {
         this.close();
       });
 
+      // On mobile the pane fills the viewport with pointer-events: auto so iOS
+      // Safari accepts touch-scroll, which shadows the backdrop. Treat clicks
+      // landing on the pane itself (gutter around the panel) as dismiss.
+      // istanbul ignore next - integration tests are out of scope
+      this.overlayRef.overlayElement.addEventListener('click', (event) => {
+        if (event.target === this.overlayRef?.overlayElement) {
+          this.close();
+        }
+      });
+
       // Close on Escape key
       // istanbul ignore next - integration tests are out of scope
       this.overlayRef.keydownEvents().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
@@ -163,6 +178,7 @@ export class DialogMenuComponent {
     );
     this.overlayRef.attach(portal);
     this.isOpen.set(true);
+    this.opened.emit();
   }
 
   /**

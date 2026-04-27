@@ -69,6 +69,8 @@ export class MenuAuthComponent implements AfterViewInit {
   private readonly logService = inject(LogService);
 
   @ViewChild(DialogMenuComponent) dialogMenu!: DialogMenuComponent;
+  @ViewChild('loginForm') loginForm?: AuthLoginComponent;
+  @ViewChild('signupForm') signupForm?: AuthSignupComponent;
 
   /**
    * Callback for storage promotion that runs before auth signals update.
@@ -121,9 +123,21 @@ export class MenuAuthComponent implements AfterViewInit {
   /**
    * Show confirmation dialog for importing anonymous data.
    * Returns a Promise that resolves to true if user confirms, false if they cancel.
+   *
+   * Uses the dialog service's `onConfirm`/`onCancel` callbacks directly so
+   * there's no background polling — the earlier `setInterval` approach held
+   * an active timer for 100ms+ per invocation, which compounded across the
+   * menu-auth spec's 29 tests to blow past Karma's browser-idle timeout.
    */
   private showImportConfirmation(): Promise<boolean> {
     return new Promise((resolve) => {
+      let resolved = false;
+      const finish = (result: boolean): void => {
+        if (resolved) return;
+        resolved = true;
+        resolve(result);
+      };
+
       this.confirmDialogService.show({
         title: 'auth.Import Local Data',
         message: 'auth.This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)',
@@ -134,18 +148,12 @@ export class MenuAuthComponent implements AfterViewInit {
         confirmSeverity: 'primary',
         cancelLabel: 'auth.Skip',
         onConfirm: async () => {
-          resolve(true);
+          finish(true);
+        },
+        onCancel: () => {
+          finish(false);
         },
       });
-
-      // Handle cancel/dismiss - need to watch for dialog closing without confirm
-      const checkDismiss = setInterval(() => {
-        if (!this.confirmDialogService.visible()) {
-          clearInterval(checkDismiss);
-          // If we get here and promise hasn't resolved yet, user cancelled
-          resolve(false);
-        }
-      }, 100);
     });
   }
 
@@ -323,6 +331,22 @@ export class MenuAuthComponent implements AfterViewInit {
     // Only redirect if on an auth-guarded route
     if (requiresAuth) {
       await this.router.navigate(['/']);
+    }
+  }
+
+  /**
+   * Handle menu opened - focus the first field of whichever auth form is
+   * currently visible. Fires on every open (including reopens), whereas the
+   * child components' `ngAfterViewInit` only fires when they first mount.
+   */
+  onMenuOpened(): void {
+    // The @if-mounted auth form is already in the view at the time
+    // `opened` fires — the overlay portal attach runs synchronously before
+    // the emit. Call focus directly; no deferred boundary needed.
+    if (this.authUiState.mode() === 'signup') {
+      this.signupForm?.focusFirstField();
+    } else {
+      this.loginForm?.focusFirstField();
     }
   }
 
