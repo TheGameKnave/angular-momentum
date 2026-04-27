@@ -100,7 +100,10 @@ export class AuthSignupComponent implements AfterViewInit {
   /** True once Turnstile has resolved and will no longer grab focus. */
   private turnstileSettled = false;
 
-  /** Mark the view as ready and focus the email field if Turnstile has already settled. */
+  /**
+   * Mark the view as ready and focus the email field if Turnstile has already settled.
+   * @returns void
+   */
   ngAfterViewInit(): void {
     this.viewReady = true;
     this.focusEmailIfReady();
@@ -148,7 +151,7 @@ export class AuthSignupComponent implements AfterViewInit {
     const email: string = this.signupForm.get('email')?.value ?? '';
     const at = email.indexOf('@');
     if (at <= 0) return;
-    const prefix = email.slice(0, at).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 20);
+    const prefix = email.slice(0, at).replaceAll(/[^a-zA-Z0-9_-]/g, '').slice(0, 20);
     if (!prefix) return;
     usernameCtrl.setValue(prefix);
   }
