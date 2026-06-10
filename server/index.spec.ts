@@ -90,6 +90,16 @@ describe('Express server', () => {
       expect(response.headers['expires']).toBe('0');
       await stopServer();
     });
+
+    it('should serve ngsw-worker.js with no-cache headers', async () => {
+      await startServer('production', 9209);
+      const response = await request(app).get('/ngsw-worker.js');
+      expect(response.status).toBe(200);
+      expect(response.headers['cache-control']).toBe('no-cache, no-store, must-revalidate');
+      expect(response.headers['pragma']).toBe('no-cache');
+      expect(response.headers['expires']).toBe('0');
+      await stopServer();
+    });
   });
 
   describe('Rate Limiting Tests', () => {

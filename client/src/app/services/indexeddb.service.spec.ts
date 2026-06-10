@@ -242,4 +242,34 @@ describe('IndexedDbService', () => {
       expect(mockStore.get('user_other_key')).toBe('otherValue');
     });
   });
+
+  describe('cache methods', () => {
+    it('should store and retrieve a value via setCache/getCache', async () => {
+      await service.setCache('api-response', { data: [1, 2, 3] });
+
+      const result = await service.getCache<{ data: number[] }>('api-response');
+      expect(result).toEqual({ data: [1, 2, 3] });
+    });
+
+    it('should return undefined for a missing cache key', async () => {
+      const result = await service.getCache('missing-key');
+      expect(result).toBeUndefined();
+    });
+
+    it('should overwrite an existing cache entry', async () => {
+      await service.setCache('key', 'first');
+      await service.setCache('key', 'second');
+
+      const result = await service.getCache<string>('key');
+      expect(result).toBe('second');
+    });
+
+    it('should use raw (unprefixed) keys', async () => {
+      await service.setCache('raw-cache-key', 'value');
+
+      // getCache should use the key as-is, not prefixed
+      expect(mockStore.get('raw-cache-key')).toBe('value');
+      expect(mockStore.has('anonymous_raw-cache-key')).toBeFalse();
+    });
+  });
 });

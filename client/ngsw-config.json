@@ -5,6 +5,7 @@
     {
       "name": "app",
       "installMode": "prefetch",
+      "updateMode": "lazy",
       "resources": {
         "files": [
           "/favicon.ico",
@@ -19,7 +20,7 @@
     {
       "name": "assets",
       "installMode": "lazy",
-      "updateMode": "prefetch",
+      "updateMode": "lazy",
       "resources": {
         "files": [
           "/assets/browserconfig.xml",
@@ -48,10 +49,10 @@
         "/socket.io/**"
       ],
       "cacheConfig": {
-        "strategy": "freshness",
+        "strategy": "performance",
         "maxSize": 0,
         "maxAge": "0s",
-        "timeout": "10s"
+        "timeout": "5s"
       }
     },
     {
@@ -68,10 +69,10 @@
         "https://challenges.cloudflare.com/**"
       ],
       "cacheConfig": {
-        "strategy": "freshness",
+        "strategy": "performance",
         "maxSize": 1,
         "maxAge": "1s",
-        "timeout": "10s"
+        "timeout": "3s"
       }
     }
   ]

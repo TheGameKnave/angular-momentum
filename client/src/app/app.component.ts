@@ -89,6 +89,10 @@ export class AppComponent implements OnInit {
     // Preload resources (flags, etc.) after first render to avoid blocking startup
     // istanbul ignore next - afterNextRender doesn't execute in unit tests
     afterNextRender(() => {
+      if (this.isBrowser && navigator.storage?.persist) {
+        void navigator.storage.persist();
+      }
+
       this.resourcePreload.preloadAll();
       this.deepLink.initialize();
 
