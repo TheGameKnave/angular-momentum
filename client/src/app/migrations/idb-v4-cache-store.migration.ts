@@ -1,4 +1,4 @@
-import { IDBPDatabase, IDBPTransaction, StoreNames } from 'idb';
+import { IDBPDatabase } from 'idb';
 import { IndexedDbMigration } from './index';
 
 /**
@@ -10,10 +10,7 @@ import { IndexedDbMigration } from './index';
 export const idbV4CacheStoreMigration: IndexedDbMigration = {
   version: 4,
   description: 'Add cache store for offline-resilient app data',
-  migrate: (
-    db: IDBPDatabase,
-    _transaction: IDBPTransaction<unknown, StoreNames<unknown>[], 'versionchange'>
-  ) => {
+  migrate: (db: IDBPDatabase) => {
     db.createObjectStore('cache');
   },
 };
