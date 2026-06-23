@@ -26,12 +26,19 @@ function setupStaticFileServing(app: express.Application, env: string) {
   if (env === 'production' || env === 'staging' || env === 'development') {
     const dirname = path.resolve(process.cwd(), '../client/dist/angular-momentum/browser');
 
-    // Service worker manifest must never be cached - it tells the SW when updates are available
+    // Service worker control files must never be cached - browsers otherwise delay update detection for days
     app.get('/ngsw.json', (req, res) => {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
       res.sendFile(path.join(dirname, 'ngsw.json'));
+    });
+
+    app.get('/ngsw-worker.js', (req, res) => {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.sendFile(path.join(dirname, 'ngsw-worker.js'));
     });
 
     app.use(express.static(dirname, { maxAge: 3600000 }));

@@ -30,6 +30,8 @@ export const IDB_STORES = {
   SETTINGS: 'settings',
   /** Pre-migration data backups */
   BACKUPS: 'backups',
+  /** Offline-resilient cache for critical app data (survives SW cache eviction) */
+  CACHE: 'cache',
 } as const;
 
 export type IdbStoreName = typeof IDB_STORES[keyof typeof IDB_STORES];
@@ -236,10 +238,36 @@ export class IndexedDbService {
    * @returns Promise that resolves when all values are cleared from all stores
    */
   async clearAll(): Promise<void> {
-    const stores: IdbStoreName[] = [IDB_STORES.PERSISTENT, IDB_STORES.SETTINGS, IDB_STORES.BACKUPS];
+    const stores: IdbStoreName[] = [IDB_STORES.PERSISTENT, IDB_STORES.SETTINGS, IDB_STORES.BACKUPS, IDB_STORES.CACHE];
     for (const store of stores) {
       await this.clear(store);
     }
+  }
+
+  /**
+   * Retrieves a cached value by raw key (no user-scope prefix).
+   * Intended for app-level cache entries that survive SW cache eviction.
+   * @param key - The cache key
+   * @returns The cached value, or undefined if not found (or during SSR)
+   */
+  async getCache<T>(key: string): Promise<T | undefined> {
+    const db = await this.getDb();
+    // istanbul ignore next - SSR guard, not testable in browser
+    if (!db) return undefined;
+    return db.get(IDB_STORES.CACHE, key) as Promise<T | undefined>;
+  }
+
+  /**
+   * Stores a value in the cache store by raw key (no user-scope prefix).
+   * Intended for app-level cache entries that survive SW cache eviction.
+   * @param key - The cache key
+   * @param value - The value to cache
+   */
+  async setCache(key: string, value: unknown): Promise<void> {
+    const db = await this.getDb();
+    // istanbul ignore next - SSR guard, not testable in browser
+    if (!db) return;
+    await db.put(IDB_STORES.CACHE, value, key);
   }
 
   /**

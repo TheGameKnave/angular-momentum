@@ -1,6 +1,7 @@
 import { idbV1InitialMigration } from './idb-v1-initial.migration';
 import { idbV2UserScopedMigration } from './idb-v2-user-scoped.migration';
 import { idbV3SeparateStoresMigration } from './idb-v3-separate-stores.migration';
+import { idbV4CacheStoreMigration } from './idb-v4-cache-store.migration';
 
 describe('IndexedDB Migrations', () => {
   describe('idbV1InitialMigration', () => {
@@ -312,6 +313,26 @@ describe('IndexedDB Migrations', () => {
 
       // Key with undefined value should not be migrated
       expect(persistentStore.has('anonymous_key')).toBeFalse();
+    });
+  });
+
+  describe('idbV4CacheStoreMigration', () => {
+    it('should have version 4', () => {
+      expect(idbV4CacheStoreMigration.version).toBe(4);
+    });
+
+    it('should have a description', () => {
+      expect(idbV4CacheStoreMigration.description).toBe('Add cache store for offline-resilient app data');
+    });
+
+    it('should create the cache object store', () => {
+      const mockDb = {
+        createObjectStore: jasmine.createSpy('createObjectStore'),
+      };
+
+      idbV4CacheStoreMigration.migrate(mockDb as any, undefined as any);
+
+      expect(mockDb.createObjectStore).toHaveBeenCalledWith('cache');
     });
   });
 });
