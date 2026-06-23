@@ -3,6 +3,20 @@
  * @description Array of changelog entries tracking version releases, dates, descriptions, and changes
  */
 export const changeLog = [
+  
+  {
+    version: "21.3.6",
+    date: "2026-06-22",
+    description: "Offline resilience",
+    changes: [
+      "defer service worker activation until asset cache is fully populated (angular/angular#45377)",
+      "switch SW data groups to performance strategy so 504s don't overwrite cached data",
+      "add updateMode: lazy to asset groups to prevent mid-update navigation crashes",
+      "add no-cache headers for ngsw-worker.js so browsers pick up SW updates immediately",
+      "call navigator.storage.persist() at startup to prevent browser eviction of SW cache and IndexedDB",
+      "add IndexedDB cache store with getCache/setCache for eviction-resistant app data storage",
+    ]
+  },
   {
     version: "21.3.5",
     date: "2026-04-26",
