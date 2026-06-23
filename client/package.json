@@ -6,8 +6,9 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config src/proxy.conf.js",
-    "build": "ng build && node scripts/prune-flags.js && node scripts/patch-ngsw.js",
-    "build:tauri": "npm run build -- --configuration=production && node scripts/copy-index.js",
+    "build:ng": "ng build",
+    "build": "npm run build:ng && node scripts/prune-flags.js && node scripts/patch-ngsw.js",
+    "build:tauri": "npm run build:ng -- --configuration=production && node scripts/prune-flags.js && node scripts/patch-ngsw.js && node scripts/copy-index.js",
     "dev": "NODE_ENV=development npm run start",
     "test": "NODE_ENV=development ng test --configuration test --browsers=ChromeHeadless --watch=false",
     "test:debug": "NODE_ENV=development KARMA_CONSOLE=true ng test --configuration test --browsers=ChromeHeadless --watch=false",
