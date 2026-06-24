@@ -194,7 +194,7 @@ test.describe('Responsive Design Tests', () => {
     for (const [name, viewport] of Object.entries(VIEWPORTS)) {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await page.waitForTimeout(300);
-
+      await expect(page.locator('app-root'), `layout at ${name}`).toBeVisible();
     }
   });
 });

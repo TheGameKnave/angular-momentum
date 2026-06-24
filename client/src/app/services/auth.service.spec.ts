@@ -535,7 +535,6 @@ describe('AuthService', () => {
         options: {
           data: {
             username: null,
-            turnstile_token: null,
             language: 'en-US'
           }
         }
@@ -566,30 +565,6 @@ describe('AuthService', () => {
       );
     });
 
-    it('should sign up with turnstile token', async () => {
-      const mockUser = createMockUser('test@example.com');
-
-      mockSupabaseAuth.signUp.and.returnValue(
-        Promise.resolve({
-          data: { user: mockUser, session: null },
-          error: null
-        })
-      );
-
-      const result = await service.signUp('test@example.com', 'Password123!', 'testuser', 'turnstile-token-123');
-
-      expect(result.user).toEqual(mockUser);
-      expect(mockSupabaseAuth.signUp).toHaveBeenCalledWith(
-        jasmine.objectContaining({
-          options: jasmine.objectContaining({
-            data: jasmine.objectContaining({
-              username: 'testuser',
-              turnstile_token: 'turnstile-token-123'
-            })
-          })
-        })
-      );
-    });
 
     it('should reject invalid username', async () => {
       const result = await service.signUp('test@example.com', 'Password123!', 'ab');

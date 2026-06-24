@@ -1,12 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { UsernameService } from '../services/usernameService';
-import { TurnstileService } from '../services/turnstileService';
 import { getUserIdFromRequest, checkUsernameAvailability, upsertUsername } from '../helpers/auth.helpers';
 import {
   AUTH_ERROR_CODES,
   USERNAME_ERROR_CODES,
-  CAPTCHA_ERROR_CODES,
   WEBHOOK_ERROR_CODES,
   DATA_ERROR_CODES,
   GENERIC_ERROR_CODES,
@@ -16,13 +14,11 @@ import {
  * Creates auth routes with injected dependencies (testable).
  * @param supabase - Supabase client instance
  * @param usernameService - Username service instance
- * @param turnstileService - Turnstile CAPTCHA service instance
  * @returns Express router with auth routes
  */
 export function createAuthRoutes(
   supabase: SupabaseClient | null,
   usernameService: UsernameService | null,
-  turnstileService: TurnstileService
 ): Router {
   const router = Router();
 
@@ -301,35 +297,14 @@ export function createAuthRoutes(
   /**
    * POST /api/auth/webhook/signup-verification
    * Webhook endpoint called by Supabase after user signup.
-   * Verifies Turnstile CAPTCHA token and deletes user if verification fails.
+   * Currently a pass-through; kept as an extension point for future verification logic.
    *
    * This should be configured in Supabase Dashboard:
    * Authentication → Hooks → Add a new hook
    * - Hook Type: "User Signup"
    * - URL: https://yourdomain.com/api/auth/webhook/signup-verification
-   * - Secret: (optional, for webhook signature verification)
-   *
-   * Request body (from Supabase):
-   * {
-   *   "type": "INSERT",
-   *   "table": "users",
-   *   "record": {
-   *     "id": "uuid",
-   *     "email": "user@example.com",
-   *     "raw_user_meta_data": {
-   *       "username": "optional",
-   *       "turnstile_token": "captcha-token-here"
-   *     }
-   *   }
-   * }
-   *
-   * Response:
-   * {
-   *   "success": true,
-   *   "message": "User verified" | "CAPTCHA verification failed - user deleted"
-   * }
    */
-  router.post('/webhook/signup-verification', async (req: Request, res: Response) => {
+  router.post('/webhook/signup-verification', (req: Request, res: Response) => {
     if (!supabase) {
       return res.status(503).json({
         success: false,
@@ -337,63 +312,19 @@ export function createAuthRoutes(
       });
     }
 
-    try {
-      // Extract user data from Supabase webhook payload
-      const { record } = req.body;
+    const { record } = req.body;
 
-      if (!record?.id) {
-        return res.status(400).json({
-          success: false,
-          error: WEBHOOK_ERROR_CODES.INVALID_PAYLOAD
-        });
-      }
-
-      const userId = record.id;
-      /* istanbul ignore next */
-      const userMetadata = record.raw_user_meta_data || {};
-      /* istanbul ignore next */
-      const remoteIp = req.ip || req.socket?.remoteAddress;
-
-      // Skip verification in development environment
-      if (process.env.NODE_ENV === 'development') {
-        return res.json({
-          success: true,
-          message: 'User verified (dev mode - no CAPTCHA check)'
-        });
-      }
-
-      // Verify Turnstile token
-      const verificationResult = await turnstileService.verifyFromMetadata(userMetadata, remoteIp);
-
-      if (!verificationResult.success) {
-        // Delete the user account (requires service role key)
-        const { error: deleteError } = await supabase.auth.admin.deleteUser(userId);
-
-        if (deleteError) {
-          return res.status(500).json({
-            success: false,
-            error: CAPTCHA_ERROR_CODES.CLEANUP_FAILED
-          });
-        }
-
-        return res.json({
-          success: true,
-          message: 'CAPTCHA verification failed - user deleted',
-          verification_failed: true
-        });
-      }
-
-      res.json({
-        success: true,
-        message: 'User verified'
-      });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      res.status(500).json({
+    if (!record?.id) {
+      return res.status(400).json({
         success: false,
-        error: message
+        error: WEBHOOK_ERROR_CODES.INVALID_PAYLOAD
       });
     }
+
+    res.json({
+      success: true,
+      message: 'User verified'
+    });
   });
 
   /**

@@ -25,7 +25,6 @@
   },
 
   "auth": {
-    "Bot check failed. This may be due to network issues or security restrictions. Please reload the page…": "Bot check failed. This may be due to network issues or security restrictions. Please reload the page.",
     "Choose a username": "Choose a username",
     "Confirm New Password": "Confirm New Password",
     "Create Account": "Create Account",
@@ -67,7 +66,6 @@
     "Switch to login": "Switch to login",
     "The username you selected was unavailable. You can set a new one in your user profile": "The username you selected was unavailable. You can set a new one in your user profile",
     "This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)": "This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)",
-    "Try Again": "Try Again",
     "Update Password": "Update Password",
     "Username not available": "Username not available",
     "Verification Code": "Verification Code",
@@ -210,7 +208,6 @@
     "Analytics cookies enabled": "Analytics cookies enabled",
     "Authentication & Database": "Authentication & Database",
     "Behavior Analytics": "Behaviour Analytics",
-    "Bot Protection": "Bot Protection",
     "Complete Privacy Policy": "Complete Privacy Policy",
     "Cookie preference not set": "Cookie preference not set",
     "Cookie Preferences": "Cookie Preferences",

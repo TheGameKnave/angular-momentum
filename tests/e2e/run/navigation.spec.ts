@@ -89,6 +89,8 @@ test.describe('Navigation & Layout Tests', () => {
 
     await page.waitForTimeout(1000);
 
+    // Verify Spanish flag is shown
+    await expect(page.locator(`${menus.languageMenuButton} .fi-es`)).toBeVisible();
 
     // Switch back to English for other tests
     await page.click(menus.languageMenuButton);
@@ -125,8 +127,10 @@ test.describe('Navigation & Layout Tests', () => {
     if (hasMarkAllRead) {
       await markAllReadButton.click();
       await page.waitForTimeout(500);
-
     }
+
+    // Notification center should still be open
+    await expect(page.locator(menus.notificationCenterContent)).toBeVisible();
 
     // Close menu
     await page.click('body', { position: { x: 10, y: 10 } });
@@ -141,11 +145,12 @@ test.describe('Navigation & Layout Tests', () => {
     const hasClearAll = await clearAllButton.isVisible().catch(() => false);
 
     if (hasClearAll) {
-
       await clearAllButton.click();
       await page.waitForTimeout(500);
-
     }
+
+    // Notification center should still be open
+    await expect(page.locator(menus.notificationCenterContent)).toBeVisible();
 
     // Close menu
     await page.click('body', { position: { x: 10, y: 10 } });

@@ -316,7 +316,6 @@ test.describe('Profile Destructive Tests', () => {
       // Check delete data button exists
       const deleteDataButton = page.locator(pages.profileDeleteDataButton);
       if (await deleteDataButton.isVisible().catch(() => false)) {
-
         // Click delete data button
         await deleteDataButton.click();
         await page.waitForTimeout(600);
@@ -324,11 +323,13 @@ test.describe('Profile Destructive Tests', () => {
         // Check for confirmation dialog
         const confirmDialog = page.locator(common.confirmDialog);
         if (await confirmDialog.isVisible().catch(() => false)) {
-
           // Cancel the dialog (don't actually delete in this test)
           await page.click(common.confirmDialogReject);
         }
       }
+
+      // Profile page should still be visible after the flow
+      await expect(page.locator(pages.profilePage)).toBeVisible();
     } finally {
       // Clean up - delete the test user
       await deleteTestUser({ email: testUser.email });
@@ -521,7 +522,8 @@ test.describe('Settings Preservation on Logout/Login', () => {
       // Click German option
       const deOption = page.locator(menus.languageOption('de'));
       await deOption.scrollIntoViewIfNeeded();
-      await deOption.click({ force: true });
+      await expect(deOption).toBeVisible();
+      await deOption.click();
       await page.waitForTimeout(500);
 
       // Wait for language to change - verify German flag is shown

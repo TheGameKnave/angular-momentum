@@ -4,6 +4,17 @@
  */
 export const changeLog = [
   
+  
+  {
+    version: "21.3.7",
+    date: "2026-06-24",
+    description: "Signup form improvements and bot protection cleanup",
+    changes: [
+      "Removed Cloudflare Turnstile CAPTCHA from signup (replaced by email OTP + rate limiting)",
+      "Fixed signup form autofocus and email-to-username prefill",
+      "Fixed iOS deployment target for Xcode 26 compatibility",
+    ]
+  },
   {
     version: "21.3.6",
     date: "2026-06-22",

@@ -29,6 +29,6 @@ export class SlugPipe implements PipeTransform {
    * @returns The slugified string in lowercase with hyphens separating words
    */
   transform(value: string): string {
-    return value.toLowerCase().replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi, '').replace(/[^a-z0-9]+/gi, '-');
+    return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
 }

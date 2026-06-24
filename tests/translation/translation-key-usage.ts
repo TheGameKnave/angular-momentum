@@ -290,7 +290,7 @@ const ALLOWED_BARE_WORDS = new Set([
   'iOS', 'Android', 'Windows', 'Mac', 'Linux', 'Chrome', 'Firefox', 'Safari',
   'OK', 'ID', 'URL', 'UI', 'UX', 'FAQ', 'TODO', 'N/A',
   'Ko-fi', 'Logo', 'Supabase', 'Resend', 'PrimeNG', 'Transloco',
-  'Analytics', 'Hotjar', 'Cloudflare', 'Turnstile',
+  'Analytics', 'Hotjar', 'Cloudflare',
 ]);
 
 /**

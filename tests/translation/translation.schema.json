@@ -106,10 +106,6 @@
     "auth": {
       "type": "object",
       "properties": {
-        "Bot check failed. This may be due to network issues or security restrictions. Please reload the page…": {
-          "type": "string",
-          "description": "Auth: Turnstile CAPTCHA failure message"
-        },
         "Choose a username": {
           "type": "string",
           "description": "Auth: Username field placeholder"
@@ -274,10 +270,6 @@
           "type": "string",
           "description": "Auth: Storage import dialog message"
         },
-        "Try Again": {
-          "type": "string",
-          "description": "Auth: Retry button after failure"
-        },
         "Update Password": {
           "type": "string",
           "description": "Auth: Password change submit button"
@@ -304,7 +296,6 @@
         }
       },
       "required": [
-        "Bot check failed. This may be due to network issues or security restrictions. Please reload the page…",
         "Choose a username",
         "Confirm New Password",
         "Create Account",
@@ -346,7 +337,6 @@
         "Switch to login",
         "The username you selected was unavailable. You can set a new one in your user profile",
         "This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)",
-        "Try Again",
         "Update Password",
         "Username not available",
         "Verification Code",
@@ -947,10 +937,6 @@
         "Behavior Analytics": {
           "type": "string",
           "description": "Privacy: Hotjar service category label"
-        },
-        "Bot Protection": {
-          "type": "string",
-          "description": "Privacy: Cloudflare Turnstile service category label"
         },
         "Complete Privacy Policy": {
           "type": "string",

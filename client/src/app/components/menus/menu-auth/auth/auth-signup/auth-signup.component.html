@@ -113,38 +113,12 @@
     </label>
   </div>
 
-  <!-- Turnstile CAPTCHA (Invisible) -->
-  <div class="form-field hidden">
-    <ngx-turnstile
-      [siteKey]="turnstileSiteKey"
-      (resolved)="onTurnstileResolved($event)"
-      (errored)="onTurnstileError()"
-      theme="light"
-    />
-  </div>
-
   <!-- Error Message -->
   @if (errorMessage()) {
     <div class="error-block">
       <p-message severity="error">
         <span>{{ t(errorMessage()!) }}</span>
       </p-message>
-
-      @if (showRetry()) {
-        <p class="retry-hint">
-          {{ t('auth.If this persists,') }}
-          <a
-            href="mailto:support@angularmomentum.app"
-            (keydown.enter)="$event.stopPropagation()"
-          >{{ t('auth.contact support') }}</a>{{ t('auth.for help.') }}
-        </p>
-        <button
-          pButton
-          type="button"
-          (click)="retryCaptcha()"
-          severity="secondary"
-        >{{t('auth.Try Again')}}</button>
-      }
     </div>
   }
 
@@ -157,4 +131,5 @@
   >
     {{ t('auth.Create Account') }}
   </button>
+
 </form>

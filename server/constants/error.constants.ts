@@ -33,16 +33,6 @@ export const USERNAME_ERROR_CODES = {
 } as const;
 
 /**
- * CAPTCHA-related error codes.
- */
-export const CAPTCHA_ERROR_CODES = {
-  /** CAPTCHA verification failed */
-  VERIFICATION_FAILED: 'CAPTCHA_VERIFICATION_FAILED',
-  /** CAPTCHA failed but user deletion also failed */
-  CLEANUP_FAILED: 'CAPTCHA_CLEANUP_FAILED',
-} as const;
-
-/**
  * Webhook-related error codes.
  */
 export const WEBHOOK_ERROR_CODES = {
@@ -76,7 +66,6 @@ export const GENERIC_ERROR_CODES = {
 export const API_ERROR_CODES = {
   ...AUTH_ERROR_CODES,
   ...USERNAME_ERROR_CODES,
-  ...CAPTCHA_ERROR_CODES,
   ...WEBHOOK_ERROR_CODES,
   ...DATA_ERROR_CODES,
   ...GENERIC_ERROR_CODES,

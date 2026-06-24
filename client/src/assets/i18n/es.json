@@ -25,7 +25,6 @@
   },
 
   "auth": {
-    "Bot check failed. This may be due to network issues or security restrictions. Please reload the page…": "Verificación de bot falló. Esto puede deberse a problemas de red o restricciones de seguridad. Vuelva a cargar la página.",
     "Choose a username": "Elige un usuario",
     "Confirm New Password": "Confirmar nueva contraseña",
     "Create Account": "Crear cuenta",
@@ -67,7 +66,6 @@
     "Switch to login": "Cambiar a inicio de sesión",
     "The username you selected was unavailable. You can set a new one in your user profile": "El usuario que seleccionaste no está disponible. Puedes establecer uno nuevo en tu perfil",
     "This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)": "Este dispositivo tiene datos guardados de antes de iniciar sesión. ¿Desea importarlos? (los datos existentes no se sobrescribirán)",
-    "Try Again": "Intentar de nuevo",
     "Update Password": "Actualizar contraseña",
     "Username not available": "Usuario no disponible",
     "Verification Code": "Código de verificación",
@@ -210,7 +208,6 @@
     "Analytics cookies enabled": "Cookies de análisis habilitados",
     "Authentication & Database": "Autenticación y Base de Datos",
     "Behavior Analytics": "Análisis de Comportamiento",
-    "Bot Protection": "Protección contra Bots",
     "Complete Privacy Policy": "Política de Privacidad Completa",
     "Cookie preference not set": "Preferencia de cookies no establecida",
     "Cookie Preferences": "Preferencias de Cookies",

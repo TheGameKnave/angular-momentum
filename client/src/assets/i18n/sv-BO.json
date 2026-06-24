@@ -25,7 +25,6 @@
   },
 
   "auth": {
-    "Bot check failed. This may be due to network issues or security restrictions. Please reload the page…": "But check feeeled. Zees mey be-a due-a tu netvurk issooes oor secooreety restreecshuns. Pleese-a relued zee pege-a. Bork!",
     "Choose a username": "Chuuse-a a userneme-a",
     "Confirm New Password": "Cunffurm Noo Pessvurd",
     "Create Account": "Creete-a Eccuoont",
@@ -67,7 +66,6 @@
     "Switch to login": "Sveetch tu lugin",
     "The username you selected was unavailable. You can set a new one in your user profile": "Zee userneme-a yuoo selected ves unefeeeleble-a. Yuoo cun set a noo oone-a in yuoor user pruffeele-a",
     "This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)": "Zees defice-a hes sefed deta frum beffure-a yuoo lugged in. Vuoold yuoo leeke-a tu impurt it? (exeesteeng deta vun’t be-a oofervreettee)",
-    "Try Again": "Try Egeeen",
     "Update Password": "Updete-a Pessvurd",
     "Username not available": "Userneme-a nut efeeeleble-a",
     "Verification Code": "Fereefficeshun Cude-a",
@@ -210,7 +208,6 @@
     "Analytics cookies enabled": "Unelyteecs cuukeees inebled",
     "Authentication & Database": "Oothenteeceeshun & Detebese-a",
     "Behavior Analytics": "Behefeeur Unelyteecs",
-    "Bot Protection": "But Prutecshun",
     "Complete Privacy Policy": "Cumplete-a Preefecee Puleecee",
     "Cookie preference not set": "Cuukee prefference-a nut set",
     "Cookie Preferences": "Cuukee Prefferences",

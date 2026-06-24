@@ -511,10 +511,9 @@ export class AuthService {
    * @param email - User email
    * @param password - User password
    * @param username - Optional username (validated but not stored here)
-   * @param turnstileToken - Optional Cloudflare Turnstile CAPTCHA token
    * @returns Authentication result (user will need to verify OTP)
    */
-  async signUp(email: string, password: string, username?: string, turnstileToken?: string | null): Promise<AuthResult> {
+  async signUp(email: string, password: string, username?: string): Promise<AuthResult> {
     if (!this.supabase) {
       return {
         user: null,
@@ -539,7 +538,6 @@ export class AuthService {
         options: {
           data: {
             username: username ?? null,
-            turnstile_token: turnstileToken ?? null,
             language: this.translocoService.getActiveLang(),
           }
         }

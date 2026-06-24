@@ -6,7 +6,6 @@ import notificationsRoutes from './notifications.routes';
 import { createAuthRoutes } from './auth.routes';
 import { createUserSettingsRoutes } from './user-settings.routes';
 import { UsernameService } from '../services/usernameService';
-import { TurnstileService } from '../services/turnstileService';
 
 /**
  * Supabase client pair - separate clients for auth and database operations.
@@ -24,19 +23,17 @@ export interface SupabaseClientPair {
  * Creates API routes with injected dependencies (testable).
  * @param supabase - Supabase client pair (auth + db) or null
  * @param usernameService - Username service instance
- * @param turnstileService - Turnstile CAPTCHA service instance
  * @returns Express router with all API routes
  */
 export function createApiRoutes(
   supabase: SupabaseClientPair | null,
   usernameService: UsernameService | null,
-  turnstileService: TurnstileService
 ): Router {
   const router = Router();
 
   // Create route modules with dependency injection
   // Auth routes use supabase.auth for token validation
-  const authRoutes = createAuthRoutes(supabase?.auth ?? null, usernameService, turnstileService);
+  const authRoutes = createAuthRoutes(supabase?.auth ?? null, usernameService);
   // User settings routes use the full client pair
   const userSettingsRoutes = createUserSettingsRoutes(supabase);
 

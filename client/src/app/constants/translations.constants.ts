@@ -340,7 +340,6 @@ export const PRIVACY_KEYS = [
  * because the regex extraction may not pick them up properly from templates.
  */
 export const AUTH_TEMPLATE_KEYS = [
-  "auth.Bot check failed. This may be due to network issues or security restrictions. Please reload the page…",
   "auth.If this persists,",
   "auth.contact support",
   "auth.for help.",

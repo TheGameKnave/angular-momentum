@@ -4,7 +4,6 @@ import { signal } from '@angular/core';
 import { AuthSignupComponent } from './auth-signup.component';
 import { AuthService, AuthResult } from '@app/services/auth.service';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
-import { ENVIRONMENT } from 'src/environments/environment';
 
 describe('AuthSignupComponent', () => {
   let component: AuthSignupComponent;
@@ -47,7 +46,6 @@ describe('AuthSignupComponent', () => {
       expect(component.signupForm.get('password')?.value).toBe('');
       expect(component.signupForm.get('ageVerification')?.value).toBe(false);
       expect(component.signupForm.get('privacyPolicy')?.value).toBe(false);
-      expect(component.signupForm.get('turnstile')?.value).toBe('');
     });
 
     it('should have required validators on email field', () => {
@@ -89,75 +87,18 @@ describe('AuthSignupComponent', () => {
       privacyControl?.setValue(true);
       expect(privacyControl?.valid).toBe(true);
     });
-  });
 
-  describe('Turnstile CAPTCHA', () => {
-    it('should initialize with turnstile site key', () => {
-      expect(component.turnstileSiteKey).toBe(ENVIRONMENT.turnstile_site_key);
-    });
-
-    it('should handle turnstile token resolved', () => {
-      const token = 'test-token-123';
-      component.onTurnstileResolved(token);
-
-      expect(component.turnstileToken()).toBe(token);
-      expect(component.signupForm.get('turnstile')?.value).toBe(token);
-      expect(component.errorMessage()).toBeNull();
-      expect(component.showRetry()).toBe(false);
-    });
-
-    it('should handle turnstile resolved with null token', () => {
-      spyOn(component, 'onTurnstileError');
-
-      component.onTurnstileResolved(null);
-
-      expect(component.onTurnstileError).toHaveBeenCalled();
-    });
-
-    it('should handle turnstile error', () => {
-      // Initialize turnstile first (required before errors are shown)
-      component.onTurnstileResolved('test-token');
-
-      component.onTurnstileError();
-
-      expect(component.turnstileToken()).toBeNull();
-      expect(component.signupForm.get('turnstile')?.value).toBe('');
-      expect(component.showRetry()).toBe(true);
-    });
-
-    it('should not show error before turnstile is initialized', () => {
-      component.onTurnstileError();
-
-      // First call should not show error (not initialized yet)
-      expect(component.errorMessage()).toBeNull();
-      expect(component.showRetry()).toBe(false);
-    });
-
-    it('should retry captcha verification', () => {
-      component.turnstileComponent = jasmine.createSpyObj('NgxTurnstileComponent', ['reset']);
-      component.errorMessage.set('Previous error');
-      component.showRetry.set(true);
-
-      component.retryCaptcha();
-
-      expect(component.errorMessage()).toBeNull();
-      expect(component.showRetry()).toBe(false);
-      expect(component.turnstileComponent?.reset).toHaveBeenCalled();
-    });
   });
 
   describe('onSubmit', () => {
     beforeEach(() => {
-      // Set valid form values
       component.signupForm.patchValue({
         email: 'test@example.com',
         username: 'testuser',
         password: 'ValidPassword123!',
         ageVerification: true,
         privacyPolicy: true,
-        turnstile: 'test-token'
       });
-      component.turnstileToken.set('test-token');
     });
 
     it('should not submit if form is invalid', async () => {
@@ -183,8 +124,7 @@ describe('AuthSignupComponent', () => {
       expect(mockAuthService.signUp).toHaveBeenCalledWith(
         'test@example.com',
         'ValidPassword123!',
-        'testuser',
-        'test-token'
+        'testuser'
       );
       expect(signupSuccessSpy).toHaveBeenCalledWith({
         email: 'test@example.com',
@@ -193,6 +133,7 @@ describe('AuthSignupComponent', () => {
       expect(component.loading()).toBe(false);
       expect(component.errorMessage()).toBeNull();
     });
+
 
     it('should submit without username if not provided', async () => {
       component.signupForm.patchValue({ username: '' });
@@ -209,12 +150,6 @@ describe('AuthSignupComponent', () => {
 
       await component.onSubmit();
 
-      expect(mockAuthService.signUp).toHaveBeenCalledWith(
-        'test@example.com',
-        'ValidPassword123!',
-        '',
-        'test-token'
-      );
       expect(signupSuccessSpy).toHaveBeenCalledWith({
         email: 'test@example.com',
         username: undefined
@@ -256,6 +191,21 @@ describe('AuthSignupComponent', () => {
 
       expect(component.loading()).toBe(false);
     });
+
+    it('should clear error message on new submission', async () => {
+      component.errorMessage.set('Previous error');
+
+      const mockResult: AuthResult = {
+        user: { id: '123' } as any,
+        session: null,
+        error: null
+      };
+      mockAuthService.signUp.and.returnValue(Promise.resolve(mockResult));
+
+      await component.onSubmit();
+
+      expect(component.errorMessage()).toBeNull();
+    });
   });
 
   describe('Password Peek Functionality', () => {
@@ -270,7 +220,6 @@ describe('AuthSignupComponent', () => {
       component.onPasswordPeekEnd();
       expect(component.showPassword()).toBe(false);
     });
-
   });
 
   describe('onSwitchToLogin', () => {
@@ -293,46 +242,19 @@ describe('AuthSignupComponent', () => {
   });
 
   describe('focusFirstField', () => {
-    it('should focus the email input when view is ready and turnstile is settled', () => {
+    it('should focus the email input', () => {
       const input = component.emailInput!.nativeElement;
       const focusSpy = spyOn(input, 'focus');
-
-      component.onTurnstileResolved('test-token');
-      focusSpy.calls.reset();
 
       component.focusFirstField();
 
       expect(focusSpy).toHaveBeenCalled();
     });
 
-    it('should no-op when turnstile has not settled', () => {
-      const input = component.emailInput!.nativeElement;
-      const focusSpy = spyOn(input, 'focus');
-
-      component.focusFirstField();
-
-      expect(focusSpy).not.toHaveBeenCalled();
-    });
-
     it('should no-op when emailInput is missing', () => {
-      component.onTurnstileResolved('test-token');
       component.emailInput = undefined;
 
       expect(() => component.focusFirstField()).not.toThrow();
-    });
-
-    it('should not steal focus when a different form field is focused', () => {
-      const input = component.emailInput!.nativeElement;
-      const other = document.createElement('input');
-      document.body.appendChild(other);
-      component.onTurnstileResolved('test-token');
-      const focusSpy = spyOn(input, 'focus');
-
-      other.focus();
-      component.focusFirstField();
-
-      expect(focusSpy).not.toHaveBeenCalled();
-      document.body.removeChild(other);
     });
   });
 
@@ -417,37 +339,11 @@ describe('AuthSignupComponent', () => {
       expect(component.showPassword()).toBe(false);
       expect(component.loading()).toBe(false);
       expect(component.errorMessage()).toBeNull();
-      expect(component.showRetry()).toBe(false);
-      expect(component.turnstileToken()).toBeNull();
     });
 
     it('should update error message signal', () => {
       component.errorMessage.set('Test error');
       expect(component.errorMessage()).toBe('Test error');
-    });
-
-    it('should clear error message on new submission', async () => {
-      component.errorMessage.set('Previous error');
-
-      const mockResult: AuthResult = {
-        user: { id: '123' } as any,
-        session: null,
-        error: null
-      };
-      mockAuthService.signUp.and.returnValue(Promise.resolve(mockResult));
-
-      component.signupForm.patchValue({
-        email: 'test@example.com',
-        password: 'ValidPassword123!',
-        ageVerification: true,
-        privacyPolicy: true,
-        turnstile: 'test-token'
-      });
-      component.turnstileToken.set('test-token');
-
-      await component.onSubmit();
-
-      expect(component.errorMessage()).toBeNull();
     });
   });
 });

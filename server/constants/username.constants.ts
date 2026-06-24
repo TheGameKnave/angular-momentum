@@ -57,6 +57,8 @@ export const USERNAME_PATTERNS = {
   SPECIAL_CHARS: /[^\w-]/g,
   /** Consecutive hyphens to collapse */
   CONSECUTIVE_HYPHENS: /-+/g,
-  /** Leading/trailing hyphens to remove */
-  EDGE_HYPHENS: /(?:^-+|-+$)/g,
+  /** Leading hyphens to remove */
+  LEADING_HYPHENS: /^-+/g,
+  /** Trailing hyphens to remove */
+  TRAILING_HYPHENS: /-+$/g,
 } as const;
