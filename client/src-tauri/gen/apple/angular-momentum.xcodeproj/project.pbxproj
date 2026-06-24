@@ -317,6 +317,20 @@
 					"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)",
 					"$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)",
 				);
+				OTHER_LDFLAGS = (
+					"-Xlinker",
+					"-U",
+					"-Xlinker",
+					"__swift_FORCE_LOAD_$_swiftCompatibility56",
+					"-Xlinker",
+					"-U",
+					"-Xlinker",
+					"__swift_FORCE_LOAD_$_swiftCompatibilityConcurrency",
+					"-Xlinker",
+					"-U",
+					"-Xlinker",
+					"__swift_FORCE_LOAD_$_swiftCompatibilityPacks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = app.angularmomentum;
 				PRODUCT_NAME = "Angular Momentum";
 				PROVISIONING_PROFILE_SPECIFIER = "260b4efa-d47a-4ad0-960b-93e6dcb43f10";
@@ -485,6 +499,20 @@
 					"$(SDKROOT)/usr/lib/swift",
 					"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)",
 					"$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)",
+				);
+				OTHER_LDFLAGS = (
+					"-Xlinker",
+					"-U",
+					"-Xlinker",
+					"__swift_FORCE_LOAD_$_swiftCompatibility56",
+					"-Xlinker",
+					"-U",
+					"-Xlinker",
+					"__swift_FORCE_LOAD_$_swiftCompatibilityConcurrency",
+					"-Xlinker",
+					"-U",
+					"-Xlinker",
+					"__swift_FORCE_LOAD_$_swiftCompatibilityPacks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = app.angularmomentum;
 				PRODUCT_NAME = "Angular Momentum";
