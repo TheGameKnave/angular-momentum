@@ -71,10 +71,12 @@ test.describe('Notifications Tests', () => {
     const permissionButton = page.locator('app-notifications button:has-text(/permission|enable|allow/i)');
 
     if (await permissionButton.isVisible().catch(() => false)) {
-
       // Note: We can't actually grant notification permissions in automated tests
       // The browser will block the permission request
     }
+
+    // Page should still be on notifications route
+    await expect(page).toHaveURL(/\/notifications/);
   });
 
   // ============================================================================
@@ -100,12 +102,13 @@ test.describe('Notifications Tests', () => {
     const sendLocalButton = page.locator('app-notifications button:has-text(/local|send/i)');
 
     if (await sendLocalButton.isVisible().catch(() => false)) {
-
       // Click the button (notification may be blocked by browser, but UI should respond)
       await sendLocalButton.click();
       await page.waitForTimeout(600);
-
     }
+
+    // Page should still be on notifications route
+    await expect(page).toHaveURL(/\/notifications/);
   });
 
   // ============================================================================
@@ -122,8 +125,10 @@ test.describe('Notifications Tests', () => {
       // Try clicking without auth
       await sendServerButton.click();
       await page.waitForTimeout(600);
-
     }
+
+    // Page should still be on notifications route
+    await expect(page).toHaveURL(/\/notifications/);
   });
 
   test('Server notification works when authenticated', async ({ page }) => {

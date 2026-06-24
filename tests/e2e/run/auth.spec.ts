@@ -187,6 +187,8 @@ test.describe('Authentication Tests', () => {
 
     await page.waitForTimeout(600);
 
+    // Form should still be visible (not submitted)
+    await expect(page.locator(auth.signupForm)).toBeVisible();
   });
 
   // ============================================================================

@@ -4,11 +4,11 @@
 // MAIN STYLESHEET
 // =============================================================================
 
-@use "tailwindcss";
-@use "ngx-sharebuttons/themes/default";
-
 @import "./vendor/flag-icons.css";
 @import "primeicons/primeicons.css";
+
+@use "tailwindcss";
+@use "ngx-sharebuttons/themes/default";
 
 // =============================================================================
 // VARIABLES & CSS CUSTOM PROPERTIES
@@ -173,7 +173,7 @@ pre {
 }
 
 code {
-  word-break: break-word;
+  word-break: break-all;
 }
 
 hr {

@@ -55,8 +55,11 @@ test.describe('Storage Promotion Tests', () => {
       // Check if storage promotion dialog appears
       // Note: This dialog may or may not appear depending on whether there's data to promote
       const storageDialog = page.locator(common.storagePromotionDialog);
-      if (await storageDialog.isVisible({ timeout: 2000 }).catch(() => false)) {
-      }
+      const dialogAppeared = await storageDialog.isVisible({ timeout: 2000 }).catch(() => false);
+
+      // Either the dialog appeared, or the user was logged in normally
+      const loggedIn = await page.locator(auth.profileMenu).isVisible().catch(() => false);
+      expect(dialogAppeared || loggedIn).toBeTruthy();
 
     } finally {
       // Clean up
