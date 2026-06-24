@@ -4,11 +4,11 @@
 // MAIN STYLESHEET
 // =============================================================================
 
-@import "./vendor/flag-icons.css";
-@import "primeicons/primeicons.css";
-
 @use "tailwindcss";
 @use "ngx-sharebuttons/themes/default";
+
+@import "./vendor/flag-icons.css";
+@import "primeicons/primeicons.css";
 
 // =============================================================================
 // VARIABLES & CSS CUSTOM PROPERTIES
