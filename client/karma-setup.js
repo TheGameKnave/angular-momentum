@@ -7,14 +7,6 @@ const originalConsoleError = console.error;
 const originalConsoleWarn = console.warn;
 const originalConsoleLog = /**/console.log;
 
-// Mock Turnstile to prevent "Cannot read properties of undefined (reading 'render')" errors
-window.turnstile = {
-  render: () => 'mock-widget-id',
-  remove: () => {},
-  reset: () => {},
-  getResponse: () => 'mock-response',
-};
-
 // Mock /api/health requests so ConnectivityService doesn't spam Karma's web-server with 404s
 const originalFetch = window.fetch;
 window.fetch = function(input, init) {

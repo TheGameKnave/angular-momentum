@@ -25,7 +25,6 @@
   },
 
   "auth": {
-    "Bot check failed. This may be due to network issues or security restrictions. Please reload the page…": "机器人检查失败。这可能是由于网络问题或安全限制造成的。请重新加载页面。",
     "Choose a username": "选择一个用户名",
     "Confirm New Password": "确认新密码",
     "Create Account": "创建账户",
@@ -67,7 +66,6 @@
     "Switch to login": "切换到登录",
     "The username you selected was unavailable. You can set a new one in your user profile": "您选择的用户名不可用。您可以在用户个人资料中设置一个新的",
     "This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)": "此设备保存了您登录前的数据。是否要导入？（现有数据不会被覆盖）",
-    "Try Again": "重试",
     "Update Password": "更新密码",
     "Username not available": "用户名不可用",
     "Verification Code": "验证码",
@@ -210,7 +208,6 @@
     "Analytics cookies enabled": "分析Cookie已启用",
     "Authentication & Database": "身份验证与数据库",
     "Behavior Analytics": "行为分析",
-    "Bot Protection": "机器人防护",
     "Complete Privacy Policy": "完整隐私政策",
     "Cookie preference not set": "未设置Cookie偏好",
     "Cookie Preferences": "Cookie偏好设置",

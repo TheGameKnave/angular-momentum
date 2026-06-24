@@ -25,7 +25,6 @@
   },
 
   "auth": {
-    "Bot check failed. This may be due to network issues or security restrictions. Please reload the page…": "Bot kontrolü başarısız oldu. Bu, ağ sorunları veya güvenlik kısıtlamalarından kaynaklanıyor olabilir. Lütfen sayfayı yenileyin.",
     "Choose a username": "Bir kullanıcı adı seçin",
     "Confirm New Password": "Yeni Şifreyi Onayla",
     "Create Account": "Hesap Oluştur",
@@ -67,7 +66,6 @@
     "Switch to login": "Giriş yap",
     "The username you selected was unavailable. You can set a new one in your user profile": "Seçtiğiniz kullanıcı adı mevcut değil. Kullanıcı profilinizden yeni bir tane belirleyebilirsiniz",
     "This device has saved data from before you logged in. Would you like to import it? (existing data won’t be overwritten)": "Bu cihazda giriş yapmadan önceki veriler kaydedilmiş. Bunları içe aktarmak ister misiniz? (mevcut veriler üzerine yazılmayacak)",
-    "Try Again": "Tekrar Dene",
     "Update Password": "Şifreyi Güncelle",
     "Username not available": "Kullanıcı adı mevcut değil",
     "Verification Code": "Doğrulama Kodu",
@@ -210,7 +208,6 @@
     "Analytics cookies enabled": "Analiz çerezleri etkin",
     "Authentication & Database": "Kimlik Doğrulama ve Veritabanı",
     "Behavior Analytics": "Davranış Analitiği",
-    "Bot Protection": "Bot Koruması",
     "Complete Privacy Policy": "Tam Gizlilik Politikası",
     "Cookie preference not set": "Çerez tercihi ayarlanmadı",
     "Cookie Preferences": "Çerez Tercihleri",

@@ -10,7 +10,6 @@ import { graphqlMiddleware } from './services/graphqlService';
 import { createApiRoutes } from './routes/index';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { UsernameService } from './services/usernameService';
-import turnstileService from './services/turnstileService';
 import { ALLOWED_ORIGINS } from './constants/server.constants';
 import { securityHeaders } from './middleware/security';
 
@@ -159,7 +158,7 @@ export function setupApp(): express.Application {
   const usernameService = initializeUsernameService();
 
   // Create API routes with dependency injection
-  const apiRoutes = createApiRoutes(supabase, usernameService, turnstileService);
+  const apiRoutes = createApiRoutes(supabase, usernameService);
 
   // Universal Links (iOS) & App Links (Android) verification
   app.get('/.well-known/apple-app-site-association', (req, res) => {

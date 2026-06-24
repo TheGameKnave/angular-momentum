@@ -15,7 +15,6 @@ describe('Auth Routes', () => {
   let noSbServer: http.Server;
   let mockSupabase: any;
   let mockUsernameService: any;
-  let mockTurnstileService: any;
   const originalNodeEnv = process.env.NODE_ENV;
 
   // Hoist the host Express app and HTTP listener to beforeAll/afterAll. Per-test
@@ -37,7 +36,6 @@ describe('Auth Routes', () => {
     noSbApp.use('/api/auth', createAuthRoutes(
       null,
       { validateUsername: jest.fn(), checkAvailability: jest.fn(), createUsername: jest.fn(), getEmailByUsername: jest.fn() } as any,
-      { verifyFromMetadata: jest.fn() } as any,
     ));
     noSbServer = noSbApp.listen(0);
     await new Promise<void>(resolve => noSbServer.once('listening', () => resolve()));
@@ -88,14 +86,9 @@ describe('Auth Routes', () => {
       getEmailByUsername: jest.fn(),
     };
 
-    // Mock TurnstileService
-    mockTurnstileService = {
-      verifyFromMetadata: jest.fn(),
-    };
-
     // Swap the active router so this test's mocks are wired in. The host app
     // and listener are reused across the file.
-    activeAuthRouter = createAuthRoutes(mockSupabase, mockUsernameService, mockTurnstileService);
+    activeAuthRouter = createAuthRoutes(mockSupabase, mockUsernameService);
   });
 
   afterEach(() => {
@@ -130,41 +123,11 @@ describe('Auth Routes', () => {
       });
     });
 
-    it('should skip verification in development mode', async () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
-
+    it('should verify user successfully', async () => {
       const response = await request(server)
         .post('/api/auth/webhook/signup-verification')
         .send({
-          record: {
-            id: 'user-123',
-            raw_user_meta_data: { turnstile_token: 'token' },
-          },
-        });
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({
-        success: true,
-        message: 'User verified (dev mode - no CAPTCHA check)',
-      });
-
-      process.env.NODE_ENV = originalEnv;
-    });
-
-    it('should verify user successfully with valid CAPTCHA', async () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
-
-      mockTurnstileService.verifyFromMetadata.mockResolvedValue({ success: true });
-
-      const response = await request(server)
-        .post('/api/auth/webhook/signup-verification')
-        .send({
-          record: {
-            id: 'user-123',
-            raw_user_meta_data: { turnstile_token: 'valid-token' },
-          },
+          record: { id: 'user-123' },
         });
 
       expect(response.status).toBe(200);
@@ -172,127 +135,6 @@ describe('Auth Routes', () => {
         success: true,
         message: 'User verified',
       });
-      expect(mockTurnstileService.verifyFromMetadata).toHaveBeenCalled();
-
-      process.env.NODE_ENV = originalEnv;
-    });
-
-    it('should delete user if CAPTCHA verification fails', async () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
-
-      mockTurnstileService.verifyFromMetadata.mockResolvedValue({
-        success: false,
-        error: 'Invalid CAPTCHA',
-      });
-      mockSupabase.auth.admin.deleteUser.mockResolvedValue({ error: null });
-
-      const response = await request(server)
-        .post('/api/auth/webhook/signup-verification')
-        .send({
-          record: {
-            id: 'user-123',
-            raw_user_meta_data: { turnstile_token: 'invalid-token' },
-          },
-        });
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({
-        success: true,
-        message: 'CAPTCHA verification failed - user deleted',
-        verification_failed: true,
-      });
-      expect(mockSupabase.auth.admin.deleteUser).toHaveBeenCalledWith('user-123');
-
-      process.env.NODE_ENV = originalEnv;
-    });
-
-    it('should return 500 if user deletion fails after CAPTCHA failure', async () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
-
-      // Explicitly reset mocks to ensure clean state
-      mockTurnstileService.verifyFromMetadata.mockReset();
-      mockSupabase.auth.admin.deleteUser.mockReset();
-
-      mockTurnstileService.verifyFromMetadata.mockResolvedValue({
-        success: false,
-        error: 'Invalid CAPTCHA',
-      });
-      mockSupabase.auth.admin.deleteUser.mockResolvedValue({
-        error: { message: 'Delete failed' },
-      });
-
-      const response = await request(server)
-        .post('/api/auth/webhook/signup-verification')
-        .send({
-          record: {
-            id: 'user-123',
-            raw_user_meta_data: { turnstile_token: 'invalid-token' },
-          },
-        });
-
-      expect(response.status).toBe(500);
-      expect(response.body).toEqual({
-        success: false,
-        error: 'CAPTCHA_CLEANUP_FAILED',
-      });
-
-      process.env.NODE_ENV = originalEnv;
-    });
-
-    it('should return 500 if an unexpected error occurs in webhook (catch block line 118-124)', async () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
-
-      // Make verifyFromMetadata throw an exception
-      mockTurnstileService.verifyFromMetadata.mockImplementation(() => {
-        throw new Error('Turnstile service error');
-      });
-
-      const response = await request(server)
-        .post('/api/auth/webhook/signup-verification')
-        .send({
-          record: {
-            id: 'user-123',
-            raw_user_meta_data: { turnstile_token: 'token' },
-          },
-        });
-
-      expect(response.status).toBe(500);
-      expect(response.body).toEqual({
-        success: false,
-        error: 'Turnstile service error',
-      });
-
-      process.env.NODE_ENV = originalEnv;
-    });
-
-    it('should handle non-Error throws in webhook catch block', async () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
-
-      // Make verifyFromMetadata throw a non-Error value
-      mockTurnstileService.verifyFromMetadata.mockImplementation(() => {
-        throw 'String error'; // eslint-disable-line @typescript-eslint/only-throw-error
-      });
-
-      const response = await request(server)
-        .post('/api/auth/webhook/signup-verification')
-        .send({
-          record: {
-            id: 'user-123',
-            raw_user_meta_data: { turnstile_token: 'token' },
-          },
-        });
-
-      expect(response.status).toBe(500);
-      expect(response.body).toEqual({
-        success: false,
-        error: 'Unknown error',
-      });
-
-      process.env.NODE_ENV = originalEnv;
     });
   });
 
@@ -312,7 +154,7 @@ describe('Auth Routes', () => {
     it('should return 503 if username service is not configured', async () => {
       const appWithoutService = express();
       appWithoutService.use(express.json());
-      appWithoutService.use('/api/auth', createAuthRoutes(mockSupabase, null, mockTurnstileService));
+      appWithoutService.use('/api/auth', createAuthRoutes(mockSupabase, null));
 
       const response = await request(appWithoutService)
         .post('/api/auth/username/validate')
@@ -379,7 +221,7 @@ describe('Auth Routes', () => {
     it('should return 503 if username service is not configured', async () => {
       const appWithoutService = express();
       appWithoutService.use(express.json());
-      appWithoutService.use('/api/auth', createAuthRoutes(mockSupabase, null, mockTurnstileService));
+      appWithoutService.use('/api/auth', createAuthRoutes(mockSupabase, null));
 
       const response = await request(appWithoutService)
         .post('/api/auth/username/check')
@@ -479,7 +321,7 @@ describe('Auth Routes', () => {
     it('should return 503 if username service is not configured', async () => {
       const appWithoutService = express();
       appWithoutService.use(express.json());
-      appWithoutService.use('/api/auth', createAuthRoutes(mockSupabase, null, mockTurnstileService));
+      appWithoutService.use('/api/auth', createAuthRoutes(mockSupabase, null));
 
       const response = await request(appWithoutService)
         .post('/api/auth/username/create')
@@ -562,7 +404,7 @@ describe('Auth Routes', () => {
     it('should return 503 if services are not configured', async () => {
       const appWithoutServices = express();
       appWithoutServices.use(express.json());
-      appWithoutServices.use('/api/auth', createAuthRoutes(null, null, mockTurnstileService));
+      appWithoutServices.use('/api/auth', createAuthRoutes(null, null));
 
       const response = await request(appWithoutServices)
         .post('/api/auth/login')
@@ -866,7 +708,7 @@ describe('Auth Routes', () => {
     it('should return 503 if usernameService is not configured (line 462)', async () => {
       const appWithoutUsernameService = express();
       appWithoutUsernameService.use(express.json());
-      appWithoutUsernameService.use('/api/auth', createAuthRoutes(mockSupabase, null, mockTurnstileService));
+      appWithoutUsernameService.use('/api/auth', createAuthRoutes(mockSupabase, null));
 
       const response = await request(appWithoutUsernameService)
         .put('/api/auth/username')

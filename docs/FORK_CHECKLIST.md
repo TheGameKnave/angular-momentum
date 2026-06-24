@@ -79,14 +79,6 @@ Replace all variations of the project name throughout the codebase:
   - `CLOUDFLARE_ZONE_ID`
   - `CLOUDFLARE_API_TOKEN`
 
-### Turnstile (Bot Protection)
-- [ ] Create Turnstile widget in Cloudflare dashboard
-- [ ] Update site keys in environment files:
-  - `client/src/environments/environment.ts` (test key)
-  - `client/src/environments/environment.prod.ts` (production key)
-  - `client/src/environments/environment.stage.ts` (staging key)
-- [ ] Add to server `.env`: `TURNSTILE_SECRET_KEY`
-
 ### Supabase (Database/Auth)
 - [ ] Create new Supabase project
 - [ ] Update all environment files with new project URL and public key:
@@ -196,7 +188,6 @@ SUPABASE_SERVICE_KEY=your_service_key
 # Cloudflare
 CLOUDFLARE_ZONE_ID=your_zone_id
 CLOUDFLARE_API_TOKEN=your_api_token
-TURNSTILE_SECRET_KEY=your_turnstile_secret
 ```
 
 ---
@@ -239,7 +230,7 @@ Update test email domain used for cleanup:
 | `ANDROID_KEY_ALIAS` | Google | Key alias |
 | `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | Google | Play Store upload |
 
-> **Note:** Cloudflare secrets (`CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN`) and `TURNSTILE_SECRET_KEY` are server-side environment variables only, not GitHub Actions secrets.
+> **Note:** Cloudflare secrets (`CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN`) are server-side environment variables only, not GitHub Actions secrets.
 
 ---
 

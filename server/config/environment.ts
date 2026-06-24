@@ -13,7 +13,6 @@ interface Config {
   server_port: string | undefined;
   server_id: string | undefined;
   data_key: string | undefined;
-  turnstile_secret_key: string | undefined;
   supabase_url: string | undefined;
   supabase_service_key: string | undefined;
 }
@@ -27,7 +26,6 @@ const config: Config = {
   server_port: process.env.API_PORT || /* istanbul ignore next */ '4201',
   server_id: process.env.SERVER_ID,
   data_key: process.env.DATA_KEY,
-  turnstile_secret_key: process.env.TURNSTILE_SECRET_KEY,
   supabase_url: process.env.SUPABASE_URL,
   supabase_service_key: process.env.SUPABASE_SERVICE_KEY,
 };
