@@ -111,7 +111,8 @@ export class UsernameService {
       .replace(USERNAME_PATTERNS.SPACES, '-')
       .replace(USERNAME_PATTERNS.SPECIAL_CHARS, '-')
       .replace(USERNAME_PATTERNS.CONSECUTIVE_HYPHENS, '-')
-      .replace(USERNAME_PATTERNS.EDGE_HYPHENS, '');
+      .replace(USERNAME_PATTERNS.LEADING_HYPHENS, '')
+      .replace(USERNAME_PATTERNS.TRAILING_HYPHENS, '');
 
     // Check fingerprint for profanity/obscenity/hate words
     if (profanity.exists(fingerprint)) {
