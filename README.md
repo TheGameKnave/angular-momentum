@@ -43,6 +43,40 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 
 * CDN for static assets and binary distros, depending on Tauri's ability to cache assets
 
+## Maintenance TODO
+
+Known issues from the 2026-07 architecture/test audit, tabled for future sessions. (The critical items — deploy gates, coverage enforcement, Sonar quality-gate check, mutation auth, og-image SSRF allowlist — were fixed at the time.)
+
+### Security
+- [ ] `createUsername` (GraphQL + `POST /api/auth/username/create`) accepts a raw `userId` with no ownership check — pre-squat risk. Careful: username creation happens during signup, possibly before a session exists (email confirmation), so the fix is likely "create username server-side via the signup webhook" rather than a bearer-token check.
+- [ ] Websocket auth never re-validates: a socket that authenticates once stays in `user:{id}` past token expiry/revocation. Store `exp` at auth time and re-check; consider moving auth into `io.use()` middleware.
+- [ ] Test-only user-admin endpoints (`/api/auth/test/*` — Supabase admin create/delete) are gated only by `NODE_ENV`. Add a required secret header or exclude them from the production bundle.
+- [ ] `/api/og-image` still has no rate limit of its own (it's mounted before the API proxy, so the API limiter never applies) and its PNG cache on disk grows unbounded.
+- [ ] Tauri webview ships with `"csp": null` — define a real CSP (Tauri injects its own nonces).
+- [ ] `npm run sonar` passes the token as a CLI arg (visible in `ps`); use the `SONAR_TOKEN` env var the scanner reads natively.
+
+### Reliability
+- [ ] Procfile runs the API server backgrounded via `ts-node` with no supervision — if it crashes, the dyno keeps serving a dead-API app. Run compiled JS, supervise both processes (exit when either dies so Heroku restarts), add SIGTERM handlers.
+- [ ] user-settings routes return raw Postgres `error.message` to clients (schema-leaking, untranslatable). Move to curated `{ code, message }` responses — keep a human-readable message for dev/debugging, never the raw DB text.
+
+### Test quality
+- [ ] `server/index.spec.ts` violates the hoisted-listener house rule (per-test `request(app)` + hard-coded ports 9200-9209) and has assertion-free "coverage touch" tests; `auth.routes.spec.ts` has 5 spots passing fresh unlistened apps.
+- [ ] `websocketService.spec.ts` feature-flag/disconnect tests are tautological (they invoke their own jest.fn stand-ins, not the real handlers — the authentication describe shows the correct captured-handler pattern).
+- [ ] `socket.io.service.ts` reconnect `effect()` is istanbul-ignored as "browser only" but Karma runs in a browser — this is the service's core behavior and is untested. Audit other whole-method ignores (notification dispatch routing, IndexedDB migration chain) for the same.
+- [ ] `auth.service.spec.ts` has no `afterEach`: stale window/document listeners accumulate across the run, and `document.visibilityState` is redefined without restore (cross-suite order dependence).
+- [ ] E2E: replace `if (visible)` guards with unconditional assertions (storage-promotion, notifications — one selector referenced there doesn't exist, so the check never runs); reduce the ~139 `waitForTimeout` calls; loosen `maxDiffPixelRatio` per full-page assertion; stub the footer version in the `layout-phone` baseline; add `data-testid` to logout/tabs/panels. Note: snapshot baselines are darwin-only — CI must stay on macOS runners until Linux baselines exist.
+- [ ] `performance.spec.ts` measures evaluate-round-trips against a 48ms threshold and asserts heap growth without forced GC — structurally flaky.
+- [ ] Playwright `reuseExistingServer: !process.env.CI` will run the whole suite against *whatever* answers on port 4200 (observed: a full run against a different project's dev server). Add an app-identity healthcheck before reuse, or set `reuseExistingServer: false`.
+- [ ] `tests/istanbul-justification-check.ts` only scans the client — add `server/` to the scan roots.
+
+### Housekeeping
+- [ ] Remove unused server deps (`mysql2`, `sqlstring`, `morgan`, `string-similarity`); `lowdb` is 6 majors old (or gets replaced with a real store when forked); `@types/jest@30` mismatches `jest@29`.
+- [ ] CI perf: add `cache: npm` to setup-node in all jobs, `Swatinem/rust-cache` + binstall for tauri-cli in Tauri jobs, and a `concurrency` group with cancel-in-progress on build_test.yml (it runs macOS on every push to every branch).
+- [ ] GraphQL plumbing: hoist `createHandler` out of the per-request path (also double-runs `express.json`), consider disabling introspection + adding a depth limit before the schema grows.
+- [ ] Sonar: the blanket S1186 suppression for `**/*` should become targeted suppressions; some excluded files have specs (`ssr-language.provider.ts`, `translations.constants.ts`) and shouldn't be coverage-excluded.
+- [ ] Delete dead code: `server/helpers.ts` (empty export + vacuous spec), unused `server_id`/`data_key` config keys, placeholder `http://192.168.1.x:4200` origin, empty `io.engine.on(...)` listeners.
+- [ ] `deployment-summary` reads the version from `client/package.json` while other jobs use root — trivial drift risk. `deploy.sh`'s fixed `sleep 30` before smoke tests could poll the Heroku releases API instead.
+
 ## License
 This project is licensed under the MIT License (see [LICENSE](https://github.com/TheGameKnave/angular-momentum/blob/main/LICENSE) file for details).
 
@@ -104,11 +138,11 @@ This will display the API responses.
 
 ### Translation Testing
 
-* from root, run `npm run test-translation` to uncover any gaps in translation files, relative to schema (will not detect completely missing schema keys; refer to browser errors for that)
+* from root, run `npm run test:translation` to uncover any gaps in translation files, relative to schema (will not detect completely missing schema keys; refer to browser errors for that)
 
 ### Unit Testing
 
-* from root, run `npm run test-server` and `npm run test-client` to execute each unit test suite independently
+* from root, run `npm run test:server` and `npm run test:client` to execute each unit test suite independently
 
 ### Playwright end-to-end testing
 
@@ -231,7 +265,7 @@ The app includes a complete push notification system that works across all platf
 
 ### Feature Flag
 
-Push notifications are controlled by the `Notifications` feature flag. Toggle via GraphQL:
+Push notifications are controlled by the `Notifications` feature flag. Toggle via GraphQL (mutations require a Supabase session outside development/test — pass `Authorization: Bearer <access token>`):
 
 ```graphql
 mutation {
