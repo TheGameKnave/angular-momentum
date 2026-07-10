@@ -10,6 +10,7 @@ on:
 jobs:
   deploy-web:
     runs-on: ubuntu-latest
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -36,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    # if: github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     outputs:
       release_id: ${{ steps.create_release.outputs.release_id }}
       version: ${{ steps.version.outputs.version }}
@@ -173,6 +174,7 @@ jobs:
 
   build-mobile:
     runs-on: macos-latest
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

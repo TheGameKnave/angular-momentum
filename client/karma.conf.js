@@ -54,7 +54,15 @@ module.exports = function (config) {
         { type: 'html' },
         { type: 'text-summary' },
         { type: 'lcovonly' }
-      ]
+      ],
+      check: {
+        global: {
+          statements: 100,
+          branches: 100,
+          functions: 100,
+          lines: 100
+        }
+      }
     },
     reporters: ['sabarivka', 'progress', 'kjhtml'],
     browsers: ['Chrome'],

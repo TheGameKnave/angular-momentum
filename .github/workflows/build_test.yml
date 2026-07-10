@@ -195,6 +195,23 @@ jobs:
             echo "Waiting for SonarCloud to complete analysis... (Attempt $TRIES/$MAX_RETRIES)"
             sleep $RETRY_DELAY
           done
+
+          # Task SUCCESS only means the analysis finished — now check the actual quality gate
+          ANALYSIS_ID=$(echo "$RESPONSE" | grep -o '"analysisId":"[^"]*"' | cut -d: -f2 | tr -d '"')
+          if [[ -z "$ANALYSIS_ID" ]]; then
+            echo "Error: could not extract analysisId from task response."
+            exit 1
+          fi
+
+          GATE_RESPONSE=$(curl -s -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/qualitygates/project_status?analysisId=$ANALYSIS_ID")
+          GATE_STATUS=$(echo "$GATE_RESPONSE" | grep -o '"status":"[^"]*"' | head -n 1 | cut -d: -f2 | tr -d '"')
+          echo "Quality Gate Status: $GATE_STATUS"
+
+          if [[ "$GATE_STATUS" != "OK" ]]; then
+            echo "Quality gate failed!"
+            echo "$GATE_RESPONSE"
+            exit 1
+          fi
         shell: bash
 
   create-release-tag:
