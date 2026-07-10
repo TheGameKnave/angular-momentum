@@ -48,6 +48,16 @@ const commonEngine = new CommonEngine({
   allowedHosts: ['localhost', 'angularmomentum.app'],
 });
 
+// Hosts the og-image endpoint is allowed to screenshot — its headless browser can
+// reach anything the server can (including internal services), so never open this up.
+const OG_IMAGE_ALLOWED_HOSTS = new Set([
+  'dev.angularmomentum.app',
+  'staging.angularmomentum.app',
+  'angularmomentum.app',
+  // localhost only outside production — in prod it would expose internal services to screenshotting
+  ...(process.env['NODE_ENV'] === 'production' ? [] : ['localhost', '127.0.0.1']),
+]);
+
 // Screenshot generation endpoint - MUST be before API proxy
 app.get('/api/og-image', async (req, res): Promise<void> => {
   try {
@@ -55,6 +65,18 @@ app.get('/api/og-image', async (req, res): Promise<void> => {
 
     if (!url || typeof url !== 'string') {
       res.status(400).json({ error: 'URL parameter is required' });
+      return;
+    }
+
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(url);
+    } catch {
+      res.status(400).json({ error: 'Invalid URL' });
+      return;
+    }
+    if (!['http:', 'https:'].includes(parsedUrl.protocol) || !OG_IMAGE_ALLOWED_HOSTS.has(parsedUrl.hostname)) {
+      res.status(403).json({ error: 'URL host not allowed' });
       return;
     }
 

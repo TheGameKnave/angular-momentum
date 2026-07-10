@@ -1,6 +1,10 @@
 import { createHandler } from 'graphql-http/lib/use/express';
-import { buildSchema } from 'graphql';
+import { buildSchema, parse } from 'graphql';
 import express from 'express';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { getUserIdFromRequest } from '../helpers/auth.helpers';
+import { isAuthEnforced } from '../middleware/requireAuth';
+import { AUTH_ERROR_CODES } from '../constants/error.constants';
 import { readFeatureFlags, writeFeatureFlags } from './lowDBService'; // Import LowDB function
 import { changeLog } from '../data/changeLog';
 import { broadcastNotification, sendNotificationToUser, broadcastLocalizedNotification, sendLocalizedNotificationToUser } from './notificationService';
@@ -250,7 +254,8 @@ const root = (io: any) => ({
 
       ## Authentication
 
-      This API uses [insert authentication mechanism here].
+      Queries are public. Mutations require a Supabase session: pass the user's access
+      token as \`Authorization: Bearer <token>\`. (Not enforced in development/test environments.)
     `;
   },
 
@@ -311,16 +316,49 @@ const root = (io: any) => ({
 });
 
 /**
+ * Determines whether a GraphQL document contains a mutation operation.
+ * Invalid documents return false and are left to the GraphQL handler to reject.
+ * @param query - Raw GraphQL query string from the request body
+ * @returns True if the document declares a mutation operation
+ */
+function containsMutation(query: string): boolean {
+  try {
+    return parse(query).definitions.some(
+      (definition) => definition.kind === 'OperationDefinition' && definition.operation === 'mutation'
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Creates Express middleware for handling GraphQL requests.
  * Restricts requests to POST method only and integrates Socket.IO instance for real-time updates.
+ * Mutations require a valid Supabase Bearer token outside development/test environments;
+ * queries remain public.
+ * @param supabaseAuth - Supabase client for mutation token validation, or null if not configured
  * @returns Express middleware function that handles GraphQL POST requests
  */
-export function graphqlMiddleware() {
+export function graphqlMiddleware(supabaseAuth: SupabaseClient | null = null) {
   return (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const io = req.app.get('io'); // Retrieve io instance
 
     if (req.method === 'POST') {
-      express.json()(req, res, () => {
+      express.json()(req, res, async () => {
+        const query = typeof req.body?.query === 'string' ? req.body.query : '';
+
+        if (isAuthEnforced() && containsMutation(query)) {
+          if (!supabaseAuth) {
+            res.status(503).json({ errors: [{ message: AUTH_ERROR_CODES.SERVICE_NOT_CONFIGURED }] });
+            return;
+          }
+          const userId = await getUserIdFromRequest(req, supabaseAuth);
+          if (!userId) {
+            res.status(401).json({ errors: [{ message: AUTH_ERROR_CODES.UNAUTHORIZED }] });
+            return;
+          }
+        }
+
         createHandler({
           schema,
           rootValue: root(io), // Pass io to root resolvers

@@ -186,7 +186,7 @@ export function setupApp(): express.Application {
 
   // GraphQL endpoint - MUST come before static file serving
   // Uses /gql to avoid collision with /graphql-api client route
-  app.all('/gql', apiLimiter, graphqlMiddleware());
+  app.all('/gql', apiLimiter, graphqlMiddleware(supabase?.auth ?? null));
 
   // Static file serving with catch-all MUST come last
   setupStaticFileServing(app, process.env.NODE_ENV || 'development');

@@ -694,4 +694,136 @@ describe('GraphQL API', () => {
       expect(response.body.data).toHaveProperty('createUsername');
     });
   });
+
+  describe('Mutation authentication (enforced environments)', () => {
+    let authApp: express.Application;
+    let authServer: http.Server;
+    let authIo: Server;
+    const getUser = jest.fn();
+    const mockSupabase = { auth: { getUser } } as unknown as import('@supabase/supabase-js').SupabaseClient;
+    const originalNodeEnv = process.env.NODE_ENV;
+
+    const FLAG_MUTATION = `
+      mutation {
+        updateFeatureFlag(key: "Test Flag", value: true) {
+          key
+          value
+        }
+      }
+    `;
+
+    // Second hoisted listener for the supabase-configured middleware variant
+    beforeAll(async () => {
+      authApp = express();
+      authIo = new Server();
+      authApp.set('io', authIo);
+      authApp.use(graphqlMiddleware(mockSupabase));
+
+      authServer = authApp.listen(0);
+      await new Promise<void>(resolve => authServer.once('listening', () => resolve()));
+    });
+
+    afterAll(async () => {
+      await new Promise<void>(resolve => authServer.close(() => resolve()));
+    });
+
+    beforeEach(() => {
+      process.env.NODE_ENV = 'production';
+    });
+
+    afterEach(() => {
+      process.env.NODE_ENV = originalNodeEnv;
+    });
+
+    it('should keep queries public when auth is enforced', async () => {
+      const response = await request(authServer)
+        .post('/api')
+        .send({ query: 'query { version }' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.version).toBe(1.0);
+      expect(getUser).not.toHaveBeenCalled();
+    });
+
+    it('should return 503 for mutations when supabase is not configured', async () => {
+      // The main server was created with graphqlMiddleware() and no supabase client
+      const response = await request(server)
+        .post('/api')
+        .send({ query: FLAG_MUTATION });
+
+      expect(response.status).toBe(503);
+      expect(response.body).toEqual({ errors: [{ message: 'AUTH_SERVICE_NOT_CONFIGURED' }] });
+    });
+
+    it('should return 401 for mutations without a bearer token', async () => {
+      const response = await request(authServer)
+        .post('/api')
+        .send({ query: FLAG_MUTATION });
+
+      expect(response.status).toBe(401);
+      expect(response.body).toEqual({ errors: [{ message: 'AUTH_UNAUTHORIZED' }] });
+      expect(getUser).not.toHaveBeenCalled();
+    });
+
+    it('should return 401 for mutations with an invalid token', async () => {
+      getUser.mockResolvedValue({ data: { user: null }, error: new Error('bad token') });
+
+      const response = await request(authServer)
+        .post('/api')
+        .set('Authorization', 'Bearer invalid-token')
+        .send({ query: FLAG_MUTATION });
+
+      expect(response.status).toBe(401);
+      expect(response.body).toEqual({ errors: [{ message: 'AUTH_UNAUTHORIZED' }] });
+      expect(getUser).toHaveBeenCalledWith('invalid-token');
+    });
+
+    it('should execute mutations with a valid token', async () => {
+      getUser.mockResolvedValue({ data: { user: { id: 'user-123' } }, error: null });
+      (writeFeatureFlags as jest.Mock).mockResolvedValue({ 'Test Flag': true });
+      const emitSpy = jest.spyOn(authIo, 'emit');
+
+      const response = await request(authServer)
+        .post('/api')
+        .set('Authorization', 'Bearer valid-token')
+        .send({ query: FLAG_MUTATION });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.updateFeatureFlag).toEqual({ key: 'Test Flag', value: true });
+      expect(getUser).toHaveBeenCalledWith('valid-token');
+      expect(writeFeatureFlags).toHaveBeenCalledWith({ 'Test Flag': true });
+      expect(emitSpy).toHaveBeenCalledWith('update-feature-flags', { 'Test Flag': true });
+    });
+
+    it('should leave requests without a parseable query to the GraphQL handler', async () => {
+      // No query string in the body: not treated as a mutation, handler rejects it
+      const response = await request(authServer)
+        .post('/api')
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(getUser).not.toHaveBeenCalled();
+    });
+
+    it('should treat unparseable query strings as non-mutations and let the handler reject them', async () => {
+      const response = await request(authServer)
+        .post('/api')
+        .send({ query: 'mutation { not valid graphql !!' });
+
+      expect(response.body.errors).toBeDefined();
+      expect(response.body.data).toBeUndefined();
+      expect(getUser).not.toHaveBeenCalled();
+    });
+
+    it('should leave non-JSON bodies to the GraphQL handler', async () => {
+      // express.json() leaves req.body undefined for non-JSON content types
+      const response = await request(authServer)
+        .post('/api')
+        .set('Content-Type', 'text/plain')
+        .send('mutation { updateFeatureFlag }');
+
+      expect(response.status).toBe(415);
+      expect(getUser).not.toHaveBeenCalled();
+    });
+  });
 });
