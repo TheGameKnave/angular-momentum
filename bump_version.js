@@ -66,7 +66,7 @@ const targets = [
   },
   {
     file: "package-lock.json",
-    pattern: /("name":\s*"angular-momentum",\s*\n\s*"version":\s*")(\d+\.\d+\.\d+)(")/,
+    pattern: /("name":\s*"angular-momentum",\s*\n\s*"version":\s*")(\d+\.\d+\.\d+)(")/g,
     replacement: `$1${newVersion}$3`,
   },
   {
@@ -81,7 +81,7 @@ const targets = [
   },
   {
     file: "client/src-tauri/Cargo.lock",
-    pattern: /(name\s*=\s*"angular-momentum"\s*\n\s*version\s*=\s*")(\d+\.\d+\.\d+)(")/,
+    pattern: /(name\s*=\s*"angular-momentum"\s*\n\s*version\s*=\s*")(\d+\.\d+\.\d+)(")/g,
     replacement: `$1${newVersion}$3`,
   },
   {
