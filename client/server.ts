@@ -43,6 +43,9 @@ app.use((_req, res, next) => {
 
 // Enable gzip compression for all responses
 app.use(compression());
+// Behind Heroku's router req.ip needs the forwarded header honored, otherwise
+// every client shares the router's IP in the og-image rate limiter
+app.set('trust proxy', 1);
 
 const commonEngine = new CommonEngine({
   allowedHosts: ['localhost', 'angularmomentum.app'],
@@ -58,9 +61,42 @@ const OG_IMAGE_ALLOWED_HOSTS = new Set([
   ...(process.env['NODE_ENV'] === 'production' ? [] : ['localhost', '127.0.0.1']),
 ]);
 
+// Dedicated limiter for og-image: the endpoint sits in front of the API proxy,
+// so the API server's rate limiter never sees it — and a cache miss costs a
+// ~10s headless-browser render. Fixed window, per IP, dependency-free.
+const OG_IMAGE_WINDOW_MS = 10 * 60 * 1000;
+const OG_IMAGE_MAX_PER_WINDOW = 20;
+const ogImageHits = new Map<string, { count: number; windowStart: number }>();
+
+/**
+ * Fixed-window per-IP rate check for the og-image endpoint.
+ * @param ip - Client IP (honoring trust proxy so it isn't the router's IP)
+ * @returns true when this request exceeds the window allowance and should be rejected
+ */
+function ogImageRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const hit = ogImageHits.get(ip);
+  if (!hit || now - hit.windowStart >= OG_IMAGE_WINDOW_MS) {
+    // New window — also prune stale entries so the map can't grow unbounded
+    for (const [key, value] of ogImageHits) {
+      if (now - value.windowStart >= OG_IMAGE_WINDOW_MS) {
+        ogImageHits.delete(key);
+      }
+    }
+    ogImageHits.set(ip, { count: 1, windowStart: now });
+    return false;
+  }
+  hit.count += 1;
+  return hit.count > OG_IMAGE_MAX_PER_WINDOW;
+}
+
 // Screenshot generation endpoint - MUST be before API proxy
 app.get('/api/og-image', async (req, res): Promise<void> => {
   try {
+    if (ogImageRateLimited(req.ip ?? req.socket.remoteAddress ?? 'unknown')) {
+      res.status(429).json({ error: 'Too many requests' });
+      return;
+    }
     const { url, width, height } = req.query;
 
     if (!url || typeof url !== 'string') {

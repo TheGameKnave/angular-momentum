@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 interface ScreenshotOptions {
@@ -29,6 +29,10 @@ export class ScreenshotService {
   private browser: PlaywrightBrowser | null = null;
   private readonly cacheDir: string;
   private cacheDuration: number = 24 * 60 * 60 * 1000; // 24 hours
+  // Hard cap on cached screenshots — each unique url/size combination writes a
+  // PNG to disk, so without a cap the cache grows unbounded. Oldest entries
+  // (and their files) are evicted when the cap is exceeded.
+  private readonly maxCacheEntries: number = 100;
   private screenshotCache: Map<string, CachedScreenshot> = new Map();
 
   /**
@@ -193,6 +197,7 @@ export class ScreenshotService {
         timestamp: Date.now(),
         hash: cacheKey,
       });
+      this.evictOverflow();
       this.saveCacheIndex();
 
       return screenshot;
@@ -211,6 +216,30 @@ export class ScreenshotService {
     if (this.browser) {
       await this.browser.close();
       this.browser = null;
+    }
+  }
+
+  /**
+   * Evicts the oldest cache entries (and their PNG files) once the cache
+   * exceeds maxCacheEntries.
+   */
+  private evictOverflow(): void {
+    if (this.screenshotCache.size <= this.maxCacheEntries) {
+      return;
+    }
+    const entries = [...this.screenshotCache.entries()]
+      .sort(([, a], [, b]) => a.timestamp - b.timestamp);
+    const excess = entries.slice(0, this.screenshotCache.size - this.maxCacheEntries);
+    for (const [key, entry] of excess) {
+      this.screenshotCache.delete(key);
+      const filePath = join(this.cacheDir, entry.path);
+      try {
+        if (existsSync(filePath)) {
+          unlinkSync(filePath);
+        }
+      } catch {
+        // Eviction is best-effort; a locked file just stays on disk
+      }
     }
   }
 
