@@ -5,6 +5,23 @@
 export const changeLog = [
   
   
+  
+  {
+    version: "21.3.8",
+    date: "2026-07-10",
+    description: "Security hardening and build pipeline integrity",
+    changes: [
+      "require authentication for feature-flag and notification mutations (REST and GraphQL); reads stay public",
+      "restrict og-image screenshot endpoint to the app's own hosts",
+      "gate deploys on CI success and enforce the SonarCloud quality gate; local test suite now fails on any step failure",
+      "enforce the 100% coverage mandate in jest and karma configs",
+      "serve ngsw-worker.js with no-cache from the SSR server so service worker updates aren't delayed",
+      "lower Android minSdkVersion from 35 to 24 to restore Play Store device availability",
+      "fix version bumps to update every lockfile occurrence",
+      "Xcode 26 build fixes for iOS and mobile CI",
+      "misc hygiene: rel=noopener on external donation link, Sonar cleanup, e2e screenshot fix",
+    ]
+  },
   {
     version: "21.3.7",
     date: "2026-06-24",
