@@ -125,6 +125,27 @@ export class UserSettingsService {
       .subscribe((payload) => {
         this.handleRemoteSettingsUpdate(payload);
       });
+
+    // The server evicts a socket from its user room when the auth token
+    // expires. Try to re-authenticate with a fresh token (getToken() refreshes
+    // the Supabase session, or logs out and returns null if it's truly gone).
+    this.socketService.listen<{ message: string }>('auth-expired')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.handleAuthExpired();
+      });
+  }
+
+  /**
+   * Handles the server's auth-expired event by re-authenticating the socket
+   * with a refreshed token, or leaving it deauthenticated if the session is gone.
+   */
+  private async handleAuthExpired(): Promise<void> {
+    this.logService.log('WebSocket auth expired, attempting re-authentication');
+    const token = await this.authService.getToken();
+    if (token) {
+      this.authenticateWebSocket(token);
+    }
   }
 
   /**
