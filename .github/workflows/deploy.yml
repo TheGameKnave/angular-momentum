@@ -92,9 +92,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24.11.1
+          cache: npm
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@6d9817901c499d6b02debbb57edb38d33daa680b  # stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4  # v2.9.1
+        with:
+          workspaces: client/src-tauri
 
       - name: Install Linux dependencies
         if: matrix.platform == 'ubuntu-22.04'
@@ -138,11 +144,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24.11.1
+          cache: npm
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@6d9817901c499d6b02debbb57edb38d33daa680b  # stable
         with:
           targets: x86_64-apple-darwin
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4  # v2.9.1
+        with:
+          workspaces: client/src-tauri
 
       - name: Install frontend dependencies
         run: |
@@ -186,6 +198,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24.11.1
+          cache: npm
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -197,6 +210,12 @@ jobs:
         uses: dtolnay/rust-toolchain@6d9817901c499d6b02debbb57edb38d33daa680b  # stable
         with:
           targets: aarch64-apple-ios,aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4  # v2.9.1
+        with:
+          workspaces: client/src-tauri
+          cache-targets: true
 
       - name: Install dependencies
         run: |
@@ -349,7 +368,7 @@ jobs:
       - name: Get version
         id: version
         run: |
-          VERSION=$(node -p "require('./client/package.json').version")
+          VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Deployment Summary

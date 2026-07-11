@@ -36,7 +36,7 @@ function findTsFiles(dir: string): string[] {
       const fullPath = path.join(currentDir, entry.name);
 
       if (entry.isDirectory()) {
-        if (entry.name !== 'node_modules') {
+        if (!['node_modules', 'coverage', 'build', 'dist'].includes(entry.name)) {
           walk(fullPath);
         }
       } else if (entry.isFile() && entry.name.endsWith('.ts') && !entry.name.endsWith('.spec.ts')) {
@@ -56,11 +56,14 @@ function findTsFiles(dir: string): string[] {
 function findViolations(): Violation[] {
   const violations: Violation[] = [];
 
-  // Find all TypeScript files in client/src (excluding spec files)
-  // Resolve path relative to this script's location (tests/)
+  // Find all TypeScript files in client/src and server (excluding spec files)
+  // Resolve paths relative to this script's location (tests/)
   const scriptDir = path.dirname(new URL(import.meta.url).pathname);
-  const clientSrcDir = path.resolve(scriptDir, '../client/src');
-  const files = findTsFiles(clientSrcDir);
+  const sourceRoots = [
+    path.resolve(scriptDir, '../client/src'),
+    path.resolve(scriptDir, '../server'),
+  ];
+  const files = sourceRoots.flatMap(findTsFiles);
 
   for (const file of files) {
     const content = fs.readFileSync(file, 'utf-8');
@@ -69,10 +72,11 @@ function findViolations(): Violation[] {
     lines.forEach((line, index) => {
       // Check for istanbul ignore comments
       if (line.includes('istanbul ignore')) {
-        // Valid patterns: must have " - " or ": " followed by text after "istanbul ignore next/if"
+        // Valid patterns: must have " - ", " -- ", or ": " followed by text
+        // after "istanbul ignore next/if/else/file"
         const hasJustification =
-          /istanbul ignore (next|if)\s*[-:]\s*\S/.test(line) ||
-          /istanbul ignore (next|if)\s*\/\/\s*\S/.test(line);
+          /istanbul ignore (next|if|else|file)\s*(?:--?|:)\s*\S/.test(line) ||
+          /istanbul ignore (next|if|else|file)\s*\/\/\s*\S/.test(line);
 
         if (!hasJustification) {
           violations.push({

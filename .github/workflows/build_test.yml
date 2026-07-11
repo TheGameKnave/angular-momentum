@@ -4,6 +4,12 @@ on:
     branches:
       - '**'
 
+# Supersede in-flight runs on the same branch (but never cancel a main run —
+# deploy.yml keys off its conclusion)
+concurrency:
+  group: build-test-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   build-and-test:
     runs-on: macos-latest
@@ -19,6 +25,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24.11.1
+          cache: npm
 
       - name: Install Dependencies
         run: |

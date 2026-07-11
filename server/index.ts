@@ -195,7 +195,7 @@ export function setupApp(): express.Application {
 }
 
 // Initialize server and WebSocket
-// istanbul ignore next
+// istanbul ignore next - process entrypoint; never executes under jest (specs import setupApp directly)
 if (require.main === module) {
   const app = setupApp();
   const server = createServer(app);

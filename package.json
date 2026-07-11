@@ -19,7 +19,7 @@
     "start:ssr": "echo \"Run server and SSR client, in parallel\" && run-p client:ssr server",
     "start:e2e": "run-p client:e2e server",
     "prod": "run-p client:prod server:prod",
-    "sonar": "sonar-scanner -Dsonar.token=$(grep SONAR_TOKEN server/.env | cut -d '=' -f 2)",
+    "sonar": "SONAR_TOKEN=$(grep SONAR_TOKEN server/.env | cut -d '=' -f 2) sonar-scanner",
     "test": "./tests/test.sh",
     "test:translation": "cd tests/translation && npx tsx translation-validation.ts",
     "test:notification": "cd tests/translation && npx tsx notification-validation.ts",
