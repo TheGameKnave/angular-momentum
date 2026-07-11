@@ -1,5 +1,5 @@
 // websocket.spec.ts
-import { setupWebSocket } from './websocketService';
+import { setupWebSocket, decodeTokenExpiry } from './websocketService';
 import { readFeatureFlags } from './lowDBService';
 import { Server as SocketIOServer } from 'socket.io';
 import { ALLOWED_ORIGINS } from '../constants/server.constants';
@@ -358,6 +358,114 @@ describe('setupWebSocket', () => {
 
       expect(leaveUserRoom).not.toHaveBeenCalled();
       expect(mockSocket.emit).not.toHaveBeenCalledWith('deauthenticated');
+    });
+
+    describe('token expiry', () => {
+      const userId = 'user-123';
+
+      /** Forges an unsigned JWT with the given payload (getUser is mocked, so no signature needed). */
+      const makeToken = (payload: object) =>
+        `header.${Buffer.from(JSON.stringify(payload)).toString('base64url')}.sig`;
+
+      const connect = async () => {
+        setupWebSocket(mockServer, mockSupabase);
+        const connectionHandler = io.on.mock.calls.find(
+          ([event]: [string]) => event === 'connection'
+        )?.[1];
+        await connectionHandler(mockSocket);
+      };
+
+      beforeEach(() => {
+        jest.useFakeTimers();
+        mockSupabase.auth.getUser.mockResolvedValue({ data: { user: { id: userId } }, error: null });
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('should evict the socket from its user room when the token expires', async () => {
+        await connect();
+        const exp = Math.floor(Date.now() / 1000) + 3600;
+        await authenticateHandler(makeToken({ exp }));
+        mockSocket.emit.mockClear();
+        (leaveUserRoom as jest.Mock).mockClear();
+
+        jest.advanceTimersByTime(3600 * 1000 + 1);
+
+        expect(leaveUserRoom).toHaveBeenCalledWith(mockSocket, userId);
+        expect(mockSocket.emit).toHaveBeenCalledWith('auth-expired', { message: 'Session expired' });
+      });
+
+      it('should not schedule eviction for tokens without a readable exp claim', async () => {
+        await connect();
+        await authenticateHandler(makeToken({ sub: userId }));
+        mockSocket.emit.mockClear();
+        (leaveUserRoom as jest.Mock).mockClear();
+
+        jest.advanceTimersByTime(365 * 24 * 3600 * 1000);
+
+        expect(leaveUserRoom).not.toHaveBeenCalled();
+        expect(mockSocket.emit).not.toHaveBeenCalledWith('auth-expired', expect.anything());
+      });
+
+      it('should clear the eviction timer on deauthenticate', async () => {
+        await connect();
+        const exp = Math.floor(Date.now() / 1000) + 3600;
+        await authenticateHandler(makeToken({ exp }));
+        deauthenticateHandler();
+        mockSocket.emit.mockClear();
+
+        jest.advanceTimersByTime(3600 * 1000 + 1);
+
+        expect(mockSocket.emit).not.toHaveBeenCalledWith('auth-expired', expect.anything());
+      });
+
+      it('should clear the eviction timer on disconnect', async () => {
+        await connect();
+        const exp = Math.floor(Date.now() / 1000) + 3600;
+        await authenticateHandler(makeToken({ exp }));
+        disconnectHandler();
+        mockSocket.emit.mockClear();
+
+        jest.advanceTimersByTime(3600 * 1000 + 1);
+
+        expect(mockSocket.emit).not.toHaveBeenCalledWith('auth-expired', expect.anything());
+      });
+
+      it('should reset the eviction timer when re-authenticating', async () => {
+        await connect();
+        const now = Math.floor(Date.now() / 1000);
+        await authenticateHandler(makeToken({ exp: now + 3600 }));
+        await authenticateHandler(makeToken({ exp: now + 7200 }));
+        mockSocket.emit.mockClear();
+        (leaveUserRoom as jest.Mock).mockClear();
+
+        // Past the first token's expiry: the old timer must not fire
+        jest.advanceTimersByTime(3600 * 1000 + 1);
+        expect(mockSocket.emit).not.toHaveBeenCalledWith('auth-expired', expect.anything());
+
+        // Past the second token's expiry: evicted exactly once
+        jest.advanceTimersByTime(3600 * 1000);
+        expect(leaveUserRoom).toHaveBeenCalledTimes(1);
+        expect(mockSocket.emit).toHaveBeenCalledWith('auth-expired', { message: 'Session expired' });
+      });
+    });
+  });
+
+  describe('decodeTokenExpiry', () => {
+    it('should return the exp claim from a JWT payload', () => {
+      const token = `h.${Buffer.from(JSON.stringify({ exp: 1234567890 })).toString('base64url')}.s`;
+      expect(decodeTokenExpiry(token)).toBe(1234567890);
+    });
+
+    it('should return null when exp is not a number', () => {
+      const token = `h.${Buffer.from(JSON.stringify({ exp: 'soon' })).toString('base64url')}.s`;
+      expect(decodeTokenExpiry(token)).toBeNull();
+    });
+
+    it('should return null for malformed tokens', () => {
+      expect(decodeTokenExpiry('not-a-jwt')).toBeNull();
     });
   });
 });
