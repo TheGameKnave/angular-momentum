@@ -13,6 +13,11 @@ describe('Auth Routes', () => {
   // build is fine.
   let noSbApp: Express;
   let noSbServer: http.Server;
+  // Third hoisted listener: middleware overrides req.socket.remoteAddress so
+  // tests can exercise the test-endpoint loopback guard's non-loopback branches.
+  let spoofApp: Express;
+  let spoofServer: http.Server;
+  let spoofedAddress: string | undefined;
   let mockSupabase: any;
   let mockUsernameService: any;
   const originalNodeEnv = process.env.NODE_ENV;
@@ -39,11 +44,25 @@ describe('Auth Routes', () => {
     ));
     noSbServer = noSbApp.listen(0);
     await new Promise<void>(resolve => noSbServer.once('listening', () => resolve()));
+
+    // Spoofed-peer listener: rewrites the socket's remoteAddress before the
+    // router runs, standing in for a request that arrives via a proxy/router
+    // (i.e. any deployed environment) instead of loopback.
+    spoofApp = express();
+    spoofApp.use(express.json());
+    spoofApp.use((req, _res, next) => {
+      Object.defineProperty(req.socket, 'remoteAddress', { value: spoofedAddress, configurable: true });
+      next();
+    });
+    spoofApp.use('/api/auth', (req, res, next) => activeAuthRouter(req, res, next));
+    spoofServer = spoofApp.listen(0);
+    await new Promise<void>(resolve => spoofServer.once('listening', () => resolve()));
   });
 
   afterAll(async () => {
     await new Promise<void>(resolve => server.close(() => resolve()));
     await new Promise<void>(resolve => noSbServer.close(() => resolve()));
+    await new Promise<void>(resolve => spoofServer.close(() => resolve()));
   });
 
   beforeEach(() => {
@@ -1839,6 +1858,34 @@ describe('Auth Routes', () => {
       process.env.NODE_ENV = 'production';
 
       const response = await request(server)
+        .post('/api/auth/test/create-user')
+        .send({ email: 'test@example.com', password: 'password123' });
+
+      expect(response.status).toBe(403);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Test endpoints are only available in test/development environments',
+      });
+    });
+
+    it('should return 403 for non-loopback peers even in test environment', async () => {
+      spoofedAddress = '203.0.113.9';
+
+      const response = await request(spoofServer)
+        .post('/api/auth/test/create-user')
+        .send({ email: 'test@example.com', password: 'password123' });
+
+      expect(response.status).toBe(403);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Test endpoints are only available in test/development environments',
+      });
+    });
+
+    it('should return 403 when the peer address is unavailable', async () => {
+      spoofedAddress = undefined;
+
+      const response = await request(spoofServer)
         .post('/api/auth/test/create-user')
         .send({ email: 'test@example.com', password: 'password123' });
 

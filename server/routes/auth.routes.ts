@@ -48,13 +48,34 @@ export function createAuthRoutes(
     return { success: true };
   }
 
+  const LOOPBACK_ADDRESSES = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
+
   /**
    * Guard for test-only endpoints.
    * Returns the supabase client if checks pass, null if response was sent.
    * This pattern ensures TypeScript knows supabase is non-null when returned.
+   *
+   * Two independent gates, both required:
+   * - NODE_ENV must be test/development
+   * - the TCP peer must be loopback (req.socket.remoteAddress, which unlike
+   *   req.ip cannot be forged via X-Forwarded-For). A deployed server sits
+   *   behind a router/proxy, so requests never arrive from loopback even if
+   *   NODE_ENV is misconfigured.
+   *
+   * Forks: if you need remote e2e against a deployed environment, replace the
+   * loopback check with a required secret header — as a deliberate decision,
+   * not a default.
+   *
+   * @param req - Express request (its socket's remoteAddress is the peer check)
+   * @param res - Express response, written with 403/503 when a gate fails
+   * @returns the supabase client when both gates pass, null when a response was sent
    */
-  function testEndpointGuard(res: Response): SupabaseClient | null {
-    if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
+  function testEndpointGuard(req: Request, res: Response): SupabaseClient | null {
+    const remoteAddress = req.socket.remoteAddress ?? '';
+    if (
+      (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') ||
+      !LOOPBACK_ADDRESSES.has(remoteAddress)
+    ) {
       res.status(403).json({
         success: false,
         error: 'Test endpoints are only available in test/development environments'
@@ -97,7 +118,7 @@ export function createAuthRoutes(
    * }
    */
   router.post('/test/create-user', async (req: Request, res: Response) => {
-    const sb = testEndpointGuard(res);
+    const sb = testEndpointGuard(req, res);
     if (!sb) return;
 
     const { email, password, username } = req.body;
@@ -173,7 +194,7 @@ export function createAuthRoutes(
    * }
    */
   router.delete('/test/delete-user', async (req: Request, res: Response) => {
-    const sb = testEndpointGuard(res);
+    const sb = testEndpointGuard(req, res);
     if (!sb) return;
 
     const { email, userId } = req.body;
@@ -239,7 +260,7 @@ export function createAuthRoutes(
    * }
    */
   router.delete('/test/cleanup-e2e-users', async (req: Request, res: Response) => {
-    const sb = testEndpointGuard(res);
+    const sb = testEndpointGuard(req, res);
     if (!sb) return;
 
     try {
