@@ -626,30 +626,6 @@ describe('GraphQL API', () => {
       }
     });
 
-    it('should create username - invalid username (lines 252-255)', async () => {
-      const mutation = `
-        mutation {
-          createUsername(userId: "test-user-id", username: "ab") {
-            success
-            error
-            fingerprint
-          }
-        }
-      `;
-
-      const response = await request(server)
-        .post('/api')
-        .send({ query: mutation });
-
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('data');
-      // Should return error for invalid username
-      if (response.body.data?.createUsername) {
-        expect(response.body.data.createUsername.success).toBe(false);
-        expect(response.body.data.createUsername).toHaveProperty('error');
-      }
-    });
-
     it('should check username availability - valid username (lines 236-240)', async () => {
       // Use a valid username format to pass validation and execute the service call
       const query = `
@@ -672,27 +648,6 @@ describe('GraphQL API', () => {
       expect(response.body.data).toHaveProperty('checkUsernameAvailability');
     });
 
-    it('should create username - valid username (line 261)', async () => {
-      // Use a valid username format to pass validation and execute the service call
-      const mutation = `
-        mutation {
-          createUsername(userId: "test-user-id", username: "validuser123") {
-            success
-            error
-            fingerprint
-          }
-        }
-      `;
-
-      const response = await request(server)
-        .post('/api')
-        .send({ query: mutation });
-
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('data');
-      // Line 261 should execute even if DB call fails
-      expect(response.body.data).toHaveProperty('createUsername');
-    });
   });
 
   describe('Mutation authentication (enforced environments)', () => {

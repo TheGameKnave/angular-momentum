@@ -423,57 +423,6 @@ export function createAuthRoutes(
   });
 
   /**
-   * POST /api/auth/username/create
-   * Creates a new username for a user.
-   *
-   * Request body:
-   * {
-   *   "userId": "uuid-here",
-   *   "username": "José™ 🎨"
-   * }
-   *
-   * Response:
-   * {
-   *   "success": true,
-   *   "fingerprint": "jose",
-   *   "error": null
-   * }
-   */
-  router.post('/username/create', async (req: Request, res: Response) => {
-    const { userId, username } = req.body;
-
-    if (!userId || !username) {
-      return res.status(400).json({
-        success: false,
-        error: USERNAME_ERROR_CODES.REQUIRED
-      });
-    }
-
-    if (!usernameService) {
-      return res.status(503).json({
-        success: false,
-        error: AUTH_ERROR_CODES.SERVICE_NOT_CONFIGURED
-      });
-    }
-
-    const validationResult = usernameService.validateUsername(username);
-    if (!validationResult.valid || !validationResult.fingerprint) {
-      return res.json({
-        success: false,
-        error: USERNAME_ERROR_CODES.NOT_AVAILABLE
-      });
-    }
-
-    const result = await usernameService.createUsername(
-      userId,
-      username,
-      validationResult.fingerprint
-    );
-
-    res.json(result);
-  });
-
-  /**
    * POST /api/auth/login
    * Handles login with email OR username + password.
    * Username → email lookup happens server-side (not exposed to client).

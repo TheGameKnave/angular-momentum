@@ -35,7 +35,6 @@ const schema = buildSchema(`
     sendNotificationToSocket(socketId: String!, title: String!, body: String!, icon: String, data: String): NotificationResult
     sendLocalizedNotification(notificationId: String!, params: String): NotificationResult
     sendLocalizedNotificationToSocket(socketId: String!, notificationId: String!, params: String): NotificationResult
-    createUsername(userId: String!, username: String!): UsernameCreationResult
   }
 
   type ChangeEntry {
@@ -67,11 +66,6 @@ const schema = buildSchema(`
     error: String
   }
 
-  type UsernameCreationResult {
-    success: Boolean!
-    fingerprint: String
-    error: String
-  }
 `);
 
 // Initialize Username Service
@@ -250,7 +244,6 @@ const root = (io: any) => ({
       * \`sendNotificationToSocket(socketId: String!, title: String!, body: String!, icon: String, data: String)\`: Sends a push notification to a specific socket/user via WebSocket.
       * \`sendLocalizedNotification(notificationId: String!, params: String)\`: Broadcasts a localized notification (all languages) to all clients. Supports ICU params.
       * \`sendLocalizedNotificationToSocket(socketId: String!, notificationId: String!, params: String)\`: Sends a localized notification to a specific socket.
-      * \`createUsername(userId: String!, username: String!)\`: Creates a new username for a user.
 
       ## Authentication
 
@@ -292,27 +285,6 @@ const root = (io: any) => ({
     };
   },
 
-  /**
-   * Creates a new username for a user.
-   * @param userId - Supabase user ID
-   * @param username - Username to create
-   * @returns Creation result
-   */
-  createUsername: async ({ userId, username }: { userId: string; username: string }) => {
-    const validationResult = usernameService.validateUsername(username);
-    if (!validationResult.valid || !validationResult.fingerprint) {
-      return {
-        success: false,
-        error: validationResult.error
-      };
-    }
-
-    return await usernameService.createUsername(
-      userId,
-      username,
-      validationResult.fingerprint
-    );
-  },
 });
 
 /**

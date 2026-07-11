@@ -80,11 +80,6 @@ mutation { checkUsernameAvailability(username: "José™ 🎨")
   { available, fingerprint, error }
 }
 
-# Create username for user
-mutation { createUsername(userId: "uuid", username: "José™ 🎨")
-  { success, fingerprint, error }
-}
-
 # Look up email by username (for login)
 query { getEmailByUsername(username: "José™ 🎨")
   { email }

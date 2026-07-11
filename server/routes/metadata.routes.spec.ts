@@ -106,7 +106,6 @@ describe('Metadata Routes', () => {
       expect(response.body.markdown).toContain('Username Management');
       expect(response.body.markdown).toContain('validateUsername');
       expect(response.body.markdown).toContain('checkUsernameAvailability');
-      expect(response.body.markdown).toContain('createUsername');
       expect(response.body.markdown).toContain('getEmailByUsername');
     });
 

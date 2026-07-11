@@ -48,7 +48,6 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 Known issues from the 2026-07 architecture/test audit, tabled for future sessions. (The critical items — deploy gates, coverage enforcement, Sonar quality-gate check, mutation auth, og-image SSRF allowlist — were fixed at the time.)
 
 ### Security
-- [ ] `createUsername` (GraphQL + `POST /api/auth/username/create`) accepts a raw `userId` with no ownership check — pre-squat risk. Careful: username creation happens during signup, possibly before a session exists (email confirmation), so the fix is likely "create username server-side via the signup webhook" rather than a bearer-token check.
 - [ ] Websocket auth never re-validates: a socket that authenticates once stays in `user:{id}` past token expiry/revocation. Store `exp` at auth time and re-check; consider moving auth into `io.use()` middleware.
 - [ ] Test-only user-admin endpoints (`/api/auth/test/*` — Supabase admin create/delete) are gated only by `NODE_ENV`. Add a required secret header or exclude them from the production bundle.
 - [ ] `/api/og-image` still has no rate limit of its own (it's mounted before the API proxy, so the API limiter never applies) and its PNG cache on disk grows unbounded.
