@@ -8,7 +8,6 @@
  */
 export const ALLOWED_ORIGINS = [
   'http://localhost:4200',
-  'http://192.168.1.x:4200',
   'https://dev.angularmomentum.app',
   'https://staging.angularmomentum.app',
   'https://angularmomentum.app',

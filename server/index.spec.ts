@@ -1,4 +1,6 @@
-// Mock console before imports to suppress module-level logs
+// Mock console before imports to suppress module-level logs.
+// Snapshot first so it can be restored in afterAll below.
+const originalConsole = global.console;
 global.console = {
   ...console,
   log: jest.fn(),
@@ -8,65 +10,100 @@ global.console = {
 
 import request from 'supertest';
 import express from 'express';
+import { Server } from 'http';
+import { AddressInfo } from 'net';
 import { setupApp } from './index';
+
+afterAll(() => {
+  global.console = originalConsole;
+});
 
 describe('Express server', () => {
   let app: express.Application;
-  let server: any;
+  let server: Server;
 
-  const startServer = (env: string, port: number) => {
-    process.env.NODE_ENV = env;
-    process.env.SERVER_PORT = port.toString();
+  // Environment variables mutated by tests; snapshotted in beforeEach and
+  // restored in afterEach so a failed assertion can never leak state.
+  const ENV_KEYS = ['NODE_ENV', 'SERVER_PORT', 'SUPABASE_URL', 'SUPABASE_SERVICE_KEY'] as const;
+  let envSnapshot: Record<string, string | undefined>;
+
+  /**
+   * Starts an HTTP listener for the given app on an ephemeral port (port 0).
+   * The listener is stored in the shared `server` variable so the global
+   * afterEach can always tear it down, even when an assertion fails mid-test.
+   */
+  const listen = (application: express.Application): Promise<void> =>
+    new Promise((resolve) => {
+      server = application.listen(0, () => resolve());
+    });
+
+  /**
+   * Sets NODE_ENV (or removes it when omitted), builds a fresh app via
+   * setupApp(), and starts a listener on an OS-assigned ephemeral port.
+   */
+  const startServer = async (env?: string): Promise<void> => {
+    if (env === undefined) {
+      delete process.env.NODE_ENV;
+    } else {
+      process.env.NODE_ENV = env;
+    }
     app = setupApp();
-    return new Promise((resolve) => {
-      server = app.listen(port, () => {
-        resolve(server);
-      });
-    });
+    await listen(app);
   };
 
-  const stopServer = (): Promise<void> => {
-    return new Promise<void>((resolve) => {
-      server.close(() => {
-        resolve(); // Resolve without any value
+  beforeEach(() => {
+    envSnapshot = {};
+    for (const key of ENV_KEYS) {
+      envSnapshot[key] = process.env[key];
+    }
+  });
+
+  afterEach(async () => {
+    // Teardown lives here (not inline in test bodies) so a failed assertion
+    // cannot leak a listener or leave mutated env vars behind.
+    if (server?.listening) {
+      await new Promise<void>((resolve) => {
+        server.close(() => resolve());
       });
-    });
-  };
+    }
+    for (const key of ENV_KEYS) {
+      if (envSnapshot[key] === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = envSnapshot[key];
+      }
+    }
+  });
 
   describe('Environment Tests', () => {
     it('should serve static files in production', async () => {
-      await startServer('production', 9200);
-      const response = await request(app).get('/');
+      await startServer('production');
+      const response = await request(server).get('/');
       expect(response.status).toBe(200);
-      expect(response.text).toContain('<!DOCTYPE html>'); // Adjust based on your index.html content
-      await stopServer();
+      expect(response.text).toContain('<!DOCTYPE html>');
     });
 
     it('should serve static files in development', async () => {
-      await startServer('development', 9201);
-      const response = await request(app).get('/');
+      await startServer('development');
+      const response = await request(server).get('/');
       expect(response.status).toBe(200);
-      expect(response.text).toContain('<!DOCTYPE html>'); // Adjust based on your index.html content
+      expect(response.text).toContain('<!DOCTYPE html>');
 
       // Additional assertion to ensure the file is served from the correct path
-      expect(response.headers['content-type']).toContain('text/html'); // Ensure the file is served correctly
-      await stopServer();
+      expect(response.headers['content-type']).toContain('text/html');
     });
 
     it('should serve static files when NODE_ENV is undefined, falling back to development', async () => {
-      delete process.env.NODE_ENV; // Ensure NODE_ENV is undefined
-      await startServer('' as any, 9204); // Pass an empty string or undefined explicitly
-      const response = await request(app).get('/');
+      await startServer(); // NODE_ENV removed entirely -> falls back to 'development'
+      const response = await request(server).get('/');
       expect(response.status).toBe(200);
-      expect(response.text).toContain('<!DOCTYPE html>'); // Ensure that it falls back to serving static files as if in development
-      await stopServer();
+      expect(response.text).toContain('<!DOCTYPE html>');
     });
 
     it('should not serve static files in test environment', async () => {
-      await startServer('test', 9202);
-      const response = await request(app).get('/');
-      expect(response.status).toBe(404); // Adjust if your app responds differently
-      await stopServer();
+      await startServer('test');
+      const response = await request(server).get('/');
+      expect(response.status).toBe(404);
     });
 
     it('should fall back to index.html when index.csr.html does not exist', async () => {
@@ -74,150 +111,155 @@ describe('Express server', () => {
       // The test passes because index.csr.html exists and is served
       // The fallback to index.html is tested implicitly - if index.csr.html
       // didn't exist, it would try index.html
-      await startServer('production', 9206);
-      const response = await request(app).get('/nonexistent-route');
+      await startServer('production');
+      const response = await request(server).get('/nonexistent-route');
       expect(response.status).toBe(200);
       expect(response.text).toContain('<!DOCTYPE html>');
-      await stopServer();
     });
 
     it('should serve ngsw.json with no-cache headers', async () => {
-      await startServer('production', 9207);
-      const response = await request(app).get('/ngsw.json');
+      await startServer('production');
+      const response = await request(server).get('/ngsw.json');
       expect(response.status).toBe(200);
       expect(response.headers['cache-control']).toBe('no-cache, no-store, must-revalidate');
       expect(response.headers['pragma']).toBe('no-cache');
       expect(response.headers['expires']).toBe('0');
-      await stopServer();
     });
 
     it('should serve ngsw-worker.js with no-cache headers', async () => {
-      await startServer('production', 9209);
-      const response = await request(app).get('/ngsw-worker.js');
+      await startServer('production');
+      const response = await request(server).get('/ngsw-worker.js');
       expect(response.status).toBe(200);
       expect(response.headers['cache-control']).toBe('no-cache, no-store, must-revalidate');
       expect(response.headers['pragma']).toBe('no-cache');
       expect(response.headers['expires']).toBe('0');
-      await stopServer();
     });
   });
 
   describe('Rate Limiting Tests', () => {
     beforeEach(async () => {
-      await startServer('production', 9200);
+      await startServer('production');
     });
 
-    afterEach(async () => {
-      await stopServer();
-    });
-
-    it('should apply rate limiting to API routes', async () => {
-      // Simulate multiple requests to test rate limiting behavior
-      for (let i = 0; i < 10; i++) {
-        await request(app).get('/api/test');
+    it('should allow 100 API requests then reject the 101st with 429', async () => {
+      // setupApp configures the limiter with max: 100 per 10-minute window
+      // (and each setupApp() call gets its own in-memory store, so this test
+      // cannot bleed into other tests' apps).
+      for (let i = 0; i < 100; i++) {
+        const response = await request(server).get('/api/test');
+        expect(response.status).not.toBe(429);
       }
-      const response = await request(app).get('/api/test');
-      expect(response.status).not.toBe(429); // Ensure not rate limited on the first few requests
-    });
+
+      const limited = await request(server).get('/api/test');
+      expect(limited.status).toBe(429);
+      expect(limited.headers['retry-after']).toBeDefined();
+    }, 30000);
   });
 
   describe('Server Port Tests', () => {
-    it('should start the server on the specified port', async () => {
-      await startServer('production', 9203);
-      expect(server.address().port).toBe(9203);
-      await stopServer();
+    it('should listen on the OS-assigned ephemeral port and serve traffic on it', async () => {
+      await startServer('production');
+      const { port } = server.address() as AddressInfo;
+      expect(port).toBeGreaterThan(0);
+
+      // The listener actually serves traffic on the assigned port
+      const response = await request(server).get('/');
+      expect(response.status).toBe(200);
     });
   });
 
   describe('Supabase Initialization', () => {
-    it('should return null when Supabase URL is missing', async () => {
+    /**
+     * Builds a fresh app with ./config/environment mocked to the given values.
+     * Mocking the config module directly: setting process.env here is unreliable —
+     * config is captured at module load, and a doMock from an earlier test
+     * survives resetModules and would leave supabase unconfigured. Mocking with
+     * explicit values makes each path deterministic regardless of whether a
+     * local .env exists (CI has none). __esModule: true is load-bearing: it is
+     * what makes the default export resolve (and coverage deterministic) in CI.
+     */
+    const setupAppWithMockedConfig = (
+      supabaseUrl: string | undefined,
+      supabaseServiceKey: string | undefined,
+    ): express.Application => {
       jest.resetModules();
       jest.doMock('./config/environment', () => ({
         __esModule: true,
         default: {
-          supabase_url: undefined,
-          supabase_service_key: 'test-key',
+          supabase_url: supabaseUrl,
+          supabase_service_key: supabaseServiceKey,
         },
       }));
 
-      const { setupApp: setupAppNoUrl } = require('./index');
-      const appNoUrl = setupAppNoUrl();
+      const { setupApp: freshSetupApp } = require('./index');
+      return freshSetupApp();
+    };
 
-      expect(appNoUrl).toBeDefined();
-      jest.resetModules();
-    });
-
-    it('should return null when Supabase service key is missing', async () => {
-      jest.resetModules();
-      jest.doMock('./config/environment', () => ({
-        __esModule: true,
-        default: {
-          supabase_url: 'https://test.supabase.co',
-          supabase_service_key: undefined,
-        },
-      }));
-
-      const { setupApp: setupAppNoKey } = require('./index');
-      const appNoKey = setupAppNoKey();
-
-      expect(appNoKey).toBeDefined();
-      jest.resetModules();
-    });
-
-    it('should initialize Supabase when config is provided (lines 43-44, 61)', async () => {
-      // Mock the config module directly: setting process.env here is unreliable —
-      // config is captured at module load, and a doMock from an earlier test
-      // survives resetModules and would leave supabase unconfigured. Mocking with
-      // defined values makes the configured path deterministic regardless of
-      // whether a local .env exists (CI has none).
-      jest.resetModules();
-      jest.doMock('./config/environment', () => ({
-        __esModule: true,
-        default: {
-          supabase_url: 'https://test.supabase.co',
-          supabase_service_key: 'test-service-key-1234567890',
-        },
-      }));
-
-      const { setupApp: setupAppWithConfig } = require('./index');
-      const appWithConfig = setupAppWithConfig();
-
-      // Verify app was created successfully
-      expect(appWithConfig).toBeDefined();
-
-      // Clean up
+    afterEach(() => {
       jest.dontMock('./config/environment');
       jest.resetModules();
     });
 
-    it('should start server successfully with Supabase configured', async () => {
-      // Set environment variables
-      process.env.SUPABASE_URL = 'https://test.supabase.co';
-      process.env.SUPABASE_SERVICE_KEY = 'test-service-key-1234567890';
+    it('should leave Supabase-backed endpoints unconfigured (503) when Supabase URL is missing', async () => {
+      const appNoUrl = setupAppWithMockedConfig(undefined, 'test-key');
+      await listen(appNoUrl);
 
-      await startServer('production', 9205);
+      // initializeSupabase() returned null, so the webhook endpoint reports 503
+      const response = await request(server)
+        .post('/api/auth/webhook/signup-verification')
+        .send({ record: { id: 'user-1' } });
 
-      // App should start successfully with Supabase configured
-      expect(server.address().port).toBe(9205);
+      expect(response.status).toBe(503);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'AUTH_SERVICE_NOT_CONFIGURED',
+      });
+    });
 
-      // Clean up
-      delete process.env.SUPABASE_URL;
-      delete process.env.SUPABASE_SERVICE_KEY;
-      await stopServer();
+    it('should leave Supabase-backed endpoints unconfigured (503) when Supabase service key is missing', async () => {
+      const appNoKey = setupAppWithMockedConfig('https://test.supabase.co', undefined);
+      await listen(appNoKey);
+
+      const response = await request(server)
+        .post('/api/auth/webhook/signup-verification')
+        .send({ record: { id: 'user-1' } });
+
+      expect(response.status).toBe(503);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'AUTH_SERVICE_NOT_CONFIGURED',
+      });
+    });
+
+    it('should initialize Supabase when config is provided and serve Supabase-backed endpoints', async () => {
+      const appConfigured = setupAppWithMockedConfig(
+        'https://test.supabase.co',
+        'test-service-key-1234567890',
+      );
+      await listen(appConfigured);
+
+      // The webhook handler branches on the injected supabase client:
+      // a 200 here proves initializeSupabase() returned a real client pair
+      // (the unconfigured path above returns 503 on the same request).
+      const response = await request(server)
+        .post('/api/auth/webhook/signup-verification')
+        .send({ record: { id: 'user-1' } });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        message: 'User verified',
+      });
     });
   });
 
   describe('Universal Links / App Links Verification', () => {
     beforeEach(async () => {
-      await startServer('production', 9208);
-    });
-
-    afterEach(async () => {
-      await stopServer();
+      await startServer('production');
     });
 
     it('should serve apple-app-site-association for iOS Universal Links', async () => {
-      const response = await request(app).get('/.well-known/apple-app-site-association');
+      const response = await request(server).get('/.well-known/apple-app-site-association');
       expect(response.status).toBe(200);
       expect(response.headers['content-type']).toContain('application/json');
       expect(response.body).toEqual({
@@ -229,7 +271,7 @@ describe('Express server', () => {
     });
 
     it('should serve assetlinks.json for Android App Links', async () => {
-      const response = await request(app).get('/.well-known/assetlinks.json');
+      const response = await request(server).get('/.well-known/assetlinks.json');
       expect(response.status).toBe(200);
       expect(response.headers['content-type']).toContain('application/json');
       expect(response.body).toEqual([{

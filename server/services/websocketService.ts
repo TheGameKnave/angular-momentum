@@ -22,20 +22,6 @@ export function setupWebSocket(server: HTTPServer, supabase?: SupabaseClient | n
     },
   });
 
-  /* eslint-disable @typescript-eslint/no-empty-function */
-  // istanbul ignore next
-  io.engine.on('headers', (_headers, _request) => {});
-  // istanbul ignore next
-  io.engine.on('connection', (_socket) => {});
-  // istanbul ignore next
-  io.engine.on('disconnect', (_socket) => {});
-  // istanbul ignore next
-  io.use((socket, next) => {
-    // Proceed with connection
-    next();
-  });
-  io.on('connect_error', (_err) => {});
-  /* eslint-enable @typescript-eslint/no-empty-function */
   // Handle WebSocket connections
   io.on('connection', async (socket) => {
     // Track authenticated user ID for this socket
@@ -81,17 +67,12 @@ export function setupWebSocket(server: HTTPServer, supabase?: SupabaseClient | n
       }
     });
 
-    /* eslint-disable @typescript-eslint/no-empty-function */
-    // istanbul ignore next
-    socket.onAny((_event, ..._args) => {});
-
     socket.on('disconnect', () => {
       // Clean up user room on disconnect
       if (authenticatedUserId) {
         leaveUserRoom(socket, authenticatedUserId);
       }
     });
-    /* eslint-enable @typescript-eslint/no-empty-function */
   });
 
   return io;
