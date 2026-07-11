@@ -133,6 +133,7 @@ describe('Express server', () => {
     it('should return null when Supabase URL is missing', async () => {
       jest.resetModules();
       jest.doMock('./config/environment', () => ({
+        __esModule: true,
         default: {
           supabase_url: undefined,
           supabase_service_key: 'test-key',
@@ -149,6 +150,7 @@ describe('Express server', () => {
     it('should return null when Supabase service key is missing', async () => {
       jest.resetModules();
       jest.doMock('./config/environment', () => ({
+        __esModule: true,
         default: {
           supabase_url: 'https://test.supabase.co',
           supabase_service_key: undefined,
@@ -163,17 +165,20 @@ describe('Express server', () => {
     });
 
     it('should initialize Supabase when config is provided (lines 43-44, 61)', async () => {
-      // Set environment variables BEFORE importing the module
-      const originalUrl = process.env.SUPABASE_URL;
-      const originalKey = process.env.SUPABASE_SERVICE_KEY;
-
-      process.env.SUPABASE_URL = 'https://test.supabase.co';
-      process.env.SUPABASE_SERVICE_KEY = 'test-service-key-1234567890';
-
-      // Reset modules to force re-import with new env vars
+      // Mock the config module directly: setting process.env here is unreliable —
+      // config is captured at module load, and a doMock from an earlier test
+      // survives resetModules and would leave supabase unconfigured. Mocking with
+      // defined values makes the configured path deterministic regardless of
+      // whether a local .env exists (CI has none).
       jest.resetModules();
+      jest.doMock('./config/environment', () => ({
+        __esModule: true,
+        default: {
+          supabase_url: 'https://test.supabase.co',
+          supabase_service_key: 'test-service-key-1234567890',
+        },
+      }));
 
-      // Re-import after setting env vars
       const { setupApp: setupAppWithConfig } = require('./index');
       const appWithConfig = setupAppWithConfig();
 
@@ -181,18 +186,7 @@ describe('Express server', () => {
       expect(appWithConfig).toBeDefined();
 
       // Clean up
-      if (originalUrl) {
-        process.env.SUPABASE_URL = originalUrl;
-      } else {
-        delete process.env.SUPABASE_URL;
-      }
-      if (originalKey) {
-        process.env.SUPABASE_SERVICE_KEY = originalKey;
-      } else {
-        delete process.env.SUPABASE_SERVICE_KEY;
-      }
-
-      // Reset modules back to original state
+      jest.dontMock('./config/environment');
       jest.resetModules();
     });
 
