@@ -48,9 +48,6 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 Known issues from the 2026-07 architecture/test audit, tabled for future sessions. (The critical items — deploy gates, coverage enforcement, Sonar quality-gate check, mutation auth, og-image SSRF allowlist — were fixed at the time.)
 
 ### Security
-- [ ] Websocket auth never re-validates: a socket that authenticates once stays in `user:{id}` past token expiry/revocation. Store `exp` at auth time and re-check; consider moving auth into `io.use()` middleware.
-- [ ] Test-only user-admin endpoints (`/api/auth/test/*` — Supabase admin create/delete) are gated only by `NODE_ENV`. Add a required secret header or exclude them from the production bundle.
-- [ ] `/api/og-image` still has no rate limit of its own (it's mounted before the API proxy, so the API limiter never applies) and its PNG cache on disk grows unbounded.
 - [ ] Tauri webview ships with `"csp": null` — define a real CSP (Tauri injects its own nonces).
 
 ### Reliability
@@ -63,7 +60,6 @@ Known issues from the 2026-07 architecture/test audit, tabled for future session
 - [ ] `auth.service.ts` window/document listeners have no removal path — spec-side hygiene is fixed, but the service itself should register them via `DestroyRef` so TestBed teardown removes them.
 - [ ] E2E: replace `if (visible)` guards with unconditional assertions (storage-promotion, notifications — one selector referenced there doesn't exist, so the check never runs); reduce the ~139 `waitForTimeout` calls; loosen `maxDiffPixelRatio` per full-page assertion; stub the footer version in the `layout-phone` baseline; add `data-testid` to logout/tabs/panels. Note: snapshot baselines are darwin-only — CI must stay on macOS runners until Linux baselines exist.
 - [ ] `performance.spec.ts` measures evaluate-round-trips against a 48ms threshold and asserts heap growth without forced GC — structurally flaky.
-- [ ] Playwright `reuseExistingServer: !process.env.CI` will run the whole suite against *whatever* answers on port 4200 (observed: a full run against a different project's dev server). Add an app-identity healthcheck before reuse, or set `reuseExistingServer: false`.
 
 ### Housekeeping
 - [ ] `lowdb` is 6 majors old (or gets replaced with a real store when forked).
