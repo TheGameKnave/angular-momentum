@@ -196,20 +196,28 @@ jobs:
             sleep $RETRY_DELAY
           done
 
-          # Task SUCCESS only means the analysis finished — now check the actual quality gate
-          ANALYSIS_ID=$(echo "$RESPONSE" | grep -o '"analysisId":"[^"]*"' | cut -d: -f2 | tr -d '"')
+          # Task SUCCESS only means the analysis finished — now check the actual quality gate.
+          # SonarCloud's plan only exposes gate data for the main branch
+          # ("Organization is not allowed to access data from non main branches"),
+          # so enforcement is main-only; other branches still get analyzed above.
+          if [[ "$GITHUB_REF_NAME" != "main" ]]; then
+            echo "Quality gate enforcement skipped on branch '$GITHUB_REF_NAME' (SonarCloud plan restricts gate data to main)."
+            exit 0
+          fi
+
+          ANALYSIS_ID=$(echo "$RESPONSE" | grep -o '"analysisId":"[^"]*"' | cut -d: -f2 | tr -d '"' || true)
           if [[ -z "$ANALYSIS_ID" ]]; then
             echo "Error: could not extract analysisId from task response."
             exit 1
           fi
 
-          GATE_RESPONSE=$(curl -s -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/qualitygates/project_status?analysisId=$ANALYSIS_ID")
-          GATE_STATUS=$(echo "$GATE_RESPONSE" | grep -o '"status":"[^"]*"' | head -n 1 | cut -d: -f2 | tr -d '"')
+          GATE_RESPONSE=$(curl -s -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/qualitygates/project_status?analysisId=$ANALYSIS_ID" || true)
+          echo "Gate response: $GATE_RESPONSE"
+          GATE_STATUS=$(echo "$GATE_RESPONSE" | grep -o '"status":"[^"]*"' | head -n 1 | cut -d: -f2 | tr -d '"' || true)
           echo "Quality Gate Status: $GATE_STATUS"
 
           if [[ "$GATE_STATUS" != "OK" ]]; then
             echo "Quality gate failed!"
-            echo "$GATE_RESPONSE"
             exit 1
           fi
         shell: bash
