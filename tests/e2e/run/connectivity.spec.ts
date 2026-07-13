@@ -91,27 +91,21 @@ test.describe('Connectivity & Offline Behavior Tests', () => {
       window.dispatchEvent(new Event('offline'));
     });
 
-    // Wait for the offline indicator to update
-    await page.waitForTimeout(500);
-
-    // Check for offline warning icon (exclamation triangle appears when offline)
+    // Offline warning icon (exclamation triangle) appears after the 2s banner grace period
     const warningIcon = page.locator('header .pi-exclamation-triangle');
-    const hasWarningIcon = await warningIcon.isVisible().catch(() => false);
+    await expect(warningIcon).toBeVisible({ timeout: 10000 });
 
-    // The app should show some indication we're offline OR still be functional
-    if (hasWarningIcon) {
-      // Offline warning is visible - good
-      expect(hasWarningIcon).toBe(true);
-    } else {
-      // No warning but app should still be functional
-      await expect(page.locator(menus.featureSidebar)).toBeVisible();
-    }
+    // App should still be functional while offline
+    await expect(page.locator(menus.featureSidebar)).toBeVisible();
 
     // Restore online state
     await context.setOffline(false);
     await page.evaluate(() => {
       window.dispatchEvent(new Event('online'));
     });
+
+    // Warning clears once connectivity is re-verified
+    await expect(warningIcon).not.toBeVisible({ timeout: 10000 });
   });
 
   test('App recovers gracefully when coming back online', async ({ page, context }) => {
@@ -120,15 +114,16 @@ test.describe('Connectivity & Offline Behavior Tests', () => {
     await waitForAngular(page);
     await dismissCookieBanner(page);
 
-    // Go offline
+    // Go offline - wait for the offline warning to appear (after the 2s grace period)
     await context.setOffline(true);
     await page.evaluate(() => window.dispatchEvent(new Event('offline')));
-    await page.waitForTimeout(300);
+    const warningIcon = page.locator('header .pi-exclamation-triangle');
+    await expect(warningIcon).toBeVisible({ timeout: 10000 });
 
-    // Come back online
+    // Come back online - wait for connectivity to be re-verified and the warning to clear
     await context.setOffline(false);
     await page.evaluate(() => window.dispatchEvent(new Event('online')));
-    await page.waitForTimeout(500);
+    await expect(warningIcon).not.toBeVisible({ timeout: 10000 });
 
     // App should remain functional
     await expect(page.locator(menus.featureSidebar)).toBeVisible();
@@ -174,10 +169,11 @@ test.describe('Connectivity & Offline Behavior Tests', () => {
     // Verify initial state
     await expect(page.locator(menus.featureSidebar)).toBeVisible();
 
-    // Simulate temporary network interruption
+    // Simulate temporary network interruption (brief blip, shorter than the 2s banner grace period)
     await context.setOffline(true);
-    await page.waitForTimeout(100);
+    await page.waitForFunction(() => !navigator.onLine);
     await context.setOffline(false);
+    await page.waitForFunction(() => navigator.onLine);
 
     // Navigation should still work
     await page.click(menus.featureLink('features'));

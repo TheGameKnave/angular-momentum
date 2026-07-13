@@ -17,6 +17,10 @@ async function navigateToNotifications(page: any): Promise<void> {
 }
 
 test.describe('Notifications Tests', () => {
+  // Grant the browser notification permission for the whole context so
+  // permission-dependent UI (status grid, local sends) behaves deterministically.
+  test.use({ permissions: ['notifications'] });
+
   test.beforeAll(async () => {
     // Create a shared user for tests
     sharedUser = generateTestUser();
@@ -64,16 +68,13 @@ test.describe('Notifications Tests', () => {
   // PERMISSION TESTS
   // ============================================================================
 
-  test('Request permission button is visible', async ({ page }) => {
+  test('Notification permission status shows granted', async ({ page }) => {
     await navigateToNotifications(page);
 
-    // Look for permission request button
-    const permissionButton = page.locator('app-notifications button:has-text(/permission|enable|allow/i)');
-
-    if (await permissionButton.isVisible().catch(() => false)) {
-      // Note: We can't actually grant notification permissions in automated tests
-      // The browser will block the permission request
-    }
+    // The page has no permission request button (that lives in the notification
+    // center footer and only renders when permission is missing). With the
+    // permission granted via context, the status grid must report Granted.
+    await expect(page.locator(pages.notificationPermissionGranted)).toBeVisible();
 
     // Page should still be on notifications route
     await expect(page).toHaveURL(/\/notifications/);
@@ -86,26 +87,27 @@ test.describe('Notifications Tests', () => {
   test('Notification templates are displayed', async ({ page }) => {
     await navigateToNotifications(page);
 
-    // Check for notification templates or send buttons
-    const hasTemplates = await page.locator(pages.notificationTemplates).isVisible().catch(() => false);
-    const hasSendLocalButton = await page.locator(pages.sendLocalButton).isVisible().catch(() => false);
-    const hasSendServerButton = await page.locator(pages.sendServerButton).isVisible().catch(() => false);
-
-    expect(hasTemplates || hasSendLocalButton || hasSendServerButton).toBeTruthy();
+    // All four predefined templates render, each with its send buttons
+    await expect(page.locator(pages.notificationTemplates)).toBeVisible();
+    await expect(page.locator(pages.notificationTemplateCard)).toHaveCount(4);
+    await expect(page.locator(pages.sendLocalButton)).toHaveCount(4);
+    await expect(page.locator(pages.sendBroadcastButton)).toHaveCount(4);
 
   });
 
-  test('Send local notification button exists', async ({ page }) => {
+  test('Send local notification succeeds', async ({ page }) => {
     await navigateToNotifications(page);
 
-    // Check for send local notification button
-    const sendLocalButton = page.locator('app-notifications button:has-text(/local|send/i)');
+    // Send the first predefined notification locally
+    const sendLocalButton = page.locator(pages.sendLocalButton).first();
+    await expect(sendLocalButton).toBeVisible();
+    await sendLocalButton.click();
 
-    if (await sendLocalButton.isVisible().catch(() => false)) {
-      // Click the button (notification may be blocked by browser, but UI should respond)
-      await sendLocalButton.click();
-      await page.waitForTimeout(600);
-    }
+    // Permission is granted, so the page reports success
+    await expect(page.locator(pages.localNotificationStatus)).toContainText('successfully');
+
+    // The notification is also recorded in the notification center (unread badge)
+    await expect(page.locator(menus.notificationBadge)).toHaveText('1');
 
     // Page should still be on notifications route
     await expect(page).toHaveURL(/\/notifications/);
@@ -118,14 +120,10 @@ test.describe('Notifications Tests', () => {
   test('Server notification requires authentication', async ({ page }) => {
     await navigateToNotifications(page);
 
-    // Look for server notification button
-    const sendServerButton = page.locator('app-notifications button:has-text(/server/i)');
-
-    if (await sendServerButton.isVisible().catch(() => false)) {
-      // Try clicking without auth
-      await sendServerButton.click();
-      await page.waitForTimeout(600);
-    }
+    // Broadcast goes through the server, so it renders disabled for anonymous users
+    const sendBroadcastButton = page.locator(pages.sendBroadcastButton).first();
+    await expect(sendBroadcastButton).toBeVisible();
+    await expect(sendBroadcastButton.locator('button')).toBeDisabled();
 
     // Page should still be on notifications route
     await expect(page).toHaveURL(/\/notifications/);
@@ -141,27 +139,29 @@ test.describe('Notifications Tests', () => {
 
     // Wait for login to complete (profile view appears in menu)
     await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
-    // Close the menu (or let it auto-close)
+    // Close the menu and wait for the panel to disappear
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible();
 
     await navigateToNotifications(page);
 
-    // Look for server notification button
-    const sendServerButton = page.locator('app-notifications button:has-text(/server/i)');
+    // Broadcast button is enabled for authenticated users
+    const sendBroadcastButton = page.locator(pages.sendBroadcastButton).first();
+    await expect(sendBroadcastButton).toBeVisible();
+    await expect(sendBroadcastButton.locator('button')).toBeEnabled();
+    await sendBroadcastButton.click();
 
-    if (await sendServerButton.isVisible().catch(() => false)) {
-      await sendServerButton.click();
-      await page.waitForTimeout(300);
+    // Server acknowledges the broadcast
+    await expect(page.locator(pages.serverNotificationStatus)).toContainText('✅', { timeout: 10000 });
 
-      // Check notification center for the notification
-      await page.click(menus.notificationCenterButton);
-      await page.waitForTimeout(300);
-    }
+    // The broadcast is delivered back over WebSocket into the notification center
+    await expect(page.locator(menus.notificationBadge)).toBeVisible({ timeout: 10000 });
+    await page.click(menus.notificationCenterButton);
+    await expect(page.locator(menus.notificationItem).first()).toBeVisible();
 
-    // Close notification center if open
+    // Close notification center and wait for the panel to disappear
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await expect(page.locator(menus.notificationCenterContent)).not.toBeVisible();
 
     // Logout - open menu and wait for profile to appear
     await page.click(menus.authMenuButton);

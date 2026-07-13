@@ -91,15 +91,15 @@ export async function cleanupE2ETestUsers(): Promise<{ success: boolean; deleted
 export async function loginAsTestUser(page: Page, email: string, password: string): Promise<void> {
   // Click auth menu to open
   await page.click(menus.authMenuButton);
+  await expect(page.locator(menus.authMenuContent)).toBeVisible({ timeout: 5000 });
 
-  // Wait for login form to appear
-  await expect(page.locator(auth.loginForm)).toBeVisible({ timeout: 5000 });
-
-  // Click login tab if needed
-  const loginTab = page.locator(auth.loginTab);
-  if (await loginTab.isVisible()) {
-    await loginTab.click();
+  // The menu defaults to signup mode on a fresh open (protected-route
+  // redirects auto-open it in login mode instead) — the login form only
+  // mounts once the Log in tab is active, so switch tabs first if needed.
+  if (!(await page.locator(auth.loginForm).isVisible())) {
+    await page.locator(auth.loginTab).click();
   }
+  await expect(page.locator(auth.loginForm)).toBeVisible({ timeout: 5000 });
 
   // Fill in credentials
   await page.fill(auth.loginIdentifier, email);
@@ -120,13 +120,16 @@ export async function logoutUser(page: Page): Promise<void> {
   // Click auth menu to open
   await page.click(menus.authMenuButton);
 
-  // Click logout button
+  // Caller's contract is that a user is logged in - the logout button must be there
   const logoutButton = page.locator(auth.logoutButton);
-  if (await logoutButton.isVisible()) {
-    await logoutButton.click();
-  }
+  await expect(logoutButton).toBeVisible({ timeout: 5000 });
+  await logoutButton.click();
 
-  await page.waitForTimeout(1000);
+  // Logout closes the auth menu - wait for the panel to disappear
+  await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 5000 });
+
+  // Confirm the logged-out state: the profile link is gone from the auth menu
+  await expect(page.locator('app-menu-auth a[href="/profile"]')).not.toBeVisible({ timeout: 5000 });
 }
 
 /**

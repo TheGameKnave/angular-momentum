@@ -28,8 +28,10 @@ export const menus = {
   notificationCenterButton: 'app-notification-center .dialog-menu-trigger',
   notificationCenterContent: '.dialog-menu-panel',
   notificationBadge: 'app-notification-center .notification-badge',
-  notificationMarkAllRead: '.dialog-menu-panel button:has-text(/mark all read/i)',
-  notificationClearAll: '.dialog-menu-panel button:has-text(/clear all/i)',
+  // :has-text() takes a quoted string (regex is not valid CSS here);
+  // target the inner button like the Logout selector does
+  notificationMarkAllRead: '.dialog-menu-panel p-button:has-text("Mark all read") button',
+  notificationClearAll: '.dialog-menu-panel p-button:has-text("Clear all") button',
   notificationList: '.dialog-menu-panel .notification-list',
   notificationItem: '.dialog-menu-panel .notification-item',
   notificationEmpty: '.dialog-menu-panel .notification-empty',
@@ -102,6 +104,11 @@ export const pages = {
   notificationTemplates: 'app-notifications p-card',
   sendLocalButton: 'app-notifications p-button:has-text("Send Local")',
   sendBroadcastButton: 'app-notifications p-button:has-text("Broadcast")',
+  notificationTemplateCard: 'app-notifications .notification-test-card',
+  // Permission status cell in the status grid (has .granted class when permission is granted)
+  notificationPermissionGranted: 'app-notifications .status-grid dd.granted',
+  localNotificationStatus: 'app-notifications .status-message.local',
+  serverNotificationStatus: 'app-notifications .status-message.server',
 
   // IndexedDB page
   indexedDbPage: 'app-indexeddb',

@@ -40,7 +40,7 @@ test.describe('Performance Tests', () => {
     // Memory API is only available in Chromium
     test.skip(browserName !== 'chromium', 'Memory API only available in Chromium');
 
-    // Wait for page to stabilize
+    // Measurement window (not a render wait): let the JS heap settle before sampling memory
     await page.waitForTimeout(2000);
 
     const memoryVal = await page.evaluate(() => {
@@ -97,12 +97,12 @@ test.describe('Performance Tests', () => {
     for (const pagePath of pagesToVisit) {
       await page.goto(`${APP_BASE_URL}${pagePath}`);
       await waitForAngular(page);
-      await page.waitForTimeout(500);
     }
 
     // Return to home
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
+    // Measurement window (not a render wait): let the JS heap settle before the final memory sample
     await page.waitForTimeout(1000);
 
     // Get final memory
@@ -160,33 +160,35 @@ test.describe('Performance Tests', () => {
 
     // Open and close menus multiple times
     // Use Escape key to close menus to avoid CDK overlay backdrop blocking clicks
+    // All menus share the same panel selector, so wait for it to open/close each time
+    const menuPanel = page.locator(menus.authMenuContent);
     for (let i = 0; i < 5; i++) {
       // Auth menu
       await page.click(menus.authMenuButton);
-      await page.waitForTimeout(200);
+      await expect(menuPanel).toBeVisible();
       await page.keyboard.press('Escape');
-      await page.waitForTimeout(200);
+      await expect(menuPanel).toBeHidden();
 
       // Language menu
       await page.click(menus.languageMenuButton);
-      await page.waitForTimeout(200);
+      await expect(menuPanel).toBeVisible();
       await page.keyboard.press('Escape');
-      await page.waitForTimeout(200);
+      await expect(menuPanel).toBeHidden();
 
       // Changelog menu (bottom left)
       await page.click(menus.changelogMenuButton);
-      await page.waitForTimeout(200);
+      await expect(menuPanel).toBeVisible();
       await page.keyboard.press('Escape');
-      await page.waitForTimeout(200);
+      await expect(menuPanel).toBeHidden();
 
       // Notification center
       await page.click(menus.notificationCenterButton);
-      await page.waitForTimeout(200);
+      await expect(menuPanel).toBeVisible();
       await page.keyboard.press('Escape');
-      await page.waitForTimeout(200);
+      await expect(menuPanel).toBeHidden();
     }
 
-    // Force garbage collection by waiting
+    // Measurement window (not a render wait): give GC a chance to run before the final memory sample
     await page.waitForTimeout(1000);
 
     // Get final memory

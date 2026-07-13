@@ -58,7 +58,9 @@ Known issues from the 2026-07 architecture/test audit, tabled for future session
 - [ ] `auth.routes.spec.ts` has 5 spots passing fresh unlistened apps to supertest (should share hoisted listeners like the rest of the file).
 - [ ] Audit remaining whole-method istanbul ignores for testable logic (notification dispatch routing, IndexedDB migration chain).
 - [ ] `auth.service.ts` window/document listeners have no removal path — spec-side hygiene is fixed, but the service itself should register them via `DestroyRef` so TestBed teardown removes them.
-- [ ] E2E: replace `if (visible)` guards with unconditional assertions (storage-promotion, notifications — one selector referenced there doesn't exist, so the check never runs); reduce the ~139 `waitForTimeout` calls; loosen `maxDiffPixelRatio` per full-page assertion; stub the footer version in the `layout-phone` baseline; add `data-testid` to logout/tabs/panels. Note: snapshot baselines are darwin-only — CI must stay on macOS runners until Linux baselines exist.
+- [ ] E2E: add `data-testid` to logout/tabs/panels. Note: snapshot baselines are darwin-only — CI must stay on macOS runners until Linux baselines exist. (2026-07: the guard/hard-wait purge is done — three never-running checks were unmasked and fixed; 3 kept waits are labeled measurement windows in performance.spec.)
+- [ ] E2E flake tail (retry-passers, ~2-3 per run): notifications server-broadcast, storage-promotion accept-import, and indexeddb post-logout reload (textarea sits inside `*transloco`, renders empty if the translation reload stalls) — worth a root-cause pass.
+- [ ] `responsive.spec.ts` touch-target test is vacuous: it scopes to `main button…` but no `<main>` element exists in any template, so the loop never runs.
 - [ ] `performance.spec.ts` measures evaluate-round-trips against a 48ms threshold and asserts heap growth without forced GC — structurally flaky.
 
 ### Housekeeping

@@ -138,12 +138,13 @@ test.describe('Smoke Tests', () => {
     // Notification center button should be visible
     const notificationButton = page.locator(menus.notificationCenterButton);
 
-    // May not be visible if notifications feature is disabled
-    const isVisible = await notificationButton.isVisible().catch(() => false);
-    if (!isVisible) {
-      test.skip();
-      return;
-    }
+    // The notifications feature flag may legitimately differ per deployed
+    // environment - skip visibly in the report rather than passing silently
+    const notificationsEnabled = await notificationButton
+      .waitFor({ state: 'visible', timeout: 10000 })
+      .then(() => true)
+      .catch(() => false);
+    test.skip(!notificationsEnabled, 'Notifications feature is disabled in this environment');
 
     await notificationButton.click();
     await expect(page.locator(menus.notificationCenterContent)).toBeVisible();
