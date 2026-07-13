@@ -1,5 +1,5 @@
 // websocket.spec.ts
-import { setupWebSocket, decodeTokenExpiry } from './websocketService';
+import { setupWebSocket, decodeTokenExpiry, forceExpireUserSocketAuth } from './websocketService';
 import { readFeatureFlags } from './lowDBService';
 import { Server as SocketIOServer } from 'socket.io';
 import { ALLOWED_ORIGINS } from '../constants/server.constants';
@@ -449,6 +449,96 @@ describe('setupWebSocket', () => {
         jest.advanceTimersByTime(3600 * 1000);
         expect(leaveUserRoom).toHaveBeenCalledTimes(1);
         expect(mockSocket.emit).toHaveBeenCalledWith('auth-expired', { message: 'Session expired' });
+      });
+    });
+
+    describe('forced auth expiry (test endpoint support)', () => {
+      /** Forges an unsigned JWT with the given payload (getUser is mocked, so no signature needed). */
+      const makeToken = (payload: object) =>
+        `header.${Buffer.from(JSON.stringify(payload)).toString('base64url')}.sig`;
+
+      const connect = async () => {
+        setupWebSocket(mockServer, mockSupabase);
+        const connectionHandler = io.on.mock.calls.find(
+          ([event]: [string]) => event === 'connection'
+        )?.[1];
+        await connectionHandler(mockSocket);
+      };
+
+      // Unique userId per test: the registry is module-level and sockets from
+      // earlier tests in this file never disconnect, so shared ids would
+      // inflate the match counts.
+      beforeEach(() => {
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      const authenticateAs = async (userId: string) => {
+        mockSupabase.auth.getUser.mockResolvedValue({ data: { user: { id: userId } }, error: null });
+        await connect();
+        const exp = Math.floor(Date.now() / 1000) + 3600;
+        await authenticateHandler(makeToken({ exp }));
+        mockSocket.emit.mockClear();
+        (leaveUserRoom as jest.Mock).mockClear();
+      };
+
+      it('should match no sockets for a user nobody is authenticated as', async () => {
+        const userId = 'forced-expiry-nobody-1';
+        await authenticateAs(userId);
+
+        expect(forceExpireUserSocketAuth('some-other-user')).toBe(0);
+        expect(leaveUserRoom).not.toHaveBeenCalled();
+        expect(mockSocket.emit).not.toHaveBeenCalledWith('auth-expired', expect.anything());
+
+        disconnectHandler(); // deregister so later tests see a clean registry
+      });
+
+      it('should count matching sockets without evicting them on a dry run', async () => {
+        const userId = 'forced-expiry-dryrun-2';
+        await authenticateAs(userId);
+
+        expect(forceExpireUserSocketAuth(userId, true)).toBe(1);
+        expect(leaveUserRoom).not.toHaveBeenCalled();
+        expect(mockSocket.emit).not.toHaveBeenCalledWith('auth-expired', expect.anything());
+
+        // Still authenticated: a second dry run finds it again
+        expect(forceExpireUserSocketAuth(userId, true)).toBe(1);
+
+        disconnectHandler();
+      });
+
+      it('should fire the real eviction and cancel the pending expiry timer', async () => {
+        const userId = 'forced-expiry-evict-3';
+        await authenticateAs(userId);
+
+        expect(forceExpireUserSocketAuth(userId)).toBe(1);
+        expect(leaveUserRoom).toHaveBeenCalledWith(mockSocket, userId);
+        expect(mockSocket.emit).toHaveBeenCalledWith('auth-expired', { message: 'Session expired' });
+
+        // Socket is deauthenticated: no longer matched
+        expect(forceExpireUserSocketAuth(userId)).toBe(0);
+
+        // The original timer was cancelled — no second eviction at the token's exp
+        mockSocket.emit.mockClear();
+        (leaveUserRoom as jest.Mock).mockClear();
+        jest.advanceTimersByTime(3600 * 1000 + 1);
+        expect(leaveUserRoom).not.toHaveBeenCalled();
+        expect(mockSocket.emit).not.toHaveBeenCalledWith('auth-expired', expect.anything());
+
+        disconnectHandler();
+      });
+
+      it('should stop matching a socket after it disconnects', async () => {
+        const userId = 'forced-expiry-disconnect-4';
+        await authenticateAs(userId);
+
+        disconnectHandler();
+
+        expect(forceExpireUserSocketAuth(userId)).toBe(0);
+        expect(mockSocket.emit).not.toHaveBeenCalledWith('auth-expired', expect.anything());
       });
     });
   });

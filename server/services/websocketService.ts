@@ -26,6 +26,49 @@ export function decodeTokenExpiry(token: string): number | null {
 const MAX_TIMEOUT_MS = 2_147_483_647;
 
 /**
+ * Test-support handle onto a connected socket's auth state.
+ * Registered on connection, removed on disconnect.
+ */
+interface SocketAuthHandle {
+  /** Returns the user id the socket is currently authenticated as, or null */
+  getUserId: () => string | null;
+  /** Fires the exact eviction the expiry timer runs when the token's exp passes */
+  expireNow: () => void;
+}
+
+/**
+ * Registry of live sockets' auth handles. Exists solely so the
+ * loopback-guarded POST /api/auth/test/expire-socket-auth endpoint can fire
+ * the real expiry-eviction path in e2e tests without waiting out a token's
+ * lifetime. Registration is unconditional (cheap), but nothing outside the
+ * test endpoint ever calls into it.
+ */
+const socketAuthHandles = new Set<SocketAuthHandle>();
+
+/**
+ * Force-fires the auth-expiry eviction for every socket currently
+ * authenticated as the given user, exactly as if their token's exp had just
+ * passed: each socket leaves its user room and receives 'auth-expired'.
+ * Test-support only — invoked by the loopback-guarded
+ * /api/auth/test/expire-socket-auth endpoint.
+ * @param userId - The user whose sockets should be expired
+ * @param dryRun - When true, only counts matching sockets (room-membership probe)
+ * @returns Number of sockets authenticated as the user
+ */
+export function forceExpireUserSocketAuth(userId: string, dryRun = false): number {
+  let matched = 0;
+  socketAuthHandles.forEach((handle) => {
+    if (handle.getUserId() === userId) {
+      matched++;
+      if (!dryRun) {
+        handle.expireNow();
+      }
+    }
+  });
+  return matched;
+}
+
+/**
  * Initializes and configures the Socket.IO WebSocket server
  * @param server - HTTP server instance to attach Socket.IO to
  * @param supabase - Optional Supabase client for user authentication
@@ -58,22 +101,34 @@ export function setupWebSocket(server: HTTPServer, supabase?: SupabaseClient | n
       }
     };
 
+    // The eviction itself — shared by the expiry timer and the test-only
+    // forced-expiry path so both exercise the identical code.
+    const expireAuth = () => {
+      clearAuthExpiry();
+      /* istanbul ignore else -- deauth/disconnect/re-auth clear the timer before nulling auth state, and forced expiry only targets authenticated sockets */
+      if (authenticatedUserId) {
+        leaveUserRoom(socket, authenticatedUserId);
+        authenticatedUserId = null;
+        socket.emit('auth-expired', { message: 'Session expired' });
+      }
+    };
+
     const scheduleAuthExpiry = (token: string) => {
       const exp = decodeTokenExpiry(token);
       if (exp === null) {
         return; // no readable exp claim — nothing to schedule
       }
       const msUntilExpiry = Math.min(Math.max(exp * 1000 - Date.now(), 0), MAX_TIMEOUT_MS);
-      authExpiryTimer = setTimeout(() => {
-        authExpiryTimer = null;
-        /* istanbul ignore else -- deauth/disconnect/re-auth always clear the timer before nulling auth state */
-        if (authenticatedUserId) {
-          leaveUserRoom(socket, authenticatedUserId);
-          authenticatedUserId = null;
-          socket.emit('auth-expired', { message: 'Session expired' });
-        }
-      }, msUntilExpiry);
+      authExpiryTimer = setTimeout(expireAuth, msUntilExpiry);
     };
+
+    // Test-support: let the expire-socket-auth test endpoint find and expire
+    // this socket. Removed on disconnect.
+    const authHandle: SocketAuthHandle = {
+      getUserId: () => authenticatedUserId,
+      expireNow: expireAuth,
+    };
+    socketAuthHandles.add(authHandle);
 
     // Send the current flags when a client connects
     const featureFlags = await readFeatureFlags();
@@ -119,6 +174,7 @@ export function setupWebSocket(server: HTTPServer, supabase?: SupabaseClient | n
     });
 
     socket.on('disconnect', () => {
+      socketAuthHandles.delete(authHandle);
       clearAuthExpiry();
       // Clean up user room on disconnect
       if (authenticatedUserId) {

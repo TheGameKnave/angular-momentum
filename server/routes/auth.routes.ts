@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { UsernameService } from '../services/usernameService';
 import { getUserIdFromRequest, checkUsernameAvailability, upsertUsername } from '../helpers/auth.helpers';
+import { forceExpireUserSocketAuth } from '../services/websocketService';
 import {
   AUTH_ERROR_CODES,
   USERNAME_ERROR_CODES,
@@ -309,6 +310,50 @@ export function createAuthRoutes(
         error: message
       });
     }
+  });
+
+  /**
+   * POST /api/auth/test/expire-socket-auth
+   * Force-fires the websocket auth-expiry eviction for every socket currently
+   * authenticated as the given user, exactly as if their token's exp had just
+   * passed: each socket leaves its user room and receives 'auth-expired'.
+   * Pass "dryRun": true to only count matching sockets (room-membership probe)
+   * without evicting anything.
+   * ONLY available when NODE_ENV === 'test' or 'development'.
+   *
+   * Request body:
+   * {
+   *   "userId": "uuid-here",
+   *   "dryRun": false
+   * }
+   *
+   * Response:
+   * {
+   *   "success": true,
+   *   "matched": 1,
+   *   "expired": 1
+   * }
+   */
+  router.post('/test/expire-socket-auth', (req: Request, res: Response) => {
+    const sb = testEndpointGuard(req, res);
+    if (!sb) return;
+
+    const { userId, dryRun } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: 'userId is required'
+      });
+    }
+
+    const isDryRun = dryRun === true;
+    const matched = forceExpireUserSocketAuth(userId, isDryRun);
+    res.json({
+      success: true,
+      matched,
+      expired: isDryRun ? 0 : matched
+    });
   });
 
   // ============================================================================

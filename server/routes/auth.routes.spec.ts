@@ -2,6 +2,13 @@ import http from 'http';
 import request from 'supertest';
 import express, { Express, Router } from 'express';
 import { createAuthRoutes } from './auth.routes';
+import { forceExpireUserSocketAuth } from '../services/websocketService';
+
+// Mock the websocket service so /test/expire-socket-auth tests control the
+// forced-expiry result without a live Socket.IO server.
+jest.mock('../services/websocketService', () => ({
+  forceExpireUserSocketAuth: jest.fn(),
+}));
 
 describe('Auth Routes', () => {
   let app: Express;
@@ -2478,6 +2485,117 @@ describe('Auth Routes', () => {
         success: false,
         error: 'Unknown error',
       });
+    });
+  });
+
+  describe('POST /test/expire-socket-auth', () => {
+    beforeEach(() => {
+      // Ensure we're in test environment
+      process.env.NODE_ENV = 'test';
+    });
+
+    it('should return 403 in production environment', async () => {
+      process.env.NODE_ENV = 'production';
+
+      const response = await request(server)
+        .post('/api/auth/test/expire-socket-auth')
+        .send({ userId: 'user-123' });
+
+      expect(response.status).toBe(403);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Test endpoints are only available in test/development environments',
+      });
+      expect(forceExpireUserSocketAuth).not.toHaveBeenCalled();
+    });
+
+    it('should return 403 for non-loopback peers even in test environment', async () => {
+      spoofedAddress = '203.0.113.9';
+
+      const response = await request(spoofServer)
+        .post('/api/auth/test/expire-socket-auth')
+        .send({ userId: 'user-123' });
+
+      expect(response.status).toBe(403);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Test endpoints are only available in test/development environments',
+      });
+      expect(forceExpireUserSocketAuth).not.toHaveBeenCalled();
+    });
+
+    it('should return 503 if Supabase is not configured', async () => {
+      const response = await request(noSbServer)
+        .post('/api/auth/test/expire-socket-auth')
+        .send({ userId: 'user-123' });
+
+      expect(response.status).toBe(503);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'AUTH_SERVICE_NOT_CONFIGURED',
+      });
+      expect(forceExpireUserSocketAuth).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 if userId is missing', async () => {
+      const response = await request(server)
+        .post('/api/auth/test/expire-socket-auth')
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'userId is required',
+      });
+      expect(forceExpireUserSocketAuth).not.toHaveBeenCalled();
+    });
+
+    it('should expire matching sockets and report the count', async () => {
+      (forceExpireUserSocketAuth as jest.Mock).mockReturnValue(2);
+
+      const response = await request(server)
+        .post('/api/auth/test/expire-socket-auth')
+        .send({ userId: 'user-123' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        matched: 2,
+        expired: 2,
+      });
+      expect(forceExpireUserSocketAuth).toHaveBeenCalledWith('user-123', false);
+    });
+
+    it('should only count matching sockets on a dry run', async () => {
+      (forceExpireUserSocketAuth as jest.Mock).mockReturnValue(1);
+
+      const response = await request(server)
+        .post('/api/auth/test/expire-socket-auth')
+        .send({ userId: 'user-123', dryRun: true });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        matched: 1,
+        expired: 0,
+      });
+      expect(forceExpireUserSocketAuth).toHaveBeenCalledWith('user-123', true);
+    });
+
+    it('should treat a non-boolean dryRun as a real expiry', async () => {
+      (forceExpireUserSocketAuth as jest.Mock).mockReturnValue(1);
+
+      const response = await request(server)
+        .post('/api/auth/test/expire-socket-auth')
+        .send({ userId: 'user-123', dryRun: 'yes' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        matched: 1,
+        expired: 1,
+      });
+      expect(forceExpireUserSocketAuth).toHaveBeenCalledWith('user-123', false);
     });
   });
 });
