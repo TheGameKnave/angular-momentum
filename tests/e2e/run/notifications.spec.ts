@@ -68,13 +68,21 @@ test.describe('Notifications Tests', () => {
   // PERMISSION TESTS
   // ============================================================================
 
-  test('Notification permission status shows granted', async ({ page }) => {
+  test('Notification permission status mirrors the browser state', async ({ page }) => {
     await navigateToNotifications(page);
 
-    // The page has no permission request button (that lives in the notification
-    // center footer and only renders when permission is missing). With the
-    // permission granted via context, the status grid must report Granted.
-    await expect(page.locator(pages.notificationPermissionGranted)).toBeVisible();
+    // Chromium on macOS only reports Notification.permission === 'granted'
+    // when OS-level notification authorization exists — present on dev
+    // machines, absent on bare CI runners — so the context permission grant
+    // doesn't guarantee 'granted'. Assert our pipeline unconditionally: the
+    // status grid must truthfully mirror whatever the browser reports.
+    const browserState = await page.evaluate(() =>
+      'Notification' in globalThis ? Notification.permission : 'unsupported'
+    );
+    const statusCell = browserState === 'granted'
+      ? pages.notificationPermissionGranted
+      : pages.notificationPermissionDenied;
+    await expect(page.locator(statusCell)).toBeVisible();
 
     // Page should still be on notifications route
     await expect(page).toHaveURL(/\/notifications/);

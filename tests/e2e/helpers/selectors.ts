@@ -105,8 +105,9 @@ export const pages = {
   sendLocalButton: 'app-notifications p-button:has-text("Send Local")',
   sendBroadcastButton: 'app-notifications p-button:has-text("Broadcast")',
   notificationTemplateCard: 'app-notifications .notification-test-card',
-  // Permission status cell in the status grid (has .granted class when permission is granted)
+  // Permission status cell in the status grid (.granted when permission is granted, .denied otherwise)
   notificationPermissionGranted: 'app-notifications .status-grid dd.granted',
+  notificationPermissionDenied: 'app-notifications .status-grid dd.denied',
   localNotificationStatus: 'app-notifications .status-message.local',
   serverNotificationStatus: 'app-notifications .status-message.server',
 
