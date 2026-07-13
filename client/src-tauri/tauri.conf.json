@@ -20,7 +20,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self' 'unsafe-hashes' 'sha256-MhtPZXr7+LpJUY5qtMutB+qWfQtMaPccfe7QXtCcEYc=' https://www.googletagmanager.com https://static.hotjar.com https://script.hotjar.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' https://script.hotjar.com; connect-src 'self' ipc: http://ipc.localhost https://angularmomentum.app wss://angularmomentum.app https://tyoyznpjxppchdyydbnf.supabase.co wss://tyoyznpjxppchdyydbnf.supabase.co https://*.google-analytics.com https://www.googletagmanager.com https://*.hotjar.com https://*.hotjar.io wss://*.hotjar.com; frame-src https://vars.hotjar.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'",
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-hashes' 'sha256-MhtPZXr7+LpJUY5qtMutB+qWfQtMaPccfe7QXtCcEYc=' https://www.googletagmanager.com https://static.hotjar.com https://script.hotjar.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' https://script.hotjar.com; connect-src 'self' ipc: http://ipc.localhost https://angularmomentum.app wss://angularmomentum.app https://tyoyznpjxppchdyydbnf.supabase.co wss://tyoyznpjxppchdyydbnf.supabase.co https://*.google-analytics.com https://www.googletagmanager.com https://*.hotjar.com https://*.hotjar.io wss://*.hotjar.com; frame-src https://vars.hotjar.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'",
       "dangerousDisableAssetCspModification": ["style-src"]
     }
   },
