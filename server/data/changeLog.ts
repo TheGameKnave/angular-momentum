@@ -3,9 +3,24 @@
  * @description Array of changelog entries tracking version releases, dates, descriptions, and changes
  */
 export const changeLog = [
-  
-  
-  
+
+
+
+  {
+    version: "21.4.0",
+    date: "2026-07-13",
+    description: "WebSocket session recovery, dyno supervision, and a trustworthy e2e suite",
+    changes: [
+      "evict websocket connections server-side when their auth token expires; the client re-authenticates with a refreshed session automatically (or signs out if the session is gone)",
+      "supervise both production processes: the dyno now runs compiled server JS, starts SSR only after the API is healthy, restarts when either process dies, and shuts down gracefully on dyno cycling",
+      "define a Content Security Policy for the Tauri desktop/mobile webview (previously none)",
+      "remove unauthenticated username-creation endpoints; require a loopback peer for test-only endpoints; rate-limit and cap the og-image endpoint",
+      "e2e trustworthiness overhaul: conditional visibility guards became unconditional assertions (three checks had never actually run), all hard waits replaced with state-based waits, footer version masked in layout baselines, new end-to-end websocket auth-expiry recovery test",
+      "CI: npm and rust caching, cancel superseded runs, Sonar quality gate enforced on main with loud parse failures",
+      "test coverage: real websocket handler tests, socket reconnect effect coverage, deterministic Supabase-init coverage",
+      "remove dead server dependencies and dead code",
+    ]
+  },
   {
     version: "21.3.8",
     date: "2026-07-10",
