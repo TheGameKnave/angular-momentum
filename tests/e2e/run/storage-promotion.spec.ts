@@ -49,6 +49,11 @@ async function seedAnonymousData(page: Page, data: string): Promise<void> {
   await page.goto(`${APP_BASE_URL}/indexeddb`);
   await page.waitForSelector(pages.indexedDbPage, { timeout: 5000 });
   await expect(page.locator(pages.indexedDbTextarea)).toBeVisible();
+  // Wait for the component's async IndexedDB load to settle (zone.js tracks
+  // it, so Angular stability covers it) — filling before it resolves lets the
+  // load overwrite the textarea with the stored (empty) value, and the
+  // debounced save then persists "" instead of our data.
+  await waitForAngular(page);
   await page.fill(pages.indexedDbTextarea, data);
   // Wait for the debounced auto-save to land (state-based, no sleep)
   await expect.poll(() => readPersistentValue(page, ANONYMOUS_TEXTAREA_KEY), { timeout: 10000 }).toBe(data);
