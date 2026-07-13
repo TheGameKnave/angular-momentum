@@ -43,6 +43,34 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 
 * CDN for static assets and binary distros, depending on Tauri's ability to cache assets
 
+## Maintenance TODO
+
+Known issues from the 2026-07 architecture/test audit, tabled for future sessions. (The critical items — deploy gates, coverage enforcement, Sonar quality-gate check, mutation auth, og-image SSRF allowlist — were fixed at the time.)
+
+### Security
+- [ ] Verify the Tauri CSP (added 2026-07, see [docs/CONTENT_SECURITY_POLICY.md](docs/CONTENT_SECURITY_POLICY.md)) on all targets — watch the webview console for violations: GA/Hotjar after cookie consent, websocket connect, Supabase auth, IPC calls.
+- [ ] The web app has NO CSP: `server/index.ts` passes `contentSecurityPolicy: 'none'` with a comment claiming index.html defines one in a meta tag — no such meta tag exists. Define one (the Tauri policy is the origin inventory to start from; see [docs/CONTENT_SECURITY_POLICY.md](docs/CONTENT_SECURITY_POLICY.md)).
+
+### Reliability
+- [ ] user-settings routes return raw Postgres `error.message` to clients (schema-leaking, untranslatable). Move to curated `{ code, message }` responses — keep a human-readable message for dev/debugging, never the raw DB text.
+
+### Test quality
+- [ ] `auth.routes.spec.ts` has 5 spots passing fresh unlistened apps to supertest (should share hoisted listeners like the rest of the file).
+- [ ] Audit remaining whole-method istanbul ignores for testable logic (notification dispatch routing, IndexedDB migration chain).
+- [ ] `auth.service.ts` window/document listeners have no removal path — spec-side hygiene is fixed, but the service itself should register them via `DestroyRef` so TestBed teardown removes them.
+- [ ] E2E: add `data-testid` to logout/tabs/panels. Note: snapshot baselines are darwin-only — CI must stay on macOS runners until Linux baselines exist. (2026-07: the guard/hard-wait purge is done — three never-running checks were unmasked and fixed; 3 kept waits are labeled measurement windows in performance.spec.)
+- [ ] E2E flake tail (retry-passers, ~2-3 per run): notifications server-broadcast, storage-promotion accept-import, and indexeddb post-logout reload (textarea sits inside `*transloco`, renders empty if the translation reload stalls) — worth a root-cause pass.
+- [ ] `responsive.spec.ts` touch-target test is vacuous: it scopes to `main button…` but no `<main>` element exists in any template, so the loop never runs.
+- [ ] Cosmetic: Tauri (WebKit) logs one "WebSocket is closed before the connection is established" at startup; live sync works (verified via cross-client theme broadcast). Likely a double-connect — `SocketIoService`'s connectivity effect calls `socket.connect()` while ngx-socket-io also auto-connects; the losing attempt is torn down mid-handshake.
+- [ ] `performance.spec.ts` measures evaluate-round-trips against a 48ms threshold and asserts heap growth without forced GC — structurally flaky.
+
+### Housekeeping
+- [ ] `lowdb` is 6 majors old (or gets replaced with a real store when forked).
+- [ ] CI perf: `cargo install tauri-cli --locked` still compiles from source on every mobile build (~10 min) — switch to cargo-binstall or cache the installed binary. (npm/rust caching and concurrency groups are done.)
+- [ ] GraphQL plumbing: hoist `createHandler` out of the per-request path (also double-runs `express.json`), consider disabling introspection + adding a depth limit before the schema grows.
+- [ ] Sonar: the blanket S1186 suppression for `**/*` should become targeted suppressions; some excluded files have specs (`ssr-language.provider.ts`, `translations.constants.ts`) and shouldn't be coverage-excluded.
+- [ ] `deploy.sh`'s fixed `sleep 30` before smoke tests could poll the Heroku releases API instead.
+
 ## License
 This project is licensed under the MIT License (see [LICENSE](https://github.com/TheGameKnave/angular-momentum/blob/main/LICENSE) file for details).
 
@@ -104,11 +132,11 @@ This will display the API responses.
 
 ### Translation Testing
 
-* from root, run `npm run test-translation` to uncover any gaps in translation files, relative to schema (will not detect completely missing schema keys; refer to browser errors for that)
+* from root, run `npm run test:translation` to uncover any gaps in translation files, relative to schema (will not detect completely missing schema keys; refer to browser errors for that)
 
 ### Unit Testing
 
-* from root, run `npm run test-server` and `npm run test-client` to execute each unit test suite independently
+* from root, run `npm run test:server` and `npm run test:client` to execute each unit test suite independently
 
 ### Playwright end-to-end testing
 
@@ -231,7 +259,7 @@ The app includes a complete push notification system that works across all platf
 
 ### Feature Flag
 
-Push notifications are controlled by the `Notifications` feature flag. Toggle via GraphQL:
+Push notifications are controlled by the `Notifications` feature flag. Toggle via GraphQL (mutations require a Supabase session outside development/test — pass `Authorization: Bearer <access token>`):
 
 ```graphql
 mutation {

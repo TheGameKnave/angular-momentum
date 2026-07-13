@@ -3,7 +3,23 @@ import { APP_BASE_URL } from '../data/constants';
 import { assertNoMissingTranslations, waitForAngular, dismissCookieBanner } from '../helpers/assertions.helper';
 import { menus, pages, common, getLanguageOption } from '../helpers/selectors';
 
+// Helper to seed one unread notification via the notifications page.
+// Requires the notifications permission (granted below) so the local send succeeds.
+async function seedNotification(page: any): Promise<void> {
+  await page.goto(`${APP_BASE_URL}/notifications`);
+  await waitForAngular(page);
+  const sendLocalButton = page.locator(pages.sendLocalButton).first();
+  await expect(sendLocalButton).toBeVisible();
+  await sendLocalButton.click();
+  // Unread badge confirms the notification landed in the notification center
+  await expect(page.locator(menus.notificationBadge)).toHaveText('1');
+}
+
 test.describe('Navigation & Layout Tests', () => {
+  // Grant the browser notification permission so notification-center tests can
+  // deterministically seed notifications via local sends.
+  test.use({ permissions: ['notifications'] });
+
   test.beforeEach(async ({ page }) => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
@@ -42,7 +58,7 @@ test.describe('Navigation & Layout Tests', () => {
 
     // Close by clicking outside
     await page.click('body', { position: { x: 10, y: 10 } });
-    await page.waitForTimeout(500);
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible();
   });
 
   test('Language menu opens and closes', async ({ page }) => {
@@ -52,7 +68,7 @@ test.describe('Navigation & Layout Tests', () => {
 
     // Close by clicking outside
     await page.click('body', { position: { x: 10, y: 10 } });
-    await page.waitForTimeout(500);
+    await expect(page.locator(menus.languageMenuContent)).not.toBeVisible();
   });
 
   test('Feature sidebar displays navigation links', async ({ page }) => {
@@ -71,9 +87,10 @@ test.describe('Navigation & Layout Tests', () => {
     await page.click(menus.changelogMenuButton);
     await expect(page.locator(menus.changelogMenuContent)).toBeVisible();
 
-    // Close by clicking outside
-    await page.click('body', { position: { x: 10, y: 10 } });
-    await page.waitForTimeout(500);
+    // Close by clicking outside — the panel is a full-height left rail, so
+    // click the CDK backdrop itself (its clickable area is right of the panel)
+    await page.click('.app-overlay-backdrop', { position: { x: 500, y: 10 } });
+    await expect(page.locator(menus.changelogMenuContent)).not.toBeVisible();
   });
 
   // ============================================================================
@@ -87,15 +104,13 @@ test.describe('Navigation & Layout Tests', () => {
     // Click Spanish option
     await page.click(getLanguageOption('es'));
 
-    await page.waitForTimeout(1000);
-
     // Verify Spanish flag is shown
     await expect(page.locator(`${menus.languageMenuButton} .fi-es`)).toBeVisible();
 
     // Switch back to English for other tests
     await page.click(menus.languageMenuButton);
     await page.click(getLanguageOption('en-US'));
-    await page.waitForTimeout(500);
+    await expect(page.locator(`${menus.languageMenuButton} .fi-us`)).toBeVisible();
   });
 
   // ============================================================================
@@ -107,27 +122,28 @@ test.describe('Navigation & Layout Tests', () => {
     await page.click(menus.notificationCenterButton);
     await expect(page.locator(menus.notificationCenterContent)).toBeVisible();
 
-    // Check for empty state or list
-    const hasEmpty = await page.locator(menus.notificationEmpty).isVisible().catch(() => false);
-    const hasList = await page.locator(menus.notificationList).isVisible().catch(() => false);
-
-    expect(hasEmpty || hasList).toBeTruthy();
+    // Fresh session has no notifications, so the empty state shows (not the list)
+    await expect(page.locator(menus.notificationEmpty)).toBeVisible();
+    await expect(page.locator(menus.notificationList)).toHaveCount(0);
 
   });
 
   test('Notification center - mark all as read button appears with notifications', async ({ page }) => {
+    // Seed an unread notification so the button is guaranteed to render
+    await seedNotification(page);
+
     // Open notification center
     await page.click(menus.notificationCenterButton);
+    await expect(page.locator(menus.notificationCenterContent)).toBeVisible();
 
-    // Check if mark all read button exists (only visible if there are unread notifications)
+    // One unread notification exists, so mark all read must be offered
     const markAllReadButton = page.locator(menus.notificationMarkAllRead);
-    const hasMarkAllRead = await markAllReadButton.isVisible().catch(() => false);
+    await expect(markAllReadButton).toBeVisible();
+    await markAllReadButton.click();
 
-    // If there are unread notifications, test mark all read
-    if (hasMarkAllRead) {
-      await markAllReadButton.click();
-      await page.waitForTimeout(500);
-    }
+    // Everything is read: the button and the unread badge disappear
+    await expect(markAllReadButton).toHaveCount(0);
+    await expect(page.locator(menus.notificationBadge)).toHaveCount(0);
 
     // Notification center should still be open
     await expect(page.locator(menus.notificationCenterContent)).toBeVisible();
@@ -137,17 +153,21 @@ test.describe('Navigation & Layout Tests', () => {
   });
 
   test('Notification center - clear all button appears with notifications', async ({ page }) => {
+    // Seed a notification so the button is guaranteed to render
+    await seedNotification(page);
+
     // Open notification center
     await page.click(menus.notificationCenterButton);
+    await expect(page.locator(menus.notificationCenterContent)).toBeVisible();
 
-    // Check if clear all button exists (only visible if there are notifications)
+    // A notification exists, so clear all must be offered
     const clearAllButton = page.locator(menus.notificationClearAll);
-    const hasClearAll = await clearAllButton.isVisible().catch(() => false);
+    await expect(clearAllButton).toBeVisible();
+    await clearAllButton.click();
 
-    if (hasClearAll) {
-      await clearAllButton.click();
-      await page.waitForTimeout(500);
-    }
+    // The list empties back to the empty state and the button disappears
+    await expect(page.locator(menus.notificationEmpty)).toBeVisible();
+    await expect(clearAllButton).toHaveCount(0);
 
     // Notification center should still be open
     await expect(page.locator(menus.notificationCenterContent)).toBeVisible();
@@ -182,10 +202,9 @@ test.describe('Navigation & Layout Tests', () => {
     // Click home link
     await page.click(common.homeLink);
 
-    await page.waitForTimeout(500);
-
     // Should be back on landing page
-    expect(page.url()).toMatch(/\/$/);
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.locator(pages.landingPage)).toBeVisible();
   });
 
   // ============================================================================
@@ -227,12 +246,12 @@ test.describe('Navigation & Layout Tests', () => {
     const breadcrumbs = page.locator('.breadcrumbs');
     await expect(breadcrumbs).toContainText('Features');
 
-    // Navigate to a different component (if available)
+    // Navigate to the GraphQL API page — its feature flag is enabled by
+    // global-setup for e2e runs, so the link must be present
     const graphqlLink = page.locator(menus.featureLink('graphql'));
-    if (await graphqlLink.isVisible().catch(() => false)) {
-      await graphqlLink.click();
-      await waitForAngular(page);
-      await expect(breadcrumbs).toContainText('GraphQL API');
-    }
+    await expect(graphqlLink).toBeVisible();
+    await graphqlLink.click();
+    await waitForAngular(page);
+    await expect(breadcrumbs).toContainText('GraphQL API');
   });
 });

@@ -4,15 +4,11 @@ dotenv.config({ debug: false, quiet: true });
 /**
  * Configuration interface for environment variables
  * @property server_port - Port number for the server to listen on
- * @property server_id - Unique identifier for this server instance
- * @property data_key - Secret key for data encryption/authentication
  * @property supabase_url - Supabase project URL
  * @property supabase_service_key - Supabase service role key (for server-side operations)
  */
 interface Config {
   server_port: string | undefined;
-  server_id: string | undefined;
-  data_key: string | undefined;
   supabase_url: string | undefined;
   supabase_service_key: string | undefined;
 }
@@ -23,9 +19,7 @@ interface Config {
  */
 const config: Config = {
   // API_PORT for the API server (default 4201 for SSR proxy compatibility)
-  server_port: process.env.API_PORT || /* istanbul ignore next */ '4201',
-  server_id: process.env.SERVER_ID,
-  data_key: process.env.DATA_KEY,
+  server_port: process.env.API_PORT || /* istanbul ignore next - fallback literal for environments without API_PORT; no logic to test */ '4201',
   supabase_url: process.env.SUPABASE_URL,
   supabase_service_key: process.env.SUPABASE_SERVICE_KEY,
 };

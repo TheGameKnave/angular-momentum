@@ -21,7 +21,7 @@ async function loginWithSharedUser(page: any): Promise<void> {
   await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
   // Close the menu so subsequent navigation works cleanly
   await page.keyboard.press('Escape');
-  await page.waitForTimeout(300);
+  await expect(page.locator(menus.authMenuContent)).not.toBeVisible();
 }
 
 test.describe('Profile Tests', () => {
@@ -69,7 +69,6 @@ test.describe('Profile Tests', () => {
 
     // Logout via auth menu
     await page.click(menus.authMenuButton);
-    await page.waitForTimeout(300);
     const logoutBtn = page.locator(auth.logoutButton);
     await logoutBtn.waitFor({ state: 'visible' });
     await logoutBtn.click();
@@ -89,7 +88,6 @@ test.describe('Profile Tests', () => {
 
     // Logout via auth menu
     await page.click(menus.authMenuButton);
-    await page.waitForTimeout(300);
     const logoutBtn = page.locator(auth.logoutButton);
     await logoutBtn.waitFor({ state: 'visible' });
     await logoutBtn.click();
@@ -113,14 +111,14 @@ test.describe('Profile Tests', () => {
 
     // Click to open dropdown
     await page.click(pages.profileTimezone);
-    await page.waitForTimeout(300);
+    await expect(page.locator('.p-select-overlay')).toBeVisible();
 
     // Click outside to close
     await page.click('body', { position: { x: 10, y: 10 } });
+    await expect(page.locator('.p-select-overlay')).not.toBeVisible();
 
     // Logout via auth menu
     await page.click(menus.authMenuButton);
-    await page.waitForTimeout(300);
     const logoutBtn = page.locator(auth.logoutButton);
     await logoutBtn.waitFor({ state: 'visible' });
     await logoutBtn.click();
@@ -144,7 +142,6 @@ test.describe('Profile Tests', () => {
 
     // Logout via auth menu
     await page.click(menus.authMenuButton);
-    await page.waitForTimeout(300);
     const logoutBtn = page.locator(auth.logoutButton);
     await logoutBtn.waitFor({ state: 'visible' });
     await logoutBtn.click();
@@ -163,7 +160,7 @@ test.describe('Profile Tests', () => {
     await expect(themeToggleInput).toBeEnabled({ timeout: 5000 });
 
     // Wait for settings to fully load from server (there's round-tripping with local/remote)
-    await page.waitForTimeout(1000);
+    await waitForAngular(page);
 
     // Get initial theme state (default is dark, so html should have app-dark class)
     const htmlElement = page.locator('html');
@@ -171,16 +168,18 @@ test.describe('Profile Tests', () => {
 
     // Click the switch element directly using role selector
     const themeSwitch = page.getByRole('switch', { name: 'Light Dark' });
+    const themeSaved = page.waitForResponse(res => res.url().includes('/api/user-settings') && res.request().method() === 'PATCH');
     await themeSwitch.click();
-    await page.waitForTimeout(1000); // Wait for theme to apply and sync
+    await themeSaved; // Theme applies locally before the sync, so the class is set once the PATCH lands
 
     // Check that the theme class changed
     const afterToggleHasDarkClass = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
     expect(afterToggleHasDarkClass).not.toBe(initialHasDarkClass);
 
     // Click switch again to toggle back
+    const themeSavedAgain = page.waitForResponse(res => res.url().includes('/api/user-settings') && res.request().method() === 'PATCH');
     await themeSwitch.click();
-    await page.waitForTimeout(500);
+    await themeSavedAgain;
 
     // Should be back to original state
     const finalHasDarkClass = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
@@ -188,7 +187,6 @@ test.describe('Profile Tests', () => {
 
     // Logout via auth menu
     await page.click(menus.authMenuButton);
-    await page.waitForTimeout(300);
     const logoutBtn = page.locator(auth.logoutButton);
     await logoutBtn.waitFor({ state: 'visible' });
     await logoutBtn.click();
@@ -207,7 +205,7 @@ test.describe('Profile Tests', () => {
     await expect(themeToggleInput).toBeEnabled({ timeout: 5000 });
 
     // Wait for settings to fully load from server (there's round-tripping with local/remote)
-    await page.waitForTimeout(1000);
+    await waitForAngular(page);
 
     // Get initial theme state
     const htmlElement = page.locator('html');
@@ -215,8 +213,9 @@ test.describe('Profile Tests', () => {
 
     // Click the switch element directly using role selector
     const themeSwitch = page.getByRole('switch', { name: 'Light Dark' });
+    const themeSaved = page.waitForResponse(res => res.url().includes('/api/user-settings') && res.request().method() === 'PATCH');
     await themeSwitch.click();
-    await page.waitForTimeout(1000); // Wait for theme to apply and sync
+    await themeSaved; // Theme applies locally before the sync, so the class is set once the PATCH lands
 
     // Verify toggle happened
     const afterToggleHasDarkClass = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
@@ -235,13 +234,13 @@ test.describe('Profile Tests', () => {
 
     // Toggle back to original state for cleanup
     if (afterReloadHasDarkClass !== initialHasDarkClass) {
+      const themeSavedAgain = page.waitForResponse(res => res.url().includes('/api/user-settings') && res.request().method() === 'PATCH');
       await themeSwitch.click();
-      await page.waitForTimeout(500);
+      await themeSavedAgain;
     }
 
     // Logout via auth menu
     await page.click(menus.authMenuButton);
-    await page.waitForTimeout(300);
     const logoutBtn = page.locator(auth.logoutButton);
     await logoutBtn.waitFor({ state: 'visible' });
     await logoutBtn.click();
@@ -264,7 +263,6 @@ test.describe('Profile Tests', () => {
 
     // Logout via auth menu
     await page.click(menus.authMenuButton);
-    await page.waitForTimeout(300);
     const logoutBtn = page.locator(auth.logoutButton);
     await logoutBtn.waitFor({ state: 'visible' });
     await logoutBtn.click();
@@ -313,20 +311,20 @@ test.describe('Profile Destructive Tests', () => {
       await page.goto(`${APP_BASE_URL}/profile`);
       await page.waitForSelector(pages.profilePage, { timeout: 5000 });
 
-      // Check delete data button exists
-      const deleteDataButton = page.locator(pages.profileDeleteDataButton);
-      if (await deleteDataButton.isVisible().catch(() => false)) {
-        // Click delete data button
-        await deleteDataButton.click();
-        await page.waitForTimeout(600);
+      // Clear data button is always rendered for authenticated users on the profile page
+      const deleteDataButton = page.locator(pages.profileClearDataButton);
+      await expect(deleteDataButton).toBeVisible();
 
-        // Check for confirmation dialog
-        const confirmDialog = page.locator(common.confirmDialog);
-        if (await confirmDialog.isVisible().catch(() => false)) {
-          // Cancel the dialog (don't actually delete in this test)
-          await page.click(common.confirmDialogReject);
-        }
-      }
+      // Click delete data button
+      await deleteDataButton.click();
+
+      // Confirmation dialog must appear
+      const confirmDialog = page.locator(common.confirmDialog);
+      await expect(confirmDialog).toBeVisible();
+
+      // Cancel the dialog (don't actually delete in this test)
+      await page.click(common.confirmDialogReject);
+      await expect(confirmDialog).not.toBeVisible();
 
       // Profile page should still be visible after the flow
       await expect(page.locator(pages.profilePage)).toBeVisible();
@@ -364,32 +362,29 @@ test.describe('Profile Destructive Tests', () => {
       await page.goto(`${APP_BASE_URL}/profile`);
       await page.waitForSelector(pages.profilePage, { timeout: 5000 });
 
-      // Check delete account button exists
+      // Delete account button is always rendered for authenticated users on the profile page
       const deleteAccountButton = page.locator(pages.profileDeleteAccountButton);
-      if (await deleteAccountButton.isVisible().catch(() => false)) {
+      await expect(deleteAccountButton).toBeVisible();
 
-        // Click delete account button
-        await deleteAccountButton.click();
-        await page.waitForTimeout(600);
+      // Click delete account button
+      await deleteAccountButton.click();
 
-        // Check for confirmation dialog
-        const confirmDialog = page.locator(common.confirmDialog);
-        if (await confirmDialog.isVisible().catch(() => false)) {
+      // Confirmation dialog must appear
+      const confirmDialog = page.locator(common.confirmDialog);
+      await expect(confirmDialog).toBeVisible();
 
-          // Type DELETE to enable the confirmation button
-          await page.fill(common.confirmDialogInput, 'DELETE');
-          await page.waitForTimeout(300);
+      // Type DELETE to enable the confirmation button
+      await page.fill(common.confirmDialogInput, 'DELETE');
+      await expect(page.locator(common.confirmDialogAccept)).toBeEnabled();
 
-          // Actually delete the account
-          await page.click(common.confirmDialogAccept);
-          // Wait for redirect after account deletion - profile menu should disappear
-          await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 10000 });
+      // Actually delete the account
+      await page.click(common.confirmDialogAccept);
+      // Wait for redirect after account deletion - profile menu should disappear
+      await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 10000 });
 
-          userDeleted = true;
+      userDeleted = true;
 
-          // Should be logged out and redirected
-        }
-      }
+      // Should be logged out and redirected
     } finally {
       // Clean up only if user wasn't deleted by the test
       if (!userDeleted) {
@@ -443,22 +438,24 @@ test.describe('Settings Preservation on Logout/Login', () => {
       await page.waitForLoadState('networkidle');
       await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
       await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await expect(page.locator(menus.authMenuContent)).not.toBeVisible();
 
       // Navigate to profile
       await page.goto(`${APP_BASE_URL}/profile`);
       await page.waitForSelector(pages.profilePage, { timeout: 5000 });
 
-      // Wait for settings to load
+      // Wait for settings to load (round-tripping with local/remote)
       const themeToggleInput = page.locator(pages.profileThemeToggleInput);
       await expect(themeToggleInput).toBeEnabled({ timeout: 5000 });
-      await page.waitForTimeout(1000);
+      await waitForAngular(page);
 
       // Change language to Spanish (es)
       await page.click(menus.languageMenuButton);
-      await page.waitForTimeout(300);
+      await expect(page.locator(menus.languageOption('es'))).toBeVisible();
+      const langSaved = page.waitForResponse(res => res.url().includes('/api/user-settings') && res.request().method() === 'PATCH');
       await page.click(menus.languageOption('es'));
-      await page.waitForTimeout(500);
+      await langSaved;
+      await expect(page.locator(`${menus.languageMenuButton} .fi-es`)).toBeVisible({ timeout: 5000 });
 
       // Change theme to light (default is dark, toggle switches to light)
       const htmlElement = page.locator('html');
@@ -466,8 +463,9 @@ test.describe('Settings Preservation on Logout/Login', () => {
       if (initialHasDarkClass) {
         // Use the toggle switch input directly (language-agnostic)
         const themeSwitch = page.locator(pages.profileThemeToggle);
+        const themeSaved = page.waitForResponse(res => res.url().includes('/api/user-settings') && res.request().method() === 'PATCH');
         await themeSwitch.click();
-        await page.waitForTimeout(1000);
+        await themeSaved;
       }
 
       // Verify theme is now light
@@ -477,12 +475,14 @@ test.describe('Settings Preservation on Logout/Login', () => {
       // Change timezone to something unusual (e.g., Asia/Tokyo)
       const timezoneSelect = page.locator(pages.profileTimezone);
       await timezoneSelect.click();
-      await page.waitForTimeout(300);
-      // Type to filter and select Tokyo timezone
+      await expect(page.locator('.p-select-overlay')).toBeVisible();
+      // Type to filter and select Tokyo timezone - typeahead focuses the first matching option
       await page.keyboard.type('Asia');
-      await page.waitForTimeout(300);
+      await expect(page.locator('.p-select-overlay .p-select-option.p-focus')).toContainText(/Asia/);
+      const timezoneSaved = page.waitForResponse(res => res.url().includes('/api/user-settings') && res.request().method() === 'PATCH');
       await page.keyboard.press('Enter');
-      await page.waitForTimeout(500);
+      await timezoneSaved;
+      await expect(page.locator('.p-select-overlay')).not.toBeVisible();
 
       console.log('User settings configured: lang=es, theme=light, timezone=Pacific/Fiji');
 
@@ -493,20 +493,17 @@ test.describe('Settings Preservation on Logout/Login', () => {
 
       // Logout via auth menu (use icon selector - language-agnostic)
       await page.click(menus.authMenuButton);
-      await page.waitForTimeout(300);
       const logoutBtn = page.locator('.dialog-menu-panel app-auth-profile p-button .pi-sign-out').first();
       await logoutBtn.waitFor({ state: 'visible' });
       await logoutBtn.click();
       await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 10000 });
-      await page.waitForTimeout(500);
 
       // Verify language is reset to English (default)
       // Check the language button shows US flag (fi-us class) - this is more reliable than html lang attribute
       await expect(page.locator(`${menus.languageMenuButton} .fi-us`)).toBeVisible({ timeout: 5000 });
 
       // Verify theme is reset to dark (default)
-      const afterLogoutTheme = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
-      expect(afterLogoutTheme).toBe(true);
+      await expect.poll(() => htmlElement.evaluate(el => el.classList.contains('app-dark'))).toBe(true);
 
       console.log('After logout: lang=en-US, theme=dark (verified)');
 
@@ -524,7 +521,6 @@ test.describe('Settings Preservation on Logout/Login', () => {
       await deOption.scrollIntoViewIfNeeded();
       await expect(deOption).toBeVisible();
       await deOption.click();
-      await page.waitForTimeout(500);
 
       // Wait for language to change - verify German flag is shown
       await expect(page.locator(`${menus.languageMenuButton} .fi-de`)).toBeVisible({ timeout: 5000 });
@@ -555,25 +551,26 @@ test.describe('Settings Preservation on Logout/Login', () => {
 
       await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
       await page.keyboard.press('Escape');
-      await page.waitForTimeout(1000);
+      await expect(page.locator(menus.authMenuContent)).not.toBeVisible();
+      // Wait for the user settings restore round-trip after login
+      await waitForAngular(page);
 
       // Navigate to profile to verify settings
       await page.goto(`${APP_BASE_URL}/profile`);
       await page.waitForSelector(pages.profilePage, { timeout: 5000 });
       await expect(page.locator(pages.profileThemeToggleInput)).toBeEnabled({ timeout: 5000 });
-      await page.waitForTimeout(1000);
+      // Wait for settings to fully load from server (there's round-tripping with local/remote)
+      await waitForAngular(page);
 
       // Verify language is Spanish (restored from user settings) - check Spanish flag
       await expect(page.locator(`${menus.languageMenuButton} .fi-es`)).toBeVisible({ timeout: 5000 });
 
       // Verify theme is light (restored from user settings)
-      const afterLoginTheme = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
-      expect(afterLoginTheme).toBe(false);
+      await expect.poll(() => htmlElement.evaluate(el => el.classList.contains('app-dark'))).toBe(false);
 
       // Verify timezone was restored (we selected Asia/Tokyo which shows as "Tokio" in Spanish)
       // Check for Tokyo/Tokio since the display is translated but the value was Asia/Tokyo
-      const timezoneValue = await page.locator(`${pages.profileTimezone} span.p-select-label`).textContent();
-      expect(timezoneValue).toMatch(/Tok[iy]o/i);
+      await expect(page.locator(`${pages.profileTimezone} span.p-select-label`)).toHaveText(/Tok[iy]o/i);
 
       console.log('After login: lang=es, theme=light, timezone=Asia/Tokyo (verified)');
 
@@ -583,19 +580,16 @@ test.describe('Settings Preservation on Logout/Login', () => {
       console.log('Step 5: Logout and verify anonymous language is preserved');
 
       await page.click(menus.authMenuButton);
-      await page.waitForTimeout(300);
       const logoutBtn2 = page.locator('.dialog-menu-panel app-auth-profile p-button .pi-sign-out').first();
       await logoutBtn2.waitFor({ state: 'visible' });
       await logoutBtn2.click();
       await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 10000 });
-      await page.waitForTimeout(500);
 
       // Verify language is still German (anonymous user's preference) - check German flag
       await expect(page.locator(`${menus.languageMenuButton} .fi-de`)).toBeVisible({ timeout: 5000 });
 
       // Verify theme is dark (anonymous default)
-      const finalTheme = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
-      expect(finalTheme).toBe(true);
+      await expect.poll(() => htmlElement.evaluate(el => el.classList.contains('app-dark'))).toBe(true);
 
       console.log('Final logout: lang=de (preserved), theme=dark (verified)');
 

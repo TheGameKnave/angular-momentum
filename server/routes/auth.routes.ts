@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { UsernameService } from '../services/usernameService';
 import { getUserIdFromRequest, checkUsernameAvailability, upsertUsername } from '../helpers/auth.helpers';
+import { forceExpireUserSocketAuth } from '../services/websocketService';
 import {
   AUTH_ERROR_CODES,
   USERNAME_ERROR_CODES,
@@ -48,13 +49,34 @@ export function createAuthRoutes(
     return { success: true };
   }
 
+  const LOOPBACK_ADDRESSES = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
+
   /**
    * Guard for test-only endpoints.
    * Returns the supabase client if checks pass, null if response was sent.
    * This pattern ensures TypeScript knows supabase is non-null when returned.
+   *
+   * Two independent gates, both required:
+   * - NODE_ENV must be test/development
+   * - the TCP peer must be loopback (req.socket.remoteAddress, which unlike
+   *   req.ip cannot be forged via X-Forwarded-For). A deployed server sits
+   *   behind a router/proxy, so requests never arrive from loopback even if
+   *   NODE_ENV is misconfigured.
+   *
+   * Forks: if you need remote e2e against a deployed environment, replace the
+   * loopback check with a required secret header — as a deliberate decision,
+   * not a default.
+   *
+   * @param req - Express request (its socket's remoteAddress is the peer check)
+   * @param res - Express response, written with 403/503 when a gate fails
+   * @returns the supabase client when both gates pass, null when a response was sent
    */
-  function testEndpointGuard(res: Response): SupabaseClient | null {
-    if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
+  function testEndpointGuard(req: Request, res: Response): SupabaseClient | null {
+    const remoteAddress = req.socket.remoteAddress ?? '';
+    if (
+      (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') ||
+      !LOOPBACK_ADDRESSES.has(remoteAddress)
+    ) {
       res.status(403).json({
         success: false,
         error: 'Test endpoints are only available in test/development environments'
@@ -97,7 +119,7 @@ export function createAuthRoutes(
    * }
    */
   router.post('/test/create-user', async (req: Request, res: Response) => {
-    const sb = testEndpointGuard(res);
+    const sb = testEndpointGuard(req, res);
     if (!sb) return;
 
     const { email, password, username } = req.body;
@@ -173,7 +195,7 @@ export function createAuthRoutes(
    * }
    */
   router.delete('/test/delete-user', async (req: Request, res: Response) => {
-    const sb = testEndpointGuard(res);
+    const sb = testEndpointGuard(req, res);
     if (!sb) return;
 
     const { email, userId } = req.body;
@@ -239,7 +261,7 @@ export function createAuthRoutes(
    * }
    */
   router.delete('/test/cleanup-e2e-users', async (req: Request, res: Response) => {
-    const sb = testEndpointGuard(res);
+    const sb = testEndpointGuard(req, res);
     if (!sb) return;
 
     try {
@@ -288,6 +310,50 @@ export function createAuthRoutes(
         error: message
       });
     }
+  });
+
+  /**
+   * POST /api/auth/test/expire-socket-auth
+   * Force-fires the websocket auth-expiry eviction for every socket currently
+   * authenticated as the given user, exactly as if their token's exp had just
+   * passed: each socket leaves its user room and receives 'auth-expired'.
+   * Pass "dryRun": true to only count matching sockets (room-membership probe)
+   * without evicting anything.
+   * ONLY available when NODE_ENV === 'test' or 'development'.
+   *
+   * Request body:
+   * {
+   *   "userId": "uuid-here",
+   *   "dryRun": false
+   * }
+   *
+   * Response:
+   * {
+   *   "success": true,
+   *   "matched": 1,
+   *   "expired": 1
+   * }
+   */
+  router.post('/test/expire-socket-auth', (req: Request, res: Response) => {
+    const sb = testEndpointGuard(req, res);
+    if (!sb) return;
+
+    const { userId, dryRun } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: 'userId is required'
+      });
+    }
+
+    const isDryRun = dryRun === true;
+    const matched = forceExpireUserSocketAuth(userId, isDryRun);
+    res.json({
+      success: true,
+      matched,
+      expired: isDryRun ? 0 : matched
+    });
   });
 
   // ============================================================================
@@ -420,57 +486,6 @@ export function createAuthRoutes(
       ...availabilityResult,
       fingerprint: validationResult.fingerprint
     });
-  });
-
-  /**
-   * POST /api/auth/username/create
-   * Creates a new username for a user.
-   *
-   * Request body:
-   * {
-   *   "userId": "uuid-here",
-   *   "username": "José™ 🎨"
-   * }
-   *
-   * Response:
-   * {
-   *   "success": true,
-   *   "fingerprint": "jose",
-   *   "error": null
-   * }
-   */
-  router.post('/username/create', async (req: Request, res: Response) => {
-    const { userId, username } = req.body;
-
-    if (!userId || !username) {
-      return res.status(400).json({
-        success: false,
-        error: USERNAME_ERROR_CODES.REQUIRED
-      });
-    }
-
-    if (!usernameService) {
-      return res.status(503).json({
-        success: false,
-        error: AUTH_ERROR_CODES.SERVICE_NOT_CONFIGURED
-      });
-    }
-
-    const validationResult = usernameService.validateUsername(username);
-    if (!validationResult.valid || !validationResult.fingerprint) {
-      return res.json({
-        success: false,
-        error: USERNAME_ERROR_CODES.NOT_AVAILABLE
-      });
-    }
-
-    const result = await usernameService.createUsername(
-      userId,
-      username,
-      validationResult.fingerprint
-    );
-
-    res.json(result);
   });
 
   /**

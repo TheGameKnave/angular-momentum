@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, flushMicrotasks } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
 import { AuthService, AuthResult, LoginCredentials } from './auth.service';
@@ -1438,7 +1438,25 @@ describe('AuthService', () => {
   });
 
   describe('session refresh on resume', () => {
-    it('should refresh session on visibilitychange when visible', async () => {
+    // Snapshot the original document.visibilityState descriptor (normally a
+    // getter on Document.prototype, so no own descriptor exists) and restore
+    // it after each test to avoid leaking state into other suites.
+    const originalVisibilityStateDescriptor =
+      Object.getOwnPropertyDescriptor(document, 'visibilityState');
+
+    const setVisibilityState = (value: 'visible' | 'hidden'): void => {
+      Object.defineProperty(document, 'visibilityState', { value, configurable: true });
+    };
+
+    afterEach(() => {
+      if (originalVisibilityStateDescriptor) {
+        Object.defineProperty(document, 'visibilityState', originalVisibilityStateDescriptor);
+      } else {
+        Reflect.deleteProperty(document, 'visibilityState');
+      }
+    });
+
+    it('should refresh session on visibilitychange when visible', fakeAsync(() => {
       const mockUser = createMockUser('test@example.com');
       const expiresAt = Math.floor(Date.now() / 1000) + 300; // Expires in 5 minutes
       const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
@@ -1454,28 +1472,28 @@ describe('AuthService', () => {
       );
 
       // Trigger visibilitychange event
-      Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true });
+      setVisibilityState('visible');
       document.dispatchEvent(new Event('visibilitychange'));
 
-      // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 10));
+      // Drain the async refresh chain (all microtasks, no real timers)
+      flushMicrotasks();
 
       expect(mockSupabaseAuth.refreshSession).toHaveBeenCalled();
-    });
+    }));
 
-    it('should not refresh session on visibilitychange when hidden', async () => {
+    it('should not refresh session on visibilitychange when hidden', fakeAsync(() => {
       mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession');
 
       // Trigger visibilitychange event when hidden
-      Object.defineProperty(document, 'visibilityState', { value: 'hidden', writable: true });
+      setVisibilityState('hidden');
       document.dispatchEvent(new Event('visibilitychange'));
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      flushMicrotasks();
 
       expect(mockSupabaseAuth.refreshSession).not.toHaveBeenCalled();
-    });
+    }));
 
-    it('should refresh session on window focus', async () => {
+    it('should refresh session on window focus', fakeAsync(() => {
       const mockUser = createMockUser('test@example.com');
       const expiresAt = Math.floor(Date.now() / 1000) + 300; // Expires in 5 minutes
       const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
@@ -1493,12 +1511,12 @@ describe('AuthService', () => {
       // Trigger focus event
       window.dispatchEvent(new Event('focus'));
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      flushMicrotasks();
 
       expect(mockSupabaseAuth.refreshSession).toHaveBeenCalled();
-    });
+    }));
 
-    it('should refresh session on pageshow with persisted flag (bfcache)', async () => {
+    it('should refresh session on pageshow with persisted flag (bfcache)', fakeAsync(() => {
       const mockUser = createMockUser('test@example.com');
       const expiresAt = Math.floor(Date.now() / 1000) + 300; // Expires in 5 minutes
       const mockSession = { ...createMockSession(mockUser), expires_at: expiresAt };
@@ -1517,22 +1535,22 @@ describe('AuthService', () => {
       const pageshowEvent = new PageTransitionEvent('pageshow', { persisted: true });
       window.dispatchEvent(pageshowEvent);
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      flushMicrotasks();
 
       expect(mockSupabaseAuth.refreshSession).toHaveBeenCalled();
-    });
+    }));
 
-    it('should not refresh on pageshow without persisted flag', async () => {
+    it('should not refresh on pageshow without persisted flag', fakeAsync(() => {
       mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession');
 
       // Trigger pageshow event with persisted=false (normal navigation)
       const pageshowEvent = new PageTransitionEvent('pageshow', { persisted: false });
       window.dispatchEvent(pageshowEvent);
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      flushMicrotasks();
 
       expect(mockSupabaseAuth.refreshSession).not.toHaveBeenCalled();
-    });
+    }));
 
     it('should always refresh to validate token even when not expiring soon', async () => {
       const mockUser = createMockUser('test@example.com');

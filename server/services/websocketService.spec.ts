@@ -1,11 +1,11 @@
 // websocket.spec.ts
-import { setupWebSocket } from './websocketService';
-import { readFeatureFlags, writeFeatureFlags } from './lowDBService';
+import { setupWebSocket, decodeTokenExpiry, forceExpireUserSocketAuth } from './websocketService';
+import { readFeatureFlags } from './lowDBService';
 import { Server as SocketIOServer } from 'socket.io';
+import { ALLOWED_ORIGINS } from '../constants/server.constants';
 
 // Mock the feature flag service methods
 jest.mock('./lowDBService', () => ({
-  writeFeatureFlags: jest.fn(),
   readFeatureFlags: jest.fn(),
 }));
 
@@ -19,45 +19,27 @@ import { joinUserRoom, leaveUserRoom } from './userSettingsSocketService';
 
 // Mock the entire socket.io module
 jest.mock('socket.io', () => ({
-  Server: jest.fn().mockImplementation(() => ({
-    on: jest.fn(),
-    emit: jest.fn(),
-    engine: {
-      on: jest.fn(),
-    },
-  })),
+  Server: jest.fn(),
 }));
 
 describe('setupWebSocket', () => {
   let mockServer: any;
   let io: any;
   let mockSocket: any;
-  let connectionHandler: Function;
 
   beforeEach(() => {
     mockServer = {};
     io = {
-      on: jest.fn((event: string, handler: Function) => {
-        if (event === 'connection') {
-          connectionHandler = handler;  // Capture the connection handler
-        }
-      }),
-      use: jest.fn(),
-      emit: jest.fn(),
-      engine: {
-        on: jest.fn(),
-      },
+      on: jest.fn(),
     };
 
     mockSocket = {
       emit: jest.fn(),
       on: jest.fn(),
-      onAny: jest.fn(),
     };
 
     (SocketIOServer as unknown as jest.Mock).mockImplementation(() => io);
     (readFeatureFlags as jest.Mock).mockResolvedValue({ featureA: true });
-    (writeFeatureFlags as jest.Mock).mockResolvedValue({ featureA: false });
   });
 
   afterEach(() => {
@@ -69,15 +51,7 @@ describe('setupWebSocket', () => {
 
     expect(SocketIOServer).toHaveBeenCalledWith(mockServer, {
       cors: {
-        origin: [
-          'http://localhost:4200',
-          'http://192.168.1.x:4200',
-          'https://dev.angularmomentum.app',
-          'https://staging.angularmomentum.app',
-          'https://angularmomentum.app',
-          'tauri://localhost', // for tauri ios
-          'http://tauri.localhost', // for tauri android
-        ],
+        origin: ALLOWED_ORIGINS,
         methods: ['GET', 'POST'],
         allowedHeaders: ['Authorization'],
         credentials: true,
@@ -108,93 +82,54 @@ describe('setupWebSocket', () => {
     });
   });
 
-  it('should handle feature flag updates and broadcast them', async () => {
+  it('should emit the freshly read feature flags to every newly connected client', async () => {
+    // Distinct flag payload per connection proves the flags flow from lowDBService
+    // through the real connection handler, not from test-local fixtures.
+    (readFeatureFlags as jest.Mock)
+      .mockResolvedValueOnce({ featureA: true, featureB: false })
+      .mockResolvedValueOnce({ featureA: false, featureB: true });
+
     setupWebSocket(mockServer);
-  
-    // Ensure the connection handler was captured
+
     const connectionHandler = io.on.mock.calls.find(
       ([event]) => event === 'connection'
     )?.[1];
-  
-    if (connectionHandler) {
-      connectionHandler(mockSocket);  // Simulate connection
-    }
-  
-    // Mock the 'update-feature-flag' event handler
-    const updateFeatureFlagHandler = jest.fn((newFeatures) => {
-      writeFeatureFlags(newFeatures); // Call writeFeatureFlags from within the event handler
-      io.emit('update-feature-flags', newFeatures); // Call io.emit from within the event handler
+
+    // Drive the REAL connection handler for two separate sockets
+    const secondSocket = { emit: jest.fn(), on: jest.fn() };
+    await connectionHandler(mockSocket);
+    await connectionHandler(secondSocket);
+
+    expect(readFeatureFlags).toHaveBeenCalledTimes(2);
+    expect(mockSocket.emit).toHaveBeenCalledWith('update-feature-flags', {
+      featureA: true,
+      featureB: false,
     });
-    mockSocket.on.mockImplementation((event, handler) => {
-      if (event === 'update-feature-flag') {
-        updateFeatureFlagHandler.mockImplementation(handler);  // Mock the event handler
-      }
+    expect(secondSocket.emit).toHaveBeenCalledWith('update-feature-flags', {
+      featureA: false,
+      featureB: true,
     });
-  
-    const newFeatures = { featureA: false };
-  
-    // Simulate the handler call for 'update-feature-flag'
-    await updateFeatureFlagHandler(newFeatures);
-  
-    // Trigger the mockSocket.on event handler
-    mockSocket.emit('update-feature-flag', newFeatures);
-  
-    // Ensure writeFeatureFlags is called
-    expect(writeFeatureFlags).toHaveBeenCalledWith(newFeatures);
-  
-    // Ensure io.emit is called with 'update-feature-flags' and the updated features
-    expect(io.emit).toHaveBeenCalledWith('update-feature-flags', newFeatures);
   });
-  
-  it('should handle socket disconnection', () => {
+
+  it('should not leave any user room when an unauthenticated socket disconnects', async () => {
     setupWebSocket(mockServer);
-  
-    // Ensure the connection handler was captured
+
     const connectionHandler = io.on.mock.calls.find(
       ([event]) => event === 'connection'
     )?.[1];
-  
-    if (connectionHandler) {
-      connectionHandler(mockSocket);  // Simulate connection
-    }
-  
-    // Mock the 'disconnect' event handler
-    const disconnectHandler = jest.fn();
-    mockSocket.on.mockImplementation((event, handler) => {
-      if (event === 'disconnect') {
-        handler(); // Call the original event handler
-      } else {
-        handler(); // Call the original event handler for other events
-      }
-    });
-  
-    // Trigger the mockSocket.on event handler
-    mockSocket.on('disconnect', disconnectHandler); // Register the disconnect handler
-    mockSocket.emit('disconnect'); // Emit the disconnect event
-  
-    // Ensure 'disconnect' handler was called
-    expect(disconnectHandler).toHaveBeenCalledTimes(1);
-  });
-  
-  it('should handle connection errors silently', () => {
-    setupWebSocket(mockServer);
 
-    const errorHandler = io.on.mock.calls.find(
-      ([event]) => event === 'connect_error'
+    // Drive the REAL connection handler so the real 'disconnect' handler is registered
+    await connectionHandler(mockSocket);
+
+    const disconnectHandler = mockSocket.on.mock.calls.find(
+      ([event]: [string]) => event === 'disconnect'
     )?.[1];
+    expect(disconnectHandler).toBeDefined();
 
-    const mockError = new Error('Connection error');
-    // Error handler exists but doesn't log to console (removed for production)
-    expect(() => errorHandler(mockError)).not.toThrow();
-  });
+    // Invoke the REAL disconnect handler without ever authenticating
+    disconnectHandler();
 
-  it('should set up middleware and engine event listeners', () => {
-    setupWebSocket(mockServer);
-
-    expect(io.use).toHaveBeenCalled();
-    expect(io.engine.on).toHaveBeenCalledWith('headers', expect.any(Function));
-    expect(io.engine.on).toHaveBeenCalledWith('connection', expect.any(Function));
-    expect(io.engine.on).toHaveBeenCalledWith('disconnect', expect.any(Function));
+    expect(leaveUserRoom).not.toHaveBeenCalled();
   });
 
   describe('authentication', () => {
@@ -423,6 +358,204 @@ describe('setupWebSocket', () => {
 
       expect(leaveUserRoom).not.toHaveBeenCalled();
       expect(mockSocket.emit).not.toHaveBeenCalledWith('deauthenticated');
+    });
+
+    describe('token expiry', () => {
+      const userId = 'user-123';
+
+      /** Forges an unsigned JWT with the given payload (getUser is mocked, so no signature needed). */
+      const makeToken = (payload: object) =>
+        `header.${Buffer.from(JSON.stringify(payload)).toString('base64url')}.sig`;
+
+      const connect = async () => {
+        setupWebSocket(mockServer, mockSupabase);
+        const connectionHandler = io.on.mock.calls.find(
+          ([event]: [string]) => event === 'connection'
+        )?.[1];
+        await connectionHandler(mockSocket);
+      };
+
+      beforeEach(() => {
+        jest.useFakeTimers();
+        mockSupabase.auth.getUser.mockResolvedValue({ data: { user: { id: userId } }, error: null });
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('should evict the socket from its user room when the token expires', async () => {
+        await connect();
+        const exp = Math.floor(Date.now() / 1000) + 3600;
+        await authenticateHandler(makeToken({ exp }));
+        mockSocket.emit.mockClear();
+        (leaveUserRoom as jest.Mock).mockClear();
+
+        jest.advanceTimersByTime(3600 * 1000 + 1);
+
+        expect(leaveUserRoom).toHaveBeenCalledWith(mockSocket, userId);
+        expect(mockSocket.emit).toHaveBeenCalledWith('auth-expired', { message: 'Session expired' });
+      });
+
+      it('should not schedule eviction for tokens without a readable exp claim', async () => {
+        await connect();
+        await authenticateHandler(makeToken({ sub: userId }));
+        mockSocket.emit.mockClear();
+        (leaveUserRoom as jest.Mock).mockClear();
+
+        jest.advanceTimersByTime(365 * 24 * 3600 * 1000);
+
+        expect(leaveUserRoom).not.toHaveBeenCalled();
+        expect(mockSocket.emit).not.toHaveBeenCalledWith('auth-expired', expect.anything());
+      });
+
+      it('should clear the eviction timer on deauthenticate', async () => {
+        await connect();
+        const exp = Math.floor(Date.now() / 1000) + 3600;
+        await authenticateHandler(makeToken({ exp }));
+        deauthenticateHandler();
+        mockSocket.emit.mockClear();
+
+        jest.advanceTimersByTime(3600 * 1000 + 1);
+
+        expect(mockSocket.emit).not.toHaveBeenCalledWith('auth-expired', expect.anything());
+      });
+
+      it('should clear the eviction timer on disconnect', async () => {
+        await connect();
+        const exp = Math.floor(Date.now() / 1000) + 3600;
+        await authenticateHandler(makeToken({ exp }));
+        disconnectHandler();
+        mockSocket.emit.mockClear();
+
+        jest.advanceTimersByTime(3600 * 1000 + 1);
+
+        expect(mockSocket.emit).not.toHaveBeenCalledWith('auth-expired', expect.anything());
+      });
+
+      it('should reset the eviction timer when re-authenticating', async () => {
+        await connect();
+        const now = Math.floor(Date.now() / 1000);
+        await authenticateHandler(makeToken({ exp: now + 3600 }));
+        await authenticateHandler(makeToken({ exp: now + 7200 }));
+        mockSocket.emit.mockClear();
+        (leaveUserRoom as jest.Mock).mockClear();
+
+        // Past the first token's expiry: the old timer must not fire
+        jest.advanceTimersByTime(3600 * 1000 + 1);
+        expect(mockSocket.emit).not.toHaveBeenCalledWith('auth-expired', expect.anything());
+
+        // Past the second token's expiry: evicted exactly once
+        jest.advanceTimersByTime(3600 * 1000);
+        expect(leaveUserRoom).toHaveBeenCalledTimes(1);
+        expect(mockSocket.emit).toHaveBeenCalledWith('auth-expired', { message: 'Session expired' });
+      });
+    });
+
+    describe('forced auth expiry (test endpoint support)', () => {
+      /** Forges an unsigned JWT with the given payload (getUser is mocked, so no signature needed). */
+      const makeToken = (payload: object) =>
+        `header.${Buffer.from(JSON.stringify(payload)).toString('base64url')}.sig`;
+
+      const connect = async () => {
+        setupWebSocket(mockServer, mockSupabase);
+        const connectionHandler = io.on.mock.calls.find(
+          ([event]: [string]) => event === 'connection'
+        )?.[1];
+        await connectionHandler(mockSocket);
+      };
+
+      // Unique userId per test: the registry is module-level and sockets from
+      // earlier tests in this file never disconnect, so shared ids would
+      // inflate the match counts.
+      beforeEach(() => {
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      const authenticateAs = async (userId: string) => {
+        mockSupabase.auth.getUser.mockResolvedValue({ data: { user: { id: userId } }, error: null });
+        await connect();
+        const exp = Math.floor(Date.now() / 1000) + 3600;
+        await authenticateHandler(makeToken({ exp }));
+        mockSocket.emit.mockClear();
+        (leaveUserRoom as jest.Mock).mockClear();
+      };
+
+      it('should match no sockets for a user nobody is authenticated as', async () => {
+        const userId = 'forced-expiry-nobody-1';
+        await authenticateAs(userId);
+
+        expect(forceExpireUserSocketAuth('some-other-user')).toBe(0);
+        expect(leaveUserRoom).not.toHaveBeenCalled();
+        expect(mockSocket.emit).not.toHaveBeenCalledWith('auth-expired', expect.anything());
+
+        disconnectHandler(); // deregister so later tests see a clean registry
+      });
+
+      it('should count matching sockets without evicting them on a dry run', async () => {
+        const userId = 'forced-expiry-dryrun-2';
+        await authenticateAs(userId);
+
+        expect(forceExpireUserSocketAuth(userId, true)).toBe(1);
+        expect(leaveUserRoom).not.toHaveBeenCalled();
+        expect(mockSocket.emit).not.toHaveBeenCalledWith('auth-expired', expect.anything());
+
+        // Still authenticated: a second dry run finds it again
+        expect(forceExpireUserSocketAuth(userId, true)).toBe(1);
+
+        disconnectHandler();
+      });
+
+      it('should fire the real eviction and cancel the pending expiry timer', async () => {
+        const userId = 'forced-expiry-evict-3';
+        await authenticateAs(userId);
+
+        expect(forceExpireUserSocketAuth(userId)).toBe(1);
+        expect(leaveUserRoom).toHaveBeenCalledWith(mockSocket, userId);
+        expect(mockSocket.emit).toHaveBeenCalledWith('auth-expired', { message: 'Session expired' });
+
+        // Socket is deauthenticated: no longer matched
+        expect(forceExpireUserSocketAuth(userId)).toBe(0);
+
+        // The original timer was cancelled — no second eviction at the token's exp
+        mockSocket.emit.mockClear();
+        (leaveUserRoom as jest.Mock).mockClear();
+        jest.advanceTimersByTime(3600 * 1000 + 1);
+        expect(leaveUserRoom).not.toHaveBeenCalled();
+        expect(mockSocket.emit).not.toHaveBeenCalledWith('auth-expired', expect.anything());
+
+        disconnectHandler();
+      });
+
+      it('should stop matching a socket after it disconnects', async () => {
+        const userId = 'forced-expiry-disconnect-4';
+        await authenticateAs(userId);
+
+        disconnectHandler();
+
+        expect(forceExpireUserSocketAuth(userId)).toBe(0);
+        expect(mockSocket.emit).not.toHaveBeenCalledWith('auth-expired', expect.anything());
+      });
+    });
+  });
+
+  describe('decodeTokenExpiry', () => {
+    it('should return the exp claim from a JWT payload', () => {
+      const token = `h.${Buffer.from(JSON.stringify({ exp: 1234567890 })).toString('base64url')}.s`;
+      expect(decodeTokenExpiry(token)).toBe(1234567890);
+    });
+
+    it('should return null when exp is not a number', () => {
+      const token = `h.${Buffer.from(JSON.stringify({ exp: 'soon' })).toString('base64url')}.s`;
+      expect(decodeTokenExpiry(token)).toBeNull();
+    });
+
+    it('should return null for malformed tokens', () => {
+      expect(decodeTokenExpiry('not-a-jwt')).toBeNull();
     });
   });
 });

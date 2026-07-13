@@ -4,6 +4,12 @@ on:
     branches:
       - '**'
 
+# Supersede in-flight runs on the same branch (but never cancel a main run —
+# deploy.yml keys off its conclusion)
+concurrency:
+  group: build-test-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   build-and-test:
     runs-on: macos-latest
@@ -19,6 +25,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24.11.1
+          cache: npm
 
       - name: Install Dependencies
         run: |
@@ -195,6 +202,31 @@ jobs:
             echo "Waiting for SonarCloud to complete analysis... (Attempt $TRIES/$MAX_RETRIES)"
             sleep $RETRY_DELAY
           done
+
+          # Task SUCCESS only means the analysis finished — now check the actual quality gate.
+          # SonarCloud's plan only exposes gate data for the main branch
+          # ("Organization is not allowed to access data from non main branches"),
+          # so enforcement is main-only; other branches still get analyzed above.
+          if [[ "$GITHUB_REF_NAME" != "main" ]]; then
+            echo "Quality gate enforcement skipped on branch '$GITHUB_REF_NAME' (SonarCloud plan restricts gate data to main)."
+            exit 0
+          fi
+
+          ANALYSIS_ID=$(echo "$RESPONSE" | grep -o '"analysisId":"[^"]*"' | cut -d: -f2 | tr -d '"' || true)
+          if [[ -z "$ANALYSIS_ID" ]]; then
+            echo "Error: could not extract analysisId from task response."
+            exit 1
+          fi
+
+          GATE_RESPONSE=$(curl -s -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/qualitygates/project_status?analysisId=$ANALYSIS_ID" || true)
+          echo "Gate response: $GATE_RESPONSE"
+          GATE_STATUS=$(echo "$GATE_RESPONSE" | grep -o '"status":"[^"]*"' | head -n 1 | cut -d: -f2 | tr -d '"' || true)
+          echo "Quality Gate Status: $GATE_STATUS"
+
+          if [[ "$GATE_STATUS" != "OK" ]]; then
+            echo "Quality gate failed!"
+            exit 1
+          fi
         shell: bash
 
   create-release-tag:

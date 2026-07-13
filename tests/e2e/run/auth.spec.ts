@@ -86,13 +86,8 @@ test.describe('Authentication Tests', () => {
     // Verify profile is visible (confirms login succeeded)
     await expect(page.locator(auth.profileMenu)).toBeVisible();
 
-    // Menu auto-closes after 4 seconds - reopen it for logout
-    await page.waitForTimeout(500);
-    const menuVisible = await page.locator(menus.authMenuContent).isVisible();
-    if (!menuVisible) {
-      await page.click(menus.authMenuButton);
-      await page.waitForSelector(auth.profileMenu, { timeout: 5000 });
-    }
+    // Menu is still open right after login (auto-close only fires after 4 seconds)
+    await expect(page.locator(menus.authMenuContent)).toBeVisible();
 
     // Logout for next test
     const logoutBtn = page.locator(auth.logoutButton);
@@ -124,13 +119,8 @@ test.describe('Authentication Tests', () => {
     // Verify profile is visible (confirms login succeeded)
     await expect(page.locator(auth.profileMenu)).toBeVisible();
 
-    // Menu auto-closes after 4 seconds - reopen it for logout
-    await page.waitForTimeout(500);
-    const menuVisible = await page.locator(menus.authMenuContent).isVisible();
-    if (!menuVisible) {
-      await page.click(menus.authMenuButton);
-      await page.waitForSelector(auth.profileMenu, { timeout: 5000 });
-    }
+    // Menu is still open right after login (auto-close only fires after 4 seconds)
+    await expect(page.locator(menus.authMenuContent)).toBeVisible();
 
     // Logout for next test
     const logoutBtn = page.locator(auth.logoutButton);
@@ -150,8 +140,8 @@ test.describe('Authentication Tests', () => {
     // Submit
     await page.click(auth.loginSubmit);
 
-    // Wait for error response - form should still be visible
-    await page.waitForTimeout(600);
+    // Wait for the inline error message (server rejected the credentials)
+    await expect(page.locator('app-auth-login p-message')).toBeVisible({ timeout: 15000 });
 
     // Should still show login form (not logged in)
     await expect(page.locator(auth.loginForm)).toBeVisible();
@@ -185,7 +175,8 @@ test.describe('Authentication Tests', () => {
     // Blur to trigger validation
     await page.click(auth.signupForm);
 
-    await page.waitForTimeout(600);
+    // Wait for validation errors to render on the touched fields
+    await expect(page.locator(`${auth.signupForm} .error-message`).first()).toBeVisible();
 
     // Form should still be visible (not submitted)
     await expect(page.locator(auth.signupForm)).toBeVisible();
@@ -247,9 +238,9 @@ test.describe('Authentication Tests', () => {
 
     // Wait for login to complete (profile view appears in menu)
     await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
-    // Close the auth menu
+    // Close the auth menu and wait for the panel to disappear
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 5000 });
 
     // Navigate to profile
     await page.goto(`${APP_BASE_URL}/profile`);

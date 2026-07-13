@@ -2,6 +2,13 @@ import http from 'http';
 import request from 'supertest';
 import express, { Express, Router } from 'express';
 import { createAuthRoutes } from './auth.routes';
+import { forceExpireUserSocketAuth } from '../services/websocketService';
+
+// Mock the websocket service so /test/expire-socket-auth tests control the
+// forced-expiry result without a live Socket.IO server.
+jest.mock('../services/websocketService', () => ({
+  forceExpireUserSocketAuth: jest.fn(),
+}));
 
 describe('Auth Routes', () => {
   let app: Express;
@@ -13,6 +20,11 @@ describe('Auth Routes', () => {
   // build is fine.
   let noSbApp: Express;
   let noSbServer: http.Server;
+  // Third hoisted listener: middleware overrides req.socket.remoteAddress so
+  // tests can exercise the test-endpoint loopback guard's non-loopback branches.
+  let spoofApp: Express;
+  let spoofServer: http.Server;
+  let spoofedAddress: string | undefined;
   let mockSupabase: any;
   let mockUsernameService: any;
   const originalNodeEnv = process.env.NODE_ENV;
@@ -39,11 +51,25 @@ describe('Auth Routes', () => {
     ));
     noSbServer = noSbApp.listen(0);
     await new Promise<void>(resolve => noSbServer.once('listening', () => resolve()));
+
+    // Spoofed-peer listener: rewrites the socket's remoteAddress before the
+    // router runs, standing in for a request that arrives via a proxy/router
+    // (i.e. any deployed environment) instead of loopback.
+    spoofApp = express();
+    spoofApp.use(express.json());
+    spoofApp.use((req, _res, next) => {
+      Object.defineProperty(req.socket, 'remoteAddress', { value: spoofedAddress, configurable: true });
+      next();
+    });
+    spoofApp.use('/api/auth', (req, res, next) => activeAuthRouter(req, res, next));
+    spoofServer = spoofApp.listen(0);
+    await new Promise<void>(resolve => spoofServer.once('listening', () => resolve()));
   });
 
   afterAll(async () => {
     await new Promise<void>(resolve => server.close(() => resolve()));
     await new Promise<void>(resolve => noSbServer.close(() => resolve()));
+    await new Promise<void>(resolve => spoofServer.close(() => resolve()));
   });
 
   beforeEach(() => {
@@ -292,89 +318,6 @@ describe('Auth Routes', () => {
         error: 'Username already taken',
         fingerprint: 'testuser',
       });
-    });
-  });
-
-  describe('POST /username/create', () => {
-    it('should return 400 if userId or username is missing', async () => {
-      const response1 = await request(server)
-        .post('/api/auth/username/create')
-        .send({ username: 'testuser' });
-
-      expect(response1.status).toBe(400);
-      expect(response1.body).toEqual({
-        success: false,
-        error: 'USERNAME_REQUIRED',
-      });
-
-      const response2 = await request(server)
-        .post('/api/auth/username/create')
-        .send({ userId: 'user-123' });
-
-      expect(response2.status).toBe(400);
-      expect(response2.body).toEqual({
-        success: false,
-        error: 'USERNAME_REQUIRED',
-      });
-    });
-
-    it('should return 503 if username service is not configured', async () => {
-      const appWithoutService = express();
-      appWithoutService.use(express.json());
-      appWithoutService.use('/api/auth', createAuthRoutes(mockSupabase, null));
-
-      const response = await request(appWithoutService)
-        .post('/api/auth/username/create')
-        .send({ userId: 'user-123', username: 'testuser' });
-
-      expect(response.status).toBe(503);
-      expect(response.body).toEqual({
-        success: false,
-        error: 'AUTH_SERVICE_NOT_CONFIGURED',
-      });
-    });
-
-    it('should return error if validation fails', async () => {
-      mockUsernameService.validateUsername.mockReturnValue({
-        valid: false,
-        error: 'Username too short',
-      });
-
-      const response = await request(server)
-        .post('/api/auth/username/create')
-        .send({ userId: 'user-123', username: 'ab' });
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({
-        success: false,
-        error: 'USERNAME_NOT_AVAILABLE',
-      });
-    });
-
-    it('should create username successfully', async () => {
-      mockUsernameService.validateUsername.mockReturnValue({
-        valid: true,
-        fingerprint: 'testuser',
-      });
-      mockUsernameService.createUsername.mockResolvedValue({
-        success: true,
-        fingerprint: 'testuser',
-      });
-
-      const response = await request(server)
-        .post('/api/auth/username/create')
-        .send({ userId: 'user-123', username: 'TestUser' });
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({
-        success: true,
-        fingerprint: 'testuser',
-      });
-      expect(mockUsernameService.createUsername).toHaveBeenCalledWith(
-        'user-123',
-        'TestUser',
-        'testuser'
-      );
     });
   });
 
@@ -1932,6 +1875,34 @@ describe('Auth Routes', () => {
       });
     });
 
+    it('should return 403 for non-loopback peers even in test environment', async () => {
+      spoofedAddress = '203.0.113.9';
+
+      const response = await request(spoofServer)
+        .post('/api/auth/test/create-user')
+        .send({ email: 'test@example.com', password: 'password123' });
+
+      expect(response.status).toBe(403);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Test endpoints are only available in test/development environments',
+      });
+    });
+
+    it('should return 403 when the peer address is unavailable', async () => {
+      spoofedAddress = undefined;
+
+      const response = await request(spoofServer)
+        .post('/api/auth/test/create-user')
+        .send({ email: 'test@example.com', password: 'password123' });
+
+      expect(response.status).toBe(403);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Test endpoints are only available in test/development environments',
+      });
+    });
+
     it('should return 503 if Supabase is not configured', async () => {
       const response = await request(noSbServer)
         .post('/api/auth/test/create-user')
@@ -2514,6 +2485,117 @@ describe('Auth Routes', () => {
         success: false,
         error: 'Unknown error',
       });
+    });
+  });
+
+  describe('POST /test/expire-socket-auth', () => {
+    beforeEach(() => {
+      // Ensure we're in test environment
+      process.env.NODE_ENV = 'test';
+    });
+
+    it('should return 403 in production environment', async () => {
+      process.env.NODE_ENV = 'production';
+
+      const response = await request(server)
+        .post('/api/auth/test/expire-socket-auth')
+        .send({ userId: 'user-123' });
+
+      expect(response.status).toBe(403);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Test endpoints are only available in test/development environments',
+      });
+      expect(forceExpireUserSocketAuth).not.toHaveBeenCalled();
+    });
+
+    it('should return 403 for non-loopback peers even in test environment', async () => {
+      spoofedAddress = '203.0.113.9';
+
+      const response = await request(spoofServer)
+        .post('/api/auth/test/expire-socket-auth')
+        .send({ userId: 'user-123' });
+
+      expect(response.status).toBe(403);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Test endpoints are only available in test/development environments',
+      });
+      expect(forceExpireUserSocketAuth).not.toHaveBeenCalled();
+    });
+
+    it('should return 503 if Supabase is not configured', async () => {
+      const response = await request(noSbServer)
+        .post('/api/auth/test/expire-socket-auth')
+        .send({ userId: 'user-123' });
+
+      expect(response.status).toBe(503);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'AUTH_SERVICE_NOT_CONFIGURED',
+      });
+      expect(forceExpireUserSocketAuth).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 if userId is missing', async () => {
+      const response = await request(server)
+        .post('/api/auth/test/expire-socket-auth')
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        success: false,
+        error: 'userId is required',
+      });
+      expect(forceExpireUserSocketAuth).not.toHaveBeenCalled();
+    });
+
+    it('should expire matching sockets and report the count', async () => {
+      (forceExpireUserSocketAuth as jest.Mock).mockReturnValue(2);
+
+      const response = await request(server)
+        .post('/api/auth/test/expire-socket-auth')
+        .send({ userId: 'user-123' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        matched: 2,
+        expired: 2,
+      });
+      expect(forceExpireUserSocketAuth).toHaveBeenCalledWith('user-123', false);
+    });
+
+    it('should only count matching sockets on a dry run', async () => {
+      (forceExpireUserSocketAuth as jest.Mock).mockReturnValue(1);
+
+      const response = await request(server)
+        .post('/api/auth/test/expire-socket-auth')
+        .send({ userId: 'user-123', dryRun: true });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        matched: 1,
+        expired: 0,
+      });
+      expect(forceExpireUserSocketAuth).toHaveBeenCalledWith('user-123', true);
+    });
+
+    it('should treat a non-boolean dryRun as a real expiry', async () => {
+      (forceExpireUserSocketAuth as jest.Mock).mockReturnValue(1);
+
+      const response = await request(server)
+        .post('/api/auth/test/expire-socket-auth')
+        .send({ userId: 'user-123', dryRun: 'yes' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        matched: 1,
+        expired: 1,
+      });
+      expect(forceExpireUserSocketAuth).toHaveBeenCalledWith('user-123', false);
     });
   });
 });

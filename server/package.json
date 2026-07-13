@@ -7,6 +7,7 @@
   },
   "scripts": {
     "start": "nodemon",
+    "build": "tsc -p tsconfig.build.json",
     "test": "jest",
     "watch": "jest --watch"
   },
@@ -30,7 +31,15 @@
       "lcov",
       "text",
       "text-summary"
-    ]
+    ],
+    "coverageThreshold": {
+      "global": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 100,
+        "lines": 100
+      }
+    }
   },
   "browserslist": [
     ">0.2%",
@@ -44,7 +53,6 @@
     "@types/express": "^5.0.6",
     "@types/express-serve-static-core": "^5.1.0",
     "@types/socket.io": "^3.0.2",
-    "body-parser": "^2.2.1",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -54,20 +62,15 @@
     "graphql": "^16.10.0",
     "graphql-http": "^1.22.4",
     "lowdb": "^1.0.0",
-    "morgan": "^1.10.0",
-    "mysql2": "^3.1.2",
     "pino-colada": "^2.2.2",
     "socket.io": "^4.7.2",
-    "sqlstring": "^2.3.3",
-    "string-similarity": "^4.0.4",
     "ts-node": "^10.9.1",
-    "unhomoglyph": "^1.0.6",
-    "uuid": "^13.0.0"
+    "unhomoglyph": "^1.0.6"
   },
   "devDependencies": {
     "@tsconfig/node24": "^24.0.0",
     "@types/express-pino-logger": "^4.0.5",
-    "@types/jest": "^30.0.0",
+    "@types/jest": "^29.5.14",
     "@types/lowdb": "^1.0.15",
     "@types/node": "^24.0.0",
     "@types/sinon": "^21.0.0",

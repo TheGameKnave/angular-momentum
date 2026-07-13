@@ -6,6 +6,7 @@ import notificationsRoutes from './notifications.routes';
 import { createAuthRoutes } from './auth.routes';
 import { createUserSettingsRoutes } from './user-settings.routes';
 import { UsernameService } from '../services/usernameService';
+import { requireAuthForMutations } from '../middleware/requireAuth';
 
 /**
  * Supabase client pair - separate clients for auth and database operations.
@@ -38,9 +39,12 @@ export function createApiRoutes(
   const userSettingsRoutes = createUserSettingsRoutes(supabase);
 
   // Mount route modules
+  // Feature-flag and notification mutations are admin-grade (flag writes broadcast to
+  // every connected client) — reads stay public, writes require a Supabase session.
+  const mutationAuth = requireAuthForMutations(supabase?.auth ?? null);
   router.use('/auth', authRoutes);
-  router.use('/feature-flags', featureFlagsRoutes);
-  router.use('/notifications', notificationsRoutes);
+  router.use('/feature-flags', mutationAuth, featureFlagsRoutes);
+  router.use('/notifications', mutationAuth, notificationsRoutes);
   router.use('/user-settings', userSettingsRoutes);
 
   // Metadata routes (flat structure)

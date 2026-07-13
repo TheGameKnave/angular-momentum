@@ -68,8 +68,30 @@ async function hideTooltipsForScreenshot(page: Page): Promise<void> {
       (el as HTMLElement).style.display = 'none';
     });
   });
-  // Small wait for tooltip fade-out animations
-  await page.waitForTimeout(100);
+  // Confirm every tooltip is actually hidden before screenshotting
+  await page.waitForFunction(() =>
+    Array.from(document.querySelectorAll('.p-tooltip, [role="tooltip"]')).every(
+      (el) => getComputedStyle(el).display === 'none'
+    )
+  );
+}
+
+/**
+ * Helper to wait for an element's open/close transition to settle.
+ * Polls until the bounding box stops changing between consecutive samples,
+ * so clip calculations and screenshots see the final position.
+ */
+async function waitForSettledBox(page: Page, selector: string): Promise<void> {
+  const element = page.locator(selector);
+  await element.waitFor({ state: 'visible' });
+  let previous = '';
+  await expect.poll(async () => {
+    const box = await element.boundingBox();
+    const current = JSON.stringify(box);
+    const settled = box !== null && current === previous;
+    previous = current;
+    return settled;
+  }).toBe(true);
 }
 
 /**
@@ -82,7 +104,7 @@ async function screenshotMenu(
   name: string
 ): Promise<void> {
   const element = page.locator(selector);
-  await element.waitFor({ state: 'visible' });
+  await waitForSettledBox(page, selector);
 
   await fixBackdropForScreenshot(page);
   await hideTooltipsForScreenshot(page);
@@ -100,7 +122,7 @@ async function screenshotMenuClipped(
   name: string
 ): Promise<void> {
   const element = page.locator(selector);
-  await element.waitFor({ state: 'visible' });
+  await waitForSettledBox(page, selector);
 
   await fixBackdropForScreenshot(page);
   await hideTooltipsForScreenshot(page);
@@ -260,7 +282,7 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     // Close the menu
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await page.locator(auth.profileMenu).waitFor({ state: 'hidden' });
 
     // Navigate to profile page
     await page.goto(`${APP_BASE_URL}/profile`);
@@ -318,7 +340,7 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     // Close the menu
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await page.locator(auth.profileMenu).waitFor({ state: 'hidden' });
 
     // Navigate to profile page
     await page.goto(`${APP_BASE_URL}/profile`);
@@ -333,7 +355,7 @@ test.describe('Visual Regression Tests', () => {
     const isDark = await htmlElement.evaluate(el => el.classList.contains('app-dark'));
     if (isDark) {
       await page.click(pages.profileThemeToggle);
-      await page.waitForTimeout(500); // Wait for theme to apply
+      await expect(htmlElement).not.toHaveClass(/app-dark/); // Theme applied
     }
 
     // Replace dynamic content with stable placeholders for screenshot
@@ -369,7 +391,7 @@ test.describe('Visual Regression Tests', () => {
 
     // Switch back to dark mode before logout
     await page.click(pages.profileThemeToggle);
-    await page.waitForTimeout(300);
+    await expect(page.locator('html')).toHaveClass(/app-dark/);
 
     // Logout
     await page.click(menus.authMenuButton);
@@ -388,7 +410,6 @@ test.describe('Visual Regression Tests', () => {
 
     // Open auth menu (signup is default tab)
     await page.click(menus.authMenuButton);
-    await page.waitForTimeout(300);
 
     await screenshotMenu(page, auth.signupForm, 'menu-auth-signup.png');
   });
@@ -401,7 +422,6 @@ test.describe('Visual Regression Tests', () => {
     // Open auth menu and switch to login tab
     await page.click(menus.authMenuButton);
     await page.click(auth.loginTab);
-    await page.waitForTimeout(300);
 
     await screenshotMenu(page, auth.loginForm, 'menu-auth-login.png');
   });
@@ -415,7 +435,6 @@ test.describe('Visual Regression Tests', () => {
     await page.click(menus.authMenuButton);
     await page.click(auth.loginTab);
     await page.click(auth.loginForgotPassword);
-    await page.waitForTimeout(300);
 
     await screenshotMenu(page, auth.resetForm, 'menu-auth-reset.png');
   });
@@ -435,7 +454,7 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     // Wait for username to load (prevents flaky screenshots)
     await page.waitForSelector('.profile-username:not(:empty)', { timeout: 10000 });
-    await page.waitForTimeout(300);
+    await waitForSettledBox(page, auth.profileMenu);
 
     await fixBackdropForScreenshot(page);
     await hideTooltipsForScreenshot(page);
@@ -481,7 +500,6 @@ test.describe('Visual Regression Tests', () => {
     await dismissCookieBanner(page);
 
     await page.click(menus.languageMenuButton);
-    await page.waitForTimeout(300);
 
     await screenshotMenu(page, '.dialog-menu-panel', 'menu-language.png');
   });
@@ -492,7 +510,6 @@ test.describe('Visual Regression Tests', () => {
     await dismissCookieBanner(page);
 
     await page.click(menus.notificationCenterButton);
-    await page.waitForTimeout(300);
 
     await screenshotMenu(page, '.dialog-menu-panel', 'menu-notification.png');
   });
@@ -503,7 +520,6 @@ test.describe('Visual Regression Tests', () => {
     await dismissCookieBanner(page);
 
     await page.click(menus.shareMenuButton);
-    await page.waitForTimeout(300);
 
     await screenshotMenu(page, '.dialog-menu-panel', 'menu-share.png');
   });
@@ -539,9 +555,15 @@ test.describe('Visual Regression Tests', () => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
     await dismissCookieBanner(page);
-    await page.waitForTimeout(500); // Wait for layout to stabilize
+    // Web fonts affect text metrics across the whole page; wait until loaded
+    await page.waitForFunction(() => document.fonts.status === 'loaded');
 
-    await expect(page).toHaveScreenshot('layout-phone.png');
+    await expect(page).toHaveScreenshot('layout-phone.png', {
+      // Full-page shot: tolerate minor antialiasing/scrollbar noise
+      maxDiffPixelRatio: 0.005,
+      // Mask footer version so release bumps don't churn the baseline
+      mask: [page.locator(common.footerVersion)],
+    });
   });
 
   test('layout-tablet', async ({ page }) => {
@@ -550,13 +572,18 @@ test.describe('Visual Regression Tests', () => {
     await waitForAngular(page);
     await dismissCookieBanner(page);
 
-    // Replace version in footer with placeholder
+    // Replace version in footer with placeholder (keeps footer layout width stable)
     await page.evaluate(() => {
       const versionEl = document.querySelector('footer app-menu-change-log .change-log-button h2');
       if (versionEl) versionEl.textContent = 'vX.X.X';
     });
 
-    await expect(page).toHaveScreenshot('layout-tablet.png');
+    await expect(page).toHaveScreenshot('layout-tablet.png', {
+      // Full-page shot: tolerate minor antialiasing/scrollbar noise
+      maxDiffPixelRatio: 0.005,
+      // Mask footer version so release bumps don't churn the baseline
+      mask: [page.locator(common.footerVersion)],
+    });
   });
 
   // ============================================================================
@@ -681,7 +708,7 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await page.locator(auth.profileMenu).waitFor({ state: 'hidden' });
 
     // Navigate to profile page
     await page.goto(`${APP_BASE_URL}/profile`);
@@ -732,7 +759,7 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await page.locator(auth.profileMenu).waitFor({ state: 'hidden' });
 
     // Navigate to profile page
     await page.goto(`${APP_BASE_URL}/profile`);
@@ -780,7 +807,6 @@ test.describe('Visual Regression Tests', () => {
 
     // Open auth menu (signup is default tab)
     await page.click(menus.authMenuButton);
-    await page.waitForTimeout(300);
 
     await screenshotMenuClipped(page, auth.signupForm, 'menu-auth-signup-phone.png');
   });
@@ -794,7 +820,6 @@ test.describe('Visual Regression Tests', () => {
     // Open auth menu and switch to login tab
     await page.click(menus.authMenuButton);
     await page.click(auth.loginTab);
-    await page.waitForTimeout(300);
 
     await screenshotMenuClipped(page, auth.loginForm, 'menu-auth-login-phone.png');
   });
@@ -809,7 +834,6 @@ test.describe('Visual Regression Tests', () => {
     await page.click(menus.authMenuButton);
     await page.click(auth.loginTab);
     await page.click(auth.loginForgotPassword);
-    await page.waitForTimeout(300);
 
     await screenshotMenuClipped(page, auth.resetForm, 'menu-auth-reset-phone.png');
   });
@@ -830,7 +854,7 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     // Wait for username to load (prevents flaky screenshots)
     await page.waitForSelector('.profile-username:not(:empty)', { timeout: 10000 });
-    await page.waitForTimeout(300);
+    await waitForSettledBox(page, auth.profileMenu);
 
     // Replace dynamic content with stable placeholders for screenshot
     await page.evaluate(() => {
@@ -859,7 +883,6 @@ test.describe('Visual Regression Tests', () => {
     await dismissCookieBanner(page);
 
     await page.click(menus.languageMenuButton);
-    await page.waitForTimeout(300);
 
     await screenshotMenuClipped(page, '.dialog-menu-panel', 'menu-language-phone.png');
   });
@@ -871,7 +894,6 @@ test.describe('Visual Regression Tests', () => {
     await dismissCookieBanner(page);
 
     await page.click(menus.notificationCenterButton);
-    await page.waitForTimeout(300);
 
     await screenshotMenuClipped(page, '.dialog-menu-panel', 'menu-notification-phone.png');
   });
@@ -883,7 +905,6 @@ test.describe('Visual Regression Tests', () => {
     await dismissCookieBanner(page);
 
     await page.click(menus.shareMenuButton);
-    await page.waitForTimeout(300);
 
     await screenshotMenuClipped(page, '.dialog-menu-panel', 'menu-share-phone.png');
   });
@@ -907,7 +928,7 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await page.locator(auth.profileMenu).waitFor({ state: 'hidden' });
 
     // Navigate to profile page
     await page.goto(`${APP_BASE_URL}/profile`);
@@ -916,13 +937,12 @@ test.describe('Visual Regression Tests', () => {
     // Click Clear Data button to open dialog
     await page.click(pages.profileClearDataButton);
     await page.waitForSelector(common.confirmDialog, { timeout: 5000 });
-    await page.waitForTimeout(300); // Wait for dialog animation
 
     await screenshotMenu(page, common.confirmDialog, 'dialog-profile-clear-data.png');
 
     // Close dialog
     await page.click(common.confirmDialogReject);
-    await page.waitForTimeout(300);
+    await page.locator(common.confirmDialog).waitFor({ state: 'hidden' });
 
     // Logout
     await page.click(menus.authMenuButton);
@@ -943,7 +963,7 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await page.locator(auth.profileMenu).waitFor({ state: 'hidden' });
 
     // Navigate to profile page
     await page.goto(`${APP_BASE_URL}/profile`);
@@ -952,13 +972,12 @@ test.describe('Visual Regression Tests', () => {
     // Click Delete Account button to open dialog
     await page.click(pages.profileDeleteAccountButton);
     await page.waitForSelector(common.confirmDialog, { timeout: 5000 });
-    await page.waitForTimeout(300); // Wait for dialog animation
 
     await screenshotMenu(page, common.confirmDialog, 'dialog-profile-delete-account.png');
 
     // Close dialog
     await page.click(common.confirmDialogReject);
-    await page.waitForTimeout(300);
+    await page.locator(common.confirmDialog).waitFor({ state: 'hidden' });
 
     // Logout
     await page.click(menus.authMenuButton);
@@ -981,7 +1000,7 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await page.locator(auth.profileMenu).waitFor({ state: 'hidden' });
 
     // Navigate to profile page
     await page.goto(`${APP_BASE_URL}/profile`);
@@ -990,13 +1009,12 @@ test.describe('Visual Regression Tests', () => {
     // Click Clear Data button to open dialog
     await page.click(pages.profileClearDataButton);
     await page.waitForSelector(common.confirmDialog, { timeout: 5000 });
-    await page.waitForTimeout(300); // Wait for dialog animation
 
     await screenshotMenu(page, common.confirmDialog, 'dialog-profile-clear-data-phone.png');
 
     // Close dialog
     await page.click(common.confirmDialogReject);
-    await page.waitForTimeout(300);
+    await page.locator(common.confirmDialog).waitFor({ state: 'hidden' });
 
     // Logout
     await page.click(menus.authMenuButton);
@@ -1019,7 +1037,7 @@ test.describe('Visual Regression Tests', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await page.locator(auth.profileMenu).waitFor({ state: 'hidden' });
 
     // Navigate to profile page
     await page.goto(`${APP_BASE_URL}/profile`);
@@ -1028,13 +1046,12 @@ test.describe('Visual Regression Tests', () => {
     // Click Delete Account button to open dialog
     await page.click(pages.profileDeleteAccountButton);
     await page.waitForSelector(common.confirmDialog, { timeout: 5000 });
-    await page.waitForTimeout(300); // Wait for dialog animation
 
     await screenshotMenu(page, common.confirmDialog, 'dialog-profile-delete-account-phone.png');
 
     // Close dialog
     await page.click(common.confirmDialogReject);
-    await page.waitForTimeout(300);
+    await page.locator(common.confirmDialog).waitFor({ state: 'hidden' });
 
     // Logout
     await page.click(menus.authMenuButton);

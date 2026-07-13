@@ -77,27 +77,14 @@ test.describe('Feature Flags Tests', () => {
     await page.goto(`${APP_BASE_URL}/features`);
     await waitForAngular(page);
 
-    // Verify the auth prompt message is visible for unauthenticated users
+    // The auth prompt message is shown to unauthenticated users
     const authPrompt = page.locator('text=Register or log in to access all features');
-    const hasAuthPrompt = await authPrompt.isVisible({ timeout: 3000 }).catch(() => false);
+    await expect(authPrompt).toBeVisible();
 
-    // Either we should see an auth prompt, or toggles should be disabled
-    if (hasAuthPrompt) {
-      await expect(authPrompt).toBeVisible();
-    }
-
-    // Check that toggles exist but are disabled for unauthenticated users
+    // Toggles exist but are disabled for unauthenticated users
     const firstToggle = page.locator(pages.featureToggle).first();
-    const toggleExists = await firstToggle.isVisible().catch(() => false);
-
-    if (toggleExists) {
-      // The toggle input should be disabled for unauthenticated users
-      const toggleInput = firstToggle.locator('input');
-      const isDisabled = await toggleInput.isDisabled().catch(() => false);
-
-      // Either disabled or we saw the auth prompt
-      expect(isDisabled || hasAuthPrompt).toBeTruthy();
-    }
+    await expect(firstToggle).toBeVisible();
+    await expect(firstToggle.locator('input')).toBeDisabled();
 
   });
 
@@ -129,21 +116,17 @@ test.describe('Feature Flags Tests', () => {
       // Get initial state
       const initialChecked = await toggleInput.isChecked();
 
-      // Click to toggle
+      // Click to toggle - wait for the flag update to persist and the state to change
+      const togglePut = page.waitForResponse(r => r.url().includes('/api/feature-flags') && r.request().method() === 'PUT');
       await toggle.click();
-      await page.waitForTimeout(600);
+      await togglePut;
+      await expect(toggleInput).toBeChecked({ checked: !initialChecked });
 
-      // Verify state changed
-      const newChecked = await toggleInput.isChecked();
-      expect(newChecked).not.toBe(initialChecked);
-
-      // Toggle back
+      // Toggle back - wait for the revert to persist and the state to return
+      const revertPut = page.waitForResponse(r => r.url().includes('/api/feature-flags') && r.request().method() === 'PUT');
       await toggle.click();
-      await page.waitForTimeout(600);
-
-      // Verify back to original
-      const finalChecked = await toggleInput.isChecked();
-      expect(finalChecked).toBe(initialChecked);
+      await revertPut;
+      await expect(toggleInput).toBeChecked({ checked: initialChecked });
     }
 
 
@@ -176,8 +159,10 @@ test.describe('Feature Flags Tests', () => {
 
     const initialState = await toggleInput.isChecked();
 
+    // Toggle and wait for the flag update to persist before reloading
+    const togglePut = page.waitForResponse(r => r.url().includes('/api/feature-flags') && r.request().method() === 'PUT');
     await firstToggle.click();
-    await page.waitForTimeout(600);
+    await togglePut;
 
     const toggledState = await toggleInput.isChecked();
     expect(toggledState).not.toBe(initialState);
@@ -192,9 +177,10 @@ test.describe('Feature Flags Tests', () => {
     expect(persistedState).toBe(toggledState);
 
 
-    // Toggle back and logout
+    // Toggle back (wait for the revert to persist) and logout
+    const revertPut = page.waitForResponse(r => r.url().includes('/api/feature-flags') && r.request().method() === 'PUT');
     await page.locator(pages.featureToggle).first().click();
-    await page.waitForTimeout(600);
+    await revertPut;
 
     await page.click(menus.authMenuButton);
     await page.click(auth.logoutButton);

@@ -27,13 +27,13 @@ export class SocketIoService {
 
   constructor() {
     // Auto-manage socket connection based on connectivity
-    // istanbul ignore next - effect runs in browser only
-    if (this.isBrowser && this.socket) {
+    const socket = this.socket;
+    if (this.isBrowser && socket) {
       effect(() => {
         if (this.connectivity.isOnline()) {
-          this.socket?.connect();
+          socket.connect();
         } else {
-          this.socket?.disconnect();
+          socket.disconnect();
         }
       });
     }

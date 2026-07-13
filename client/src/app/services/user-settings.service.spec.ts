@@ -9,7 +9,7 @@ import { SocketIoService } from './socket.io.service';
 import { AuthService } from './auth.service';
 import { TranslocoService } from '@jsverse/transloco';
 import { ENVIRONMENT } from 'src/environments/environment';
-import { EMPTY, Subject } from 'rxjs';
+import { EMPTY, Observable, Subject } from 'rxjs';
 
 describe('UserSettingsService', () => {
   let service: UserSettingsService;
@@ -1423,6 +1423,59 @@ describe('UserSettingsService', () => {
 
       expect(mockSocketService.emit).toHaveBeenCalledWith('deauthenticate');
     });
+
+    it('should re-authenticate the socket with a fresh token on auth-expired', async () => {
+      mockAuthService.getToken.and.returnValue(Promise.resolve('fresh-token'));
+
+      await (service as any).handleAuthExpired();
+
+      expect(mockAuthService.getToken).toHaveBeenCalled();
+      expect(mockSocketService.emit).toHaveBeenCalledWith('authenticate', 'fresh-token');
+    });
+
+    it('should not re-authenticate on auth-expired when no token is returned', async () => {
+      mockAuthService.getToken.and.returnValue(Promise.resolve(null));
+      mockSocketService.emit.calls.reset();
+
+      await (service as any).handleAuthExpired();
+
+      expect(mockAuthService.getToken).toHaveBeenCalled();
+      expect(mockSocketService.emit).not.toHaveBeenCalledWith('authenticate', jasmine.anything());
+    });
+
+    it('should wire the auth-expired listener through the socket subscription', fakeAsync(() => {
+      const expiredSubject = new Subject<{ message: string }>();
+
+      TestBed.resetTestingModule();
+      mockSocketService.listen.and.callFake(
+        <T,>(event: string): Observable<T> =>
+          (event === 'auth-expired' ? expiredSubject.asObservable() : EMPTY) as Observable<T>
+      );
+      mockAuthService.getToken.and.returnValue(Promise.resolve('fresh-token'));
+      TestBed.configureTestingModule({
+        imports: [HttpClientTestingModule],
+        providers: [
+          UserSettingsService,
+          { provide: LogService, useValue: mockLogService },
+          { provide: IndexedDbService, useValue: mockIndexedDbService },
+          { provide: UserStorageService, useValue: mockUserStorageService },
+          { provide: SocketIoService, useValue: mockSocketService },
+          { provide: AuthService, useValue: mockAuthService },
+          { provide: TranslocoService, useValue: mockTranslocoService },
+        ]
+      });
+
+      const expiryTestService = TestBed.inject(UserSettingsService);
+      TestBed.inject(HttpTestingController);
+      mockSocketService.emit.calls.reset();
+
+      expiredSubject.next({ message: 'Session expired' });
+      tick();
+      flush();
+
+      expect(expiryTestService).toBeTruthy();
+      expect(mockSocketService.emit).toHaveBeenCalledWith('authenticate', 'fresh-token');
+    }));
 
     it('should handle remote theme update via WebSocket', fakeAsync(async () => {
       // Set up initial state - user must be authenticated for WebSocket updates

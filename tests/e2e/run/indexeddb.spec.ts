@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { APP_BASE_URL } from '../data/constants';
 import { generateTestUser, TestUser } from '../data/test-users';
 import { createTestUser, deleteTestUser } from '../helpers/auth.helper';
@@ -9,12 +9,47 @@ import { menus, pages, auth, common } from '../helpers/selectors';
 let sharedUser: TestUser;
 let sharedUserId: string;
 
+// IndexedDB layout (see client/src/app/constants/ui.constants.ts and
+// client/src/app/services/user-storage.service.ts):
+// - DB 'momentum', store 'persistent'
+// - The IndexedDB demo textarea saves under base key 'key', scoped per user:
+//   'anonymous_key' when logged out, 'user_{userId}_key' when logged in
+const IDB_NAME = 'momentum';
+const IDB_PERSISTENT_STORE = 'persistent';
+const ANONYMOUS_TEXTAREA_KEY = 'anonymous_key';
+
+/**
+ * Reads a raw value from the app's IndexedDB 'persistent' store.
+ * Returns null if the key (or the database/store) doesn't exist.
+ * Used with expect.poll to wait for the debounced auto-save deterministically.
+ */
+async function readPersistentValue(page: Page, key: string): Promise<unknown> {
+  return page.evaluate(({ dbName, storeName, storageKey }) => {
+    return new Promise((resolve) => {
+      const openReq = indexedDB.open(dbName);
+      openReq.onsuccess = () => {
+        const db = openReq.result;
+        try {
+          const getReq = db.transaction(storeName, 'readonly').objectStore(storeName).get(storageKey);
+          getReq.onsuccess = () => { db.close(); resolve(getReq.result ?? null); };
+          getReq.onerror = () => { db.close(); resolve(null); };
+        } catch {
+          db.close();
+          resolve(null);
+        }
+      };
+      openReq.onerror = () => resolve(null);
+    });
+  }, { dbName: IDB_NAME, storeName: IDB_PERSISTENT_STORE, storageKey: key });
+}
+
 // Helper to navigate to IndexedDB page
 async function navigateToIndexedDB(page: any): Promise<void> {
   await page.goto(`${APP_BASE_URL}/indexeddb`);
   await page.waitForSelector(pages.indexedDbPage, { timeout: 5000 });
-  // Wait for hydration and initial effects to settle (IndexedDB loads data async)
-  await page.waitForTimeout(500);
+  // Wait for hydration and the component's async IndexedDB load to settle
+  // (zone.js tracks IndexedDB requests, so Angular stability covers the load)
+  await waitForAngular(page);
 }
 
 test.describe('IndexedDB Tests', () => {
@@ -76,9 +111,8 @@ test.describe('IndexedDB Tests', () => {
 
     await page.fill(pages.indexedDbTextarea, testText);
 
-    // Wait for debounce save to complete
-    await page.waitForTimeout(1200);
-
+    // Wait for the debounced auto-save to land in IndexedDB (state-based, no sleep)
+    await expect.poll(() => readPersistentValue(page, ANONYMOUS_TEXTAREA_KEY), { timeout: 10000 }).toBe(testText);
 
     // Verify text is still there
     const textareaValue = await page.locator(pages.indexedDbTextarea).inputValue();
@@ -90,21 +124,18 @@ test.describe('IndexedDB Tests', () => {
 
     const testText = `Persist test ${Date.now()}`;
 
-    // Type and save
+    // Type and wait for the debounced save to land in IndexedDB
     await page.fill(pages.indexedDbTextarea, testText);
-    await page.waitForTimeout(1200); // Wait for debounce
+    await expect.poll(() => readPersistentValue(page, ANONYMOUS_TEXTAREA_KEY), { timeout: 10000 }).toBe(testText);
 
     // Refresh page
     await page.reload();
     await waitForAngular(page);
     await page.waitForSelector(pages.indexedDbTextarea, { timeout: 5000 });
 
-    // Wait for IndexedDB data to load (async operation after component init)
-    await page.waitForTimeout(500);
-
-    // Verify data persisted
-    const textareaValue = await page.locator(pages.indexedDbTextarea).inputValue();
-    expect(textareaValue).toContain(testText);
+    // Verify data persisted - toHaveValue auto-retries while the component
+    // loads data from IndexedDB (async operation after component init)
+    await expect(page.locator(pages.indexedDbTextarea)).toHaveValue(testText, { timeout: 10000 });
 
   });
 
@@ -118,7 +149,8 @@ test.describe('IndexedDB Tests', () => {
 
     const anonText = `Anonymous data ${Date.now()}`;
     await page.fill(pages.indexedDbTextarea, anonText);
-    await page.waitForTimeout(1200); // Wait for debounce save
+    // Wait for the debounced save to land in IndexedDB
+    await expect.poll(() => readPersistentValue(page, ANONYMOUS_TEXTAREA_KEY), { timeout: 10000 }).toBe(anonText);
 
     // Verify anonymous data was saved
     const savedAnonText = await page.locator(pages.indexedDbTextarea).inputValue();
@@ -131,26 +163,21 @@ test.describe('IndexedDB Tests', () => {
     await page.fill(auth.loginPassword, sharedUser.password);
     await page.click(auth.loginSubmit);
 
-    // Wait for login to complete - either profile menu or storage dialog appears
-    await Promise.race([
-      page.waitForSelector(auth.profileMenu, { timeout: 15000 }),
-      page.waitForSelector(common.storagePromotionDialog, { timeout: 15000 }),
-    ]);
-
-    // Handle storage promotion dialog if it appears
+    // Anonymous data exists (verified above), so the storage promotion dialog
+    // MUST appear before login completes (promotion runs before auth state updates)
     const storageDialog = page.locator(common.storagePromotionDialog);
-    if (await storageDialog.isVisible({ timeout: 1000 }).catch(() => false)) {
-      // Skip importing the anonymous data for this test
-      await page.click(common.storagePromotionSkip);
-      await page.waitForTimeout(600);
-    }
+    await expect(storageDialog).toBeVisible({ timeout: 15000 });
+
+    // Skip importing the anonymous data for this test
+    await page.click(common.storagePromotionSkip);
+    await expect(storageDialog).not.toBeVisible({ timeout: 5000 });
 
     // Now wait for profile menu to confirm login complete
     await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
 
-    // Close the menu after login
+    // Close the menu after login and wait for the panel to disappear
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(600);
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 5000 });
 
     // Navigate back to IndexedDB page - should now be in user scope
     await navigateToIndexedDB(page);
@@ -163,33 +190,32 @@ test.describe('IndexedDB Tests', () => {
     // Save some user-specific data
     const userText = `User data ${Date.now()}`;
     await page.fill(pages.indexedDbTextarea, userText);
-    await page.waitForTimeout(1200); // Wait for debounce save
+    // Wait for the debounced save to land in the user-scoped key
+    await expect.poll(() => readPersistentValue(page, `user_${sharedUserId}_key`), { timeout: 10000 }).toBe(userText);
 
     // Verify user data was saved while still logged in
     const savedUserText = await page.locator(pages.indexedDbTextarea).inputValue();
     expect(savedUserText).toBe(userText);
 
-    // Logout
+    // Logout - open the auth menu and wait for the logout button to be clickable
     await page.click(menus.authMenuButton);
-    await page.waitForTimeout(600);
+    await expect(page.locator(auth.logoutButton)).toBeVisible({ timeout: 5000 });
     await page.click(auth.logoutButton);
     // Wait for profile menu to disappear (indicates logged out state)
     await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 5000 });
 
-    // Wait for logout to fully complete (session cookies to clear)
-    await page.waitForTimeout(1000);
+    // Wait for logout to fully complete (logout API call + session cookies to clear)
+    await waitForAngular(page);
 
     // Navigate back to IndexedDB page - should now be back in anonymous scope
     await navigateToIndexedDB(page);
 
     // Verify we're still logged out after page navigation (no auto-login from cached session)
     await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 3000 });
-    await page.waitForTimeout(1000); // Wait for data to load
 
-    // After logout, should see the ANONYMOUS data, not the user data
-    const afterLogoutText = await page.locator(pages.indexedDbTextarea).inputValue();
-    // Should see the original anonymous data
-    expect(afterLogoutText).toBe(anonText);
+    // After logout, should see the ANONYMOUS data, not the user data.
+    // toHaveValue auto-retries while the component loads data from IndexedDB.
+    await expect(page.locator(pages.indexedDbTextarea)).toHaveValue(anonText, { timeout: 10000 });
 
   });
 });

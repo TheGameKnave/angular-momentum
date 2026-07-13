@@ -186,7 +186,7 @@ export function setupApp(): express.Application {
 
   // GraphQL endpoint - MUST come before static file serving
   // Uses /gql to avoid collision with /graphql-api client route
-  app.all('/gql', apiLimiter, graphqlMiddleware());
+  app.all('/gql', apiLimiter, graphqlMiddleware(supabase?.auth ?? null));
 
   // Static file serving with catch-all MUST come last
   setupStaticFileServing(app, process.env.NODE_ENV || 'development');
@@ -195,7 +195,7 @@ export function setupApp(): express.Application {
 }
 
 // Initialize server and WebSocket
-// istanbul ignore next
+// istanbul ignore next - process entrypoint; never executes under jest (specs import setupApp directly)
 if (require.main === module) {
   const app = setupApp();
   const server = createServer(app);
