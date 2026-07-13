@@ -245,3 +245,4 @@ For the fastest path to a working fork:
 5. **Configure GitHub Secrets** (start with `HEROKU_API_KEY`, `SUPABASE_*`)
 6. **Test web deployment** before tackling mobile
 7. **Set up mobile signing** (iOS/Android) when ready for app stores
+8. **Start your [PATCHES.md](PATCHES.md) ledger** — it shipped with your template; record the AM version you templated from as your watermark. It's how your fork ports upstream fixes after your code has diverged

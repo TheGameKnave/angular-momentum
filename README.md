@@ -77,6 +77,7 @@ This project is licensed under the MIT License (see [LICENSE](https://github.com
 ### Using This as a Base for Your Own App?
 - If you modify and distribute this **library itself**, you must keep it MIT-licensed.
 - If you use this library as a foundation to build **your own application**, you can license your application however you choose.
+- Setup: work through [docs/FORK_CHECKLIST.md](docs/FORK_CHECKLIST.md). Staying current after you've diverged: your copy of [docs/PATCHES.md](docs/PATCHES.md) (it ships with the template) becomes your ledger — record the AM version you started from and follow its protocol to port upstream changes patch by patch.
 
 ## Quick start
 
