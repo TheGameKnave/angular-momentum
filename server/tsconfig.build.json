@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // CI type-checks the full project (including specs) with `npx tsc`;
+    // this config only emits runtime JS for the dyno, so skip checking —
+    // it keeps the Heroku build fast and independent of @types packages.
+    "noCheck": true,
+    "types": []
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["**/*.spec.ts", "node_modules", "build"]
+}

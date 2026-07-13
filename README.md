@@ -51,7 +51,6 @@ Known issues from the 2026-07 architecture/test audit, tabled for future session
 - [ ] Tauri webview ships with `"csp": null` — define a real CSP (Tauri injects its own nonces).
 
 ### Reliability
-- [ ] Procfile runs the API server backgrounded via `ts-node` with no supervision — if it crashes, the dyno keeps serving a dead-API app. Run compiled JS, supervise both processes (exit when either dies so Heroku restarts), add SIGTERM handlers.
 - [ ] user-settings routes return raw Postgres `error.message` to clients (schema-leaking, untranslatable). Move to curated `{ code, message }` responses — keep a human-readable message for dev/debugging, never the raw DB text.
 
 ### Test quality

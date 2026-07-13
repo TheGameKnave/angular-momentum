@@ -14,7 +14,7 @@
     "client:ssr": "cd client && node dist/angular-momentum/server/server.mjs",
     "server": "cd server && NODE_ENV=development node-env-run --exec nodemon | pino-colada",
     "server:prod": "cd server && NODE_ENV=production node-env-run --exec nodemon",
-    "heroku-postbuild": "cd client && npm install && npm run heroku-postbuild",
+    "heroku-postbuild": "npm run build --workspace=server && cd client && npm install && npm run heroku-postbuild",
     "start": "echo \"Run server and client, in parallel, in dev mode\" && run-p client server",
     "start:ssr": "echo \"Run server and SSR client, in parallel\" && run-p client:ssr server",
     "start:e2e": "run-p client:e2e server",
@@ -50,10 +50,10 @@
     "@types/compression": "^1.8.1",
     "@types/express-serve-static-core": "^5.1.0",
     "ajv": "^8.17.1",
-    "husky": "^9.1.7",
-    "typescript": "~5.9.3"
+    "husky": "^9.1.7"
   },
   "dependencies": {
-    "compression": "^1.8.1"
+    "compression": "^1.8.1",
+    "typescript": "~5.9.3"
   }
 }
