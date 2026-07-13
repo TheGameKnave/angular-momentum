@@ -48,8 +48,8 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 Known issues from the 2026-07 architecture/test audit, tabled for future sessions. (The critical items — deploy gates, coverage enforcement, Sonar quality-gate check, mutation auth, og-image SSRF allowlist — were fixed at the time.)
 
 ### Security
-- [ ] Verify the Tauri CSP (added 2026-07) on all five targets — watch the webview console for violations: GA/Hotjar after cookie consent, websocket connect, Supabase auth, IPC calls.
-- [ ] The web app has NO CSP: `server/index.ts` passes `contentSecurityPolicy: 'none'` with a comment claiming index.html defines one in a meta tag — no such meta tag exists. Define one (the Tauri policy in `tauri.conf.json` is the origin inventory to start from).
+- [ ] Verify the Tauri CSP (added 2026-07, see [docs/CONTENT_SECURITY_POLICY.md](docs/CONTENT_SECURITY_POLICY.md)) on all targets — watch the webview console for violations: GA/Hotjar after cookie consent, websocket connect, Supabase auth, IPC calls.
+- [ ] The web app has NO CSP: `server/index.ts` passes `contentSecurityPolicy: 'none'` with a comment claiming index.html defines one in a meta tag — no such meta tag exists. Define one (the Tauri policy is the origin inventory to start from; see [docs/CONTENT_SECURITY_POLICY.md](docs/CONTENT_SECURITY_POLICY.md)).
 
 ### Reliability
 - [ ] user-settings routes return raw Postgres `error.message` to clients (schema-leaking, untranslatable). Move to curated `{ code, message }` responses — keep a human-readable message for dev/debugging, never the raw DB text.
@@ -61,6 +61,7 @@ Known issues from the 2026-07 architecture/test audit, tabled for future session
 - [ ] E2E: add `data-testid` to logout/tabs/panels. Note: snapshot baselines are darwin-only — CI must stay on macOS runners until Linux baselines exist. (2026-07: the guard/hard-wait purge is done — three never-running checks were unmasked and fixed; 3 kept waits are labeled measurement windows in performance.spec.)
 - [ ] E2E flake tail (retry-passers, ~2-3 per run): notifications server-broadcast, storage-promotion accept-import, and indexeddb post-logout reload (textarea sits inside `*transloco`, renders empty if the translation reload stalls) — worth a root-cause pass.
 - [ ] `responsive.spec.ts` touch-target test is vacuous: it scopes to `main button…` but no `<main>` element exists in any template, so the loop never runs.
+- [ ] Cosmetic: Tauri (WebKit) logs one "WebSocket is closed before the connection is established" at startup; live sync works (verified via cross-client theme broadcast). Likely a double-connect — `SocketIoService`'s connectivity effect calls `socket.connect()` while ngx-socket-io also auto-connects; the losing attempt is torn down mid-handshake.
 - [ ] `performance.spec.ts` measures evaluate-round-trips against a 48ms threshold and asserts heap growth without forced GC — structurally flaky.
 
 ### Housekeeping

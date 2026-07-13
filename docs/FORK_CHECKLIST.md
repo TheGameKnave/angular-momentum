@@ -37,7 +37,7 @@ Replace all variations of the project name throughout the codebase:
 - [ ] `client/src/environments/environment.prod.ts`
 - [ ] `client/src/environments/environment.stage.ts`
 - [ ] `server/constants/server.constants.ts` (CORS origins)
-- [ ] `client/src-tauri/tauri.conf.json` (deep link host)
+- [ ] `client/src-tauri/tauri.conf.json` (deep link host, and the domain + Supabase + analytics origins in `app.security.csp` — see [CONTENT_SECURITY_POLICY.md](CONTENT_SECURITY_POLICY.md))
 
 ---
 
