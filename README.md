@@ -48,7 +48,8 @@ This repo is intended to allow spooling up Angular projects in a monorepo rapidl
 Known issues from the 2026-07 architecture/test audit, tabled for future sessions. (The critical items — deploy gates, coverage enforcement, Sonar quality-gate check, mutation auth, og-image SSRF allowlist — were fixed at the time.)
 
 ### Security
-- [ ] Tauri webview ships with `"csp": null` — define a real CSP (Tauri injects its own nonces).
+- [ ] Verify the Tauri CSP (added 2026-07) on all five targets — watch the webview console for violations: GA/Hotjar after cookie consent, websocket connect, Supabase auth, IPC calls.
+- [ ] The web app has NO CSP: `server/index.ts` passes `contentSecurityPolicy: 'none'` with a comment claiming index.html defines one in a meta tag — no such meta tag exists. Define one (the Tauri policy in `tauri.conf.json` is the origin inventory to start from).
 
 ### Reliability
 - [ ] user-settings routes return raw Postgres `error.message` to clients (schema-leaking, untranslatable). Move to curated `{ code, message }` responses — keep a human-readable message for dev/debugging, never the raw DB text.
