@@ -4,6 +4,19 @@
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 
+# Release placeholders must be filled before ANY commit (bump-version inserts them).
+# This runs before the staged-.ts early exit so docs-only commits are guarded too.
+if grep -q "<!-- TODO(release)" docs/PATCHES.md 2>/dev/null; then
+  echo "❌ docs/PATCHES.md contains an unfilled release entry (TODO(release))."
+  echo "   Document the release for downstream forks, remove the TODO comment, then commit."
+  exit 1
+fi
+if grep -qE '^\s*"",?\s*$' server/data/changeLog.ts 2>/dev/null; then
+  echo "❌ server/data/changeLog.ts contains an empty placeholder change entry (\"\")."
+  echo "   Fill in the changelog entry bump-version created, then commit."
+  exit 1
+fi
+
 # Get staged TypeScript files, excluding tests folder (grep || true prevents exit code 1 when no matches)
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.ts$' | grep -v '^tests/' || true)
 

@@ -5,9 +5,11 @@ pull updates from this repo — but you can port them. This file is the living l
 what changed in each AM release, written as *intent-level* patches (what changed, why,
 and where) rather than raw diffs, because your code has diverged and diffs won't apply.
 
-**Maintainers:** add an entry for every release, in the same commit as the version bump
-(alongside `server/data/changeLog.ts`). The changelog says what shipped; this file says
-how a diverged fork applies it.
+**Maintainers:** every release gets an entry here, in the same commit as the version
+bump (alongside `server/data/changeLog.ts`). The changelog says what shipped; this file
+says how a diverged fork applies it. `bump_version.js` inserts a `TODO(release)`
+placeholder automatically, and the pre-commit hook refuses to commit until it's
+replaced with the real entry.
 
 ## How to use this file downstream
 
