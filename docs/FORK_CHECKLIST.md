@@ -22,6 +22,7 @@ Replace all variations of the project name throughout the codebase:
 - [ ] `server/package.json` - name
 - [ ] `client/angular.json` - project name, output path
 - [ ] `client/src-tauri/tauri.conf.json` - productName, identifier, frontendDist
+- [ ] `bump_version.js` - the version-replace patterns anchor on the project name; if you rename without updating them, version bumps silently skip your files. (Renaming also correctly stops bumps from writing `docs/PATCHES.md` — that ledger tracks Angular Momentum versions, not yours.)
 
 ---
 
