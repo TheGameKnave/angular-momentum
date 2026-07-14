@@ -6,6 +6,18 @@ export const changeLog = [
 
 
 
+  
+  {
+    version: "21.4.1",
+    date: "2026-07-14",
+    description: "Release tooling for downstream forks and smarter deploys",
+    changes: [
+      "deploys are keyed off releases, not commits: pushes to main skip the deploy chain when the current version is already released (manual dispatch still forces a deploy)",
+      "add docs/PATCHES.md — a concern-level patch ledger for downstream forks that can't merge upstream, backfilled to the 21.2.19 template baseline",
+      "bump-version inserts a placeholder ledger entry and the pre-commit hook blocks commits until release notes are filled; fork bumps skip the ledger automatically",
+      "e2e determinism: the indexeddb logout test waits for the Supabase session to actually clear before reloading, and the notification-permission assertion mirrors the browser's reported state instead of assuming granted",
+    ]
+  },
   {
     version: "21.4.0",
     date: "2026-07-13",
