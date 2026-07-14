@@ -171,8 +171,16 @@ if (isSemverGreater(newVersion, oldVersion)) {
   // -----------------------------
   // Add placeholder entry to the downstream patch ledger
   // -----------------------------
+  // The ledger is keyed to Angular Momentum versions. Downstream forks run this
+  // same script for their OWN releases — their bumps must not write AM's ledger.
+  // Both fields checked here are ones the fork checklist has forks replace.
+  const isUpstreamAM =
+    rootPkg.name === "angular-momentum" &&
+    String(rootPkg.repository || "").includes("TheGameKnave/angular-momentum");
   const patchesPath = path.resolve("docs/PATCHES.md");
-  if (!fs.existsSync(patchesPath)) {
+  if (!isUpstreamAM) {
+    /**/console.log(`ℹ️  Downstream fork detected (package name/repository differ from upstream); not touching docs/PATCHES.md — it tracks Angular Momentum versions, not yours.`);
+  } else if (!fs.existsSync(patchesPath)) {
     console.warn(`⚠️  File not found: ${patchesPath}`);
   } else {
     const patchesContent = fs.readFileSync(patchesPath, "utf8");
