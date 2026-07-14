@@ -39,6 +39,48 @@ changelog (`server/data/changeLog.ts`) and git history up to 21.2.19.
 
 ---
 
+## 21.4.1 — 2026-07-14
+
+- [ ] **[build/deploy] Deploys keyed off releases, not commits** (`5de81cf`)
+  Every green push to main triggered the full deploy chain — Heroku rebuild plus all
+  five Tauri platform builds — even for docs or tooling changes that altered no app
+  content. Fixed with a `check-release` gate job in the deploy workflow: if the
+  current version already has a GitHub release, the whole chain skips; a new
+  (unreleased) version deploys as before, and manual `workflow_dispatch` always
+  forces a deploy (the retry/redeploy lever).
+  *Apply:* if you kept AM's deploy workflow, port the gate job and point the
+  downstream jobs' conditions at its output. If your fork deploys differently, the
+  transferable idea is: gate on "is this version already released," not on "did CI
+  pass."
+
+- [ ] **[build/deploy] This ledger, and the tooling that keeps it honest**
+  (`5aec961`, `4aff60b`, `f08e71f`, `50900c2`)
+  docs/PATCHES.md itself shipped in this release, backfilled to the 21.2.19 template
+  baseline. The release tooling enforces it upstream: `bump_version.js` inserts a
+  `TODO(release)` placeholder entry on every bump, and the pre-commit hook refuses
+  all commits until it's replaced with real notes (it also blocks empty changelog
+  placeholder entries). Fork safety is built in: bumps only write the ledger when
+  the package name and repository match upstream, so your own releases never stamp
+  your versions into a file keyed to AM's.
+  *Apply:* nothing to port — your copy of the ledger and the guard arrived with
+  these files. Start using it: record your watermark and work the entries. If you
+  want the same fill-before-committing discipline for your own changelog, the hook
+  pattern transfers directly.
+
+- [ ] **[test] E2E determinism: durable logout, permission mirroring** (`aa3f827`,
+  `eadde21`)
+  Two portable lessons from chasing CI-only failures. (1) Logout is only durable
+  once the auth provider clears its persisted session — navigating right after the
+  UI updates can boot the next page still authenticated; the indexeddb scoping test
+  now polls until the Supabase token is gone from localStorage, and its post-reload
+  logged-out check asserts positive signals (header rendered, zero profile links)
+  instead of a not-visible check that passes vacuously on a booting page. (2)
+  `Notification.permission` on macOS requires OS-level authorization, absent on CI
+  runners — the permission test now asserts the UI mirrors whatever the browser
+  reports rather than assuming the context grant surfaces as 'granted'.
+  *Apply (if you kept AM's e2e suite):* port both patterns; they generalize to any
+  test that reloads after logout or asserts on browser-mediated permission state.
+
 ## 21.4.0 — 2026-07-13
 
 - [ ] **[server] [client] WebSocket auth-expiry eviction + silent client recovery**

@@ -204,14 +204,22 @@ test.describe('IndexedDB Tests', () => {
     // Wait for profile menu to disappear (indicates logged out state)
     await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 5000 });
 
-    // Wait for logout to fully complete (logout API call + session cookies to clear)
+    // Logout is only durable once Supabase clears its persisted session token —
+    // navigating before that boots the next page still authenticated, which shows
+    // user-scoped data in what the test expects to be the anonymous view.
+    await expect.poll(() => page.evaluate(() =>
+      Object.keys(localStorage).filter((k) => k.startsWith('sb-') && k.includes('auth-token')).length
+    ), { timeout: 10000 }).toBe(0);
     await waitForAngular(page);
 
     // Navigate back to IndexedDB page - should now be back in anonymous scope
     await navigateToIndexedDB(page);
 
-    // Verify we're still logged out after page navigation (no auto-login from cached session)
-    await expect(page.locator(auth.profileMenu)).not.toBeVisible({ timeout: 3000 });
+    // Verify the reloaded app booted anonymous: assert the header rendered first,
+    // then that no profile link exists — a bare not-visible check passes vacuously
+    // while the page is still booting.
+    await expect(page.locator(menus.authMenuButton)).toBeVisible();
+    await expect(page.locator('app-menu-auth a[href="/profile"]')).toHaveCount(0);
 
     // After logout, should see the ANONYMOUS data, not the user data.
     // toHaveValue auto-retries while the component loads data from IndexedDB.
