@@ -22,6 +22,7 @@ Replace all variations of the project name throughout the codebase:
 - [ ] `server/package.json` - name
 - [ ] `client/angular.json` - project name, output path
 - [ ] `client/src-tauri/tauri.conf.json` - productName, identifier, frontendDist
+- [ ] `bump_version.js` - the version-replace patterns anchor on the project name; if you rename without updating them, version bumps silently skip your files. (Renaming also correctly stops bumps from writing `docs/PATCHES.md` — that ledger tracks Angular Momentum versions, not yours.)
 
 ---
 
@@ -245,3 +246,4 @@ For the fastest path to a working fork:
 5. **Configure GitHub Secrets** (start with `HEROKU_API_KEY`, `SUPABASE_*`)
 6. **Test web deployment** before tackling mobile
 7. **Set up mobile signing** (iOS/Android) when ready for app stores
+8. **Start your [PATCHES.md](PATCHES.md) ledger** — it shipped with your template; record the AM version you templated from as your watermark. It's how your fork ports upstream fixes after your code has diverged

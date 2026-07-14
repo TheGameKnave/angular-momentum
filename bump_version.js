@@ -167,6 +167,46 @@ if (isSemverGreater(newVersion, oldVersion)) {
     fs.writeFileSync(changeLogPath, updatedContent, "utf8");
     /**/console.log(`📝 Added new changelog entry for version ${newVersion} (${bumpType})`);
   }
+
+  // -----------------------------
+  // Add placeholder entry to the downstream patch ledger
+  // -----------------------------
+  // The ledger is keyed to Angular Momentum versions. Downstream forks run this
+  // same script for their OWN releases — their bumps must not write AM's ledger.
+  // Both fields checked here are ones the fork checklist has forks replace.
+  const isUpstreamAM =
+    rootPkg.name === "angular-momentum" &&
+    String(rootPkg.repository || "").includes("TheGameKnave/angular-momentum");
+  const patchesPath = path.resolve("docs/PATCHES.md");
+  if (!isUpstreamAM) {
+    /**/console.log(`ℹ️  Downstream fork detected (package name/repository differ from upstream); not touching docs/PATCHES.md — it tracks Angular Momentum versions, not yours.`);
+  } else if (!fs.existsSync(patchesPath)) {
+    console.warn(`⚠️  File not found: ${patchesPath}`);
+  } else {
+    const patchesContent = fs.readFileSync(patchesPath, "utf8");
+
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+    if (patchesContent.includes(`## ${newVersion} `)) {
+      /**/console.log(`ℹ️  docs/PATCHES.md already has an entry for ${newVersion}; skipping.`);
+    } else {
+      // Insert the new release heading above the previous newest entry
+      // (the first "## <version>" heading in the file).
+      const ledgerEntry = `## ${newVersion} — ${dateStr}\n\n` +
+        `<!-- TODO(release): document this release for downstream forks — intent, canonical commits, apply notes per docs/PATCHES.md conventions. The pre-commit hook blocks commits until this comment is removed. -->\n\n`;
+      const finalPatches = patchesContent.replace(
+        /\n## (?=\d)/,
+        `\n${ledgerEntry}## `
+      );
+      if (finalPatches === patchesContent) {
+        console.warn(`⚠️  Could not find a release heading in docs/PATCHES.md; placeholder not added.`);
+      } else {
+        fs.writeFileSync(patchesPath, finalPatches, "utf8");
+        /**/console.log(`📝 Added placeholder patch-ledger entry for version ${newVersion} — fill it before committing (pre-commit enforces this)`);
+      }
+    }
+  }
 } else {
   /**/console.log(`ℹ️  Version did not increase; no new changelog entry added.`);
 }
