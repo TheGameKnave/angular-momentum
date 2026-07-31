@@ -98,6 +98,8 @@
     "Password update failed": "Pessvurd updete-a feeeled",
     "Please verify your email address before signing in.": "Pleese-a fereeffy yuoor ee-meil eddress beffure-a seegning in.",
     "Sign up failed": "Seegn oop feeeled",
+    "Something went wrong: {detail}": "Sumezing vent vrung: {detail}. Bork!",
+    "Too many attempts. Please try again in a moment.": "Tuu meny ettempts. Pleese try egeen in a mument. Bork!",
     "Username is required": "Userneme-a is reqooured",
     "Username not available": "Userneme-a nut efeeeleble-a",
     "Verification failed": "Fereefficeshun feeeled",

@@ -1,6 +1,6 @@
 {
   "name": "angular-momentum",
-  "version": "21.4.1",
+  "version": "21.5.0",
   "siteUrl": "https://angularmomentum.app",
   "repository": "https://github.com/TheGameKnave/angular-momentum",
   "scripts": {
@@ -21,6 +21,7 @@
     "tauri:android": "npm run setLocal && tauri android dev",
     "tauri:ios": "npm run setLocal && tauri ios dev",
     "tauri:build": "npm run setLocal && tauri build",
+    "tauri:icons": "tauri icon src-tauri/icon.png && node scripts/android-adaptive-icons.js",
     "lint": "ng lint"
   },
   "private": true,

@@ -144,7 +144,7 @@ export class AuthSignupComponent implements AfterViewInit {
 
     if (result.error) {
       const parsed = parseSupabaseError(result.error);
-      this.errorMessage.set(parsed.key);
+      this.errorMessage.set(this.translocoService.translate(parsed.key, parsed.params));
       return;
     }
 

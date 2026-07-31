@@ -312,7 +312,7 @@ describe('ProfileComponent', () => {
     it('should show error when password update fails', async () => {
       component.isPasswordResetFlow.set(true);
       mockAuthService.updatePassword.and.returnValue(Promise.resolve({
-        error: { message: 'Update failed' } as any
+        error: { message: 'New password should be different from the old password.', code: 'same_password' } as any
       }));
 
       component.passwordForm.patchValue({
@@ -322,7 +322,7 @@ describe('ProfileComponent', () => {
 
       await component.onSubmitPasswordChange();
 
-      expect(component.passwordError()).toBe('Update failed');
+      expect(component.passwordError()).toBe('Password update failed');
     });
 
     it('should show toast on successful password update', async () => {
@@ -390,14 +390,14 @@ describe('ProfileComponent', () => {
 
     it('should show error when email update fails', async () => {
       mockAuthService.updateEmail.and.returnValue(Promise.resolve({
-        error: { message: 'Email already in use' } as any
+        error: { message: 'A user with this email address has already been registered', code: 'email_exists' } as any
       }));
 
       component.emailForm.patchValue({ newEmail: 'taken@example.com' });
 
       await component.onSubmitEmailChange();
 
-      expect(component.emailError()).toBe('Email already in use');
+      expect(component.emailError()).toBe('Email update failed');
       expect(component.emailOtpSent()).toBe(false);
     });
   });
@@ -503,7 +503,7 @@ describe('ProfileComponent', () => {
 
     it('should show error when OTP verification fails', async () => {
       mockAuthService.verifyEmailChangeOtp.and.returnValue(Promise.resolve({
-        error: { message: 'Invalid OTP' } as any
+        error: { message: 'Token has expired or is invalid', code: 'otp_expired' } as any
       }));
 
       component['emailOtp'].set('123456');
@@ -511,7 +511,7 @@ describe('ProfileComponent', () => {
 
       await component.onVerifyEmailOtp();
 
-      expect(component.emailError()).toBe('Invalid OTP');
+      expect(component.emailError()).toBe('Your verification code has expired or is invalid. Please request a new one.');
       expect(component.emailChangeComplete()).toBe(false);
     });
   });
@@ -556,14 +556,14 @@ describe('ProfileComponent', () => {
 
     it('should show error when resend fails', async () => {
       mockAuthService.updateEmail.and.returnValue(Promise.resolve({
-        error: { message: 'Rate limited' } as any
+        error: { message: 'Rate limited', code: 'over_email_send_rate_limit' } as any
       }));
 
       component['pendingNewEmail'].set('new@example.com');
 
       await component.onResendEmailOtp();
 
-      expect(component.emailError()).toBe('Rate limited');
+      expect(component.emailError()).toBe('Too many attempts. Please try again in a moment.');
     });
   });
 

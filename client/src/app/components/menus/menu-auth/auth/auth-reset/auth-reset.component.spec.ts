@@ -129,7 +129,7 @@ describe('AuthResetComponent', () => {
       await component.requestCode();
 
       expect(component.loading()).toBe(false);
-      expect(component.errorMessage()).toBe('Email not found');
+      expect(component.errorMessage()).toBe('Something went wrong: Email not found');
       expect(component.codeSent()).toBe(false);
     });
 
@@ -179,13 +179,13 @@ describe('AuthResetComponent', () => {
 
     it('should handle resend error', async () => {
       mockAuthService.requestPasswordReset.and.returnValue(
-        Promise.resolve({ error: { message: 'Rate limited', status: 429 } as any })
+        Promise.resolve({ error: { message: 'Rate limited', status: 429, code: 'over_email_send_rate_limit' } as any })
       );
 
       await component.resendCode();
 
       expect(component.resending()).toBe(false);
-      expect(component.errorMessage()).toBe('Rate limited');
+      expect(component.errorMessage()).toBe('Too many attempts. Please try again in a moment.');
       expect(component.resendSuccess()).toBe(false);
     });
 
@@ -347,13 +347,13 @@ describe('AuthResetComponent', () => {
 
     it('should handle OTP verification error', async () => {
       mockAuthService.verifyPasswordResetOtp.and.returnValue(
-        Promise.resolve({ error: { message: 'Invalid OTP', status: 400 } as any })
+        Promise.resolve({ error: { message: 'Token has expired or is invalid', status: 400, code: 'otp_expired' } as any })
       );
 
       await component.onVerifyOtp();
 
       expect(component.loading()).toBe(false);
-      expect(component.errorMessage()).toBe('Invalid OTP');
+      expect(component.errorMessage()).toBe('Your verification code has expired or is invalid. Please request a new one.');
       expect(mockRouter.navigate).not.toHaveBeenCalled();
     });
 

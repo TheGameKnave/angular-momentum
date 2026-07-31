@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators, type ValidatorFn } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import type { AuthError } from '@supabase/supabase-js';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { AvatarModule } from 'primeng/avatar';
@@ -26,6 +27,7 @@ import { IndexedDbService } from '@app/services/indexeddb.service';
 import { NotificationService } from '@app/services/notification.service';
 import { RelativeTimeComponent } from '@app/components/ui/relative-time/relative-time.component';
 import { passwordComplexityValidator, PASSWORD_REQUIREMENT_KEYS, USERNAME_REQUIREMENT_KEYS } from '@app/helpers/validation';
+import { parseSupabaseError } from '@app/helpers/supabase-error.helper';
 import { getUserInitials } from '@app/helpers/user.helper';
 import { TOOLTIP_CONFIG } from '@app/constants/ui.constants';
 
@@ -343,7 +345,7 @@ export class ProfileComponent implements OnInit {
     this.passwordLoading.set(false);
 
     if (error) {
-      this.passwordError.set(error.message);
+      this.passwordError.set(this.translateError(error));
       return;
     }
 
@@ -388,7 +390,7 @@ export class ProfileComponent implements OnInit {
     this.emailLoading.set(false);
 
     if (error) {
-      this.emailError.set(error.message);
+      this.emailError.set(this.translateError(error));
       return;
     }
 
@@ -453,7 +455,7 @@ export class ProfileComponent implements OnInit {
     this.emailLoading.set(false);
 
     if (error) {
-      this.emailError.set(error.message);
+      this.emailError.set(this.translateError(error));
       return;
     }
 
@@ -496,7 +498,7 @@ export class ProfileComponent implements OnInit {
     this.emailLoading.set(false);
 
     if (error) {
-      this.emailError.set(error.message);
+      this.emailError.set(this.translateError(error));
       return;
     }
 
@@ -729,6 +731,15 @@ export class ProfileComponent implements OnInit {
         await this.router.navigate(['/']);
       },
     });
+  }
+
+  /**
+   * Translate a Supabase error using the error helper.
+   * Handles dynamic values and maps unfriendly messages to user-friendly ones.
+   */
+  private translateError(error: AuthError): string {
+    const parsed = parseSupabaseError(error);
+    return this.translocoService.translate(parsed.key, parsed.params);
   }
 }
 

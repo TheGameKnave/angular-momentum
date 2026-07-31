@@ -98,6 +98,8 @@
     "Password update failed": "密碼更新失敗",
     "Please verify your email address before signing in.": "請在登入前驗證您的電子郵件地址。",
     "Sign up failed": "註冊失敗",
+    "Something went wrong: {detail}": "發生錯誤：{detail}",
+    "Too many attempts. Please try again in a moment.": "嘗試次數過多，請稍後再試。",
     "Username is required": "使用者名稱為必填項",
     "Username not available": "使用者名稱不可用",
     "Verification failed": "驗證失敗",

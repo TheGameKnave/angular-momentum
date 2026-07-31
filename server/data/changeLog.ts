@@ -7,6 +7,20 @@ export const changeLog = [
 
 
   
+  
+  {
+    version: "21.5.0",
+    date: "2026-07-31",
+    description: "Localized auth errors everywhere and a full-size Android icon",
+    changes: [
+      "auth errors are now mapped from Supabase's published error codes to friendly messages in all ten languages — previously several flows (OTP entry, profile password/email changes) showed raw English regardless of locale",
+      "unrecognized errors render inside a translated “Something went wrong: …” shell instead of leaking raw text, and rate-limit errors without a countdown get a proper “too many attempts” message instead of a broken placeholder",
+      "the Android launcher icon is now a real adaptive icon at stock glyph proportions (the cube was rendering ~45% of the circle because launchers shrink legacy padded PNGs); includes a monochrome layer for Android 13+ themed icons",
+      "icon regeneration is scripted (npm run tauri:icons) so future regens can't silently reintroduce the cropped adaptive foregrounds bare tauri icon emits",
+      "logging out — or returning with an expired session — now fully resets the theme: the year-long SSR theme cookie is deleted and the built-in default restored, so a signed-out visitor no longer inherits the previous user's light/dark choice",
+      "dialog and menu curtains now fade in and out instead of popping (a stray opacity pin had been defeating the built-in backdrop transition)",
+    ]
+  },
   {
     version: "21.4.1",
     date: "2026-07-14",

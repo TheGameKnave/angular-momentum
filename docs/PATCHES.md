@@ -39,6 +39,69 @@ changelog (`server/data/changeLog.ts`) and git history up to 21.2.19.
 
 ---
 
+## 21.5.0 — 2026-07-31
+
+- [ ] **[client] Supabase auth errors keyed off published error codes** (`6aba374`)
+  Several auth flows leaked raw English error text regardless of locale: the OTP
+  component parsed Supabase errors with the server-API parser, the profile page set
+  `error.message` straight into the UI, and unknown errors fell back to the raw
+  message as a translation key. The helper now maps `AuthError.code` against the
+  `ErrorCode` union shipped inside `@supabase/auth-js` (typed
+  `Partial<Record<ErrorCode, string>>` — upstream code renames become tsc failures,
+  which is the bit-rot detection), wraps unknowns in a translated "Something went
+  wrong: {detail}" shell, and keeps exactly one message-text regex (rate-limit
+  seconds, failing soft to a countdown-less variant). To port: copy
+  `client/src/app/helpers/supabase-error.helper.ts` wholesale (it was byte-identical
+  across forks before this release), add the two new `error.*` keys to your locale
+  files, and audit every component that renders an auth error for the
+  translate-with-params pattern (`parseSupabaseError` → `translate(key, params)`).
+
+- [ ] **[tauri] Adaptive Android launcher icon at stock glyph proportions** (`0a15c2f`)
+  Launchers wrap legacy PNG icons in a white disc and shrink the whole padded square,
+  so artwork rendered ~45% of the circle next to stock apps' ~60%. Bare `tauri icon`
+  is no fix: its adaptive foregrounds put artwork at ~90% of the 108dp canvas, which
+  the 66dp safe zone crops. New `client/scripts/android-adaptive-icons.js` rebuilds
+  the per-density foregrounds from the same padded desktop source with the artwork at
+  `ARTWORK_FRACTION` (0.5) of the canvas, plus a white background layer, a monochrome
+  layer for Android 13+ themed icons, and the `mipmap-anydpi-v26` XML; `npm run
+  tauri:icons` chains it after `tauri icon`. This *replaces* the older downstream
+  ritual of deleting `mipmap-anydpi-v26/` after regens — adopt the script instead.
+  Also delete the unreferenced Android Studio template drawables if your
+  `gen/android` still carries them (`drawable/ic_launcher_background.xml`,
+  `drawable-v24/ic_launcher_foreground.xml` — the green grid is one launcher-cache
+  accident away from ringing your icon). Requires ImageMagick on the dev machine.
+
+- [ ] **[client] Theme cookie no longer outlives the session that wrote it** (`beaf2bd`)
+  `applyTheme` writes a 1-year `theme` cookie for SSR, and the logout reset only ran
+  on a live authed→unauthed transition inside a running tab — so a session that
+  ended by tab close or expiry left the last user's theme styling anonymous SSR
+  loads indefinitely (light theme, nobody logged in). Fix: `applyTheme` split into
+  DOM application + cookie write, new `resetTheme()` restores the built-in default
+  (dark, matching index.html's `app-dark` class) and deletes the cookie with
+  `max-age=0`. It's called from `clear()` when the anonymous scope has no stored
+  theme, and from `loadLocalPreferences()` when startup finds no theme for the
+  current scope. To port: if you kept AM's user-settings service, take the whole
+  diff; if you rolled your own theming, the concern is the same — any theme
+  persisted outside user-scoped storage (cookie, bare localStorage) needs an
+  explicit delete on logout *and* a cold-start reconciliation, because the logout
+  event is not guaranteed to fire.
+
+- [ ] **[client] Dialog curtains fade again — don't pin backdrop opacity** (`c2b0845`)
+  `.app-overlay-backdrop { opacity: 1 }` (plus a redundant showing-class rule) was
+  defeating CDK's built-in backdrop fade in both directions and stalling backdrop
+  removal on CDK's 500ms fallback timer, since `transitionend` never fired. Fix is
+  deletion: style the backdrop's background/blur but leave opacity alone — CDK
+  handles 0→1 on open, 1→0 on close, `prefers-reduced-motion`, and forced-colors
+  on its own. Check your fork's overlay styles for the same pin.
+
+- [ ] **[tauri] Known issue: mobile dev proxy drops POST bodies** (`8ded706`)
+  Knowledge item, no code to port: `tauri [android|ios] dev` sometimes routes the
+  webview through Tauri's `tauri.localhost` proxy, which drops POST bodies
+  (tauri-apps/tauri#13166) — assets and health checks work, so the app looks online,
+  but every login 400s with an empty body. Diagnostic: check the page origin in the
+  webview inspector; `tauri.localhost` means proxied (broken), a LAN-IP origin means
+  direct (fine). The CLI `--host` flag should pin the direct path but is untested.
+
 ## 21.4.1 — 2026-07-14
 
 - [ ] **[build/deploy] Deploys keyed off releases, not commits** (`5de81cf`)

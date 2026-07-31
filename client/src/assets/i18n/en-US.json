@@ -98,6 +98,8 @@
     "Password update failed": "Password update failed",
     "Please verify your email address before signing in.": "Please verify your email address before signing in.",
     "Sign up failed": "Sign up failed",
+    "Something went wrong: {detail}": "Something went wrong: {detail}",
+    "Too many attempts. Please try again in a moment.": "Too many attempts. Please try again in a moment.",
     "Username is required": "Username is required",
     "Username not available": "Username not available",
     "Verification failed": "Verification failed",

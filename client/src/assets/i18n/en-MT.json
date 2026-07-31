@@ -98,6 +98,8 @@
     "Password update failed": "Paswerd updait faild",
     "Please verify your email address before signing in.": "Pliiz verifai ior imail adres bifor sainin in.",
     "Sign up failed": "Sain up faild",
+    "Something went wrong: {detail}": "Samzing went rong: {detail}",
+    "Too many attempts. Please try again in a moment.": "Tu meni atemps. Plis trai agen in a moment.",
     "Username is required": "Iuzerneim iz rikwaird",
     "Username not available": "Iuzerneim nat eivailabl",
     "Verification failed": "Verifikaishn faild",

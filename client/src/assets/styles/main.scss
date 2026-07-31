@@ -893,16 +893,14 @@ app-dialog-menu {
   }
 }
 
-// Overlay backdrop
+// Overlay backdrop. Opacity is deliberately NOT set here: CDK's own styles
+// fade the backdrop (opacity 0 → 1 via .cdk-overlay-backdrop-showing, 400ms
+// transition, reduced-motion aware) and wait for transitionend on close —
+// pinning opacity would disable both fades and stall removal on the 500ms
+// fallback timer.
 .app-overlay-backdrop {
   background-color: var(--color-bg-backdrop);
   backdrop-filter: blur(1px);
-  opacity: 1;
-}
-
-// CDK overlay backdrop (ensure visibility)
-.cdk-overlay-backdrop.cdk-overlay-backdrop-showing {
-  opacity: 1;
 }
 
 // CDK Overlay Dialog (generic reusable dialog styles)

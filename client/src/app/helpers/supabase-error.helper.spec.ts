@@ -12,13 +12,13 @@ describe('supabase-error.helper', () => {
       error.name = 'AuthError';
       error.status = 400;
       if (code) {
-        (error as AuthError & { code: string }).code = code;
+        error.code = code;
       }
       return error;
     }
 
-    describe('error code mapping', () => {
-      it('should map over_email_send_rate_limit with seconds extraction', () => {
+    describe('rate-limit codes', () => {
+      it('should extract seconds from over_email_send_rate_limit', () => {
         const error = createAuthError(
           'For security purposes, you can only request this after 45 seconds',
           'over_email_send_rate_limit'
@@ -30,7 +30,31 @@ describe('supabase-error.helper', () => {
         expect(result.params).toEqual({ seconds: 45 });
       });
 
-      it('should map over_email_send_rate_limit without seconds if not in message', () => {
+      it('should extract seconds from over_request_rate_limit', () => {
+        const error = createAuthError(
+          'Request limit reached, retry after 10 seconds',
+          'over_request_rate_limit'
+        );
+
+        const result = parseSupabaseError(error);
+
+        expect(result.key).toBe(SUPABASE_ERROR_MESSAGES.RATE_LIMIT);
+        expect(result.params).toEqual({ seconds: 10 });
+      });
+
+      it('should extract seconds from over_sms_send_rate_limit', () => {
+        const error = createAuthError(
+          'you can only request this after 60 seconds',
+          'over_sms_send_rate_limit'
+        );
+
+        const result = parseSupabaseError(error);
+
+        expect(result.key).toBe(SUPABASE_ERROR_MESSAGES.RATE_LIMIT);
+        expect(result.params).toEqual({ seconds: 60 });
+      });
+
+      it('should fall back to the generic rate-limit message when the interval is absent', () => {
         const error = createAuthError(
           'Rate limit exceeded',
           'over_email_send_rate_limit'
@@ -38,10 +62,12 @@ describe('supabase-error.helper', () => {
 
         const result = parseSupabaseError(error);
 
-        expect(result.key).toBe(SUPABASE_ERROR_MESSAGES.RATE_LIMIT);
+        expect(result.key).toBe(SUPABASE_ERROR_MESSAGES.RATE_LIMIT_GENERIC);
         expect(result.params).toBeUndefined();
       });
+    });
 
+    describe('error code mapping', () => {
       it('should map otp_expired code', () => {
         const error = createAuthError('Token expired', 'otp_expired');
 
@@ -51,7 +77,7 @@ describe('supabase-error.helper', () => {
       });
 
       it('should map invalid_credentials code', () => {
-        const error = createAuthError('Wrong password', 'invalid_credentials');
+        const error = createAuthError('Invalid login credentials', 'invalid_credentials');
 
         const result = parseSupabaseError(error);
 
@@ -74,78 +100,76 @@ describe('supabase-error.helper', () => {
         expect(result.key).toBe('error.Invalid credentials');
       });
 
-      it('should map invalid_grant code', () => {
-        const error = createAuthError('Invalid grant', 'invalid_grant');
+      it('should map email_address_invalid code', () => {
+        const error = createAuthError('Email address "test@bad" is invalid', 'email_address_invalid');
 
         const result = parseSupabaseError(error);
 
-        expect(result.key).toBe('error.Invalid credentials');
+        expect(result.key).toBe(SUPABASE_ERROR_MESSAGES.INVALID_EMAIL);
+      });
+
+      it('should map session_expired code', () => {
+        const error = createAuthError('Session expired', 'session_expired');
+
+        const result = parseSupabaseError(error);
+
+        expect(result.key).toBe('error.Not authenticated');
+      });
+
+      it('should map user_already_exists code', () => {
+        const error = createAuthError('User already registered', 'user_already_exists');
+
+        const result = parseSupabaseError(error);
+
+        expect(result.key).toBe('error.Sign up failed');
+      });
+
+      it('should map weak_password code', () => {
+        const error = createAuthError('Password should be stronger', 'weak_password');
+
+        const result = parseSupabaseError(error);
+
+        expect(result.key).toBe('error.Password update failed');
       });
     });
 
-    describe('dynamic value patterns', () => {
-      it('should extract seconds from rate limit message without code', () => {
-        const error = createAuthError(
-          'you can only request this after 30 seconds'
-        );
+    describe('internal translation-key passthrough', () => {
+      it('should pass through fabricated errors that already carry a translation key', () => {
+        const error = createAuthError('error.Login failed');
 
         const result = parseSupabaseError(error);
 
-        expect(result.key).toBe(SUPABASE_ERROR_MESSAGES.RATE_LIMIT);
-        expect(result.params).toEqual({ seconds: '30' });
-      });
-    });
-
-    describe('message replacements', () => {
-      it('should replace "Token has expired or is invalid" message', () => {
-        const error = createAuthError('Token has expired or is invalid');
-
-        const result = parseSupabaseError(error);
-
-        expect(result.key).toBe(SUPABASE_ERROR_MESSAGES.OTP_EXPIRED);
-      });
-
-      it('should replace messages matching invalid.*token regex', () => {
-        const error = createAuthError('invalid refresh token');
-
-        const result = parseSupabaseError(error);
-
-        expect(result.key).toBe(SUPABASE_ERROR_MESSAGES.OTP_EXPIRED);
-      });
-
-      it('should replace "Invalid Token" (case insensitive)', () => {
-        const error = createAuthError('Invalid Token');
-
-        const result = parseSupabaseError(error);
-
-        expect(result.key).toBe(SUPABASE_ERROR_MESSAGES.OTP_EXPIRED);
-      });
-
-      it('should replace "Email address is invalid" with email in message', () => {
-        const error = createAuthError('Email address "test@bad" is invalid');
-
-        const result = parseSupabaseError(error);
-
-        expect(result.key).toBe('error.Invalid email address');
+        expect(result.key).toBe('error.Login failed');
+        expect(result.params).toBeUndefined();
       });
     });
 
     describe('fallback behavior', () => {
-      it('should return original message when no mapping exists', () => {
+      it('should wrap unknown codeless messages in the unexpected-error shell', () => {
         const error = createAuthError('Some unknown error');
 
         const result = parseSupabaseError(error);
 
-        expect(result.key).toBe('Some unknown error');
-        expect(result.params).toBeUndefined();
+        expect(result.key).toBe(SUPABASE_ERROR_MESSAGES.UNEXPECTED);
+        expect(result.params).toEqual({ detail: 'Some unknown error' });
       });
 
-      it('should return original message for unmapped error code', () => {
+      it('should wrap messages carrying an unmapped error code', () => {
+        const error = createAuthError('Hook timed out', 'hook_timeout');
+
+        const result = parseSupabaseError(error);
+
+        expect(result.key).toBe(SUPABASE_ERROR_MESSAGES.UNEXPECTED);
+        expect(result.params).toEqual({ detail: 'Hook timed out' });
+      });
+
+      it('should wrap messages carrying a code outside the published union', () => {
         const error = createAuthError('Custom error message', 'unknown_code');
 
         const result = parseSupabaseError(error);
 
-        expect(result.key).toBe('Custom error message');
+        expect(result.key).toBe(SUPABASE_ERROR_MESSAGES.UNEXPECTED);
+        expect(result.params).toEqual({ detail: 'Custom error message' });
       });
     });
   });
