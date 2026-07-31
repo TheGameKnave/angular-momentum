@@ -136,6 +136,19 @@ describe('UserSettingsService', () => {
       // Should not throw, just log error
       expect(mockLogService.log).toHaveBeenCalledWith('Error loading local preferences', jasmine.anything());
     });
+
+    it('should reset the theme and delete a stale cookie when no theme is stored', async () => {
+      mockIndexedDbService.get.and.returnValue(Promise.resolve(undefined));
+      // Simulate a cookie left behind by an authed session that ended
+      // without a live logout transition
+      document.cookie = 'theme=light; path=/; SameSite=Lax';
+      document.documentElement.classList.remove('app-dark');
+
+      await service.loadLocalPreferences();
+
+      expect(document.documentElement.classList.contains('app-dark')).toBe(true);
+      expect(document.cookie).not.toContain('theme=');
+    });
   });
 
   describe('applyTheme', () => {
@@ -183,6 +196,30 @@ describe('UserSettingsService', () => {
 
       service.applyTheme('light');
       expect(metaColorScheme.getAttribute('content')).toBe('light');
+    });
+
+    it('should set the SSR theme cookie', () => {
+      service.applyTheme('light');
+
+      expect(document.cookie).toContain('theme=light');
+    });
+  });
+
+  describe('resetTheme', () => {
+    it('should restore the built-in default dark theme', () => {
+      document.documentElement.classList.remove('app-dark');
+
+      service.resetTheme();
+
+      expect(document.documentElement.classList.contains('app-dark')).toBe(true);
+    });
+
+    it('should delete the SSR theme cookie', () => {
+      document.cookie = 'theme=light; path=/; SameSite=Lax';
+
+      service.resetTheme();
+
+      expect(document.cookie).not.toContain('theme=');
     });
   });
 
@@ -718,6 +755,29 @@ describe('UserSettingsService', () => {
       await service.clear();
 
       expect(mockTranslocoService.setActiveLang).toHaveBeenCalledWith('en-US');
+    });
+
+    it('should reset the theme and delete the cookie when no anonymous theme exists', async () => {
+      mockIndexedDbService.getRaw.and.returnValue(Promise.resolve(undefined));
+      document.cookie = 'theme=light; path=/; SameSite=Lax';
+      document.documentElement.classList.remove('app-dark');
+
+      await service.clear();
+
+      expect(document.documentElement.classList.contains('app-dark')).toBe(true);
+      expect(document.cookie).not.toContain('theme=');
+    });
+
+    it('should apply and persist the anonymous theme when one exists', async () => {
+      mockIndexedDbService.getRaw.and.callFake((key: string) => {
+        if (key === 'anonymous_preferences_theme') return Promise.resolve({ value: 'light', updatedAt: Date.now() });
+        return Promise.resolve(undefined);
+      });
+
+      await service.clear();
+
+      expect(document.documentElement.classList.contains('app-dark')).toBe(false);
+      expect(document.cookie).toContain('theme=light');
     });
   });
 

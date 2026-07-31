@@ -298,6 +298,12 @@ export class UserSettingsService {
       if (theme) {
         this.themePreference.set(theme);
         this.applyTheme(theme);
+      } else {
+        // No stored preference for this scope. Any theme cookie present is
+        // stale — left by an authenticated session that ended without a live
+        // logout transition (tab closed, session expired) — and would keep
+        // styling SSR loads. Reset to the built-in default and delete it.
+        this.resetTheme();
       }
 
       if (timezone) {
@@ -573,6 +579,32 @@ export class UserSettingsService {
     // istanbul ignore next - SSR guard: document is always defined in browser tests
     if (typeof document === 'undefined') return;
 
+    this.applyThemeToDom(theme);
+
+    // Set cookie for SSR to read on next page load (1 year expiry)
+    const maxAge = 365 * 24 * 60 * 60;
+    document.cookie = `theme=${theme}; path=/; max-age=${maxAge}; SameSite=Lax`;
+  }
+
+  /**
+   * Restores the built-in default theme (dark, matching index.html) and
+   * deletes the SSR theme cookie — the "no stored preference" state.
+   * Used on logout when the anonymous scope has no theme, and on startup
+   * when a theme cookie has outlived the preference that wrote it (an
+   * authenticated session that ended without a live logout transition).
+   */
+  resetTheme(): void {
+    // istanbul ignore next - SSR guard: document is always defined in browser tests
+    if (typeof document === 'undefined') return;
+
+    this.applyThemeToDom('dark');
+    document.cookie = 'theme=; path=/; max-age=0; SameSite=Lax';
+  }
+
+  /**
+   * Applies the theme to the document: app-dark class and meta tags.
+   */
+  private applyThemeToDom(theme: ThemePreference): void {
     const htmlElement = document.documentElement;
     if (theme === 'dark') {
       htmlElement.classList.add('app-dark');
@@ -591,10 +623,6 @@ export class UserSettingsService {
     if (metaColorScheme) {
       metaColorScheme.setAttribute('content', theme);
     }
-
-    // Set cookie for SSR to read on next page load (1 year expiry)
-    const maxAge = 365 * 24 * 60 * 60;
-    document.cookie = `theme=${theme}; path=/; max-age=${maxAge}; SameSite=Lax`;
   }
 
   /**
@@ -858,7 +886,13 @@ export class UserSettingsService {
     const language = anonLanguage?.value ?? null;
 
     this.themePreference.set(theme);
-    this.applyTheme(theme);
+    if (anonTheme?.value) {
+      this.applyTheme(anonTheme.value);
+    } else {
+      // No anonymous preference — reset to the built-in default and delete
+      // the cookie so the logged-out user's choice doesn't outlive the session.
+      this.resetTheme();
+    }
     this.timezonePreference.set(timezone);
     this.languagePreference.set(language);
 
