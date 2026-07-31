@@ -21,6 +21,7 @@
     "tauri:android": "npm run setLocal && tauri android dev",
     "tauri:ios": "npm run setLocal && tauri ios dev",
     "tauri:build": "npm run setLocal && tauri build",
+    "tauri:icons": "tauri icon src-tauri/icon.png && node scripts/android-adaptive-icons.js",
     "lint": "ng lint"
   },
   "private": true,
