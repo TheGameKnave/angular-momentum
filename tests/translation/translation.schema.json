@@ -440,6 +440,14 @@
           "type": "string",
           "description": "Error: Generic signup failure"
         },
+        "Something went wrong: {detail}": {
+          "type": "string",
+          "description": "Error: Fallback shell for unmapped errors, raw message passed as {detail}"
+        },
+        "Too many attempts. Please try again in a moment.": {
+          "type": "string",
+          "description": "Error: Rate limiting message without countdown"
+        },
         "Username is required": {
           "type": "string",
           "description": "Error: Username validation error"
@@ -477,6 +485,8 @@
         "Password update failed",
         "Please verify your email address before signing in.",
         "Sign up failed",
+        "Something went wrong: {detail}",
+        "Too many attempts. Please try again in a moment.",
         "Username is required",
         "Username not available",
         "Verification failed",
@@ -1016,7 +1026,6 @@
         "Analytics cookies enabled",
         "Authentication & Database",
         "Behavior Analytics",
-        "Bot Protection",
         "Complete Privacy Policy",
         "Cookie preference not set",
         "Cookie Preferences",

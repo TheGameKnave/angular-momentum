@@ -160,6 +160,20 @@ describe('AuthSignupComponent', () => {
       const mockResult: AuthResult = {
         user: null,
         session: null,
+        error: { message: 'User already registered', status: 400, code: 'user_already_exists' } as any
+      };
+      mockAuthService.signUp.and.returnValue(Promise.resolve(mockResult));
+
+      await component.onSubmit();
+
+      expect(component.loading()).toBe(false);
+      expect(component.errorMessage()).toBe('Sign up failed');
+    });
+
+    it('should wrap unrecognized signup errors in the translated unexpected-error shell', async () => {
+      const mockResult: AuthResult = {
+        user: null,
+        session: null,
         error: { message: 'Email already exists', status: 400 } as any
       };
       mockAuthService.signUp.and.returnValue(Promise.resolve(mockResult));
@@ -167,7 +181,7 @@ describe('AuthSignupComponent', () => {
       await component.onSubmit();
 
       expect(component.loading()).toBe(false);
-      expect(component.errorMessage()).toBe('Email already exists');
+      expect(component.errorMessage()).toBe('Something went wrong: Email already exists');
     });
 
     it('should set loading state during signup', async () => {

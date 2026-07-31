@@ -220,6 +220,20 @@ describe('AuthOtpComponent', () => {
       const mockResult: AuthResult = {
         user: null,
         session: null,
+        error: { message: 'Token has expired or is invalid', status: 400, code: 'otp_expired' } as any
+      };
+      mockAuthService.verifyOtp.and.returnValue(Promise.resolve(mockResult));
+
+      await component.onVerifyOtp();
+
+      expect(component.loading()).toBe(false);
+      expect(component.errorMessage()).toBe('Your verification code has expired or is invalid. Please request a new one.');
+    });
+
+    it('should wrap unrecognized verification errors in the translated unexpected-error shell', async () => {
+      const mockResult: AuthResult = {
+        user: null,
+        session: null,
         error: { message: 'Invalid OTP code', status: 400 } as any
       };
       mockAuthService.verifyOtp.and.returnValue(Promise.resolve(mockResult));
@@ -227,7 +241,7 @@ describe('AuthOtpComponent', () => {
       await component.onVerifyOtp();
 
       expect(component.loading()).toBe(false);
-      expect(component.errorMessage()).toBe('Invalid OTP code');
+      expect(component.errorMessage()).toBe('Something went wrong: Invalid OTP code');
     });
 
     it('should set loading state during verification', async () => {
@@ -285,13 +299,13 @@ describe('AuthOtpComponent', () => {
 
     it('should handle resend OTP error', async () => {
       mockAuthService.resendOtp.and.returnValue(
-        Promise.resolve({ error: { message: 'Rate limit exceeded', status: 429 } as any })
+        Promise.resolve({ error: { message: 'For security purposes, you can only request this after 30 seconds', status: 429, code: 'over_email_send_rate_limit' } as any })
       );
 
       await component.onResendOtp();
 
       expect(component.loading()).toBe(false);
-      expect(component.errorMessage()).toBe('Rate limit exceeded');
+      expect(component.errorMessage()).toBe('For security purposes, you can only request this after another 30 seconds.');
       expect(component.successMessage()).toBeNull();
     });
 

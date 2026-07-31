@@ -98,6 +98,8 @@
     "Password update failed": "Actualización de contraseña fallida",
     "Please verify your email address before signing in.": "Por favor, verifica tu correo antes de iniciar sesión.",
     "Sign up failed": "Registro fallido",
+    "Something went wrong: {detail}": "Algo salió mal: {detail}",
+    "Too many attempts. Please try again in a moment.": "Demasiados intentos. Inténtelo de nuevo en un momento.",
     "Username is required": "Usuario requerido",
     "Username not available": "Usuario no disponible",
     "Verification failed": "Verificación fallida",

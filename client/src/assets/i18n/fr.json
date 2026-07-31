@@ -98,6 +98,8 @@
     "Password update failed": "Mise à jour du mot de passe échouée",
     "Please verify your email address before signing in.": "Veuillez vérifier votre adresse e-mail avant de vous connecter.",
     "Sign up failed": "Inscription échouée",
+    "Something went wrong: {detail}": "Une erreur s’est produite : {detail}",
+    "Too many attempts. Please try again in a moment.": "Trop de tentatives. Veuillez réessayer dans un instant.",
     "Username is required": "Le nom d’utilisateur est requis",
     "Username not available": "Nom d’utilisateur non disponible",
     "Verification failed": "Vérification échouée",

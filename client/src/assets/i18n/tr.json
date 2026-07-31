@@ -98,6 +98,8 @@
     "Password update failed": "Şifre güncellemesi başarısız",
     "Please verify your email address before signing in.": "Giriş yapmadan önce lütfen e-posta adresinizi doğrulayın.",
     "Sign up failed": "Kayıt başarısız",
+    "Something went wrong: {detail}": "Bir şeyler ters gitti: {detail}",
+    "Too many attempts. Please try again in a moment.": "Çok fazla deneme yapıldı. Lütfen birazdan tekrar deneyin.",
     "Username is required": "Kullanıcı adı gerekli",
     "Username not available": "Kullanıcı adı mevcut değil",
     "Verification failed": "Doğrulama başarısız",
