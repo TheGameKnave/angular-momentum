@@ -94,6 +94,16 @@ changelog (`server/data/changeLog.ts`) and git history up to 21.2.19.
   handles 0→1 on open, 1→0 on close, `prefers-reduced-motion`, and forced-colors
   on its own. Check your fork's overlay styles for the same pin.
 
+- [ ] **[build/deploy] Sync sonar.projectVersion with releases or the main gate rots**
+  `sonar-project.properties` shipped with `sonar.projectVersion=1.0` hardcoded. The
+  quality gate measures "new code" in `previous_version` mode, so a version string
+  that never changes pins main's new-code window at the first analysis forever —
+  old issues accumulate as "new" until the gate fails on a deploy that touched none
+  of them (staging passes: long branches carry their own younger window). Fix:
+  `bump_version.js` now rewrites `sonar.projectVersion` on every bump, which resets
+  the window to each release's diff. If your fork gates on Sonar with
+  previous_version mode, wire your version bump to your Sonar config the same way.
+
 - [ ] **[tauri] Known issue: mobile dev proxy drops POST bodies** (`8ded706`)
   Knowledge item, no code to port: `tauri [android|ios] dev` sometimes routes the
   webview through Tauri's `tauri.localhost` proxy, which drops POST bodies

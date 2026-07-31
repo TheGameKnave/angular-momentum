@@ -99,6 +99,14 @@ const targets = [
     pattern: new RegExp(`(CFBundle(Short)?VersionString: )${oldVersion}`, "g"),
     replacement: `$1${newVersion}`,
   },
+  {
+    // Sonar's quality gate measures "new code" since the previous_version
+    // event — if this never changes, the new-code window never resets and
+    // old issues eventually fail the gate on main.
+    file: "sonar-project.properties",
+    pattern: /(sonar\.projectVersion=)(\d+\.\d+(\.\d+)?)/,
+    replacement: `$1${newVersion}`,
+  },
 ];
 
 for (const { file, pattern, replacement } of targets) {
