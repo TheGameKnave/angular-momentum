@@ -151,6 +151,9 @@ export const common = {
   toastSuccess: 'p-toast .p-toast-message-success',
   toastError: 'p-toast .p-toast-message-error',
 
+  // Message dialog (app-dialog-message: errors, warnings, info)
+  messageDialog: '.dialog-message-panel',
+
   // Custom confirmation dialog (app-dialog-confirm)
   confirmDialog: '.dialog-confirm-panel',
   confirmDialogAccept: '.dialog-confirm-footer p-button:last-child button',

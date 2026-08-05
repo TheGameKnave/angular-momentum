@@ -19,6 +19,18 @@
       "type": "string",
       "description": "Common: Email field label"
     },
+    "Error": {
+      "type": "string",
+      "description": "Common: Default error dialog title"
+    },
+    "Information": {
+      "type": "string",
+      "description": "Common: Default info dialog title"
+    },
+    "Warning": {
+      "type": "string",
+      "description": "Common: Default warning dialog title"
+    },
     "No": {
       "type": "string",
       "description": "Common: Negative response"
@@ -1537,6 +1549,8 @@
     "Cancel",
     "Decline",
     "Email",
+    "Error",
+    "Information",
     "No",
     "OK",
     "optional",
@@ -1547,6 +1561,7 @@
     "Status",
     "Supported",
     "Username",
+    "Warning",
     "Yes",
     "a11y",
     "auth",

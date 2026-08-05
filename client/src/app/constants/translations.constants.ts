@@ -425,6 +425,12 @@ export const DIALOG_DEFAULT_LABELS = {
 
 export const DIALOG_LABEL_KEYS = Object.values(DIALOG_DEFAULT_LABELS);
 
+/**
+ * Default titles for message dialogs (MessageDialogService severity defaults).
+ * Top-level flat translation keys.
+ */
+export const MESSAGE_DIALOG_KEYS = ['Error', 'Warning', 'Information'] as const;
+
 
 /**
  * All programmatically-used translation keys combined.
@@ -452,6 +458,7 @@ export const ALL_PROGRAMMATIC_KEYS = [
   ...PROFILE_PAGE_KEYS,
   ...TIMEZONE_KEYS,
   ...DIALOG_LABEL_KEYS,
+  ...MESSAGE_DIALOG_KEYS,
 ] as const;
 
 export type AuthErrorKey = typeof AUTH_ERROR_KEYS[number];

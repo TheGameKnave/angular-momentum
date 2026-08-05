@@ -8,6 +8,8 @@ import { DataMigrationService } from '@app/services/data-migration.service';
 import { UserSettingsService } from '@app/services/user-settings.service';
 import { AuthService } from '@app/services/auth.service';
 import { DialogConfirmComponent } from '@app/components/dialogs/dialog-confirm/dialog-confirm.component';
+import { DialogMessageComponent } from '@app/components/dialogs/dialog-message/dialog-message.component';
+import { MessageDialogService } from '@app/services/message-dialog.service';
 
 import { TranslocoDirective } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from '@app/services/transloco-loader.service';
@@ -62,6 +64,7 @@ import { DialogUpdateComponent } from './components/dialogs/dialog-update/dialog
     TooltipModule,
     ToastModule,
     DialogConfirmComponent,
+    DialogMessageComponent,
     DialogUpdateComponent,
   ],
 })
@@ -69,6 +72,7 @@ export class AppComponent implements OnInit {
   readonly updateService = inject(UpdateService);
   readonly changeLogService = inject(ChangeLogService);
   private readonly updateDialogService = inject(UpdateDialogService);
+  private readonly messageDialogService = inject(MessageDialogService);
   private readonly dataMigrationService = inject(DataMigrationService);
   private readonly userSettingsService = inject(UserSettingsService);
   private readonly authService = inject(AuthService);
@@ -149,6 +153,7 @@ export class AppComponent implements OnInit {
   /**
    * Dev-only keyboard shortcuts for testing dialogs.
    * Ctrl+Shift+U: Update dialog
+   * Ctrl+Shift+E: Message dialog (error + queued info)
    */
   @HostListener('window:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
@@ -157,7 +162,21 @@ export class AppComponent implements OnInit {
     if (event.key === 'U') {
       event.preventDefault();
       this.triggerDevUpdateDialog();
+    } else if (event.key === 'E') {
+      event.preventDefault();
+      this.triggerDevMessageDialog();
     }
+  }
+
+  /**
+   * Triggers the message dialog for development testing.
+   * Shows an error with an info queued behind it, demonstrating both
+   * severity styling and the dismiss-advances-queue behavior.
+   */
+  private triggerDevMessageDialog(): void {
+    this.logService.log('[Dev] Triggering message dialog (Ctrl+Shift+E)...');
+    this.messageDialogService.showError('error.Verification failed');
+    this.messageDialogService.showInfo('migration.Your data has been updated to a new format.');
   }
 
   /**

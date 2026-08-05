@@ -3,6 +3,8 @@
   "Cancel": "İptal",
   "Decline": "Reddet",
   "Email": "E-posta",
+  "Error": "Hata",
+  "Information": "Bilgi",
   "No": "Hayır",
   "OK": "Tamam",
   "optional": "isteğe bağlı",
@@ -13,6 +15,7 @@
   "Status": "Durum",
   "Supported": "Desteklenen",
   "Username": "Kullanıcı Adı",
+  "Warning": "Uyarı",
   "Yes": "Evet",
 
   "a11y": {

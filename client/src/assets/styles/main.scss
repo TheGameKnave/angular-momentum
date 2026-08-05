@@ -931,6 +931,9 @@ app-dialog-menu {
   backdrop-filter: blur(3px);
   display: flex;
   flex-direction: column;
+  // Keep short messages from shrink-wrapping into a sliver of a dialog,
+  // while still fitting narrow viewports
+  min-width: min(36rem, 95vw);
   max-width: 95vw;
   max-height: 95vh;
 

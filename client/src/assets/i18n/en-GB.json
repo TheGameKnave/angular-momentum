@@ -3,6 +3,8 @@
   "Cancel": "Cancel",
   "Decline": "Decline",
   "Email": "Email",
+  "Error": "Error",
+  "Information": "Information",
   "No": "No",
   "OK": "OK",
   "optional": "optional",
@@ -13,6 +15,7 @@
   "Status": "Status",
   "Supported": "Supported",
   "Username": "Username",
+  "Warning": "Warning",
   "Yes": "Yes",
 
   "a11y": {

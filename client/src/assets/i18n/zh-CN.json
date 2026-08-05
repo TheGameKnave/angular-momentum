@@ -3,6 +3,8 @@
   "Cancel": "取消",
   "Decline": "拒绝",
   "Email": "电子邮件",
+  "Error": "错误",
+  "Information": "信息",
   "No": "否",
   "OK": "确定",
   "optional": "可选",
@@ -13,6 +15,7 @@
   "Status": "状态",
   "Supported": "已支持",
   "Username": "用户名",
+  "Warning": "警告",
   "Yes": "是",
 
   "a11y": {

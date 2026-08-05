@@ -3,7 +3,7 @@ import { APP_BASE_URL } from '../data/constants';
 import { generateTestUser, TestUser } from '../data/test-users';
 import { createTestUser, deleteTestUser } from '../helpers/auth.helper';
 import { assertNoMissingTranslations, waitForAngular, dismissCookieBanner } from '../helpers/assertions.helper';
-import { auth, menus, pages } from '../helpers/selectors';
+import { auth, common, menus, pages } from '../helpers/selectors';
 
 // Shared test user for non-destructive tests
 let sharedUser: TestUser;
@@ -229,6 +229,29 @@ test.describe('Authentication Tests', () => {
 
     await page.waitForSelector(pages.profilePage, { timeout: 5000 });
     expect(page.url()).toContain('/profile');
+  });
+
+  test('Message dialog stacks above the auth menu; Esc closes only the dialog', async ({ page }) => {
+    // Open the auth menu, then pop the dev-only message dialog on top
+    // (Ctrl+Shift+E queues an info message behind an error)
+    await page.click(menus.authMenuButton);
+    await expect(page.locator(menus.authMenuContent)).toBeVisible();
+
+    await page.keyboard.press('Control+Shift+E');
+    await expect(page.locator(common.messageDialog)).toBeVisible();
+
+    // First Esc dismisses the error; the queued info takes its place
+    await page.keyboard.press('Escape');
+    await expect(page.locator(common.messageDialog)).toBeVisible();
+
+    // Second Esc dismisses the info — the menu underneath must survive
+    await page.keyboard.press('Escape');
+    await expect(page.locator(common.messageDialog)).not.toBeVisible();
+    await expect(page.locator(menus.authMenuContent)).toBeVisible();
+
+    // Only now does Esc reach the menu
+    await page.keyboard.press('Escape');
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible();
   });
 
   // ============================================================================

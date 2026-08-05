@@ -3,6 +3,8 @@
   "Cancel": "Kansel",
   "Decline": "Diklain",
   "Email": "Imail",
+  "Error": "Eror",
+  "Information": "Informaishon",
   "No": "No",
   "OK": "OK",
   "optional": "opshnl",
@@ -13,6 +15,7 @@
   "Status": "Staitus",
   "Supported": "Suportd",
   "Username": "Iuzerneim",
+  "Warning": "Worning",
   "Yes": "Yes",
 
   "a11y": {
