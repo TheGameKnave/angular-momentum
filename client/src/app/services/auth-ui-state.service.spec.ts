@@ -235,4 +235,31 @@ describe('AuthUiStateService', () => {
       expect(service.loginFormEmail()).toBe('');
     });
   });
+
+  describe('requestOpen', () => {
+    it('should default to signup mode and increment the open counter', () => {
+      service.mode.set('login');
+      const before = service.openRequests();
+
+      service.requestOpen();
+
+      expect(service.mode()).toBe('signup');
+      expect(service.openRequests()).toBe(before + 1);
+    });
+
+    it('should open in an explicit mode', () => {
+      service.requestOpen('login');
+
+      expect(service.mode()).toBe('login');
+    });
+
+    it('should increment on every request so repeat opens are observable', () => {
+      const before = service.openRequests();
+
+      service.requestOpen('signup');
+      service.requestOpen('signup');
+
+      expect(service.openRequests()).toBe(before + 2);
+    });
+  });
 });

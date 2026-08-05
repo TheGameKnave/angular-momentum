@@ -96,6 +96,17 @@ describe('AuthProfileComponent', () => {
     });
   });
 
+  describe('onLogin', () => {
+    it('should emit loginClick event', () => {
+      const loginClickSpy = jasmine.createSpy('loginClick');
+      component.loginClick.subscribe(loginClickSpy);
+
+      component.onLogin();
+
+      expect(loginClickSpy).toHaveBeenCalled();
+    });
+  });
+
   describe('getUserInitials', () => {
     it('should return first letter of email in uppercase', () => {
       const initials = component.getUserInitials();

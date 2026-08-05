@@ -180,8 +180,6 @@ export class AppComponent implements OnInit {
     });
   }
 
-  // istanbul ignore next - SSR fallback branch can't be tested in browser context
-  window: Window | undefined = globalThis.window;
   SCREEN_SIZES = SCREEN_SIZES;
   tooltipShowDelay = TOOLTIP_CONFIG.SHOW_DELAY;
   tooltipHideDelay = TOOLTIP_CONFIG.HIDE_DELAY;

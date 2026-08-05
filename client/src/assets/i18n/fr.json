@@ -50,7 +50,7 @@
     "Import": "Importer",
     "Import Local Data": "Importer les données locales",
     "Log in": "Se connecter",
-    "Logout": "Se déconnecter",
+    "Log out": "Se déconnecter",
     "New Password": "Nouveau mot de passe",
     "New verification code sent!": "Nouveau code de vérification envoyé !",
     "Password is required": "Le mot de passe est obligatoire",
@@ -61,7 +61,7 @@
     "Register or log in to access all features": "Inscrivez-vous ou connectez-vous pour accéder à toutes les fonctionnalités",
     "Resend code": "Renvoyer le code",
     "Send Reset Code": "Envoyer le code de réinitialisation",
-    "Sign Up": "S’inscrire",
+    "Sign up": "S’inscrire",
     "Skip": "Ignorer",
     "Switch to login": "Passer à la connexion",
     "The username you selected was unavailable. You can set a new one in your user profile": "Le nom d’utilisateur que vous avez sélectionné n’est pas disponible. Vous pouvez en définir un nouveau dans votre profil utilisateur",
@@ -266,7 +266,11 @@
     "User Information": "Informations de l’utilisateur",
     "Username updated successfully!": "Nom d’utilisateur mis à jour avec succès !",
     "Verification email sent! Please check your new email address and enter the confirmation code.": "E-mail de vérification envoyé ! Veuillez vérifier votre nouvelle adresse e-mail et entrer le code de confirmation.",
-    "Without a username, your profile is private": "Sans nom d’utilisateur, votre profil est privé"
+    "Without a username, your profile is private": "Sans nom d’utilisateur, votre profil est privé",
+    "Not logged in": "Non connecté",
+    "Your preferences are saved on this device only": "Vos préférences sont enregistrées uniquement sur cet appareil",
+    "Create an account to sync your settings and data across all your devices.": "Créez un compte pour synchroniser vos paramètres et vos données sur tous vos appareils.",
+    "Remove all stored preferences, notifications, and settings from this device.": "Supprimer de cet appareil toutes les préférences, notifications et tous les paramètres enregistrés."
   },
 
   "timezone": {

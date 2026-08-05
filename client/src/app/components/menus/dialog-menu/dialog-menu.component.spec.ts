@@ -91,6 +91,19 @@ describe('DialogMenuComponent', () => {
       component.toggle();
       expect(component.isOpen()).toBe(false);
     });
+
+    it('should emit triggerClick before toggling', () => {
+      let openStateAtEmit: boolean | null = null;
+      component.triggerClick.subscribe(() => {
+        openStateAtEmit = component.isOpen();
+      });
+
+      component.toggle();
+
+      // Emitted while still closed — parents can prepare state pre-open
+      expect(openStateAtEmit as boolean | null).toBe(false);
+      expect(component.isOpen()).toBe(true);
+    });
   });
 
   describe('open', () => {

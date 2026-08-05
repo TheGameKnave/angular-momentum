@@ -1,6 +1,5 @@
 import { Route } from '@angular/router';
 import { FeatureFlagGuard } from './guards/feature-flag.guard';
-import { AuthGuard } from './guards/auth.guard';
 import { SlugPipe } from './pipes/slug.pipe';
 import { COMPONENT_LIST } from './helpers/component-list';
 import { IndexComponent } from './components/pages/index/index.component';
@@ -16,11 +15,11 @@ export const routes: Route[] = [
     path: '',
     component: IndexComponent
   },
-  // Auth routes
+  // Profile is reachable anonymously — preferences and local data management
+  // work without an account; account-only sections hide until sign-in.
   {
     path: 'profile',
-    component: ProfileComponent,
-    canActivate: [AuthGuard]
+    component: ProfileComponent
   },
   // Privacy & Legal
   {

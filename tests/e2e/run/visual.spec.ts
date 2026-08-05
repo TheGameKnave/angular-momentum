@@ -408,8 +408,8 @@ test.describe('Visual Regression Tests', () => {
     await waitForAngular(page);
     await dismissCookieBanner(page);
 
-    // Open auth menu (signup is default tab)
-    await page.click(menus.authMenuButton);
+    // The header Sign up button opens the menu on the signup form
+    await page.click(menus.authSignupTextButton);
 
     await screenshotMenu(page, auth.signupForm, 'menu-auth-signup.png');
   });
@@ -805,8 +805,11 @@ test.describe('Visual Regression Tests', () => {
     await waitForAngular(page);
     await dismissCookieBanner(page);
 
-    // Open auth menu (signup is default tab)
+    // The header CTA is hidden at phone width: go through the profile
+    // menu's Log in item, then switch to the Sign up tab
     await page.click(menus.authMenuButton);
+    await page.click(auth.menuLoginButton);
+    await page.click(auth.signupTab);
 
     await screenshotMenuClipped(page, auth.signupForm, 'menu-auth-signup-phone.png');
   });

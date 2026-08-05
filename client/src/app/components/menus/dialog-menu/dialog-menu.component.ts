@@ -104,6 +104,13 @@ export class DialogMenuComponent {
   readonly opened = output<void>();
 
   /**
+   * Emitted when the trigger button is activated (mouse or keyboard),
+   * before the menu toggles. Lets parents prepare state (e.g. pick the
+   * auth mode) ahead of the overlay rendering.
+   */
+  readonly triggerClick = output<void>();
+
+  /**
    * Translated aria-label for open menu button.
    */
   readonly ariaLabelOpen = signal('');
@@ -125,6 +132,7 @@ export class DialogMenuComponent {
    * Toggle menu open/closed.
    */
   toggle(): void {
+    this.triggerClick.emit();
     if (this.isOpen()) {
       this.close();
     } else {

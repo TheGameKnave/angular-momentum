@@ -93,9 +93,9 @@ export async function loginAsTestUser(page: Page, email: string, password: strin
   await page.click(menus.authMenuButton);
   await expect(page.locator(menus.authMenuContent)).toBeVisible({ timeout: 5000 });
 
-  // The menu defaults to signup mode on a fresh open (protected-route
-  // redirects auto-open it in login mode instead) — the login form only
-  // mounts once the Log in tab is active, so switch tabs first if needed.
+  // The profile icon opens the anonymous profile view on a fresh open
+  // (protected-route redirects auto-open the login form instead) — go
+  // through its Log in action if the form isn't already showing.
   if (!(await page.locator(auth.loginForm).isVisible())) {
     await page.locator(auth.loginTab).click();
   }

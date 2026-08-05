@@ -153,10 +153,10 @@ test.describe('Authentication Tests', () => {
   // ============================================================================
 
   test('Signup form displays correctly', async ({ page }) => {
-    // Open auth menu (Sign Up is the default tab)
-    await page.click(menus.authMenuButton);
+    // The header Sign up button opens the menu on the signup form
+    await page.click(menus.authSignupTextButton);
 
-    // Verify signup form is visible (it's the default view)
+    // Verify signup form is visible
     await expect(page.locator(auth.signupForm)).toBeVisible();
     await expect(page.locator(auth.signupEmail)).toBeVisible();
     await expect(page.locator(auth.signupUsername)).toBeVisible();
@@ -165,8 +165,8 @@ test.describe('Authentication Tests', () => {
   });
 
   test('Signup form shows validation errors', async ({ page }) => {
-    // Open auth menu (Sign Up is the default tab)
-    await page.click(menus.authMenuButton);
+    // Open the menu on the signup form via the header Sign up button
+    await page.click(menus.authSignupTextButton);
 
     // Try to submit with invalid data
     await page.fill(auth.signupEmail, 'invalid-email');
@@ -205,26 +205,68 @@ test.describe('Authentication Tests', () => {
     // Wait for menu panel to close (logout triggers menu close)
     await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 5000 });
 
-    // Verify logged out - open menu and should show signup form (default view when not authenticated)
+    // Verify logged out - the profile icon opens the anonymous profile view,
+    // which offers Log in instead of Log out
     await page.click(menus.authMenuButton);
-    await expect(page.locator(auth.signupForm)).toBeVisible();
+    await expect(page.locator(auth.menuLoginButton)).toBeVisible();
+  });
+
+  test('Profile icon opens the anonymous profile menu', async ({ page }) => {
+    await page.click(menus.authMenuButton);
+
+    // Same profile component as when authenticated, in its anonymous variant
+    await expect(page.locator(auth.profileMenu)).toBeVisible();
+    await expect(page.locator(auth.menuLoginButton)).toBeVisible();
+
+    // Log in swaps the menu content over to the login form
+    await page.click(auth.menuLoginButton);
+    await expect(page.locator(auth.loginForm)).toBeVisible();
+  });
+
+  test('Anonymous profile menu row navigates to the profile page', async ({ page }) => {
+    await page.click(menus.authMenuButton);
+    await page.click(auth.profileViewButton);
+
+    await page.waitForSelector(pages.profilePage, { timeout: 5000 });
+    expect(page.url()).toContain('/profile');
   });
 
   // ============================================================================
-  // PROTECTED ROUTE TESTS
+  // ANONYMOUS PROFILE ACCESS
   // ============================================================================
 
-  test('Protected route redirects to home when not authenticated', async ({ page }) => {
-    // Try to navigate to profile page directly
+  test('Profile page is reachable when not authenticated', async ({ page }) => {
     await page.goto(`${APP_BASE_URL}/profile`);
+    await page.waitForSelector(pages.profilePage, { timeout: 5000 });
 
-    // Wait for redirect to complete
-    await page.waitForURL(url => !url.toString().includes('/profile'), { timeout: 5000 });
+    // Stays on /profile — preferences and local data work without an account
+    expect(page.url()).toContain('/profile');
+    await expect(page.locator(pages.profilePage)).toBeVisible();
 
-    // Should be redirected away from profile (guard should block)
-    const currentUrl = page.url();
-    expect(currentUrl).not.toContain('/profile');
+    // Preferences remain available
+    await expect(page.locator(pages.profileThemeToggle)).toBeVisible();
 
+    // Account-only actions are hidden behind the sign-up prompt
+    await expect(page.locator(pages.profileSignupCta)).toBeVisible();
+    await expect(page.locator(pages.profileDeleteAccountButton)).toHaveCount(0);
+  });
+
+  test('Header sign-up text button opens the auth menu', async ({ page }) => {
+    await page.goto(APP_BASE_URL);
+    await page.waitForSelector(menus.authSignupTextButton, { timeout: 5000 });
+
+    await page.click(menus.authSignupTextButton);
+
+    await expect(page.locator(auth.signupForm)).toBeVisible({ timeout: 5000 });
+  });
+
+  test('Profile sign-up CTA opens the auth menu', async ({ page }) => {
+    await page.goto(`${APP_BASE_URL}/profile`);
+    await page.waitForSelector(pages.profileSignupCta, { timeout: 5000 });
+
+    await page.click(`${pages.profileSignupCta} button`);
+
+    await expect(page.locator(auth.signupForm)).toBeVisible({ timeout: 5000 });
   });
 
   test('Profile page accessible when authenticated', async ({ page }) => {

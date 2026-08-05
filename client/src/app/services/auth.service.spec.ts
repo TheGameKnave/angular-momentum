@@ -874,8 +874,8 @@ describe('AuthService', () => {
       expect(mockRouter.navigate).not.toHaveBeenCalled();
     });
 
-    it('should redirect when on protected route /profile', async () => {
-      // Set current URL to protected route
+    it('should not redirect when on the profile route', async () => {
+      // /profile renders anonymously now, so logout leaves the user in place
       Object.defineProperty(mockRouter, 'url', {
         get: () => '/profile',
         configurable: true
@@ -887,39 +887,7 @@ describe('AuthService', () => {
 
       await service.logout();
 
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
-    });
-
-    it('should redirect when on protected route with query params', async () => {
-      // Set current URL to protected route with query params
-      Object.defineProperty(mockRouter, 'url', {
-        get: () => '/profile?tab=settings',
-        configurable: true
-      });
-
-      mockSupabaseAuth.signOut.and.returnValue(
-        Promise.resolve({ error: null })
-      );
-
-      await service.logout();
-
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
-    });
-
-    it('should redirect when on nested protected route', async () => {
-      // Set current URL to nested protected route
-      Object.defineProperty(mockRouter, 'url', {
-        get: () => '/profile/settings',
-        configurable: true
-      });
-
-      mockSupabaseAuth.signOut.and.returnValue(
-        Promise.resolve({ error: null })
-      );
-
-      await service.logout();
-
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
+      expect(mockRouter.navigate).not.toHaveBeenCalled();
     });
 
     it('should not redirect when on public route', async () => {

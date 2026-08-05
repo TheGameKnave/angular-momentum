@@ -29,6 +29,24 @@ export class AuthUiStateService {
   readonly loginFormEmail = signal<string>('');
 
   /**
+   * Incremented whenever something outside the auth menu asks it to open
+   * (e.g. the sign-up CTA on the anonymous profile page). The menu component
+   * watches this counter rather than a boolean so repeated requests re-open
+   * the menu even if it was closed in between.
+   */
+  readonly openRequests = signal(0);
+
+  /**
+   * Request that the auth menu open in the given mode.
+   *
+   * @param requestedMode - Mode to show when the menu opens (defaults to signup)
+   */
+  requestOpen(requestedMode: AuthMode = 'signup'): void {
+    this.setMode(requestedMode);
+    this.openRequests.update((count) => count + 1);
+  }
+
+  /**
    * Reset all auth UI state to default values.
    * Should be called on logout or when starting fresh auth flow.
    */

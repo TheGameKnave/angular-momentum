@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ViewChild, AfterViewInit, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild, AfterViewInit, Injector, effect, signal, computed, inject } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
@@ -67,6 +67,7 @@ export class MenuAuthComponent implements AfterViewInit {
   private readonly translocoService = inject(TranslocoService);
   private readonly router = inject(Router);
   private readonly logService = inject(LogService);
+  private readonly injector = inject(Injector);
 
   @ViewChild(DialogMenuComponent) dialogMenu!: DialogMenuComponent;
   @ViewChild('loginForm') loginForm?: AuthLoginComponent;
@@ -183,8 +184,24 @@ export class MenuAuthComponent implements AfterViewInit {
     // Check if auth service has a returnUrl (set by auth guard)
     if (this.authService.hasReturnUrl() && !this.authService.isAuthenticated()) {
       this.authUiState.setMode('login'); // Switch to login mode for protected routes
+      this.showUserMenu.set(false); // Straight to the login form
       setTimeout(() => this.dialogMenu.open(), 0); // Open menu after view init
     }
+
+    // Open on request from elsewhere in the app (e.g. profile page sign-up CTA).
+    // Registered after view init so `dialogMenu` is available; the initial
+    // counter value is skipped so an existing count doesn't pop the menu open.
+    const initialRequests = this.authUiState.openRequests();
+    effect(
+      () => {
+        if (this.authUiState.openRequests() > initialRequests) {
+          // External requests choose an auth mode, so show the forms view
+          this.showUserMenu.set(false);
+          this.dialogMenu.open();
+        }
+      },
+      { injector: this.injector },
+    );
   }
 
   /**
@@ -192,6 +209,46 @@ export class MenuAuthComponent implements AfterViewInit {
    */
   setMode(newMode: AuthMode): void {
     this.authUiState.setMode(newMode);
+  }
+
+  /**
+   * Which anonymous content the menu shows: the profile view (auth-profile's
+   * anonymous variant with a Log in action) or the auth forms. Every entry
+   * point sets this explicitly, so the menu never flashes one view before
+   * showing another.
+   */
+  readonly showUserMenu = signal(true);
+
+  /**
+   * Open the menu in signup mode. Used by the textual sign-up button, which
+   * sits outside the dialog-menu trigger as a second entry point for
+   * anonymous users.
+   */
+  openSignup(): void {
+    this.showUserMenu.set(false);
+    this.authUiState.setMode('signup');
+    this.dialogMenu.open();
+  }
+
+  /**
+   * The icon trigger always opens the profile view — the real profile when
+   * authenticated, its anonymous variant otherwise. Fires via the
+   * dialog-menu's triggerClick output before the overlay opens, so the
+   * right view is set by the time the menu renders.
+   */
+  onProfileTriggerClick(): void {
+    if (!this.authService.isAuthenticated()) {
+      this.showUserMenu.set(true);
+    }
+  }
+
+  /**
+   * "Log in" item in the user menu: swap the menu content to the login form.
+   * After a successful login the content switches to the profile view.
+   */
+  onUserMenuLogin(): void {
+    this.authUiState.setMode('login');
+    this.showUserMenu.set(false);
   }
 
   /**

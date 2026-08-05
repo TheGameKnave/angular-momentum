@@ -20,9 +20,13 @@
       {{ getUserInitials() }}
     </div>
     <div class="profile-details">
-      <div class="profile-email">{{ authService.currentUser()?.email }}</div>
-      @if (usernameService.username()?.username) {
-        <div class="profile-username">{{ usernameService.username()?.username }}</div>
+      @if (authService.isAuthenticated()) {
+        <div class="profile-email">{{ authService.currentUser()?.email }}</div>
+        @if (usernameService.username()?.username) {
+          <div class="profile-username">{{ usernameService.username()?.username }}</div>
+        }
+      } @else {
+        <div class="profile-email">{{ t('profile.Not logged in') }}</div>
       }
     </div>
     <i class="pi pi-angle-right profile-chevron"></i>
@@ -52,12 +56,21 @@
 
   <!-- Actions -->
   <div class="profile-actions">
-    <p-button
-      [label]="t('auth.Logout')"
-      severity="secondary"
-      icon="pi pi-sign-out"
-      (onClick)="onLogout()"
-    />
+    @if (authService.isAuthenticated()) {
+      <p-button
+        [label]="t('auth.Log out')"
+        severity="secondary"
+        icon="pi pi-sign-out"
+        (onClick)="onLogout()"
+      />
+    } @else {
+      <p-button
+        [label]="t('auth.Log in')"
+        severity="secondary"
+        icon="pi pi-sign-in"
+        (onClick)="onLogin()"
+      />
+    }
   </div>
 
 </div>

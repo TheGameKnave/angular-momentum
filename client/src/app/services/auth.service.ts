@@ -287,12 +287,9 @@ export class AuthService {
           // It will be cleared when user updates password or navigates away
         } else if (event === 'SIGNED_OUT') {
           this.isPasswordRecovery.set(false);
-          // Redirect away from protected routes when signed out
-          // This handles cases where session expires or refresh fails
-          if (this.currentRouteRequiresAuth()) {
-            this.logService.log('User logged out, resetting to anonymous settings');
-            this.router.navigate(['/']);
-          }
+          // No redirect on sign-out: every route renders anonymously, so the
+          // user stays where they are (the profile page swaps its account
+          // sections for a sign-up prompt).
         }
       });
 
@@ -729,30 +726,10 @@ export class AuthService {
 
       this.logService.log('Logout successful');
 
-      // Only redirect if current route requires authentication
-      if (this.currentRouteRequiresAuth()) {
-        this.router.navigate(['/']);
-      }
-      // Otherwise, stay on current page (user can remain on public pages after logout)
+      // No redirect: every route renders anonymously, so the user stays put.
     } catch (error) {
       this.logService.log('Logout exception', error);
     }
-  }
-
-  /**
-   * Check if the current route requires authentication.
-   * Uses the route path to determine if it's a protected route.
-   * @returns True if the current route requires authentication
-   */
-  private currentRouteRequiresAuth(): boolean {
-    // Get the current URL path (without query params)
-    const currentUrl = this.router.url.split('?')[0];
-
-    // List of paths that require authentication
-    // Must be kept in sync with routes that use AuthGuard
-    const protectedPaths = ['/profile'];
-
-    return protectedPaths.some(path => currentUrl === path || currentUrl.startsWith(path + '/'));
   }
 
   /**

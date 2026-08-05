@@ -50,7 +50,7 @@
     "Import": "Import",
     "Import Local Data": "Import Local Data",
     "Log in": "Log in",
-    "Logout": "Logout",
+    "Log out": "Log out",
     "New Password": "New Password",
     "New verification code sent!": "New verification code sent!",
     "Password is required": "Password is required",
@@ -61,7 +61,7 @@
     "Register or log in to access all features": "Register or log in to access all features",
     "Resend code": "Resend code",
     "Send Reset Code": "Send Reset Code",
-    "Sign Up": "Sign Up",
+    "Sign up": "Sign up",
     "Skip": "Skip",
     "Switch to login": "Switch to login",
     "The username you selected was unavailable. You can set a new one in your user profile": "The username you selected was unavailable. You can set a new one in your user profile",
@@ -266,7 +266,11 @@
     "User Information": "User Information",
     "Username updated successfully!": "Username updated successfully!",
     "Verification email sent! Please check your new email address and enter the confirmation code.": "Verification email sent! Please check your new email address and enter the confirmation code.",
-    "Without a username, your profile is private": "Without a username, your profile is private"
+    "Without a username, your profile is private": "Without a username, your profile is private",
+    "Not logged in": "Not logged in",
+    "Your preferences are saved on this device only": "Your preferences are saved on this device only",
+    "Create an account to sync your settings and data across all your devices.": "Create an account to sync your settings and data across all your devices.",
+    "Remove all stored preferences, notifications, and settings from this device.": "Remove all stored preferences, notifications, and settings from this device."
   },
 
   "timezone": {
