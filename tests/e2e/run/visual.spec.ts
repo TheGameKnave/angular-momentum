@@ -399,6 +399,22 @@ test.describe('Visual Regression Tests', () => {
     await logoutBtn.click();
   });
 
+  test('page-profile-anon', async ({ page }) => {
+    // Anonymous: preferences + sign-up CTA, no account sections
+    await page.goto(`${APP_BASE_URL}/profile`);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+    await page.waitForSelector(pages.profileSignupCta, { timeout: 10000 });
+
+    // Normalize the detected timezone (machine-dependent)
+    await page.evaluate(() => {
+      const tz = document.querySelector('.timezone-select .p-select-label');
+      if (tz) tz.textContent = 'UTC';
+    });
+
+    await screenshotPageComponent(page, pages.profilePage, 'page-profile-anon.png');
+  });
+
   // ============================================================================
   // MENU/COMPONENT SNAPSHOTS (with opaque backgrounds)
   // ============================================================================
@@ -483,6 +499,29 @@ test.describe('Visual Regression Tests', () => {
     // Logout
     const logoutBtn = page.locator(auth.logoutButton);
     await logoutBtn.click();
+  });
+
+  test('menu-auth-profile-anon', async ({ page }) => {
+    await page.goto(APP_BASE_URL);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+
+    // Anonymous: the profile icon opens the profile view's anonymous
+    // variant (Not logged in row + Log in action) — no dynamic content
+    await page.click(menus.authMenuButton);
+
+    await screenshotMenu(page, auth.profileMenu, 'menu-auth-profile-anon.png');
+  });
+
+  test('dialog-message', async ({ page }) => {
+    await page.goto(APP_BASE_URL);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+
+    // Dev-only shortcut shows an error message dialog (info queued behind)
+    await page.keyboard.press('Control+Shift+E');
+
+    await screenshotMenu(page, common.messageDialog, 'dialog-message.png');
   });
 
   test('menu-feature', async ({ page }) => {
