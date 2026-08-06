@@ -420,6 +420,11 @@ export class MenuAuthComponent implements AfterViewInit {
     }
 
     this.authUiState.reset();
+    // Back to the default view: the profile icon is the default entry point,
+    // and explicit entries (sign-up CTA, external requests) set this false
+    // before opening. Without this, reopening right after a logout could land
+    // on the forms view (the trigger's auth check races the sign-out).
+    this.showUserMenu.set(true);
   }
 
   /**

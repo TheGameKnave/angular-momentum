@@ -494,6 +494,16 @@ describe('MenuAuthComponent', () => {
       expect(mockAuthUiState.reset).toHaveBeenCalled();
     });
 
+    it('should reset the view to the profile menu', () => {
+      component.showUserMenu.set(false);
+
+      component.onMenuClosed();
+
+      // Default entry point is the profile icon; explicit entries set this
+      // false again before opening
+      expect(component.showUserMenu()).toBe(true);
+    });
+
     it('should clear auto-close timer when menu is closed during timer', async () => {
       jasmine.clock().install();
       component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);

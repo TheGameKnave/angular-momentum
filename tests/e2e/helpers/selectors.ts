@@ -47,10 +47,11 @@ export const auth = {
   signupTab: '.auth-tabs button.auth-tab:first-child',
   // "Take me to the login form": the Log in tab when the auth forms are
   // showing, or the Log in button when the anonymous profile view is showing
-  // (the two views are mutually exclusive, so exactly one matches)
-  loginTab: '.auth-tabs button.auth-tab:nth-child(2), .dialog-menu-panel app-auth-profile p-button:has-text("Log in") button',
+  // (the two views are mutually exclusive, so exactly one matches).
+  // Structural selectors — text matching breaks once a test switches language
+  loginTab: '.auth-tabs button.auth-tab:nth-child(2), .dialog-menu-panel app-auth-profile p-button.profile-login-button button',
   // Log in button in the anonymous profile view specifically
-  menuLoginButton: '.dialog-menu-panel app-auth-profile p-button:has-text("Log in") button',
+  menuLoginButton: '.dialog-menu-panel app-auth-profile p-button.profile-login-button button',
 
   // Login form (formControlName="email" is used for email/username combo field)
   loginForm: 'app-auth-login',
