@@ -7,12 +7,12 @@
       </div>
       <!-- Connectivity: centered in the header's whitespace, only while offline -->
       @if (!connectivity.isOnline() && connectivity.showOffline()) {
-        <div class="header-connectivity" role="status">
+        <output class="header-connectivity">
           <i class="pi pi-exclamation-triangle"></i>
           @if (!isNarrowScreen()) {
             <span>{{ t('connectivity.You are currently offline') }}</span>
           }
-        </div>
+        </output>
       }
 
       <div class="header-actions">

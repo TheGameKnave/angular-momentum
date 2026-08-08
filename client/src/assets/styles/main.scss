@@ -368,11 +368,38 @@ ul {
 .p-button-sm .p-button-icon {
     font-size: inherit !important;
 }
-// Prevent button icon/loading spinner from causing layout shift
+// Prevent button icon/loading spinner from causing layout shift.
+// The reserved min-width keeps the label from jumping when the icon swaps in;
+// text-align centres the glyph for the font-icon case. PrimeNG's default
+// loading state renders a bare <svg>, which ignores text-align and would sit
+// on the text baseline (visibly high in the button) without an explicit
+// vertical alignment — so centre it in the button's flex cross-axis.
 .p-button-icon,
 .p-button-loading-icon {
   min-width: 2rem;
   text-align: center;
+  align-self: center;
+  vertical-align: middle;
+}
+// The pButton DIRECTIVE (unlike the p-button component, where this class IS
+// the svg) renders loading as a <span class="p-icon"> wrapping an injected
+// 14x14 <svg>, while PrimeNG sizes that span to --p-icon-size (2rem here).
+// Centre the svg in that oversized box instead of letting it sit on the
+// span's text baseline, which parked it in the top-left corner.
+.p-button-loading-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+
+  // The spinner path is drawn to the edges of its 0 0 14 14 viewBox, so at
+  // 14px the stroke visibly overhangs the svg's own box (bottom-left most
+  // noticeably) and reads as the circle escaping its container. Give it the
+  // span's full box to paint into so the arc stays inside.
+  > svg {
+    width: 100%;
+    height: 100%;
+  }
 }
 
 .p-select,
@@ -461,6 +488,20 @@ p-panel {
   max-width: calc(100vw - 4rem);
   overflow-y: auto;
 
+  // PrimeNG defaults to top-right, which on a phone lands on the header's
+  // action glyphs — covering the very controls that raise most toasts, in the
+  // hardest corner to reach one-handed. Anchor to the bottom instead, clear of
+  // the footer rail (min-height 4rem) and the device's safe area.
+  body.not-lg & {
+    top: auto !important;
+    bottom: calc(4rem + 1.6rem + env(safe-area-inset-bottom)) !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%);
+    width: calc(100vw - 3.2rem) !important;
+    max-width: 36rem;
+  }
+
   .p-toast-message-content {
     padding: 1.6rem;
     gap: 1rem;
@@ -474,6 +515,14 @@ p-panel {
   .p-toast-detail {
     font-size: 1.4rem;
     margin-top: 0.4rem;
+
+    // Most of our toasts are summary-only. PrimeNG still renders the detail
+    // element, and an empty block with a top margin — plus the text column's
+    // flex gap before it — left ~11rem-scaled px of dead space under the
+    // summary, reading as lopsided bottom padding. Collapse it when empty.
+    &:empty {
+      display: none;
+    }
   }
 
   .p-toast-message-icon {
@@ -550,9 +599,25 @@ header {
     gap: 1rem;
   }
 
+  // The action glyphs carry no horizontal padding, so this gap is the whole
+  // separation between adjacent touch targets — 1rem left them cramped for
+  // thumbs. Widen it, and more so on touch-sized screens where the tap area
+  // matters most and there is the least room for error.
+  > .header-actions {
+    gap: 1.8rem;
+
+    body.not-lg & {
+      gap: 2.2rem;
+    }
+  }
+
   // Offline notice: centred in the header's whitespace, independent of the
   // breadcrumb/action widths on either side so it doesn't shift them.
   > .header-connectivity {
+    // <output> is inline by default; the flex context here is what aligns the
+    // warning glyph with its label and makes `gap` apply.
+    display: flex;
+    align-items: center;
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
@@ -1407,13 +1472,15 @@ app-menu-auth {
 
 // Sign-up CTA shown to anonymous users beside the profile icon trigger.
 // Outlined so it reads as a prompt without shouting over the header.
-// Hidden on the narrowest screens where the icon alone has to carry it.
 .auth-signup-text-button {
   background: none;
   border: 1px solid var(--color-brand);
   border-radius: 0.4rem;
   cursor: pointer;
-  padding: 0.4rem 1rem;
+  // No vertical padding: the text's leading pads the outline visually, and
+  // the pill stays shorter than the padded glyph buttons beside it — the
+  // header row's height driver stays .auth-menu-button.
+  padding: 0 1rem;
   color: var(--color-brand);
   font-size: 1.5rem;
   font-weight: 600;
@@ -1424,20 +1491,17 @@ app-menu-auth {
     background: var(--color-brand);
     color: #fff;
   }
-
-  body.not-sm & {
-    display: none;
-  }
 }
 
-// Matches the other header glyph buttons (share, notifications): no
-// internal padding — the glyph centers in its button and the header's
-// gap provides the spacing.
+// Vertical padding only: it sets the header row's breathing room (this
+// button is always present, so the header height stays constant across
+// auth states). No horizontal padding — the glyph centers in its button
+// and the header's gap provides the spacing.
 .auth-menu-button {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 0.4rem 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2023,8 +2087,14 @@ app-profile {
       flex: 1;
       overflow: hidden;
 
+      // A long username wrapped the heading to two lines and shoved the
+      // avatar off-centre; the email below it already truncated. Treat both
+      // the same — one line, ellipsed.
       h2 {
         margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       p {
