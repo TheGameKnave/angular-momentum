@@ -116,4 +116,24 @@ describe('IndexedDBComponent', () => {
 
     discardPeriodicTasks();
   }));
+
+  it('should not persist anything as a side effect of loading a new scope', fakeAsync(() => {
+    // Regression guard: loading used to dispatch a synthetic 'input' event
+    // (for the float label); Angular's value accessor picked it up and the
+    // debounced save then wrote the just-loaded value into the new scope —
+    // planting '' in every fresh user's storage on login.
+    indexedDbServiceSpy.get.and.returnValue(Promise.resolve('other scope data'));
+    indexedDbServiceSpy.set.calls.reset();
+
+    storagePrefixSignal.set('user_abc');
+    fixture.detectChanges(); // run the scope-switch effect
+    tick();                  // let loadStoredValue's IndexedDB read settle
+    fixture.detectChanges(); // render the loaded value (float label CD pass)
+    tick(2000);              // well past the save debounce
+
+    expect(component.textAreaData.value).toBe('other scope data');
+    expect(indexedDbServiceSpy.set).not.toHaveBeenCalled();
+
+    discardPeriodicTasks();
+  }));
 });
