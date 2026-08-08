@@ -80,9 +80,11 @@ describe('MenuAuthComponent', () => {
 
     mockStoragePromotionService = jasmine.createSpyObj('StoragePromotionService', [
       'promoteAnonymousToUser',
+      'promotePreferences',
       'hasAnonymousData'
     ]);
     mockStoragePromotionService.promoteAnonymousToUser.and.returnValue(Promise.resolve());
+    mockStoragePromotionService.promotePreferences.and.returnValue(Promise.resolve());
     mockStoragePromotionService.hasAnonymousData.and.returnValue(Promise.resolve(true));
 
     mockNotificationService = jasmine.createSpyObj('NotificationService', [
@@ -540,6 +542,7 @@ describe('MenuAuthComponent', () => {
 
       await component.storagePromotionCallback(userId);
 
+      expect(mockStoragePromotionService.promotePreferences).toHaveBeenCalledWith(userId);
       expect(mockStoragePromotionService.hasAnonymousData).toHaveBeenCalled();
       expect(mockConfirmDialogService.show).toHaveBeenCalled();
       expect(mockStoragePromotionService.promoteAnonymousToUser).toHaveBeenCalledWith(userId);
@@ -561,6 +564,8 @@ describe('MenuAuthComponent', () => {
       expect(mockStoragePromotionService.hasAnonymousData).toHaveBeenCalled();
       expect(mockConfirmDialogService.show).toHaveBeenCalled();
       expect(mockStoragePromotionService.promoteAnonymousToUser).not.toHaveBeenCalled();
+      // Preferences carry over regardless of the declined import
+      expect(mockStoragePromotionService.promotePreferences).toHaveBeenCalledWith(userId);
     });
 
     it('should skip dialog when no anonymous data exists', async () => {
@@ -572,6 +577,8 @@ describe('MenuAuthComponent', () => {
       expect(mockStoragePromotionService.hasAnonymousData).toHaveBeenCalled();
       expect(mockConfirmDialogService.show).not.toHaveBeenCalled();
       expect(mockStoragePromotionService.promoteAnonymousToUser).not.toHaveBeenCalled();
+      // Preferences still promote even when there is no data to import
+      expect(mockStoragePromotionService.promotePreferences).toHaveBeenCalledWith(userId);
     });
 
     it('should switch to target user language for import dialog (new format)', async () => {

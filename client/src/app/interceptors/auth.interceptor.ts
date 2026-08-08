@@ -1,9 +1,10 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { inject, Injector } from '@angular/core';
 import { Router } from '@angular/router';
 import { from, switchMap, tap } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { PlatformService } from '../services/platform.service';
+import { UserSettingsService } from '../services/user-settings.service';
 
 /**
  * HTTP interceptor for adding authentication tokens to requests.
@@ -29,6 +30,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const platformService = inject(PlatformService);
   const router = inject(Router);
+  // Resolved lazily on the 401 path only: UserSettingsService depends on
+  // HttpClient, so injecting it eagerly here would be circular.
+  const injector = inject(Injector);
 
   // Skip auth for SSR
   if (platformService.isSSR()) {
@@ -54,7 +58,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
               // Navigate FIRST to prevent brief flash of logged-out state on auth-protected pages
               if (error instanceof HttpErrorResponse && error.status === 401 && authService.isAuthenticated()) {
                 router.navigate(['/']);
-                authService.logout();
+                // Clear settings after logout completes so the expired session
+                // doesn't leave its theme/timezone applied, matching what the
+                // UI logout handlers do.
+                authService.logout().then(() =>
+                  injector.get(UserSettingsService).clear()
+                );
               }
             }
           })

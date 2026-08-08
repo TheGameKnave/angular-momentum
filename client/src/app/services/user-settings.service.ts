@@ -105,7 +105,11 @@ export class UserSettingsService {
       const user = this.authService.currentUser();
       const isAuthenticated = !!user;
 
-      // Detect transition from authenticated to unauthenticated (logout)
+      // Detect transition from authenticated to unauthenticated. This
+      // covers spontaneous sign-outs (expired session, revoked token) that
+      // never pass through a logout handler. Explicit logout paths also
+      // call clear() themselves; the in-flight sharing inside clear()
+      // collapses the two into a single run.
       if (this.wasAuthenticated && !isAuthenticated) {
         this.logService.log('User logged out, resetting to anonymous settings');
         this.clear();
@@ -732,7 +736,14 @@ export class UserSettingsService {
       this.logService.log('Theme: using server (newer)', { local: localTheme?.updatedAt, server: serverUpdatedAt });
       return settings.theme_preference;
     }
-    return localTheme?.value ?? 'dark';
+    // Neither side has a stored theme (typically a brand-new account). Push
+    // the local choice up so the next device/session inherits it instead of
+    // falling back to the default again.
+    const finalTheme = localTheme?.value ?? 'dark';
+    if (localTheme) {
+      this.syncThemeToServer(finalTheme);
+    }
+    return finalTheme;
   }
 
   /**
@@ -756,7 +767,13 @@ export class UserSettingsService {
       this.logService.log('Timezone: using server (newer)', { local: localTimezone?.updatedAt, server: serverUpdatedAt });
       return settings.timezone;
     }
+    // Neither side has a stored timezone (typically a brand-new account).
+    // Persist locally as well as to the server — without the local write the
+    // profile page has nothing to read back and shows its empty placeholder.
     const finalTimezone = localTimezone?.value ?? this.detectTimezone();
+    if (!localTimezone) {
+      await this.saveTimezoneLocally(finalTimezone);
+    }
     this.syncTimezoneToServer(finalTimezone);
     return finalTimezone;
   }
@@ -866,6 +883,29 @@ export class UserSettingsService {
    * Called on logout. Reads from anonymous storage directly (bypassing user-scoped prefixing).
    */
   async clear(): Promise<void> {
+    // Logout reaches this from up to two places at once: the auth-state
+    // effect (which also catches spontaneous sign-outs) and the explicit
+    // call in the logout handlers. The work only reads/writes absolute
+    // anonymous-scope keys, so it's idempotent — but there's no point
+    // running it twice, and sharing one run keeps the ordering obvious.
+    this.clearInFlight ??= this.runClear().finally(() => {
+      this.clearInFlight = null;
+    });
+    return this.clearInFlight;
+  }
+
+  /** In-flight `clear()` run, shared by concurrent callers */
+  private clearInFlight: Promise<void> | null = null;
+
+  /**
+   * Actual clear implementation — see `clear()` for the concurrency wrapper.
+   *
+   * Resets server settings and reloads the anonymous scope's preferences,
+   * falling back to built-in defaults when the anonymous scope has none.
+   *
+   * @returns Promise that resolves once anonymous preferences have been applied
+   */
+  private async runClear(): Promise<void> {
     this.settings.set(null);
 
     // Leave the user's WebSocket room to stop receiving their settings updates

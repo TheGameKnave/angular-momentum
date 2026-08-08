@@ -4,16 +4,20 @@ import { of, throwError } from 'rxjs';
 import { authInterceptor } from './auth.interceptor';
 import { AuthService } from '../services/auth.service';
 import { PlatformService } from '../services/platform.service';
+import { UserSettingsService } from '../services/user-settings.service';
 
 describe('authInterceptor', () => {
   let mockAuthService: jasmine.SpyObj<AuthService>;
   let mockPlatformService: jasmine.SpyObj<PlatformService>;
+  let mockUserSettingsService: jasmine.SpyObj<UserSettingsService>;
   let mockHandler: HttpHandler;
   let mockRequest: HttpRequest<unknown>;
 
   beforeEach(() => {
     mockAuthService = jasmine.createSpyObj('AuthService', ['getToken', 'isAuthenticated', 'logout']);
     mockPlatformService = jasmine.createSpyObj('PlatformService', ['isSSR']);
+    mockUserSettingsService = jasmine.createSpyObj('UserSettingsService', ['clear']);
+    mockUserSettingsService.clear.and.returnValue(Promise.resolve());
 
     mockHandler = {
       handle: jasmine.createSpy('handle').and.returnValue(of({} as HttpEvent<unknown>))
@@ -24,7 +28,8 @@ describe('authInterceptor', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: AuthService, useValue: mockAuthService },
-        { provide: PlatformService, useValue: mockPlatformService }
+        { provide: PlatformService, useValue: mockPlatformService },
+        { provide: UserSettingsService, useValue: mockUserSettingsService }
       ]
     });
   });
@@ -136,9 +141,13 @@ describe('authInterceptor', () => {
       const result = authInterceptor(mockRequest, mockHandler.handle);
 
       result.subscribe({
-        error: () => {
+        error: async () => {
           expect(mockAuthService.isAuthenticated).toHaveBeenCalled();
           expect(mockAuthService.logout).toHaveBeenCalled();
+          // clear() runs after the logout promise settles — flush microtasks
+          await Promise.resolve();
+          await Promise.resolve();
+          expect(mockUserSettingsService.clear).toHaveBeenCalled();
           done();
         }
       });
@@ -161,6 +170,7 @@ describe('authInterceptor', () => {
         error: () => {
           expect(mockAuthService.isAuthenticated).toHaveBeenCalled();
           expect(mockAuthService.logout).not.toHaveBeenCalled();
+          expect(mockUserSettingsService.clear).not.toHaveBeenCalled();
           done();
         }
       });

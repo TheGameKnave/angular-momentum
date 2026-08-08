@@ -687,6 +687,43 @@ describe('UserSettingsService', () => {
       // Flush any pending requests
       httpMock.match(`${ENVIRONMENT.baseUrl}/api/user-settings`);
     }));
+
+    it('should adopt and push local-only prefs when the server row lacks them', fakeAsync(async () => {
+      // Server row exists (e.g. only language) but stores no theme and an
+      // empty timezone; local values exist only in the old raw format
+      // (timestamp 0), so neither side wins the timestamp comparison.
+      const mockSettings: UserSettings = {
+        id: '123',
+        timezone: '',
+        language: 'de',
+        updated_at: new Date().toISOString()
+      };
+
+      mockIndexedDbService.get.and.callFake((key: string) => {
+        if (key === 'preferences_theme') return Promise.resolve('light');
+        if (key === 'preferences_timezone') return Promise.resolve('Europe/London');
+        return Promise.resolve(undefined);
+      });
+
+      const initPromise = service.initialize();
+      tick(); // Resolve IndexedDB promises
+
+      const loadReq = httpMock.expectOne(`${ENVIRONMENT.baseUrl}/api/user-settings`);
+      loadReq.flush({ data: mockSettings });
+      tick(); // Process response
+
+      await initPromise;
+      flush(); // Flush any remaining async operations
+
+      // Local values survive as the resolved preferences
+      expect(service.themePreference()).toBe('light');
+      expect(service.timezonePreference()).toBe('Europe/London');
+
+      // And were pushed up so the account inherits them on other devices
+      const syncs = httpMock.match(`${ENVIRONMENT.baseUrl}/api/user-settings`);
+      expect(syncs.some(r => r.request.method === 'PATCH' && r.request.body.theme_preference === 'light')).toBeTrue();
+      expect(syncs.some(r => r.request.method === 'PATCH' && r.request.body.timezone === 'Europe/London')).toBeTrue();
+    }));
   });
 
   describe('clear', () => {
@@ -778,6 +815,21 @@ describe('UserSettingsService', () => {
 
       expect(document.documentElement.classList.contains('app-dark')).toBe(false);
       expect(document.cookie).toContain('theme=light');
+    });
+
+    it('should share one run between concurrent clear() calls', async () => {
+      mockIndexedDbService.getRaw.and.returnValue(Promise.resolve(undefined));
+
+      // Logout can trigger clear() from both the auth-state effect and the
+      // explicit logout handler — the two callers must share a single run.
+      await Promise.all([service.clear(), service.clear()]);
+
+      expect(mockSocketService.emit).toHaveBeenCalledWith('deauthenticate');
+      expect(mockSocketService.emit).toHaveBeenCalledTimes(1);
+
+      // Once the shared run settles, the next call starts a fresh run
+      await service.clear();
+      expect(mockSocketService.emit).toHaveBeenCalledTimes(2);
     });
   });
 

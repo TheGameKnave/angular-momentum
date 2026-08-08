@@ -84,6 +84,12 @@ export class MenuAuthComponent implements AfterViewInit {
    * The dialog is displayed in the target user's language (if they have one set).
    */
   readonly storagePromotionCallback = async (userId: string): Promise<void> => {
+    // Theme/timezone/language always carry over, independent of the import
+    // prompt below: those describe how the app should look for whoever is
+    // signing in, not content that might belong to someone else. Skipping
+    // the import used to silently revert preferences the user just set.
+    await this.storagePromotionService.promotePreferences(userId);
+
     const hasData = await this.storagePromotionService.hasAnonymousData();
 
     if (!hasData) {

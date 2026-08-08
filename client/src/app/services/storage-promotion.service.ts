@@ -11,6 +11,19 @@ import { PROMOTABLE_LOCALSTORAGE_NAMES } from '../constants/ui.constants';
 const ALL_STORES: IdbStoreName[] = [IDB_STORES.PERSISTENT, IDB_STORES.SETTINGS, IDB_STORES.BACKUPS];
 
 /**
+ * UI preference keys (must match user-settings.service.ts STORAGE_KEYS).
+ * These are promoted on every sign-in, even when the user declines the data
+ * import: a theme or timezone choice is a property of how the person wants
+ * the app to look right now, not personal data belonging to a previous user
+ * of the device. Discarding it silently reverts the app under them.
+ */
+const PREFERENCE_KEYS = [
+  'preferences_theme',
+  'preferences_timezone',
+  'preferences_language',
+] as const;
+
+/**
  * Service for promoting storage data from anonymous to user scope.
  *
  * "Promotion" moves anonymous user data to a logged-in user's storage space.
@@ -70,6 +83,42 @@ export class StoragePromotionService {
     } catch (error) {
       this.logService.log('Storage promotion failed', error);
       // Don't throw - promotion failure shouldn't block login
+    }
+  }
+
+  /**
+   * Promote only the UI preference keys (theme, timezone, language) from
+   * anonymous to user scope.
+   *
+   * Runs on every sign-in, including when the user declines to import their
+   * anonymous data: the import prompt is about content that may belong to
+   * someone else on a shared device, whereas preferences describe how the
+   * app should look for whoever is using it now. Without this, choosing
+   * "Skip" silently reverted the theme and timezone the user just set.
+   *
+   * Existing user preferences always win — a returning user's saved settings
+   * are never overwritten by whatever the device was last set to.
+   *
+   * @param userId - The user ID to promote preferences to
+   */
+  async promotePreferences(userId: string): Promise<void> {
+    // istanbul ignore next - SSR guard
+    if (!this.isBrowser) return;
+
+    const anonymousPrefix = `${STORAGE_PREFIXES.ANONYMOUS}_`;
+    const userPrefix = `${STORAGE_PREFIXES.USER}_${userId}_`;
+
+    for (const baseKey of PREFERENCE_KEYS) {
+      try {
+        await this.promoteIndexedDbKey(
+          `${anonymousPrefix}${baseKey}`,
+          IDB_STORES.SETTINGS,
+          anonymousPrefix,
+          userPrefix,
+        );
+      } catch (error) {
+        this.logService.log(`Failed to promote preference: ${baseKey}`, error);
+      }
     }
   }
 
