@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { APP_BASE_URL } from '../data/constants';
 import { generateTestUser, TestUser } from '../data/test-users';
-import { createTestUser, deleteTestUser } from '../helpers/auth.helper';
+import { createTestUser, deleteTestUser, waitForLoginComplete } from '../helpers/auth.helper';
 import { assertNoMissingTranslations, waitForAngular, dismissCookieBanner } from '../helpers/assertions.helper';
 import { menus, pages, auth } from '../helpers/selectors';
 
@@ -146,7 +146,7 @@ test.describe('Notifications Tests', () => {
     await page.click(auth.loginSubmit);
 
     // Wait for login to complete (profile view appears in menu)
-    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    await waitForLoginComplete(page);
     // Close the menu and wait for the panel to disappear
     await page.keyboard.press('Escape');
     await expect(page.locator(menus.authMenuContent)).not.toBeVisible();
@@ -162,8 +162,19 @@ test.describe('Notifications Tests', () => {
     // Server acknowledges the broadcast
     await expect(page.locator(pages.serverNotificationStatus)).toContainText('✅', { timeout: 10000 });
 
-    // The broadcast is delivered back over WebSocket into the notification center
-    await expect(page.locator(menus.notificationBadge)).toBeVisible({ timeout: 10000 });
+    // The broadcast is delivered back over WebSocket into the notification
+    // center. Delivery is at-most-once: io.emit only reaches sockets connected
+    // at that instant, and this page's socket can be mid-(re)connect right
+    // after login — the HTTP ✅ doesn't prove our socket was connected when
+    // the emit fired. Re-send until one lands; a real delivery regression
+    // still fails every attempt.
+    const badge = page.locator(menus.notificationBadge);
+    await expect(async () => {
+      if (!(await badge.isVisible())) {
+        await sendBroadcastButton.click();
+      }
+      await expect(badge).toBeVisible({ timeout: 2500 });
+    }).toPass({ timeout: 20000 });
     await page.click(menus.notificationCenterButton);
     await expect(page.locator(menus.notificationItem).first()).toBeVisible();
 

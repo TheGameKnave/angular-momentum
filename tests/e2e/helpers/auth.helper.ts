@@ -1,6 +1,6 @@
 import { Page, expect } from '@playwright/test';
 import { API_BASE_URL } from '../data/constants';
-import { auth, menus } from './selectors';
+import { auth, common, menus } from './selectors';
 
 interface TestUser {
   email: string;
@@ -88,6 +88,33 @@ export async function cleanupE2ETestUsers(): Promise<{ success: boolean; deleted
  * Opens the auth menu and fills in credentials.
  * Waits for either profile menu (success) or error toast (failure).
  */
+/**
+ * Waits for a just-submitted login to complete.
+ *
+ * Three things can follow a login submit:
+ * - the profile view appears in the menu (success),
+ * - the Import Local Data dialog appears — including for tests that seeded
+ *   nothing: a broadcast from a PARALLEL WORKER's test is delivered to every
+ *   connected client (io.emit is global), and the anonymous page stores it,
+ *   which makes hasAnonymousData() true at login. Skip it and continue,
+ * - an error toast appears (failure) — throw with its text.
+ */
+export async function waitForLoginComplete(page: Page, timeout = 15000): Promise<void> {
+  const profileMenu = page.locator(auth.profileMenu);
+  const importDialog = page.locator(common.storagePromotionDialog);
+  const errorToast = page.locator('.p-toast-message-error');
+
+  await expect(profileMenu.or(importDialog).or(errorToast).first()).toBeVisible({ timeout });
+
+  if (await errorToast.isVisible()) {
+    throw new Error(`Login failed with error: ${await errorToast.textContent()}`);
+  }
+  if (await importDialog.isVisible()) {
+    await page.click(common.storagePromotionSkip);
+    await expect(profileMenu).toBeVisible({ timeout });
+  }
+}
+
 export async function loginAsTestUser(page: Page, email: string, password: string): Promise<void> {
   // Click auth menu to open
   await page.click(menus.authMenuButton);
@@ -109,8 +136,7 @@ export async function loginAsTestUser(page: Page, email: string, password: strin
   // Wait for network to settle (auth API call)
   await page.waitForLoadState('networkidle');
 
-  // Wait for login to complete - profile menu appears on success
-  await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+  await waitForLoginComplete(page);
 }
 
 /**

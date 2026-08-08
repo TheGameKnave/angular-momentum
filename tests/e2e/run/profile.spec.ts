@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { APP_BASE_URL } from '../data/constants';
 import { generateTestUser, TestUser } from '../data/test-users';
-import { createTestUser, deleteTestUser } from '../helpers/auth.helper';
+import { createTestUser, deleteTestUser, waitForLoginComplete } from '../helpers/auth.helper';
 import { assertNoMissingTranslations, waitForAngular, dismissCookieBanner } from '../helpers/assertions.helper';
 import { menus, pages, auth, common } from '../helpers/selectors';
 
@@ -18,7 +18,7 @@ async function loginWithSharedUser(page: any): Promise<void> {
   await page.click(auth.loginSubmit);
   await page.waitForLoadState('networkidle');
   // Wait for auth menu to show profile (logged in state)
-  await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+  await waitForLoginComplete(page);
   // Close the menu so subsequent navigation works cleanly
   await page.keyboard.press('Escape');
   await expect(page.locator(menus.authMenuContent)).not.toBeVisible();
@@ -305,7 +305,7 @@ test.describe('Profile Destructive Tests', () => {
       await page.waitForLoadState('networkidle');
 
       // Wait for login to complete
-      await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+      await waitForLoginComplete(page);
 
       // Navigate to profile
       await page.goto(`${APP_BASE_URL}/profile`);
@@ -356,7 +356,7 @@ test.describe('Profile Destructive Tests', () => {
       await page.waitForLoadState('networkidle');
 
       // Wait for login to complete
-      await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+      await waitForLoginComplete(page);
 
       // Navigate to profile
       await page.goto(`${APP_BASE_URL}/profile`);
@@ -436,7 +436,7 @@ test.describe('Settings Preservation on Logout/Login', () => {
       await page.fill(auth.loginPassword, testUser.password);
       await page.click(auth.loginSubmit);
       await page.waitForLoadState('networkidle');
-      await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+      await waitForLoginComplete(page);
       await page.keyboard.press('Escape');
       await expect(page.locator(menus.authMenuContent)).not.toBeVisible();
 
@@ -549,7 +549,7 @@ test.describe('Settings Preservation on Logout/Login', () => {
         // Dialog didn't appear, continue
       }
 
-      await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+      await waitForLoginComplete(page);
       await page.keyboard.press('Escape');
       await expect(page.locator(menus.authMenuContent)).not.toBeVisible();
       // Wait for the user settings restore round-trip after login
