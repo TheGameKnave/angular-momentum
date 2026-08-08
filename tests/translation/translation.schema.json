@@ -1211,6 +1211,10 @@
           "type": "string",
           "description": "Profile: Header subtitle shown to anonymous visitors"
         },
+        "Anonymous Profile": {
+          "type": "string",
+          "description": "Profile: Page heading and menu row title shown to anonymous visitors"
+        },
         "Your preferences are saved on this device only": {
           "type": "string",
           "description": "Profile: Sign-up CTA heading for anonymous visitors"
@@ -1262,6 +1266,7 @@
         "Verification email sent! Please check your new email address and enter the confirmation code.",
         "Without a username, your profile is private",
         "Not logged in",
+        "Anonymous Profile",
         "Your preferences are saved on this device only",
         "Create an account to sync your settings and data across all your devices.",
         "Remove all stored preferences, notifications, and settings from this device."

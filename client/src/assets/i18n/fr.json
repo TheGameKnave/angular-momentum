@@ -271,6 +271,7 @@
     "Verification email sent! Please check your new email address and enter the confirmation code.": "E-mail de vérification envoyé ! Veuillez vérifier votre nouvelle adresse e-mail et entrer le code de confirmation.",
     "Without a username, your profile is private": "Sans nom d’utilisateur, votre profil est privé",
     "Not logged in": "Non connecté",
+    "Anonymous Profile": "Profil anonyme",
     "Your preferences are saved on this device only": "Vos préférences sont enregistrées uniquement sur cet appareil",
     "Create an account to sync your settings and data across all your devices.": "Créez un compte pour synchroniser vos paramètres et vos données sur tous vos appareils.",
     "Remove all stored preferences, notifications, and settings from this device.": "Supprimer de cet appareil toutes les préférences, notifications et tous les paramètres enregistrés."

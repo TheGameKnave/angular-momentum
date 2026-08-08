@@ -9,7 +9,7 @@
           styleClass="profile-avatar"
         />
         <div class="profile-header-info">
-          <h2>@if (usernameService.username()?.username) {{{ usernameService.username()?.username }}'s }{{ t('profile.Profile') }}</h2>
+          <h2>@if (isAuthenticated()) {@if (usernameService.username()?.username) {{{ usernameService.username()?.username }}'s }{{ t('profile.Profile') }}} @else {{{ t('profile.Anonymous Profile') }}}</h2>
           @if (isAuthenticated()) {
             <p>{{ authService.currentUser()?.email }}</p>
           } @else {

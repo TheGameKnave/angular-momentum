@@ -271,6 +271,7 @@
     "Verification email sent! Please check your new email address and enter the confirmation code.": "Doğrulama e-postası gönderildi! Lütfen yeni e-posta adresinizi kontrol edin ve onay kodunu girin.",
     "Without a username, your profile is private": "Kullanıcı adı olmadan profiliniz gizlidir",
     "Not logged in": "Oturum açılmadı",
+    "Anonymous Profile": "Anonim Profil",
     "Your preferences are saved on this device only": "Tercihleriniz yalnızca bu cihazda saklanır",
     "Create an account to sync your settings and data across all your devices.": "Ayarlarınızı ve verilerinizi tüm cihazlarınızda eşitlemek için bir hesap oluşturun.",
     "Remove all stored preferences, notifications, and settings from this device.": "Kayıtlı tüm tercihleri, bildirimleri ve ayarları bu cihazdan kaldırın."

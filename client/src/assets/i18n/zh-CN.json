@@ -271,6 +271,7 @@
     "Verification email sent! Please check your new email address and enter the confirmation code.": "验证电子邮件已发送！请检查您的新电子邮件地址并输入确认码。",
     "Without a username, your profile is private": "没有用户名，您的个人资料是私密的",
     "Not logged in": "未登录",
+    "Anonymous Profile": "匿名资料",
     "Your preferences are saved on this device only": "您的偏好设置仅保存在此设备上",
     "Create an account to sync your settings and data across all your devices.": "创建账户即可在您的所有设备之间同步设置和数据。",
     "Remove all stored preferences, notifications, and settings from this device.": "从此设备中移除所有已存储的偏好设置、通知和设置。"
