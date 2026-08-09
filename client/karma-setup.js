@@ -7,6 +7,34 @@ const originalConsoleError = console.error;
 const originalConsoleWarn = console.warn;
 const originalConsoleLog = /**/console.log;
 
+// Tripwire for Karma's "Some of your tests did a full page reload!" flake:
+// remember which spec is running; if the context page unloads mid-run (a real
+// location.reload()/form submit — a tab CRASH skips beforeunload, so silence
+// here plus the Karma error points at a browser crash instead), the
+// re-executed copy of this file names the spec that caused it.
+if (window.jasmine && jasmine.getEnv) {
+  const reloadCulprit = sessionStorage.getItem('debug_reload_during_spec');
+  if (reloadCulprit) {
+    sessionStorage.removeItem('debug_reload_during_spec');
+    const message = 'FULL PAGE RELOAD was triggered during spec: ' + reloadCulprit;
+    if (window.__karma__ && window.__karma__.error) {
+      window.__karma__.error(message); // reaches the log even with captureConsole off
+    } else {
+      originalConsoleError.call(console, message);
+    }
+  }
+  jasmine.getEnv().addReporter({
+    specStarted(result) { sessionStorage.setItem('debug_last_spec', result.fullName); },
+    jasmineDone() { sessionStorage.setItem('debug_last_spec', '(run finished)'); },
+  });
+  window.addEventListener('beforeunload', function () {
+    const last = sessionStorage.getItem('debug_last_spec');
+    if (last && last !== '(run finished)') {
+      sessionStorage.setItem('debug_reload_during_spec', last);
+    }
+  });
+}
+
 // Mock /api/health requests so ConnectivityService doesn't spam Karma's web-server with 404s
 const originalFetch = window.fetch;
 window.fetch = function(input, init) {

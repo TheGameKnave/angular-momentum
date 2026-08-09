@@ -9,10 +9,14 @@
           styleClass="profile-avatar"
         />
         <div class="profile-header-info">
-          <h2>@if (usernameService.username()?.username) {{{ usernameService.username()?.username }}'s }{{ t('profile.Profile') }}</h2>
-          <p>{{ authService.currentUser()?.email }}</p>
+          <h2>@if (isAuthenticated()) {@if (usernameService.username()?.username) {{{ usernameService.username()?.username }}'s }{{ t('profile.Profile') }}} @else {{{ t('profile.Anonymous Profile') }}}</h2>
+          @if (isAuthenticated()) {
+            <p>{{ authService.currentUser()?.email }}</p>
+          } @else {
+            <p>{{ t('profile.Not logged in') }}</p>
+          }
         </div>
-        @if (!usernameService.username()?.username) {
+        @if (isAuthenticated() && !usernameService.username()?.username) {
           <i
             class="pi pi-eye-slash profile-private-indicator"
             pTooltip="{{ t('profile.Without a username, your profile is private') }}"
@@ -24,6 +28,20 @@
       </div>
     </ng-template>
 
+    @if (!isAuthenticated()) {
+      <!-- Anonymous: prompt to create an account -->
+      <div class="profile-signup-cta">
+        <p class="action-title">{{ t('profile.Your preferences are saved on this device only') }}</p>
+        <p class="action-description">{{ t('profile.Create an account to sync your settings and data across all your devices.') }}</p>
+        <p-button
+          [label]="t('auth.Sign up')"
+          icon="pi pi-user-plus"
+          (onClick)="onSignUp()"
+        />
+      </div>
+    }
+
+    @if (isAuthenticated()) {
     <!-- Password Change Panel -->
     <p-panel
       [header]="t('profile.Change Password')"
@@ -328,15 +346,17 @@
     <!-- Actions -->
     <div class="profile-logout">
       <p-button
-        [label]="t('auth.Logout')"
+        [label]="t('auth.Log out')"
         severity="secondary"
         icon="pi pi-sign-out"
         (onClick)="onLogout()"
       />
     </div>
+    }
   </p-card>
 
   <p-card>
+    @if (isAuthenticated()) {
     <!-- User Information -->
     <section class="profile-section">
       <h3>{{ t('profile.User Information') }}</h3>
@@ -381,6 +401,7 @@
     </section>
 
     <hr />
+    }
 
     <!-- User Preferences -->
     <section class="profile-section">
@@ -477,7 +498,7 @@
         <!-- Clear All Data -->
         <div class="action-item">
           <p class="action-title warning">{{ t('profile.Clear All Data') }}</p>
-          <p class="action-description">{{ t('profile.Remove all stored preferences, notifications, and settings. Your account will remain active.') }}</p>
+          <p class="action-description">{{ isAuthenticated() ? t('profile.Remove all stored preferences, notifications, and settings. Your account will remain active.') : t('profile.Remove all stored preferences, notifications, and settings from this device.') }}</p>
           <p-button
             [label]="t('profile.Clear Data')"
             icon="pi pi-eraser"
@@ -486,19 +507,21 @@
           />
         </div>
 
-        <hr />
+        @if (isAuthenticated()) {
+          <hr />
 
-        <!-- Delete Account -->
-        <div class="action-item">
-          <p class="action-title danger">{{ t('profile.Delete Account') }}</p>
-          <p class="action-description">{{ t('profile.Permanently delete your account and all associated data. This action cannot be undone.') }}</p>
-          <p-button
-            [label]="t('profile.Delete Account')"
-            icon="pi pi-trash"
-            (onClick)="onDeleteAccount()"
-            severity="danger"
-          />
-        </div>
+          <!-- Delete Account -->
+          <div class="action-item">
+            <p class="action-title danger">{{ t('profile.Delete Account') }}</p>
+            <p class="action-description">{{ t('profile.Permanently delete your account and all associated data. This action cannot be undone.') }}</p>
+            <p-button
+              [label]="t('profile.Delete Account')"
+              icon="pi pi-trash"
+              (onClick)="onDeleteAccount()"
+              severity="danger"
+            />
+          </div>
+        }
       </div>
     </section>
   </p-card>

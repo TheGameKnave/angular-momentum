@@ -72,8 +72,14 @@ export class IndexedDBComponent implements OnInit {
 
   /**
    * Retrieves the stored value from IndexedDB and populates the textarea.
-   * Also dispatches an 'input' event to the textarea element to ensure
-   * proper UI state updates (e.g., for floating labels).
+   *
+   * emitEvent: false keeps the programmatic load out of valueChanges — and no
+   * synthetic 'input' event may be dispatched to compensate for it: Angular's
+   * value accessor listens for that event, so it would round-trip the loaded
+   * value back into valueChanges and the debounced save would persist it into
+   * the freshly-loaded scope (planting '' in every new user's storage). The
+   * float label needs no event either: pTextarea refreshes its filled state
+   * from the control value on every change-detection pass.
    */
   private async loadStoredValue(): Promise<void> {
     // istanbul ignore next - SSR guard, not testable in browser
@@ -82,11 +88,5 @@ export class IndexedDBComponent implements OnInit {
     const data = await this.indexedDbService.get(this.storageKey, IDB_STORES.PERSISTENT);
     const value = typeof data === 'string' ? data : '';
     this.textAreaData.setValue(value, { emitEvent: false });
-
-    // tell the DOM element it has new content
-    const el = document.getElementById('indexeddb') as HTMLTextAreaElement | null;
-    if (el) {
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-    }
   }
 }

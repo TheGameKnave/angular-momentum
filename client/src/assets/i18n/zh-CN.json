@@ -3,6 +3,8 @@
   "Cancel": "取消",
   "Decline": "拒绝",
   "Email": "电子邮件",
+  "Error": "错误",
+  "Information": "信息",
   "No": "否",
   "OK": "确定",
   "optional": "可选",
@@ -13,6 +15,7 @@
   "Status": "状态",
   "Supported": "已支持",
   "Username": "用户名",
+  "Warning": "警告",
   "Yes": "是",
 
   "a11y": {
@@ -50,7 +53,7 @@
     "Import": "导入",
     "Import Local Data": "导入本地数据",
     "Log in": "登录",
-    "Logout": "退出登录",
+    "Log out": "退出登录",
     "New Password": "新密码",
     "New verification code sent!": "新验证码已发送！",
     "Password is required": "密码为必填项",
@@ -61,7 +64,7 @@
     "Register or log in to access all features": "注册或登录以访问所有功能",
     "Resend code": "重新发送验证码",
     "Send Reset Code": "发送重置码",
-    "Sign Up": "注册",
+    "Sign up": "注册",
     "Skip": "跳过",
     "Switch to login": "切换到登录",
     "The username you selected was unavailable. You can set a new one in your user profile": "您选择的用户名不可用。您可以在用户个人资料中设置一个新的",
@@ -266,7 +269,12 @@
     "User Information": "用户信息",
     "Username updated successfully!": "用户名更新成功！",
     "Verification email sent! Please check your new email address and enter the confirmation code.": "验证电子邮件已发送！请检查您的新电子邮件地址并输入确认码。",
-    "Without a username, your profile is private": "没有用户名，您的个人资料是私密的"
+    "Without a username, your profile is private": "没有用户名，您的个人资料是私密的",
+    "Not logged in": "未登录",
+    "Anonymous Profile": "匿名资料",
+    "Your preferences are saved on this device only": "您的偏好设置仅保存在此设备上",
+    "Create an account to sync your settings and data across all your devices.": "创建账户即可在您的所有设备之间同步设置和数据。",
+    "Remove all stored preferences, notifications, and settings from this device.": "从此设备中移除所有已存储的偏好设置、通知和设置。"
   },
 
   "timezone": {

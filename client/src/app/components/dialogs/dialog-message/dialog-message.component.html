@@ -1,0 +1,29 @@
+<ng-template #dialogTemplate>
+  @if (options(); as opts) {
+    <!-- Reuses the confirm dialog's classes so message dialogs share the
+         exact same panel styling and backdrop opacity -->
+    <div *transloco="let t" class="dialog-confirm-panel dialog-message-panel">
+      <!-- Header -->
+      <div class="dialog-confirm-header">
+        <h2>
+          <i [class]="opts.icon" [style.color]="opts.iconColor"></i>
+          {{ t(opts.title) }}
+        </h2>
+      </div>
+
+      <!-- Content -->
+      <div class="dialog-confirm-content">
+        <p>{{ t(opts.message) }}</p>
+      </div>
+
+      <!-- Footer -->
+      <div class="dialog-confirm-footer">
+        <p-button
+          [label]="t(opts.buttonLabel || defaultLabels.OK)"
+          severity="primary"
+          (onClick)="onOk()"
+        />
+      </div>
+    </div>
+  }
+</ng-template>

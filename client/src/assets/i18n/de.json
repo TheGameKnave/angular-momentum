@@ -3,6 +3,8 @@
   "Cancel": "Abbrechen",
   "Decline": "Ablehnen",
   "Email": "E-Mail",
+  "Error": "Fehler",
+  "Information": "Information",
   "No": "Nein",
   "OK": "OK",
   "optional": "optional",
@@ -13,6 +15,7 @@
   "Status": "Status",
   "Supported": "Unterstützt",
   "Username": "Benutzername",
+  "Warning": "Warnung",
   "Yes": "Ja",
 
   "a11y": {
@@ -50,7 +53,7 @@
     "Import": "Importieren",
     "Import Local Data": "Lokale Daten importieren",
     "Log in": "Anmelden",
-    "Logout": "Abmelden",
+    "Log out": "Abmelden",
     "New Password": "Neues Passwort",
     "New verification code sent!": "Neuer Bestätigungscode gesendet!",
     "Password is required": "Passwort ist erforderlich",
@@ -61,7 +64,7 @@
     "Register or log in to access all features": "Registrieren oder anmelden, um auf alle Funktionen zuzugreifen",
     "Resend code": "Code erneut senden",
     "Send Reset Code": "Rücksetzungscode senden",
-    "Sign Up": "Registrieren",
+    "Sign up": "Registrieren",
     "Skip": "Überspringen",
     "Switch to login": "Zur Anmeldung wechseln",
     "The username you selected was unavailable. You can set a new one in your user profile": "Der gewählte Benutzername war nicht verfügbar. Sie können einen neuen in Ihrem Benutzerprofil festlegen",
@@ -266,7 +269,12 @@
     "User Information": "Benutzerinformationen",
     "Username updated successfully!": "Benutzername erfolgreich aktualisiert!",
     "Verification email sent! Please check your new email address and enter the confirmation code.": "Bestätigungs-E-Mail gesendet! Bitte überprüfen Sie Ihre neue E-Mail-Adresse und geben Sie den Bestätigungscode ein.",
-    "Without a username, your profile is private": "Ohne Benutzername ist Ihr Profil privat"
+    "Without a username, your profile is private": "Ohne Benutzername ist Ihr Profil privat",
+    "Not logged in": "Nicht angemeldet",
+    "Anonymous Profile": "Anonymes Profil",
+    "Your preferences are saved on this device only": "Ihre Einstellungen werden nur auf diesem Gerät gespeichert",
+    "Create an account to sync your settings and data across all your devices.": "Erstellen Sie ein Konto, um Ihre Einstellungen und Daten auf allen Geräten zu synchronisieren.",
+    "Remove all stored preferences, notifications, and settings from this device.": "Alle gespeicherten Einstellungen, Benachrichtigungen und Präferenzen von diesem Gerät entfernen."
   },
 
   "timezone": {

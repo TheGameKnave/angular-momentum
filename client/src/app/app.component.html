@@ -5,21 +5,23 @@
         Momentum
         @if(breadcrumb){ | {{ breadcrumb }}}
       </div>
+      <!-- Connectivity: centered in the header's whitespace, only while offline -->
+      @if (!connectivity.isOnline() && connectivity.showOffline()) {
+        <output class="header-connectivity">
+          <i class="pi pi-exclamation-triangle"></i>
+          @if (!isNarrowScreen()) {
+            <span>{{ t('connectivity.You are currently offline') }}</span>
+          }
+        </output>
+      }
+
       <div class="header-actions">
-        <app-menu-auth />
         <app-menu-share />
         @if (showNotifications()) {
           <app-notification-center />
         }
-        @if(!connectivity.isOnline()){
-          @if(connectivity.showOffline()){
-            @if((window?.innerWidth ?? 0) >= SCREEN_SIZES.md) { {{ t('connectivity.You are currently offline') }} }
-            <i class="pi pi-exclamation-triangle"></i>
-          }
-          <i class="pi pi-wifi"></i>
-        } @else {
-          <i class="pi pi-wifi"></i>
-        }
+        <!-- Auth/profile menu sits last so its trigger is flush right -->
+        <app-menu-auth />
       </div>
     </header>
 
@@ -56,6 +58,7 @@
 
   <!-- Dialogs -->
   <app-dialog-confirm />
+  <app-dialog-message />
   <app-dialog-update />
 
   <!-- Toast notifications -->

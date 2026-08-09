@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, NavigationEnd } from '@angular/router';
-import { signal } from '@angular/core';
+import { signal, type WritableSignal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { TranslocoService } from '@jsverse/transloco';
 import { MenuAuthComponent } from './menu-auth.component';
@@ -43,7 +43,8 @@ describe('MenuAuthComponent', () => {
       currentUser: signal(null),
       currentSession: signal(null),
       loading: signal(false),
-      isPasswordRecovery: signal(false)
+      isPasswordRecovery: signal(false),
+      sessionWasDropped: signal(false)
     });
 
     mockAuthUiState = jasmine.createSpyObj('AuthUiStateService', [
@@ -51,13 +52,15 @@ describe('MenuAuthComponent', () => {
       'startOtpVerification',
       'clearOtpVerification',
       'setLoginFormEmail',
+      'requestOpen',
       'reset'
     ], {
       mode: signal('signup'),
       awaitingOtpVerification: signal(false),
       pendingEmail: signal(null),
       pendingUsername: signal(null),
-      loginFormEmail: signal('')
+      loginFormEmail: signal(''),
+      openRequests: signal(0)
     });
 
     mockUserSettingsService = jasmine.createSpyObj('UserSettingsService', [
@@ -65,17 +68,24 @@ describe('MenuAuthComponent', () => {
       'clear'
     ]);
 
+    // Signal properties are read by app-auth-profile, which now renders in
+    // the anonymous branch too
     mockUsernameService = jasmine.createSpyObj('UsernameService', [
       'loadUsername',
       'updateUsername',
       'clear'
-    ]);
+    ], {
+      username: signal(null),
+      creationFailed: signal(false)
+    });
 
     mockStoragePromotionService = jasmine.createSpyObj('StoragePromotionService', [
       'promoteAnonymousToUser',
+      'promotePreferences',
       'hasAnonymousData'
     ]);
     mockStoragePromotionService.promoteAnonymousToUser.and.returnValue(Promise.resolve());
+    mockStoragePromotionService.promotePreferences.and.returnValue(Promise.resolve());
     mockStoragePromotionService.hasAnonymousData.and.returnValue(Promise.resolve(true));
 
     mockNotificationService = jasmine.createSpyObj('NotificationService', [
@@ -182,12 +192,142 @@ describe('MenuAuthComponent', () => {
 
       expect(mockAuthUiState.setMode).not.toHaveBeenCalled();
     });
+
+    it('should open the login form when the session was dropped', (done) => {
+      mockAuthService.hasReturnUrl.and.returnValue(false);
+      mockAuthService.isAuthenticated.and.returnValue(false);
+      (mockAuthService.sessionWasDropped as WritableSignal<boolean>).set(true);
+
+      // Spy on the real ViewChild instance — change detection re-resolves the
+      // query, so a manually-assigned spy object would be overwritten.
+      // ngAfterViewInit already ran via the beforeEach detectChanges().
+      const openSpy = spyOn(component.dialogMenu, 'open');
+      fixture.detectChanges();
+
+      setTimeout(() => {
+        expect(mockAuthUiState.setMode).toHaveBeenCalledWith('login');
+        expect(component.showUserMenu()).toBeFalse();
+        expect(openSpy).toHaveBeenCalled();
+        done();
+      }, 10);
+    });
+
+    it('should not open the login form when the drop flag is clear', (done) => {
+      mockAuthService.hasReturnUrl.and.returnValue(false);
+      mockAuthService.isAuthenticated.and.returnValue(false);
+      (mockAuthService.sessionWasDropped as WritableSignal<boolean>).set(false);
+
+      const openSpy = spyOn(component.dialogMenu, 'open');
+      fixture.detectChanges();
+
+      setTimeout(() => {
+        expect(mockAuthUiState.setMode).not.toHaveBeenCalled();
+        expect(openSpy).not.toHaveBeenCalled();
+        done();
+      }, 10);
+    });
+
+    it('should not re-open the login form on later change detection', (done) => {
+      mockAuthService.hasReturnUrl.and.returnValue(false);
+      mockAuthService.isAuthenticated.and.returnValue(false);
+      const dropped = mockAuthService.sessionWasDropped as WritableSignal<boolean>;
+      dropped.set(true);
+
+      // ngAfterViewInit already ran via the beforeEach detectChanges(), so the
+      // effect is registered — calling it again would register a second one
+      // with its own guard and legitimately open twice.
+      const openSpy = spyOn(component.dialogMenu, 'open');
+      fixture.detectChanges();
+
+      setTimeout(() => {
+        // Re-entering the effect (signal churn, navigation) must not pop the
+        // menu a second time within the same app load.
+        dropped.set(false);
+        dropped.set(true);
+        fixture.detectChanges();
+        setTimeout(() => {
+          expect(openSpy).toHaveBeenCalledTimes(1);
+          done();
+        }, 10);
+      }, 10);
+    });
+
+    it('should open the menu when an external open request arrives', () => {
+      component.ngAfterViewInit();
+      fixture.detectChanges();
+      // Spy on the real ViewChild instance — change detection re-resolves
+      // the query, so a manually-assigned spy object would be overwritten
+      const openSpy = spyOn(component.dialogMenu, 'open');
+
+      // e.g. the sign-up CTA on the anonymous profile page
+      (mockAuthUiState.openRequests as WritableSignal<number>).set(1);
+      fixture.detectChanges();
+
+      expect(openSpy).toHaveBeenCalled();
+      expect(component.showUserMenu()).toBe(false);
+    });
+
+    it('should not open the menu when the request count is unchanged', () => {
+      component.ngAfterViewInit();
+      fixture.detectChanges();
+      const openSpy = spyOn(component.dialogMenu, 'open');
+
+      // Re-setting the same value must not re-trigger the menu
+      (mockAuthUiState.openRequests as WritableSignal<number>).set(0);
+      fixture.detectChanges();
+
+      expect(openSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('setMode', () => {
     it('should set auth mode', () => {
       component.setMode('login');
       expect(mockAuthUiState.setMode).toHaveBeenCalledWith('login');
+    });
+  });
+
+  describe('openSignup', () => {
+    it('should switch to signup mode, show the forms, and open the menu', () => {
+      component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
+      component.showUserMenu.set(true);
+
+      component.openSignup();
+
+      expect(mockAuthUiState.setMode).toHaveBeenCalledWith('signup');
+      expect(component.showUserMenu()).toBe(false);
+      expect(component.dialogMenu.open).toHaveBeenCalled();
+    });
+  });
+
+  describe('onProfileTriggerClick', () => {
+    it('should show the profile view when anonymous', () => {
+      mockAuthService.isAuthenticated.and.returnValue(false);
+      component.showUserMenu.set(false);
+
+      component.onProfileTriggerClick();
+
+      expect(component.showUserMenu()).toBe(true);
+    });
+
+    it('should not touch the view when authenticated', () => {
+      mockAuthService.isAuthenticated.and.returnValue(true);
+      component.showUserMenu.set(false);
+
+      component.onProfileTriggerClick();
+
+      expect(component.showUserMenu()).toBe(false);
+    });
+  });
+
+  describe('onUserMenuLogin', () => {
+    it('should swap the menu over to the login form', () => {
+      component.showUserMenu.set(true);
+
+      component.onUserMenuLogin();
+
+      expect(mockAuthUiState.setMode).toHaveBeenCalledWith('login');
+      expect(component.showUserMenu()).toBe(false);
     });
   });
 
@@ -416,6 +556,16 @@ describe('MenuAuthComponent', () => {
       expect(mockAuthUiState.reset).toHaveBeenCalled();
     });
 
+    it('should reset the view to the profile menu', () => {
+      component.showUserMenu.set(false);
+
+      component.onMenuClosed();
+
+      // Default entry point is the profile icon; explicit entries set this
+      // false again before opening
+      expect(component.showUserMenu()).toBe(true);
+    });
+
     it('should clear auto-close timer when menu is closed during timer', async () => {
       jasmine.clock().install();
       component.dialogMenu = jasmine.createSpyObj('DialogMenuComponent', ['open', 'close']);
@@ -452,6 +602,7 @@ describe('MenuAuthComponent', () => {
 
       await component.storagePromotionCallback(userId);
 
+      expect(mockStoragePromotionService.promotePreferences).toHaveBeenCalledWith(userId);
       expect(mockStoragePromotionService.hasAnonymousData).toHaveBeenCalled();
       expect(mockConfirmDialogService.show).toHaveBeenCalled();
       expect(mockStoragePromotionService.promoteAnonymousToUser).toHaveBeenCalledWith(userId);
@@ -473,6 +624,8 @@ describe('MenuAuthComponent', () => {
       expect(mockStoragePromotionService.hasAnonymousData).toHaveBeenCalled();
       expect(mockConfirmDialogService.show).toHaveBeenCalled();
       expect(mockStoragePromotionService.promoteAnonymousToUser).not.toHaveBeenCalled();
+      // Preferences carry over regardless of the declined import
+      expect(mockStoragePromotionService.promotePreferences).toHaveBeenCalledWith(userId);
     });
 
     it('should skip dialog when no anonymous data exists', async () => {
@@ -484,6 +637,8 @@ describe('MenuAuthComponent', () => {
       expect(mockStoragePromotionService.hasAnonymousData).toHaveBeenCalled();
       expect(mockConfirmDialogService.show).not.toHaveBeenCalled();
       expect(mockStoragePromotionService.promoteAnonymousToUser).not.toHaveBeenCalled();
+      // Preferences still promote even when there is no data to import
+      expect(mockStoragePromotionService.promotePreferences).toHaveBeenCalledWith(userId);
     });
 
     it('should switch to target user language for import dialog (new format)', async () => {

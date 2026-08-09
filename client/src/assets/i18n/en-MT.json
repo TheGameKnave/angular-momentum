@@ -3,6 +3,8 @@
   "Cancel": "Kansel",
   "Decline": "Diklain",
   "Email": "Imail",
+  "Error": "Eror",
+  "Information": "Informaishon",
   "No": "No",
   "OK": "OK",
   "optional": "opshnl",
@@ -13,6 +15,7 @@
   "Status": "Staitus",
   "Supported": "Suportd",
   "Username": "Iuzerneim",
+  "Warning": "Worning",
   "Yes": "Yes",
 
   "a11y": {
@@ -50,7 +53,7 @@
     "Import": "Import",
     "Import Local Data": "Import Lokl Daita",
     "Log in": "Log in",
-    "Logout": "Logawt",
+    "Log out": "Logawt",
     "New Password": "Niu Paswerd",
     "New verification code sent!": "Niu verifikaishn kod sent!",
     "Password is required": "Paswerd iz rikwaird",
@@ -61,7 +64,7 @@
     "Register or log in to access all features": "Rejistr or log in tu akses al fiichrs",
     "Resend code": "Risend kod",
     "Send Reset Code": "Send Riset Kod",
-    "Sign Up": "Sain Up",
+    "Sign up": "Sain Up",
     "Skip": "Skip",
     "Switch to login": "Swich tu login",
     "The username you selected was unavailable. You can set a new one in your user profile": "Xe iuzerneim iu selektd waz uneivailabl. Iu kan set a niu wun in ior iuzr profail",
@@ -266,7 +269,12 @@
     "User Information": "Iuzr Informaishn",
     "Username updated successfully!": "Iuzerneim updaitd suksesfuli!",
     "Verification email sent! Please check your new email address and enter the confirmation code.": "Verifikaishn imail sent! Pliiz chek ior niu imail adres and entr xe konfermaishn koud.",
-    "Without a username, your profile is private": "Wixawt a iuzerneim, ior profail iz praivt"
+    "Without a username, your profile is private": "Wixawt a iuzerneim, ior profail iz praivt",
+    "Not logged in": "Not saind in",
+    "Anonymous Profile": "Anonimus Profail",
+    "Your preferences are saved on this device only": "Yor prefrenses ar saivd on dis divais onli",
+    "Create an account to sync your settings and data across all your devices.": "Meik an akount to sink yor setings an daita akros ol yor divaisiz.",
+    "Remove all stored preferences, notifications, and settings from this device.": "Rimuuv ol stord prefrenses, notifikaishons, an setings from dis divais."
   },
 
   "timezone": {

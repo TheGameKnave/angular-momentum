@@ -90,7 +90,9 @@ jobs:
         if: failure()
         with:
           name: playwright-report
-          path: tests/e2e/playwright-report/
+          path: |
+            tests/e2e/playwright-report/
+            tests/e2e/flow-report/
           retention-days: 7
 
       - name: Upload Visual Diff Artifacts

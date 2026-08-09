@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProfileComponent } from './profile.component';
 import { AuthService } from '@app/services/auth.service';
+import { AuthUiStateService } from '@app/services/auth-ui-state.service';
 import { UserSettingsService } from '@app/services/user-settings.service';
 import { UsernameService } from '@app/services/username.service';
 import { DataExportService } from '@app/services/data-export.service';
@@ -12,7 +13,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { getTranslocoModule } from 'src/../../tests/helpers/transloco-testing.module';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { signal } from '@angular/core';
+import { computed, signal, type WritableSignal } from '@angular/core';
 import { MessageService } from 'primeng/api';
 
 describe('ProfileComponent', () => {
@@ -28,9 +29,10 @@ describe('ProfileComponent', () => {
   let mockNotificationService: jasmine.SpyObj<NotificationService>;
   let mockDataMigrationService: jasmine.SpyObj<DataMigrationService>;
   let mockMessageService: jasmine.SpyObj<MessageService>;
+  let currentUserSignal: WritableSignal<{ email: string; id: string } | null>;
 
   beforeEach(async () => {
-    const currentUserSignal = signal({ email: 'test@example.com', id: '123' });
+    currentUserSignal = signal<{ email: string; id: string } | null>({ email: 'test@example.com', id: '123' });
     const settingsSignal = signal({ timezone: 'UTC' });
     const usernameSignal = signal({ username: 'testuser' });
     const consentStatusSignal = signal<'accepted' | 'declined' | 'pending'>('pending');
@@ -39,7 +41,10 @@ describe('ProfileComponent', () => {
 
     mockAuthService = jasmine.createSpyObj('AuthService',
       ['logout', 'updatePassword', 'updateEmail', 'verifyEmailChangeOtp', 'getToken', 'deleteAccount', 'isPasswordRecovery', 'login'],
-      { currentUser: currentUserSignal }
+      {
+        currentUser: currentUserSignal,
+        isAuthenticated: computed(() => currentUserSignal() !== null),
+      }
     );
     mockAuthService.isPasswordRecovery.and.returnValue(false);
     mockAuthService.logout.and.returnValue(Promise.resolve());
@@ -121,6 +126,34 @@ describe('ProfileComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('anonymous visitors', () => {
+    it('should report not authenticated when there is no user', () => {
+      expect(component.isAuthenticated()).toBe(true);
+
+      currentUserSignal.set(null);
+
+      expect(component.isAuthenticated()).toBe(false);
+    });
+
+    it('should request the signup menu when onSignUp is called', () => {
+      const authUiState = TestBed.inject(AuthUiStateService);
+      const before = authUiState.openRequests();
+
+      component.onSignUp();
+
+      expect(authUiState.mode()).toBe('signup');
+      expect(authUiState.openRequests()).toBe(before + 1);
+    });
+
+    it('should skip loading the username on init when anonymous', () => {
+      currentUserSignal.set(null);
+
+      component.ngOnInit();
+
+      expect(mockUsernameService.loadUsername).not.toHaveBeenCalled();
+    });
+  });
+
   it('should initialize with default state', () => {
     expect(component.passwordPanelExpanded()).toBe(false);
     expect(component.emailPanelExpanded()).toBe(false);
@@ -135,12 +168,13 @@ describe('ProfileComponent', () => {
     expect(mockUsernameService.loadUsername).toHaveBeenCalled();
   });
 
-  it('should call logout and navigate when onLogout is called', async () => {
+  it('should clear user state without navigating when onLogout is called', async () => {
     await component.onLogout();
     expect(mockUserSettingsService.clear).toHaveBeenCalled();
     expect(mockUsernameService.clear).toHaveBeenCalled();
     expect(mockAuthService.logout).toHaveBeenCalled();
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
+    // The profile page renders anonymously, so logging out leaves the user here
+    expect(mockRouter.navigate).not.toHaveBeenCalled();
   });
 
   it('should get user initials from email', () => {

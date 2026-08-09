@@ -1,20 +1,32 @@
-<app-dialog-menu position="top-right" width="38rem" (opened)="onMenuOpened()" (closed)="onMenuClosed()">
-  <!-- Auth Menu Button -->
+<!-- Textual sign-up prompt: a second way into the same menu for anonymous
+     users, alongside the icon trigger that sits flush right. -->
+<ng-container *transloco="let t">
+  @if (!authService.isAuthenticated()) {
+    <button
+      type="button"
+      class="auth-signup-text-button"
+      (click)="openSignup()"
+    >
+      {{ t('auth.Sign up') }}
+    </button>
+  }
+</ng-container>
+
+<app-dialog-menu position="top-right" width="38rem" (triggerClick)="onProfileTriggerClick()" (opened)="onMenuOpened()" (closed)="onMenuClosed()">
+  <!-- Profile Menu Button: the account entry point. Shows profile content
+       when authenticated, the log-in view otherwise. -->
   <span
     menu-trigger
     class="auth-menu-button"
   >
-    @if (authService.isAuthenticated()) {
-      <i class="pi pi-user" [class.active-route]="isProfileRoute()"></i>
-    } @else {
-      <i class="pi pi-sign-in"></i>
-    }
+    <i class="pi pi-user" [class.active-route]="isProfileRoute()"></i>
   </span>
 
   <!-- Auth Menu Content -->
   <div menu-content *transloco="let t">
-    @if (authService.isAuthenticated()) {
-      <!-- Profile View (when authenticated) -->
+    @if (authService.isAuthenticated() || showUserMenu()) {
+      <!-- Profile View: the full profile when authenticated; the same
+           component in its anonymous variant (log-in action) otherwise -->
       <div menu-header class="menu-auth-header">
         <h3>{{ t('profile.Profile') }}</h3>
         <hr />
@@ -24,6 +36,7 @@
         <app-auth-profile
           [autoCloseSeconds]="autoCloseTimer()"
           (profileClick)="onViewProfile()"
+          (loginClick)="onUserMenuLogin()"
           (logoutClick)="onLogout()"
         />
       </div>
@@ -38,7 +51,7 @@
             [class.active]="authUiState.mode() === 'signup'"
             (click)="setMode('signup')"
           >
-            {{ t('auth.Sign Up') }}
+            {{ t('auth.Sign up') }}
           </button>
           <button
             type="button"

@@ -8,6 +8,31 @@ export const changeLog = [
 
   
   
+  
+  
+  {
+    version: "21.6.1",
+    date: "2026-08-08",
+    description: "Get back into your account in one step when a session lapses",
+    changes: [
+      "if your sign-in lapses while the app is closed, reopening it now offers the login form straight away instead of making you go through the profile menu to find it — your browser's saved password fills it as usual",
+      "signing out deliberately still leaves you signed out: the prompt only appears when we dropped the session, never when you chose to end it, and never on a device that has never been signed in",
+    ]
+  },
+  {
+    version: "21.6.0",
+    date: "2026-08-08",
+    description: "Your theme and timezone follow you into a new account",
+    changes: [
+      "the theme, timezone, and language you pick before signing up now carry into your account instead of snapping back to defaults — previously they were tied to the “import your local data?” prompt, so choosing Skip silently discarded them, and a brand-new account never saved them server-side at all",
+      "signing out (or having a session expire) now fully restores the signed-out look: an expired session used to leave the previous user's theme applied until the next reload",
+      "the profile page and account menu now read “Anonymous Profile” when you're not signed in, instead of just “Profile”",
+      "the header's Sign up button no longer disappears on phones, and the action icons have room between them for thumbs",
+      "notifications and alerts appear at the bottom of the screen on phones and tablets, where they no longer cover the header controls and are reachable one-handed",
+      "assorted layout fixes: the loading spinner sits centred in its button, long usernames no longer wrap the profile heading onto two lines, and single-line alerts lost some lopsided padding",
+      "transactional emails (verification, password reset, email change) now use consistent headings and greetings",
+    ]
+  },
   {
     version: "21.5.0",
     date: "2026-07-31",

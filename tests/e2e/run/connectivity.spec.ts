@@ -64,14 +64,13 @@ test.describe('Connectivity & Offline Behavior Tests', () => {
   // OFFLINE INDICATOR TESTS
   // ============================================================================
 
-  test('App shows wifi icon in header', async ({ page }) => {
+  test('Header shows no connectivity indicator while online', async ({ page }) => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);
     await dismissCookieBanner(page);
 
-    // The app should show the wifi icon (online or offline)
-    const wifiIcon = page.locator('header .pi-wifi');
-    await expect(wifiIcon).toBeVisible();
+    // The indicator only renders when connectivity actually fails
+    await expect(page.locator('header .header-connectivity')).toHaveCount(0);
   });
 
   test('Offline indicator appears when network is disconnected', async ({ page, context }) => {

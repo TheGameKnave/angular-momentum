@@ -445,6 +445,67 @@ describe('StoragePromotionService', () => {
     });
   });
 
+  describe('promotePreferences', () => {
+    const anonThemeKey = `${STORAGE_PREFIXES.ANONYMOUS}_preferences_theme`;
+    const userThemeKey = `${STORAGE_PREFIXES.USER}_user-123_preferences_theme`;
+
+    it('should promote anonymous preference keys to user scope in the settings store', async () => {
+      mockIndexedDbService.getRaw.and.callFake((key: string) => {
+        if (key === anonThemeKey) return Promise.resolve('{"value":"light"}');
+        return Promise.resolve(undefined);
+      });
+      mockIndexedDbService.setRaw.and.returnValue(Promise.resolve('key'));
+
+      await service.promotePreferences('user-123');
+
+      expect(mockIndexedDbService.setRaw).toHaveBeenCalledWith(
+        userThemeKey,
+        '{"value":"light"}',
+        IDB_STORES.SETTINGS
+      );
+      // Only the theme had anonymous data; timezone/language were skipped
+      expect(mockIndexedDbService.setRaw).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not overwrite existing user preferences', async () => {
+      mockIndexedDbService.getRaw.and.callFake((key: string) => {
+        if (key === anonThemeKey) return Promise.resolve('{"value":"light"}');
+        if (key === userThemeKey) return Promise.resolve('{"value":"dark"}');
+        return Promise.resolve(undefined);
+      });
+
+      await service.promotePreferences('user-123');
+
+      expect(mockIndexedDbService.setRaw).not.toHaveBeenCalled();
+      expect(mockLogService.log).toHaveBeenCalledWith(
+        jasmine.stringMatching(/Skipped IndexedDB key preferences_theme in .* - user data exists/)
+      );
+    });
+
+    it('should log per-key failures and continue with the remaining keys', async () => {
+      mockIndexedDbService.getRaw.and.callFake((key: string) => {
+        if (key === anonThemeKey) return Promise.reject(new Error('Read failed'));
+        return Promise.resolve(undefined);
+      });
+
+      await expectAsync(service.promotePreferences('user-123')).toBeResolved();
+
+      expect(mockLogService.log).toHaveBeenCalledWith(
+        'Failed to promote preference: preferences_theme',
+        jasmine.any(Error)
+      );
+      // The other preference keys were still checked despite the theme failure
+      expect(mockIndexedDbService.getRaw).toHaveBeenCalledWith(
+        `${STORAGE_PREFIXES.ANONYMOUS}_preferences_timezone`,
+        IDB_STORES.SETTINGS
+      );
+      expect(mockIndexedDbService.getRaw).toHaveBeenCalledWith(
+        `${STORAGE_PREFIXES.ANONYMOUS}_preferences_language`,
+        IDB_STORES.SETTINGS
+      );
+    });
+  });
+
   describe('clearAnonymousData', () => {
     it('should clear localStorage and IndexedDB anonymous data', async () => {
       localStorage.setItem('anonymous_lang', 'en');

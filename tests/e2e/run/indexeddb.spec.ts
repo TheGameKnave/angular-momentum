@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { APP_BASE_URL } from '../data/constants';
 import { generateTestUser, TestUser } from '../data/test-users';
-import { createTestUser, deleteTestUser } from '../helpers/auth.helper';
+import { createTestUser, deleteTestUser, waitForLoginComplete } from '../helpers/auth.helper';
 import { assertNoMissingTranslations, waitForAngular, dismissCookieBanner } from '../helpers/assertions.helper';
 import { menus, pages, auth, common } from '../helpers/selectors';
 
@@ -173,7 +173,7 @@ test.describe('IndexedDB Tests', () => {
     await expect(storageDialog).not.toBeVisible({ timeout: 5000 });
 
     // Now wait for profile menu to confirm login complete
-    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    await waitForLoginComplete(page);
 
     // Close the menu after login and wait for the panel to disappear
     await page.keyboard.press('Escape');

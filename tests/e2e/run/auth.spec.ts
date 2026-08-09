@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { APP_BASE_URL } from '../data/constants';
 import { generateTestUser, TestUser } from '../data/test-users';
-import { createTestUser, deleteTestUser } from '../helpers/auth.helper';
+import { createTestUser, deleteTestUser, waitForLoginComplete } from '../helpers/auth.helper';
 import { assertNoMissingTranslations, waitForAngular, dismissCookieBanner } from '../helpers/assertions.helper';
-import { auth, menus, pages } from '../helpers/selectors';
+import { auth, common, menus, pages } from '../helpers/selectors';
 
 // Shared test user for non-destructive tests
 let sharedUser: TestUser;
@@ -73,15 +73,8 @@ test.describe('Authentication Tests', () => {
 
     // Submit and wait for logged in state (profile view appears in menu)
     await page.click(auth.loginSubmit);
-    // Wait for either profile (success) or error toast (failure)
-    const result = await Promise.race([
-      page.waitForSelector(auth.profileMenu, { timeout: 15000 }).then(() => 'success'),
-      page.waitForSelector('.p-toast-message-error', { timeout: 15000 }).then(() => 'error')
-    ]);
-    if (result === 'error') {
-      const errorText = await page.locator('.p-toast-message-error').textContent();
-      throw new Error(`Login failed with error: ${errorText}`);
-    }
+    // Success, cross-worker import dialog, or error toast — helper handles all
+    await waitForLoginComplete(page);
 
     // Verify profile is visible (confirms login succeeded)
     await expect(page.locator(auth.profileMenu)).toBeVisible();
@@ -106,15 +99,8 @@ test.describe('Authentication Tests', () => {
 
     // Submit and wait for logged in state (profile view appears in menu)
     await page.click(auth.loginSubmit);
-    // Wait for either profile (success) or error toast (failure)
-    const result = await Promise.race([
-      page.waitForSelector(auth.profileMenu, { timeout: 15000 }).then(() => 'success'),
-      page.waitForSelector('.p-toast-message-error', { timeout: 15000 }).then(() => 'error')
-    ]);
-    if (result === 'error') {
-      const errorText = await page.locator('.p-toast-message-error').textContent();
-      throw new Error(`Login failed with error: ${errorText}`);
-    }
+    // Success, cross-worker import dialog, or error toast — helper handles all
+    await waitForLoginComplete(page);
 
     // Verify profile is visible (confirms login succeeded)
     await expect(page.locator(auth.profileMenu)).toBeVisible();
@@ -153,10 +139,10 @@ test.describe('Authentication Tests', () => {
   // ============================================================================
 
   test('Signup form displays correctly', async ({ page }) => {
-    // Open auth menu (Sign Up is the default tab)
-    await page.click(menus.authMenuButton);
+    // The header Sign up button opens the menu on the signup form
+    await page.click(menus.authSignupTextButton);
 
-    // Verify signup form is visible (it's the default view)
+    // Verify signup form is visible
     await expect(page.locator(auth.signupForm)).toBeVisible();
     await expect(page.locator(auth.signupEmail)).toBeVisible();
     await expect(page.locator(auth.signupUsername)).toBeVisible();
@@ -165,8 +151,8 @@ test.describe('Authentication Tests', () => {
   });
 
   test('Signup form shows validation errors', async ({ page }) => {
-    // Open auth menu (Sign Up is the default tab)
-    await page.click(menus.authMenuButton);
+    // Open the menu on the signup form via the header Sign up button
+    await page.click(menus.authSignupTextButton);
 
     // Try to submit with invalid data
     await page.fill(auth.signupEmail, 'invalid-email');
@@ -196,7 +182,7 @@ test.describe('Authentication Tests', () => {
     await page.waitForLoadState('networkidle');
 
     // Wait for login to complete (profile view appears in menu)
-    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    await waitForLoginComplete(page);
     await expect(page.locator(auth.profileMenu)).toBeVisible();
 
     // Click logout and wait for menu to close
@@ -205,26 +191,122 @@ test.describe('Authentication Tests', () => {
     // Wait for menu panel to close (logout triggers menu close)
     await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 5000 });
 
-    // Verify logged out - open menu and should show signup form (default view when not authenticated)
+    // Verify logged out - the profile icon opens the anonymous profile view,
+    // which offers Log in instead of Log out
     await page.click(menus.authMenuButton);
-    await expect(page.locator(auth.signupForm)).toBeVisible();
+    await expect(page.locator(auth.menuLoginButton)).toBeVisible();
+  });
+
+  test('Profile icon opens the anonymous profile menu', async ({ page }) => {
+    await page.click(menus.authMenuButton);
+
+    // Same profile component as when authenticated, in its anonymous variant
+    await expect(page.locator(auth.profileMenu)).toBeVisible();
+    await expect(page.locator(auth.menuLoginButton)).toBeVisible();
+
+    // Log in swaps the menu content over to the login form
+    await page.click(auth.menuLoginButton);
+    await expect(page.locator(auth.loginForm)).toBeVisible();
+  });
+
+  test('Anonymous profile menu row navigates to the profile page', async ({ page }) => {
+    await page.click(menus.authMenuButton);
+    await page.click(auth.profileViewButton);
+
+    await page.waitForSelector(pages.profilePage, { timeout: 5000 });
+    expect(page.url()).toContain('/profile');
+  });
+
+  test('Message dialog stacks above the auth menu; Esc closes only the dialog', async ({ page }) => {
+    // Open the auth menu, then pop the dev-only message dialog on top
+    // (Ctrl+Shift+E queues an info message behind an error)
+    await page.click(menus.authMenuButton);
+    await expect(page.locator(menus.authMenuContent)).toBeVisible();
+
+    await page.keyboard.press('Control+Shift+E');
+    await expect(page.locator(common.messageDialog)).toBeVisible();
+
+    // First Esc dismisses the error; the queued info takes its place
+    await page.keyboard.press('Escape');
+    await expect(page.locator(common.messageDialog)).toBeVisible();
+
+    // Second Esc dismisses the info — the menu underneath must survive
+    await page.keyboard.press('Escape');
+    await expect(page.locator(common.messageDialog)).not.toBeVisible();
+    await expect(page.locator(menus.authMenuContent)).toBeVisible();
+
+    // Only now does Esc reach the menu
+    await page.keyboard.press('Escape');
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible();
   });
 
   // ============================================================================
-  // PROTECTED ROUTE TESTS
+  // ANONYMOUS PROFILE ACCESS
   // ============================================================================
 
-  test('Protected route redirects to home when not authenticated', async ({ page }) => {
-    // Try to navigate to profile page directly
+  test('Profile page is reachable when not authenticated', async ({ page }) => {
     await page.goto(`${APP_BASE_URL}/profile`);
+    await page.waitForSelector(pages.profilePage, { timeout: 5000 });
 
-    // Wait for redirect to complete
-    await page.waitForURL(url => !url.toString().includes('/profile'), { timeout: 5000 });
+    // Stays on /profile — preferences and local data work without an account
+    expect(page.url()).toContain('/profile');
+    await expect(page.locator(pages.profilePage)).toBeVisible();
 
-    // Should be redirected away from profile (guard should block)
-    const currentUrl = page.url();
-    expect(currentUrl).not.toContain('/profile');
+    // Preferences remain available
+    await expect(page.locator(pages.profileThemeToggle)).toBeVisible();
 
+    // Account-only actions are hidden behind the sign-up prompt
+    await expect(page.locator(pages.profileSignupCta)).toBeVisible();
+    await expect(page.locator(pages.profileDeleteAccountButton)).toHaveCount(0);
+  });
+
+  test('Header sign-up text button opens the auth menu', async ({ page }) => {
+    await page.goto(APP_BASE_URL);
+    // SSR renders the button before hydration binds its click handler —
+    // waitForSelector alone lets the click land on inert server DOM
+    await waitForAngular(page);
+    await page.waitForSelector(menus.authSignupTextButton, { timeout: 5000 });
+
+    await page.click(menus.authSignupTextButton);
+
+    await expect(page.locator(auth.signupForm)).toBeVisible({ timeout: 5000 });
+  });
+
+  test('Profile sign-up CTA opens the auth menu', async ({ page }) => {
+    await page.goto(`${APP_BASE_URL}/profile`);
+    // Same hydration guard as above — the CTA is server-rendered too
+    await waitForAngular(page);
+    await page.waitForSelector(pages.profileSignupCta, { timeout: 5000 });
+
+    await page.click(`${pages.profileSignupCta} button`);
+
+    await expect(page.locator(auth.signupForm)).toBeVisible({ timeout: 5000 });
+  });
+
+  test('Header auth entry points survive the phone viewport', async ({ page }) => {
+    // Regression guard: the Sign up button was once display:none below the
+    // small breakpoint and nothing failed, because every header test runs at
+    // the default desktop size. Re-run the anonymous click-throughs at phone
+    // size, reloading after the resize so the viewport body classes settle.
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto(APP_BASE_URL);
+    await waitForAngular(page);
+
+    // Sign up button is present and opens the signup form
+    await expect(page.locator(menus.authSignupTextButton)).toBeVisible();
+    await page.click(menus.authSignupTextButton);
+    await expect(page.locator(auth.signupForm)).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.locator(menus.authMenuContent)).not.toBeVisible();
+
+    // Profile icon opens the anonymous profile view, whose row clicks
+    // through to the anonymous profile page
+    await page.click(menus.authMenuButton);
+    await expect(page.locator(auth.menuLoginButton)).toBeVisible();
+    await page.click(auth.profileViewButton);
+    await page.waitForSelector(pages.profilePage, { timeout: 5000 });
+    expect(page.url()).toContain('/profile');
+    await expect(page.locator(pages.profileSignupCta)).toBeVisible();
   });
 
   test('Profile page accessible when authenticated', async ({ page }) => {
@@ -237,7 +319,7 @@ test.describe('Authentication Tests', () => {
     await page.waitForLoadState('networkidle');
 
     // Wait for login to complete (profile view appears in menu)
-    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    await waitForLoginComplete(page);
     // Close the auth menu and wait for the panel to disappear
     await page.keyboard.press('Escape');
     await expect(page.locator(menus.authMenuContent)).not.toBeVisible({ timeout: 5000 });

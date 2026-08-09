@@ -4,6 +4,12 @@ import { assertNoMissingTranslations, waitForAngular, dismissCookieBanner } from
 import { menus } from '../helpers/selectors';
 
 test.describe('Performance Tests', () => {
+  // The multi-page navigation tests tour half a dozen routes (each with a
+  // waitForAngular) before their final measurement; under full-suite worker
+  // contention that approaches the default 30s budget with no headroom.
+  // Same allowance as the login-flow suites (storage-promotion).
+  test.setTimeout(60000);
+
   test.beforeEach(async ({ page }) => {
     await page.goto(APP_BASE_URL);
     await waitForAngular(page);

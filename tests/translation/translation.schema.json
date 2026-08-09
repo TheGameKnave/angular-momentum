@@ -19,6 +19,18 @@
       "type": "string",
       "description": "Common: Email field label"
     },
+    "Error": {
+      "type": "string",
+      "description": "Common: Default error dialog title"
+    },
+    "Information": {
+      "type": "string",
+      "description": "Common: Default info dialog title"
+    },
+    "Warning": {
+      "type": "string",
+      "description": "Common: Default warning dialog title"
+    },
     "No": {
       "type": "string",
       "description": "Common: Negative response"
@@ -206,7 +218,7 @@
           "type": "string",
           "description": "Auth: Login form title"
         },
-        "Logout": {
+        "Log out": {
           "type": "string",
           "description": "Auth menu: Logout button"
         },
@@ -250,7 +262,7 @@
           "type": "string",
           "description": "Auth: Password reset request button"
         },
-        "Sign Up": {
+        "Sign up": {
           "type": "string",
           "description": "Auth: Signup form title"
         },
@@ -321,7 +333,7 @@
         "Import",
         "Import Local Data",
         "Log in",
-        "Logout",
+        "Log out",
         "New Password",
         "New verification code sent!",
         "Password is required",
@@ -332,7 +344,7 @@
         "Register or log in to access all features",
         "Resend code",
         "Send Reset Code",
-        "Sign Up",
+        "Sign up",
         "Skip",
         "Switch to login",
         "The username you selected was unavailable. You can set a new one in your user profile",
@@ -1194,6 +1206,26 @@
         "Without a username, your profile is private": {
           "type": "string",
           "description": "Profile: Privacy note when no username set"
+        },
+        "Not logged in": {
+          "type": "string",
+          "description": "Profile: Header subtitle shown to anonymous visitors"
+        },
+        "Anonymous Profile": {
+          "type": "string",
+          "description": "Profile: Page heading and menu row title shown to anonymous visitors"
+        },
+        "Your preferences are saved on this device only": {
+          "type": "string",
+          "description": "Profile: Sign-up CTA heading for anonymous visitors"
+        },
+        "Create an account to sync your settings and data across all your devices.": {
+          "type": "string",
+          "description": "Profile: Sign-up CTA description for anonymous visitors"
+        },
+        "Remove all stored preferences, notifications, and settings from this device.": {
+          "type": "string",
+          "description": "Profile: Clear-data description shown to anonymous visitors"
         }
       },
       "required": [
@@ -1232,7 +1264,12 @@
         "User Information",
         "Username updated successfully!",
         "Verification email sent! Please check your new email address and enter the confirmation code.",
-        "Without a username, your profile is private"
+        "Without a username, your profile is private",
+        "Not logged in",
+        "Anonymous Profile",
+        "Your preferences are saved on this device only",
+        "Create an account to sync your settings and data across all your devices.",
+        "Remove all stored preferences, notifications, and settings from this device."
       ],
       "additionalProperties": false
     },
@@ -1517,6 +1554,8 @@
     "Cancel",
     "Decline",
     "Email",
+    "Error",
+    "Information",
     "No",
     "OK",
     "optional",
@@ -1527,6 +1566,7 @@
     "Status",
     "Supported",
     "Username",
+    "Warning",
     "Yes",
     "a11y",
     "auth",

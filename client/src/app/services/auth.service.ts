@@ -7,6 +7,7 @@ import { LogService } from './log.service';
 import { ConnectivityService } from './connectivity.service';
 import { ENVIRONMENT } from 'src/environments/environment';
 import { AUTH_TIMING } from '@app/constants/service.constants';
+import { SESSION_EXISTED_KEY } from '@app/constants/storage.constants';
 
 /**
  * Authentication result returned from login/signup operations.
@@ -93,6 +94,14 @@ export class AuthService {
    * Set to true when auth state is PASSWORD_RECOVERY.
    */
   readonly isPasswordRecovery = signal<boolean>(false);
+
+  /**
+   * True when a session existed on this device and we dropped it — the
+   * refresh on startup failed, rather than the user signing out. Consumers
+   * use it to offer an immediate sign-in instead of making the user dig the
+   * login form out of the menu.
+   */
+  readonly sessionWasDropped = signal<boolean>(false);
 
   /**
    * URL to redirect to after successful authentication.
@@ -275,6 +284,12 @@ export class AuthService {
         this.currentSession.set(session);
         this.currentUser.set(session?.user ?? null);
 
+        // Remember that this device has had a session, so a future failed
+        // refresh can be told apart from a deliberate sign-out.
+        if (session) {
+          this.markSessionExisted();
+        }
+
         // Track password recovery flow
         if (event === 'PASSWORD_RECOVERY') {
           this.isPasswordRecovery.set(true);
@@ -287,12 +302,9 @@ export class AuthService {
           // It will be cleared when user updates password or navigates away
         } else if (event === 'SIGNED_OUT') {
           this.isPasswordRecovery.set(false);
-          // Redirect away from protected routes when signed out
-          // This handles cases where session expires or refresh fails
-          if (this.currentRouteRequiresAuth()) {
-            this.logService.log('User logged out, resetting to anonymous settings');
-            this.router.navigate(['/']);
-          }
+          // No redirect on sign-out: every route renders anonymously, so the
+          // user stays where they are (the profile page swaps its account
+          // sections for a sign-up prompt).
         }
       });
 
@@ -346,6 +358,49 @@ export class AuthService {
   }
 
   /**
+   * Whether a session has existed on this device and wasn't deliberately ended.
+   *
+   * @returns True when the marker is present
+   */
+  private sessionExisted(): boolean {
+    if (!this.platformService.isBrowser()) return false;
+    try {
+      return localStorage.getItem(SESSION_EXISTED_KEY) === 'true';
+    } catch {
+      // istanbul ignore next - localStorage can throw in private browsing modes
+      return false;
+    }
+  }
+
+  /**
+   * Record that a session existed on this device.
+   *
+   * @returns Nothing
+   */
+  private markSessionExisted(): void {
+    if (!this.platformService.isBrowser()) return;
+    try {
+      localStorage.setItem(SESSION_EXISTED_KEY, 'true');
+    } catch {
+      // istanbul ignore next - localStorage can throw in private browsing modes
+    }
+  }
+
+  /**
+   * Forget that a session existed (deliberate sign-out only).
+   *
+   * @returns Nothing
+   */
+  private clearSessionExisted(): void {
+    if (!this.platformService.isBrowser()) return;
+    try {
+      localStorage.removeItem(SESSION_EXISTED_KEY);
+    } catch {
+      // istanbul ignore next - localStorage can throw in private browsing modes
+    }
+  }
+
+  /**
    * Initialize session on service startup.
    * Attempts to refresh expired sessions before clearing them.
    */
@@ -378,18 +433,28 @@ export class AuthService {
           if (refreshError || !refreshed.session) {
             // Refresh failed - clear the stale session
             this.logService.log('Session refresh failed, clearing stale session', refreshError);
+            // Read the marker BEFORE signOut(): the SIGNED_OUT handler below
+            // leaves it alone (only deliberate logout clears it), but reading
+            // first keeps this independent of that ordering.
+            const hadSession = this.sessionExisted();
             await this.supabase.auth.signOut();
-            // User stays null, so anonymous preferences will be used
+            // User stays null, so anonymous preferences will be used. Flag the
+            // drop so the UI can offer an immediate sign-in — this is the
+            // common path: refresh tokens lapse while the app is closed, so
+            // the expiry surfaces at startup rather than mid-session.
+            this.sessionWasDropped.set(hadSession);
           } else {
             // Refresh succeeded - use the new session
             this.logService.log('Session refreshed successfully');
             this.currentSession.set(refreshed.session);
             this.currentUser.set(refreshed.session.user);
+            this.markSessionExisted();
           }
         } else {
           // Session is valid
           this.currentSession.set(data.session);
           this.currentUser.set(data.session.user);
+          this.markSessionExisted();
         }
       }
     } catch (error) {
@@ -727,32 +792,18 @@ export class AuthService {
       this.currentUser.set(null);
       this.currentSession.set(null);
 
+      // Deliberate sign-out: forget that a session existed, so the next visit
+      // doesn't offer to sign back in. (A failed refresh deliberately does NOT
+      // clear this — that's what separates "we dropped you" from "you left".)
+      this.clearSessionExisted();
+      this.sessionWasDropped.set(false);
+
       this.logService.log('Logout successful');
 
-      // Only redirect if current route requires authentication
-      if (this.currentRouteRequiresAuth()) {
-        this.router.navigate(['/']);
-      }
-      // Otherwise, stay on current page (user can remain on public pages after logout)
+      // No redirect: every route renders anonymously, so the user stays put.
     } catch (error) {
       this.logService.log('Logout exception', error);
     }
-  }
-
-  /**
-   * Check if the current route requires authentication.
-   * Uses the route path to determine if it's a protected route.
-   * @returns True if the current route requires authentication
-   */
-  private currentRouteRequiresAuth(): boolean {
-    // Get the current URL path (without query params)
-    const currentUrl = this.router.url.split('?')[0];
-
-    // List of paths that require authentication
-    // Must be kept in sync with routes that use AuthGuard
-    const protectedPaths = ['/profile'];
-
-    return protectedPaths.some(path => currentUrl === path || currentUrl.startsWith(path + '/'));
   }
 
   /**

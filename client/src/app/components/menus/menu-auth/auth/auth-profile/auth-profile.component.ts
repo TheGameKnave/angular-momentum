@@ -9,14 +9,13 @@ import { RelativeTimeComponent } from '@app/components/ui/relative-time/relative
 import { TimerIndicatorDirective } from '@app/directives/timer-indicator.directive';
 
 /**
- * Profile view component for authenticated users.
+ * Profile view component for the auth menu.
  *
- * Features:
- * - User avatar with initials
- * - Email and username display
- * - Member since and last sign in timestamps
- * - View Profile button (navigates to /profile page)
- * - Logout button
+ * Authenticated: avatar with initials, email and username, member-since and
+ * last-sign-in timestamps, and a Log out button.
+ * Anonymous: the same layout with a "Not logged in" row and a Log in button
+ * (which swaps the menu over to the login form).
+ * Either way the info row navigates to the /profile page.
  */
 @Component({
   selector: 'app-auth-profile',
@@ -39,6 +38,7 @@ export class AuthProfileComponent implements OnInit {
 
   // Output events for parent component
   readonly profileClick = output<void>();
+  readonly loginClick = output<void>();
   readonly logoutClick = output<void>();
 
   /**
@@ -66,6 +66,13 @@ export class AuthProfileComponent implements OnInit {
       this.authService.currentUser(),
       this.usernameService.username()?.username,
     );
+  }
+
+  /**
+   * Handle login button click (anonymous variant)
+   */
+  onLogin(): void {
+    this.loginClick.emit();
   }
 
   /**

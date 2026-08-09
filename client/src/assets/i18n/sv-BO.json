@@ -3,6 +3,8 @@
   "Cancel": "Cuncel",
   "Decline": "Decleene-a",
   "Email": "Ee-meil",
+  "Error": "Errur",
+  "Information": "Inffurmeshun",
   "No": "Nu-nu",
   "OK": "Ookey-dookey!",
   "optional": "oopshunnel",
@@ -13,6 +15,7 @@
   "Status": "Stetus",
   "Supported": "Sooppurted",
   "Username": "Userneme-a",
+  "Warning": "Verning",
   "Yes": "Yesh!",
 
   "a11y": {
@@ -50,7 +53,7 @@
     "Import": "Impurt",
     "Import Local Data": "Impurt Lucel Deta",
     "Log in": "Lug in",
-    "Logout": "Luguoot",
+    "Log out": "Luguoot",
     "New Password": "Noo Pessvurd",
     "New verification code sent!": "Noo fereefficeshun cude-a sent! Bork!",
     "Password is required": "Pessvurd is reqooured",
@@ -61,7 +64,7 @@
     "Register or log in to access all features": "Regeester oor lug in tu eccess ell feetoores",
     "Resend code": "Resend cude-a",
     "Send Reset Code": "Send Reset Cude-a",
-    "Sign Up": "Seegn Oop",
+    "Sign up": "Seegn Oop",
     "Skip": "Skeep",
     "Switch to login": "Sveetch tu lugin",
     "The username you selected was unavailable. You can set a new one in your user profile": "Zee userneme-a yuoo selected ves unefeeeleble-a. Yuoo cun set a noo oone-a in yuoor user pruffeele-a",
@@ -266,7 +269,12 @@
     "User Information": "User Inffurmeshun",
     "Username updated successfully!": "Userneme-a updeted soocccessffoollee! Bork!",
     "Verification email sent! Please check your new email address and enter the confirmation code.": "Fereefficeshun ee-meil sent! Pleese-a check yuoor noo ee-meil eddress und inter zee cunffurmeshun cude-a. Bork!",
-    "Without a username, your profile is private": "Veethuoot a userneme-a, yuoor pruffeele-a is preefete-a"
+    "Without a username, your profile is private": "Veethuoot a userneme-a, yuoor pruffeele-a is preefete-a",
+    "Not logged in": "Nut sygned in",
+    "Anonymous Profile": "Ununymuoos Pruffeele-a",
+    "Your preferences are saved on this device only": "Yuur prefferences ere seefed un thees deefice-a oonly",
+    "Create an account to sync your settings and data across all your devices.": "Creete-a un ecceoont tu syncronize-a yuur settings und deta ecross ell yuur deefices. Bork Bork Bork!",
+    "Remove all stored preferences, notifications, and settings from this device.": "Remoofe-a ell stured prefferences, nutifficeshuns, und settings frum thees deefice-a."
   },
 
   "timezone": {

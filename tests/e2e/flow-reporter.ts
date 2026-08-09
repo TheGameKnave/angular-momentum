@@ -47,7 +47,9 @@ class FlowReporter implements Reporter {
   private outputDir: string;
 
   constructor(options: { outputDir?: string } = {}) {
-    this.outputDir = options.outputDir || './playwright-report';
+    // Must not default into playwright-report: the HTML reporter owns that
+    // folder and clears it, taking the diff images with it.
+    this.outputDir = options.outputDir || './flow-report';
   }
 
   private getTestId(test: TestCase): string {

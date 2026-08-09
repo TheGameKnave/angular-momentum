@@ -39,6 +39,139 @@ changelog (`server/data/changeLog.ts`) and git history up to 21.2.19.
 
 ---
 
+## 21.6.1 — 2026-08-08
+
+- [ ] **[client] Offer sign-in immediately when the app drops a session** (`86d3630`)
+  A lapsed refresh token surfaces at *startup*, not mid-session — it expires while the
+  app is closed, so the user reopens to an anonymous app and needs two clicks (profile
+  icon → Log in) to recover from something the app did to them. The auth menu now opens
+  straight to the login form in that case. The part worth copying is the
+  discrimination, not the auto-open: a `session_existed` marker is set whenever a
+  session becomes active, cleared **only** on deliberate logout, and pointedly **not**
+  cleared when a refresh fails. That asymmetry is what separates "we dropped you"
+  (prompt) from "you signed out" (stay quiet) from "no account here" (stay quiet) —
+  without it, an auto-opening login dialog is just a nag, which matters a lot if your
+  fork also renders every route anonymously. Implementation notes: the marker holds no
+  identity (a bare boolean, so the form opens empty for the browser's password manager
+  — on a shared device this reveals that *somebody* has an account, not who); the
+  prompt is deferred to the existing returnUrl auto-open so the two paths can't race;
+  and it is guarded to fire once per app load so later signal churn or navigation
+  can't re-pop the menu. AM hangs the detection off `initializeSession()`'s existing
+  "refresh failed, clearing stale session" branch — find the equivalent point in your
+  own bootstrap.
+  *Caveat worth inheriting:* this makes a dropped session **comfortable**, not
+  **correct**. With `persistSession` and `autoRefreshToken` on and long-lived refresh
+  tokens, frequent logouts indicate a persistence bug (Tauri's localStorage adapter, a
+  401 handler logging out on a refreshable error, a storage clear) that this feature
+  will happily paper over. Measure the frequency before concluding it's fixed.
+
+## 21.6.0 — 2026-08-08
+
+- [ ] **[client] UI preferences survive sign-in and are cleared on every sign-out** (`e7f265a`)
+  Theme/timezone/language were promoted from the anonymous scope only when the user
+  accepted the "import your local data?" prompt, so choosing Skip silently reverted
+  preferences they had just set. The distinction that matters: the import prompt is
+  about *content* that might belong to a previous user of a shared device, whereas
+  preferences describe how the app should look for whoever is using it right now.
+  `StoragePromotionService.promotePreferences(userId)` now runs on every sign-in
+  before the import decision, copying only the three preference keys (existing user
+  values still win, so a returning user is never overwritten). Two adjacent gaps
+  closed in `UserSettingsService`: `resolveThemeConflict`/`resolveTimezoneConflict`
+  returned a default without persisting it when neither side had a stored value (the
+  brand-new-account case, so the choice was lost again on next load) — both now sync
+  to the server, and timezone also writes locally, without which the profile page had
+  nothing to read back and rendered its empty "Select timezone" placeholder. And
+  `clear()` now also runs on the interceptor's 401 path (an expired session used to
+  leave its theme applied) and shares one in-flight run, so the auth-state effect and
+  the explicit logout handlers collapse into a single pass. To port: if you kept AM's
+  anonymous→user promotion, add the preferences-always path and check your own
+  conflict resolvers for the both-sides-empty branch; if you replaced storage
+  scoping entirely, the transferable idea is that preferences and content deserve
+  different consent rules.
+
+- [ ] **[client] IndexedDB demo no longer persists values it just loaded** (`e48df8c`)
+  `loadStoredValue()` set the form control with `emitEvent: false`, then dispatched a
+  synthetic `input` event at the textarea to refresh the PrimeNG float label.
+  Angular's `DefaultValueAccessor` listens for exactly that event, so the load
+  round-tripped into `valueChanges` and the debounced auto-save wrote the loaded value
+  back into whichever scope had just been loaded — planting `''` in every fresh user's
+  storage at login. The dispatch was unnecessary (pTextarea refreshes its filled state
+  from the control value during change detection). Worth auditing in your own code:
+  **any** `setValue(…, {emitEvent:false})` followed by a manual DOM event dispatch
+  re-enters the value pipeline and defeats the flag. Affects the demo component only
+  in AM, but the anti-pattern travels.
+
+- [ ] **[client] Anonymous profile is labelled, and the header prompts on mobile** (`7c898fc`, `271e9c7`)
+  Signed-out visitors saw a bare "Profile" heading in both the page and the account
+  menu; both now read "Anonymous Profile" (new `profile.Anonymous Profile` key in all
+  ten locales plus the translation schema — the schema is a closed allowlist, so new
+  keys must be added to both `properties` and `required` or validation fails). The
+  header Sign up CTA no longer hides below the `sm` breakpoint, where prompting
+  anonymous users matters most. Header action glyphs carry no horizontal padding, so
+  the row `gap` is the entire separation between touch targets — widened to 1.8rem
+  (2.2rem below `lg`). Vertical padding moved off the Sign up pill and onto the
+  always-present profile glyph button, so the header's height driver is constant
+  across auth states.
+
+- [ ] **[client] Toasts anchor to the bottom on phones and tablets** (`271e9c7`)
+  PrimeNG's default `top-right` puts toasts directly over the header action glyphs on
+  a phone — covering the very controls that raise most of them, in the corner hardest
+  to reach one-handed. Overridden below the `lg` breakpoint to bottom-centre, clear of
+  the footer rail and `env(safe-area-inset-bottom)`. Done in CSS rather than binding
+  `[position]` because the input is static and a responsive binding re-instantiates
+  the toast on resize. Also collapses empty `.p-toast-detail`: PrimeNG renders the
+  element even for summary-only toasts, and its top margin plus the text column's flex
+  gap showed up as ~11px of lopsided bottom padding.
+
+- [ ] **[client] PrimeNG button loading spinner alignment** (`271e9c7`)
+  The `pButton` *directive* (unlike the `p-button` component, where the class lands on
+  the svg itself) renders loading as a `<span class="p-icon">` sized to
+  `--p-icon-size` wrapping a hard-coded 14×14 `<svg>`. The undersized svg sat on the
+  span's text baseline in the corner of an oversized box, and its stroke — drawn to
+  the edges of the `0 0 14 14` viewBox — overhung its own box, reading as the arc
+  escaping its container. Fixed by centring the svg and letting it fill the span
+  (`> svg { width: 100%; height: 100% }`). If you set `--p-icon-size` away from
+  PrimeNG's default, you have this bug.
+
+- [ ] **[test] E2E flake tail root-caused: four distinct causes, no timing noise** (`a50522a`)
+  Each retry-passer had a real mechanism. (1) A broadcast from a *parallel worker*
+  reaches every connected client, the anonymous page stores it, and
+  `hasAnonymousData()` is then true at the next login in **any** worker — so an
+  unexpected Import Local Data dialog blocked login. Logins now route through
+  `waitForLoginComplete()`, which resolves on the profile menu, that dialog, or an
+  error toast. (2) Two tests clicked SSR-rendered buttons before hydration bound their
+  handlers; the click is silently inert — added `waitForAngular()`. (3) The server
+  broadcast is a bare `io.emit`: at-most-once, only to sockets connected at that
+  instant, and a page right after login may be mid-(re)connect, so a lost emit could
+  never arrive — the spec re-sends until one lands. (4) The performance suite tours
+  six routes before measuring and had no headroom in the 30s default. Also:
+  `screenshotPageComponent` clipped past the bottom of the page on short viewports,
+  and Playwright fills that overflow with black — baselines had a black bar baked in
+  that *grew as content shrank*. Port whichever of these your suite shares; (1) and
+  (3) are properties of broadcast-over-websocket plus parallel workers, not of AM.
+
+- [ ] **[test] Flow reporter no longer clobbers the Playwright HTML report** (`c752dfe`)
+  Both reporters were pointed at `playwright-report/`. The HTML reporter treats that
+  folder as exclusively its own and clears it, so the diff images vanished from
+  `data/` while `index.html` still loaded — every Actual/Expected pane rendered as an
+  empty checkerboard, which looks like missing snapshots rather than a tooling
+  collision. The flow reporter now writes to `flow-report/` (gitignored; uploaded
+  alongside the HTML report in CI). If you added **any** custom reporter with an
+  output path, check it isn't sharing a folder with a built-in one. Also suppresses
+  two Sonar false positives (`Web:ItemTagNotWithinContainerTagCheck` for `<div>`-
+  grouped `dt/dd` inside a `<dl>`, spec-legal since HTML 5.2; `typescript:S2925` for
+  performance.spec's heap-settle measurement windows) — verify rule keys against the
+  SonarCloud API rather than inferring them from the message text, which is how the
+  first attempt at both got wrong keys that would have silently done nothing.
+
+- [ ] **[server] Transactional email templates homogenized** (`b33073f`)
+  The five stored templates had drifted apart in heading case and greeting style, and
+  one referenced a "Forgot Password" control with two closing curly quotes (the real
+  label is "Forgot your password?"). Now: imperatives for action emails, statements
+  for notifications, "Hi there," throughout. Note these are body templates only —
+  **subject lines live in the Supabase dashboard, not the repo**, and must be updated
+  by hand; the commit message carries the matching subject list.
+
 ## 21.5.0 — 2026-07-31
 
 - [ ] **[client] Supabase auth errors keyed off published error codes** (`6aba374`)

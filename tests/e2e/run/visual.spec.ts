@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { APP_BASE_URL } from '../data/constants';
 import { generateTestUser } from '../data/test-users';
-import { createTestUser, deleteTestUser } from '../helpers/auth.helper';
+import { createTestUser, deleteTestUser, waitForLoginComplete } from '../helpers/auth.helper';
 import { waitForAngular, dismissCookieBanner } from '../helpers/assertions.helper';
 import { auth, common, menus, pages } from '../helpers/selectors';
 
@@ -199,7 +199,16 @@ test.describe('Visual Regression Tests', () => {
       return Math.max(height, offsetHeight, 100);
     });
 
-    const height = Math.min(contentHeight, MAX_PAGE_HEIGHT);
+    // Clamp to what is actually on screen below box.y as well as to
+    // MAX_PAGE_HEIGHT. Playwright fills any part of the clip that extends past
+    // the bottom of the page with black, so on short viewports (phone is
+    // 667px) an unclamped 600px clip starting below the header ran off the end
+    // and baked a black bar into the baseline — one that grew as content got
+    // shorter, making the diff look like a layout change.
+    const viewport = page.viewportSize();
+    if (!viewport) throw new Error('Could not get viewport size');
+    const visibleHeight = viewport.height - Math.max(0, box.y);
+    const height = Math.min(contentHeight, MAX_PAGE_HEIGHT, visibleHeight);
 
     // Hide feature menu content to avoid false failures from menu changes
     await page.evaluate(() => {
@@ -279,7 +288,7 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
     await page.waitForLoadState('networkidle');
-    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    await waitForLoginComplete(page);
     // Close the menu
     await page.keyboard.press('Escape');
     await page.locator(auth.profileMenu).waitFor({ state: 'hidden' });
@@ -337,7 +346,7 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
     await page.waitForLoadState('networkidle');
-    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    await waitForLoginComplete(page);
     // Close the menu
     await page.keyboard.press('Escape');
     await page.locator(auth.profileMenu).waitFor({ state: 'hidden' });
@@ -399,6 +408,22 @@ test.describe('Visual Regression Tests', () => {
     await logoutBtn.click();
   });
 
+  test('page-profile-anon', async ({ page }) => {
+    // Anonymous: preferences + sign-up CTA, no account sections
+    await page.goto(`${APP_BASE_URL}/profile`);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+    await page.waitForSelector(pages.profileSignupCta, { timeout: 10000 });
+
+    // Normalize the detected timezone (machine-dependent)
+    await page.evaluate(() => {
+      const tz = document.querySelector('.timezone-select .p-select-label');
+      if (tz) tz.textContent = 'UTC';
+    });
+
+    await screenshotPageComponent(page, pages.profilePage, 'page-profile-anon.png');
+  });
+
   // ============================================================================
   // MENU/COMPONENT SNAPSHOTS (with opaque backgrounds)
   // ============================================================================
@@ -408,8 +433,8 @@ test.describe('Visual Regression Tests', () => {
     await waitForAngular(page);
     await dismissCookieBanner(page);
 
-    // Open auth menu (signup is default tab)
-    await page.click(menus.authMenuButton);
+    // The header Sign up button opens the menu on the signup form
+    await page.click(menus.authSignupTextButton);
 
     await screenshotMenu(page, auth.signupForm, 'menu-auth-signup.png');
   });
@@ -451,7 +476,7 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
     await page.waitForLoadState('networkidle');
-    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    await waitForLoginComplete(page);
     // Wait for username to load (prevents flaky screenshots)
     await page.waitForSelector('.profile-username:not(:empty)', { timeout: 10000 });
     await waitForSettledBox(page, auth.profileMenu);
@@ -483,6 +508,29 @@ test.describe('Visual Regression Tests', () => {
     // Logout
     const logoutBtn = page.locator(auth.logoutButton);
     await logoutBtn.click();
+  });
+
+  test('menu-auth-profile-anon', async ({ page }) => {
+    await page.goto(APP_BASE_URL);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+
+    // Anonymous: the profile icon opens the profile view's anonymous
+    // variant (Anonymous Profile row + Log in action) — no dynamic content
+    await page.click(menus.authMenuButton);
+
+    await screenshotMenu(page, auth.profileMenu, 'menu-auth-profile-anon.png');
+  });
+
+  test('dialog-message', async ({ page }) => {
+    await page.goto(APP_BASE_URL);
+    await waitForAngular(page);
+    await dismissCookieBanner(page);
+
+    // Dev-only shortcut shows an error message dialog (info queued behind)
+    await page.keyboard.press('Control+Shift+E');
+
+    await screenshotMenu(page, common.messageDialog, 'dialog-message.png');
   });
 
   test('menu-feature', async ({ page }) => {
@@ -706,7 +754,7 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
     await page.waitForLoadState('networkidle');
-    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    await waitForLoginComplete(page);
     await page.keyboard.press('Escape');
     await page.locator(auth.profileMenu).waitFor({ state: 'hidden' });
 
@@ -757,7 +805,7 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
     await page.waitForLoadState('networkidle');
-    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    await waitForLoginComplete(page);
     await page.keyboard.press('Escape');
     await page.locator(auth.profileMenu).waitFor({ state: 'hidden' });
 
@@ -805,8 +853,11 @@ test.describe('Visual Regression Tests', () => {
     await waitForAngular(page);
     await dismissCookieBanner(page);
 
-    // Open auth menu (signup is default tab)
+    // The header CTA is hidden at phone width: go through the profile
+    // menu's Log in item, then switch to the Sign up tab
     await page.click(menus.authMenuButton);
+    await page.click(auth.menuLoginButton);
+    await page.click(auth.signupTab);
 
     await screenshotMenuClipped(page, auth.signupForm, 'menu-auth-signup-phone.png');
   });
@@ -851,7 +902,7 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
     await page.waitForLoadState('networkidle');
-    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    await waitForLoginComplete(page);
     // Wait for username to load (prevents flaky screenshots)
     await page.waitForSelector('.profile-username:not(:empty)', { timeout: 10000 });
     await waitForSettledBox(page, auth.profileMenu);
@@ -926,7 +977,7 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
     await page.waitForLoadState('networkidle');
-    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    await waitForLoginComplete(page);
     await page.keyboard.press('Escape');
     await page.locator(auth.profileMenu).waitFor({ state: 'hidden' });
 
@@ -961,7 +1012,7 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
     await page.waitForLoadState('networkidle');
-    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    await waitForLoginComplete(page);
     await page.keyboard.press('Escape');
     await page.locator(auth.profileMenu).waitFor({ state: 'hidden' });
 
@@ -998,7 +1049,7 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
     await page.waitForLoadState('networkidle');
-    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    await waitForLoginComplete(page);
     await page.keyboard.press('Escape');
     await page.locator(auth.profileMenu).waitFor({ state: 'hidden' });
 
@@ -1035,7 +1086,7 @@ test.describe('Visual Regression Tests', () => {
     await page.fill(auth.loginPassword, testUser.password);
     await page.click(auth.loginSubmit);
     await page.waitForLoadState('networkidle');
-    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    await waitForLoginComplete(page);
     await page.keyboard.press('Escape');
     await page.locator(auth.profileMenu).waitFor({ state: 'hidden' });
 

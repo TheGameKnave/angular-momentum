@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { APP_BASE_URL } from '../data/constants';
 import { generateTestUser, TestUser } from '../data/test-users';
-import { createTestUser, deleteTestUser } from '../helpers/auth.helper';
+import { createTestUser, deleteTestUser, waitForLoginComplete } from '../helpers/auth.helper';
 import { assertNoMissingTranslations, waitForAngular, dismissCookieBanner } from '../helpers/assertions.helper';
 import { menus, pages, auth } from '../helpers/selectors';
 
@@ -98,7 +98,7 @@ test.describe('Feature Flags Tests', () => {
     await page.waitForLoadState('networkidle');
 
     // Wait for login to complete
-    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    await waitForLoginComplete(page);
 
     // Navigate to features page
     await page.goto(`${APP_BASE_URL}/features`);
@@ -147,7 +147,7 @@ test.describe('Feature Flags Tests', () => {
     await page.waitForLoadState('networkidle');
 
     // Wait for login to complete
-    await page.waitForSelector(auth.profileMenu, { timeout: 15000 });
+    await waitForLoginComplete(page);
 
     // Navigate to features page
     await page.goto(`${APP_BASE_URL}/features`);

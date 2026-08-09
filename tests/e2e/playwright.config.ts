@@ -16,7 +16,10 @@ export default defineConfig({
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
     ['list'],
-    ['./flow-reporter.ts', { outputDir: 'playwright-report' }],
+    // Keep this out of playwright-report: the HTML reporter owns that folder
+    // and clears it, which wiped the diff images out of data/ and left every
+    // Actual/Expected pane in the report rendering as an empty checkerboard.
+    ['./flow-reporter.ts', { outputDir: 'flow-report' }],
   ],
   use: {
     baseURL: APP_BASE_URL,

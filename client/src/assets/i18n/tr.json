@@ -3,6 +3,8 @@
   "Cancel": "İptal",
   "Decline": "Reddet",
   "Email": "E-posta",
+  "Error": "Hata",
+  "Information": "Bilgi",
   "No": "Hayır",
   "OK": "Tamam",
   "optional": "isteğe bağlı",
@@ -13,6 +15,7 @@
   "Status": "Durum",
   "Supported": "Desteklenen",
   "Username": "Kullanıcı Adı",
+  "Warning": "Uyarı",
   "Yes": "Evet",
 
   "a11y": {
@@ -50,7 +53,7 @@
     "Import": "İçe Aktar",
     "Import Local Data": "Yerel Verileri İçe Aktar",
     "Log in": "Giriş Yap",
-    "Logout": "Çıkış Yap",
+    "Log out": "Çıkış Yap",
     "New Password": "Yeni Şifre",
     "New verification code sent!": "Yeni doğrulama kodu gönderildi!",
     "Password is required": "Şifre gerekli",
@@ -61,7 +64,7 @@
     "Register or log in to access all features": "Tüm özelliklere erişmek için kaydolun veya giriş yapın",
     "Resend code": "Kodu tekrar gönder",
     "Send Reset Code": "Sıfırlama Kodu Gönder",
-    "Sign Up": "Kaydol",
+    "Sign up": "Kaydol",
     "Skip": "Atla",
     "Switch to login": "Giriş yap",
     "The username you selected was unavailable. You can set a new one in your user profile": "Seçtiğiniz kullanıcı adı mevcut değil. Kullanıcı profilinizden yeni bir tane belirleyebilirsiniz",
@@ -266,7 +269,12 @@
     "User Information": "Kullanıcı Bilgileri",
     "Username updated successfully!": "Kullanıcı adı başarıyla güncellendi!",
     "Verification email sent! Please check your new email address and enter the confirmation code.": "Doğrulama e-postası gönderildi! Lütfen yeni e-posta adresinizi kontrol edin ve onay kodunu girin.",
-    "Without a username, your profile is private": "Kullanıcı adı olmadan profiliniz gizlidir"
+    "Without a username, your profile is private": "Kullanıcı adı olmadan profiliniz gizlidir",
+    "Not logged in": "Oturum açılmadı",
+    "Anonymous Profile": "Anonim Profil",
+    "Your preferences are saved on this device only": "Tercihleriniz yalnızca bu cihazda saklanır",
+    "Create an account to sync your settings and data across all your devices.": "Ayarlarınızı ve verilerinizi tüm cihazlarınızda eşitlemek için bir hesap oluşturun.",
+    "Remove all stored preferences, notifications, and settings from this device.": "Kayıtlı tüm tercihleri, bildirimleri ve ayarları bu cihazdan kaldırın."
   },
 
   "timezone": {

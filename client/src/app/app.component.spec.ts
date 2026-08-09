@@ -15,6 +15,7 @@ import { ResourcePreloadService } from './services/resource-preload.service';
 import { SCREEN_SIZES } from './constants/ui.constants';
 import { ChangeLogService } from './services/change-log.service';
 import { UpdateDialogService } from './services/update-dialog.service';
+import { MessageDialogService } from './services/message-dialog.service';
 import { DataMigrationService } from './services/data-migration.service';
 import { MessageService } from 'primeng/api';
 import { SocketIoService } from './services/socket.io.service';
@@ -343,6 +344,27 @@ describe('AppComponent', () => {
       expect(event.preventDefault).toHaveBeenCalled();
       expect(changeLogService.devVersionOverride()).toBe('0.0.0');
       expect(updateDialogService.show).toHaveBeenCalled();
+    });
+
+    it('should trigger message dialog on Ctrl+Shift+E', () => {
+      component.isDevMode = true;
+      const messageDialogService = TestBed.inject(MessageDialogService);
+      const event = new KeyboardEvent('keydown', { key: 'E', ctrlKey: true, shiftKey: true });
+      spyOn(event, 'preventDefault');
+      spyOn(console, 'log');
+
+      component.onKeyDown(event);
+
+      expect(event.preventDefault).toHaveBeenCalled();
+      // Error shows immediately, info is queued behind it
+      expect(messageDialogService.visible()).toBe(true);
+      expect(messageDialogService.options()?.severity).toBe('error');
+
+      messageDialogService.dismiss();
+      expect(messageDialogService.options()?.severity).toBe('info');
+
+      messageDialogService.dismiss();
+      expect(messageDialogService.visible()).toBe(false);
     });
 
     it('should ignore other keys', () => {

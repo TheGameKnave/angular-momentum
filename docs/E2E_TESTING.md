@@ -161,6 +161,7 @@ The GitHub Actions workflow (`.github/workflows/build_test.yml`) runs:
 
 On failure, artifacts are uploaded:
 - `playwright-report/` - HTML report with screenshots and traces
+- `flow-report/` - `user-flows.txt` / `user-flows.json` from the flow reporter
 - `test-results/` - Visual diff images
 
 ## Writing Tests

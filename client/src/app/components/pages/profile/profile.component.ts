@@ -19,6 +19,7 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { MessageService } from 'primeng/api';
 import { ConfirmDialogService } from '@app/services/confirm-dialog.service';
 import { AuthService } from '@app/services/auth.service';
+import { AuthUiStateService } from '@app/services/auth-ui-state.service';
 import { UserSettingsService } from '@app/services/user-settings.service';
 import { UsernameService } from '@app/services/username.service';
 import { DataExportService } from '@app/services/data-export.service';
@@ -79,6 +80,14 @@ export class ProfileComponent implements OnInit {
   private readonly confirmDialogService = inject(ConfirmDialogService);
   private readonly messageService = inject(MessageService);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly authUiState = inject(AuthUiStateService);
+
+  /**
+   * Whether a user is logged in. Account-only sections (password, email,
+   * username, account details, delete account) render only when true; the
+   * preference and local-data sections render either way.
+   */
+  readonly isAuthenticated = this.authService.isAuthenticated;
 
   // Password change panel state
   readonly passwordPanelExpanded = signal(false);
@@ -229,8 +238,10 @@ export class ProfileComponent implements OnInit {
     // Preferences are loaded from userSettingsService signals
     // (themePreference and timezonePreference are already reactive)
 
-    // Load username asynchronously
-    this.loadUsernameAsync();
+    // Load username asynchronously (account-only; skipped when anonymous)
+    if (this.isAuthenticated()) {
+      this.loadUsernameAsync();
+    }
 
     // Check for data backup availability
     this.checkDataBackup();
@@ -257,20 +268,26 @@ export class ProfileComponent implements OnInit {
   }
 
   /**
+   * Open the auth menu in signup mode. The menu lives in the app header, so
+   * the request is routed through the shared auth UI state service.
+   */
+  onSignUp(): void {
+    this.authUiState.requestOpen('signup');
+  }
+
+  /**
    * Handle logout button click.
-   * Always redirects to home since profile page is auth-guarded.
+   * Stays on the profile page — it renders anonymously, showing preferences
+   * and the sign-up prompt once the account sections drop away.
    */
   async onLogout(): Promise<void> {
     // Clear user data
     this.usernameService.clear();
 
-    // Logout and navigate to home (required since /profile is auth-guarded)
     await this.authService.logout();
 
     // Clear user settings and reload preferences for anonymous scope
     await this.userSettingsService.clear();
-
-    await this.router.navigate(['/']);
   }
 
   /**
@@ -685,7 +702,7 @@ export class ProfileComponent implements OnInit {
       title: 'profile.Clear All Data',
       message: 'profile.Remove all stored preferences, notifications, and settings. Your account will remain active.',
       icon: 'pi pi-exclamation-triangle',
-      iconColor: 'var(--orange-500)',
+      iconColor: 'var(--p-orange-500)',
       confirmLabel: 'profile.Clear Data',
       confirmIcon: 'pi pi-trash',
       confirmSeverity: 'danger',
@@ -714,7 +731,7 @@ export class ProfileComponent implements OnInit {
       title: 'profile.Delete Account',
       message: 'profile.Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.',
       icon: 'pi pi-exclamation-triangle',
-      iconColor: 'var(--red-500)',
+      iconColor: 'var(--p-red-500)',
       confirmLabel: 'profile.Delete Account',
       confirmIcon: 'pi pi-trash',
       confirmSeverity: 'danger',
