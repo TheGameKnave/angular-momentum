@@ -43,7 +43,8 @@ describe('MenuAuthComponent', () => {
       currentUser: signal(null),
       currentSession: signal(null),
       loading: signal(false),
-      isPasswordRecovery: signal(false)
+      isPasswordRecovery: signal(false),
+      sessionWasDropped: signal(false)
     });
 
     mockAuthUiState = jasmine.createSpyObj('AuthUiStateService', [
@@ -190,6 +191,65 @@ describe('MenuAuthComponent', () => {
       component.ngAfterViewInit();
 
       expect(mockAuthUiState.setMode).not.toHaveBeenCalled();
+    });
+
+    it('should open the login form when the session was dropped', (done) => {
+      mockAuthService.hasReturnUrl.and.returnValue(false);
+      mockAuthService.isAuthenticated.and.returnValue(false);
+      (mockAuthService.sessionWasDropped as WritableSignal<boolean>).set(true);
+
+      // Spy on the real ViewChild instance — change detection re-resolves the
+      // query, so a manually-assigned spy object would be overwritten.
+      // ngAfterViewInit already ran via the beforeEach detectChanges().
+      const openSpy = spyOn(component.dialogMenu, 'open');
+      fixture.detectChanges();
+
+      setTimeout(() => {
+        expect(mockAuthUiState.setMode).toHaveBeenCalledWith('login');
+        expect(component.showUserMenu()).toBeFalse();
+        expect(openSpy).toHaveBeenCalled();
+        done();
+      }, 10);
+    });
+
+    it('should not open the login form when the drop flag is clear', (done) => {
+      mockAuthService.hasReturnUrl.and.returnValue(false);
+      mockAuthService.isAuthenticated.and.returnValue(false);
+      (mockAuthService.sessionWasDropped as WritableSignal<boolean>).set(false);
+
+      const openSpy = spyOn(component.dialogMenu, 'open');
+      fixture.detectChanges();
+
+      setTimeout(() => {
+        expect(mockAuthUiState.setMode).not.toHaveBeenCalled();
+        expect(openSpy).not.toHaveBeenCalled();
+        done();
+      }, 10);
+    });
+
+    it('should not re-open the login form on later change detection', (done) => {
+      mockAuthService.hasReturnUrl.and.returnValue(false);
+      mockAuthService.isAuthenticated.and.returnValue(false);
+      const dropped = mockAuthService.sessionWasDropped as WritableSignal<boolean>;
+      dropped.set(true);
+
+      // ngAfterViewInit already ran via the beforeEach detectChanges(), so the
+      // effect is registered — calling it again would register a second one
+      // with its own guard and legitimately open twice.
+      const openSpy = spyOn(component.dialogMenu, 'open');
+      fixture.detectChanges();
+
+      setTimeout(() => {
+        // Re-entering the effect (signal churn, navigation) must not pop the
+        // menu a second time within the same app load.
+        dropped.set(false);
+        dropped.set(true);
+        fixture.detectChanges();
+        setTimeout(() => {
+          expect(openSpy).toHaveBeenCalledTimes(1);
+          done();
+        }, 10);
+      }, 10);
     });
 
     it('should open the menu when an external open request arrives', () => {

@@ -68,11 +68,13 @@ describe('AuthService', () => {
     mockPlatformService = jasmine.createSpyObj('PlatformService', [
       'isSSR',
       'isWeb',
-      'isTauri'
+      'isTauri',
+      'isBrowser'
     ]);
     mockPlatformService.isSSR.and.returnValue(false);
     mockPlatformService.isWeb.and.returnValue(true);
     mockPlatformService.isTauri.and.returnValue(false);
+    mockPlatformService.isBrowser.and.returnValue(true);
 
     mockLogService = jasmine.createSpyObj('LogService', ['log']);
 
@@ -213,6 +215,129 @@ describe('AuthService', () => {
         'Session refresh failed, clearing stale session',
         jasmine.objectContaining({ message: 'Refresh token expired' })
       );
+    });
+
+    describe('dropped-session marker', () => {
+      const expiredInit = () => {
+        const mockUser = createMockUser('test@example.com');
+        const mockSession = {
+          ...createMockSession(mockUser),
+          expires_at: Math.floor(Date.now() / 1000) - 3600,
+        };
+        mockSupabaseAuth.getSession.and.returnValue(
+          Promise.resolve({ data: { session: mockSession }, error: null })
+        );
+        mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+          Promise.resolve({ data: { session: null }, error: { message: 'Refresh token expired' } })
+        );
+        mockSupabaseAuth.signOut.and.returnValue(Promise.resolve({ error: null }));
+      };
+
+      afterEach(() => localStorage.removeItem('session_existed'));
+
+      it('should flag a dropped session when this device had one', async () => {
+        localStorage.setItem('session_existed', 'true');
+        expiredInit();
+
+        await service.initializeSession();
+
+        expect(service.sessionWasDropped()).toBeTrue();
+      });
+
+      it('should not flag a drop when no session ever existed here', async () => {
+        localStorage.removeItem('session_existed');
+        expiredInit();
+
+        await service.initializeSession();
+
+        // A stale token with no marker means the user signed out deliberately
+        // (or never signed in) — offering to sign back in would be noise.
+        expect(service.sessionWasDropped()).toBeFalse();
+      });
+
+      it('should mark the device when a valid session restores', async () => {
+        localStorage.removeItem('session_existed');
+        const mockUser = createMockUser('test@example.com');
+        const mockSession = {
+          ...createMockSession(mockUser),
+          expires_at: Math.floor(Date.now() / 1000) + 3600,
+        };
+        mockSupabaseAuth.getSession.and.returnValue(
+          Promise.resolve({ data: { session: mockSession }, error: null })
+        );
+
+        await service.initializeSession();
+
+        expect(localStorage.getItem('session_existed')).toBe('true');
+        expect(service.sessionWasDropped()).toBeFalse();
+      });
+
+      it('should mark the device when an expired session refreshes successfully', async () => {
+        localStorage.removeItem('session_existed');
+        const mockUser = createMockUser('test@example.com');
+        const expiredSession = {
+          ...createMockSession(mockUser),
+          expires_at: Math.floor(Date.now() / 1000) - 3600,
+        };
+        const refreshedSession = {
+          ...createMockSession(mockUser),
+          expires_at: Math.floor(Date.now() / 1000) + 3600,
+        };
+        mockSupabaseAuth.getSession.and.returnValue(
+          Promise.resolve({ data: { session: expiredSession }, error: null })
+        );
+        mockSupabaseAuth.refreshSession = jasmine.createSpy('refreshSession').and.returnValue(
+          Promise.resolve({ data: { session: refreshedSession }, error: null })
+        );
+
+        await service.initializeSession();
+
+        expect(localStorage.getItem('session_existed')).toBe('true');
+        expect(service.sessionWasDropped()).toBeFalse();
+      });
+
+      it('should not mark the device outside the browser', async () => {
+        localStorage.removeItem('session_existed');
+        mockPlatformService.isBrowser.and.returnValue(false);
+        const mockUser = createMockUser('test@example.com');
+        mockSupabaseAuth.getSession.and.returnValue(
+          Promise.resolve({
+            data: { session: { ...createMockSession(mockUser), expires_at: Math.floor(Date.now() / 1000) + 3600 } },
+            error: null,
+          })
+        );
+
+        await service.initializeSession();
+
+        expect(localStorage.getItem('session_existed')).toBeNull();
+
+        mockPlatformService.isBrowser.and.returnValue(true);
+      });
+
+      it('should not touch storage outside the browser', async () => {
+        localStorage.setItem('session_existed', 'true');
+        mockPlatformService.isBrowser.and.returnValue(false);
+        expiredInit();
+
+        await service.initializeSession();
+
+        // SSR has no localStorage to read, so it can't claim a drop
+        expect(service.sessionWasDropped()).toBeFalse();
+
+        mockPlatformService.isBrowser.and.returnValue(true);
+      });
+
+      it('should leave the marker alone when logout runs outside the browser', async () => {
+        localStorage.setItem('session_existed', 'true');
+        mockPlatformService.isBrowser.and.returnValue(false);
+        mockSupabaseAuth.signOut.and.returnValue(Promise.resolve({ error: null }));
+
+        await service.logout();
+
+        expect(localStorage.getItem('session_existed')).toBe('true');
+
+        mockPlatformService.isBrowser.and.returnValue(true);
+      });
     });
 
     it('should clear expired session when refresh returns no session', async () => {
@@ -810,6 +935,19 @@ describe('AuthService', () => {
       expect(service.currentUser()).toBeNull();
       expect(service.currentSession()).toBeNull();
       expect(mockSupabaseAuth.signOut).toHaveBeenCalled();
+    });
+
+    it('should forget the device had a session so the next visit stays quiet', async () => {
+      localStorage.setItem('session_existed', 'true');
+      service['sessionWasDropped'].set(true);
+      mockSupabaseAuth.signOut.and.returnValue(Promise.resolve({ error: null }));
+
+      await service.logout();
+
+      // Deliberate sign-out is the one path that clears the marker — a failed
+      // refresh must NOT, or we can't tell the two apart on the next visit.
+      expect(localStorage.getItem('session_existed')).toBeNull();
+      expect(service.sessionWasDropped()).toBeFalse();
     });
 
     it('should clear state even on logout error', async () => {

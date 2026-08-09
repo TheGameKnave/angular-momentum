@@ -192,6 +192,29 @@ export class MenuAuthComponent implements AfterViewInit {
       this.authUiState.setMode('login'); // Switch to login mode for protected routes
       this.showUserMenu.set(false); // Straight to the login form
       setTimeout(() => this.dialogMenu.open(), 0); // Open menu after view init
+    } else {
+      // Session dropped out from under them (refresh failed at startup, which
+      // is where lapsed refresh tokens surface — they expire while the app is
+      // closed). Offer the login form straight away rather than making them
+      // find it: profile icon, then Log in. Deliberate sign-outs and devices
+      // that never had an account don't reach here. Deferred to the returnUrl
+      // branch above so the two auto-open paths can't race.
+      const dropped = this.authService.sessionWasDropped;
+      let prompted = false;
+      const stop = effect(
+        () => {
+          if (prompted || !dropped() || this.authService.isAuthenticated()) return;
+          prompted = true; // once per app load, whatever re-renders later
+          this.authUiState.setMode('login');
+          this.showUserMenu.set(false);
+          // Leave the form empty — the browser's password manager fills it.
+          setTimeout(() => {
+            this.dialogMenu.open();
+            stop.destroy();
+          }, 0);
+        },
+        { injector: this.injector },
+      );
     }
 
     // Open on request from elsewhere in the app (e.g. profile page sign-up CTA).
