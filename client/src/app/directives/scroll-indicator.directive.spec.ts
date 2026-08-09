@@ -2,6 +2,7 @@ import { Component, DebugElement } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync, tick, flush } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ScrollIndicatorDirective } from './scroll-indicator.directive';
+import { SCREEN_SIZES } from '@app/constants/ui.constants';
 
 // Mock ResizeObserver
 let resizeObserverCallback: ResizeObserverCallback | null = null;
@@ -874,6 +875,12 @@ describe('ScrollIndicatorDirective', () => {
   describe('header and footer handling', () => {
     let fixture: ComponentFixture<any>;
 
+    beforeEach(() => {
+      // The slide-away header is mobile-only, so these tests must not depend
+      // on the Karma browser window's actual width.
+      spyOnProperty(window, 'innerWidth').and.returnValue(SCREEN_SIZES.md - 1);
+    });
+
     afterEach(() => {
       if (fixture) {
         fixture.destroy();
@@ -1014,6 +1021,87 @@ describe('ScrollIndicatorDirective', () => {
       // Header should be hidden
       expect(header.style.transform).toContain('-60');
     }));
+
+    describe('wide viewports', () => {
+      /** Builds a scrollable fixture with a sticky header. */
+      async function mountHeaderFixture(): Promise<{ scrollContainer: HTMLElement; header: HTMLElement }> {
+        @Component({
+          template: `
+            <div class="scroll-container" style="height: 300px; overflow-y: auto;">
+              <header style="height: 60px; position: sticky; top: 0;">Header</header>
+              <div appScrollIndicator class="content" style="height: 1000px;">Content</div>
+            </div>
+          `,
+          imports: [ScrollIndicatorDirective],
+        })
+        class WideHeaderComponent {}
+
+        await TestBed.configureTestingModule({
+          imports: [WideHeaderComponent],
+        }).compileComponents();
+
+        fixture = TestBed.createComponent(WideHeaderComponent);
+        fixture.detectChanges();
+        tick(100);
+        flush();
+        fixture.detectChanges();
+
+        return {
+          scrollContainer: fixture.nativeElement.querySelector('.scroll-container'),
+          header: fixture.nativeElement.querySelector('header'),
+        };
+      }
+
+      it('should leave the header alone when scrolling past the header zone', fakeAsync(async () => {
+        (Object.getOwnPropertyDescriptor(window, 'innerWidth')!.get as jasmine.Spy)
+          .and.returnValue(SCREEN_SIZES.md);
+        const { scrollContainer, header } = await mountHeaderFixture();
+
+        scrollContainer.scrollTop = 200;
+        scrollContainer.dispatchEvent(new Event('scroll'));
+        tick(200);
+        fixture.detectChanges();
+
+        // Plain sticky header on wide viewports — no slide-away
+        expect(header.style.transform).toBe('');
+      }));
+
+      it('should not re-hide the header after scrolling stops', fakeAsync(async () => {
+        (Object.getOwnPropertyDescriptor(window, 'innerWidth')!.get as jasmine.Spy)
+          .and.returnValue(SCREEN_SIZES.md);
+        const { scrollContainer, header } = await mountHeaderFixture();
+
+        scrollContainer.scrollTop = 200;
+        scrollContainer.dispatchEvent(new Event('scroll'));
+        // The scroll-end correction is debounced 150ms and writes the transform
+        // directly, so it has to honour the breakpoint too.
+        tick(300);
+        fixture.detectChanges();
+
+        expect(header.style.transform).toBe('');
+      }));
+
+      it('should release a transform left behind by a narrow layout', fakeAsync(async () => {
+        const innerWidthSpy = Object.getOwnPropertyDescriptor(window, 'innerWidth')!.get as jasmine.Spy;
+        const { scrollContainer, header } = await mountHeaderFixture();
+
+        // Hide it while narrow...
+        scrollContainer.scrollTop = 200;
+        scrollContainer.dispatchEvent(new Event('scroll'));
+        tick(200);
+        fixture.detectChanges();
+        expect(header.style.transform).toContain('-60');
+
+        // ...then widen: the header must not be stranded off-screen
+        innerWidthSpy.and.returnValue(SCREEN_SIZES.md);
+        scrollContainer.scrollTop = 220;
+        scrollContainer.dispatchEvent(new Event('scroll'));
+        tick(300);
+        fixture.detectChanges();
+
+        expect(header.style.transform).toBe('');
+      }));
+    });
 
     it('should show header with magic when scrolling up in middle zone', fakeAsync(async () => {
       @Component({

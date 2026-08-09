@@ -8,6 +8,7 @@ import {
   PLATFORM_ID,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { SCREEN_SIZES } from '@app/constants/ui.constants';
 
 /**
  * Scroll state for header/footer updates.
@@ -565,8 +566,15 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
     this.updateDirectionTracking(scrollState);
 
     if (this.headerElement) {
-      this.updateHeaderForMagicVisible(clampedScrollTop, scrollState);
-      this.updateHeaderForNonMagicVisible(clampedScrollTop, scrollState);
+      if (this.shouldSlideHeader()) {
+        this.updateHeaderForMagicVisible(clampedScrollTop, scrollState);
+        this.updateHeaderForNonMagicVisible(clampedScrollTop, scrollState);
+      } else {
+        // Wide viewports keep a plain sticky header. Reset any transform left
+        // behind by a narrower layout, or a resize across the breakpoint would
+        // strand the header off-screen.
+        this.releaseHeaderTransform();
+      }
     }
 
     if (this.footerElement) {
@@ -606,6 +614,36 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
     if (directionReversedUp || directionReversedDown) {
       this.lastDirectionChangeScrollTop = this.lastScrollTop;
     }
+  }
+
+  /**
+   * Whether the header should slide out of the way while scrolling.
+   *
+   * Only on mobile widths, where vertical space is scarce enough to justify
+   * hiding a persistent chrome element. Wider viewports keep a plain sticky
+   * header — the space isn't worth the movement.
+   *
+   * @returns True when the viewport is narrower than the medium breakpoint
+   */
+  private shouldSlideHeader(): boolean {
+    return window.innerWidth < SCREEN_SIZES.md;
+  }
+
+  /**
+   * Clear any header transform so it sits in its natural sticky position.
+   *
+   * @returns Nothing
+   */
+  private releaseHeaderTransform(): void {
+    const header = this.headerElement;
+    // istanbul ignore next - callers already guard on headerElement
+    if (!header) return;
+
+    if (header.style.transform) {
+      header.style.transition = 'none';
+      header.style.transform = '';
+    }
+    this.headerMagicVisible = false;
   }
 
   /**
@@ -715,6 +753,13 @@ export class ScrollIndicatorDirective implements AfterViewInit, OnDestroy {
    */
   private correctHeaderPosition(): void {
     if (!this.headerElement) return;
+
+    // Debounced, so it can fire after a resize into a wide viewport — without
+    // this check it would re-hide a header that should now be plain sticky.
+    if (!this.shouldSlideHeader()) {
+      this.releaseHeaderTransform();
+      return;
+    }
 
     const scrollTop = this.scrollElement.scrollTop;
     const maxScroll = this.cachedScrollHeight - this.cachedClientHeight;
