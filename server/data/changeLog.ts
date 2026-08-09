@@ -10,6 +10,15 @@ export const changeLog = [
   
   
   
+  
+  {
+    version: "21.6.2",
+    date: "2026-08-09",
+    description: "The header stays put on larger screens",
+    changes: [
+      "the header only slides out of the way while scrolling on phone and small-tablet widths, where the vertical space is worth reclaiming — on wider screens it stays put as a plain sticky header",
+    ]
+  },
   {
     version: "21.6.1",
     date: "2026-08-08",
