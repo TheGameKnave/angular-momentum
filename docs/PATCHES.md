@@ -39,6 +39,32 @@ changelog (`server/data/changeLog.ts`) and git history up to 21.2.19.
 
 ---
 
+## 21.6.1 — 2026-08-08
+
+- [ ] **[client] Offer sign-in immediately when the app drops a session** (`86d3630`)
+  A lapsed refresh token surfaces at *startup*, not mid-session — it expires while the
+  app is closed, so the user reopens to an anonymous app and needs two clicks (profile
+  icon → Log in) to recover from something the app did to them. The auth menu now opens
+  straight to the login form in that case. The part worth copying is the
+  discrimination, not the auto-open: a `session_existed` marker is set whenever a
+  session becomes active, cleared **only** on deliberate logout, and pointedly **not**
+  cleared when a refresh fails. That asymmetry is what separates "we dropped you"
+  (prompt) from "you signed out" (stay quiet) from "no account here" (stay quiet) —
+  without it, an auto-opening login dialog is just a nag, which matters a lot if your
+  fork also renders every route anonymously. Implementation notes: the marker holds no
+  identity (a bare boolean, so the form opens empty for the browser's password manager
+  — on a shared device this reveals that *somebody* has an account, not who); the
+  prompt is deferred to the existing returnUrl auto-open so the two paths can't race;
+  and it is guarded to fire once per app load so later signal churn or navigation
+  can't re-pop the menu. AM hangs the detection off `initializeSession()`'s existing
+  "refresh failed, clearing stale session" branch — find the equivalent point in your
+  own bootstrap.
+  *Caveat worth inheriting:* this makes a dropped session **comfortable**, not
+  **correct**. With `persistSession` and `autoRefreshToken` on and long-lived refresh
+  tokens, frequent logouts indicate a persistence bug (Tauri's localStorage adapter, a
+  401 handler logging out on a refreshable error, a storage clear) that this feature
+  will happily paper over. Measure the frequency before concluding it's fixed.
+
 ## 21.6.0 — 2026-08-08
 
 - [ ] **[client] UI preferences survive sign-in and are cleared on every sign-out** (`e7f265a`)

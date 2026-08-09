@@ -9,6 +9,16 @@ export const changeLog = [
   
   
   
+  
+  {
+    version: "21.6.1",
+    date: "2026-08-08",
+    description: "Get back into your account in one step when a session lapses",
+    changes: [
+      "if your sign-in lapses while the app is closed, reopening it now offers the login form straight away instead of making you go through the profile menu to find it — your browser's saved password fills it as usual",
+      "signing out deliberately still leaves you signed out: the prompt only appears when we dropped the session, never when you chose to end it, and never on a device that has never been signed in",
+    ]
+  },
   {
     version: "21.6.0",
     date: "2026-08-08",
