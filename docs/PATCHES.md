@@ -39,6 +39,23 @@ changelog (`server/data/changeLog.ts`) and git history up to 21.2.19.
 
 ---
 
+## 21.6.2 — 2026-08-09
+
+- [ ] **[client] Scroll-away header limited to mobile widths** (`0c62124`)
+  `ScrollIndicatorDirective` slid the header out of the way on every viewport. That
+  trade — motion in exchange for vertical space — only pays when the space is scarce;
+  on a desktop it's movement for its own sake, and a header that holds still is easier
+  to aim at. Now gated to viewports below `SCREEN_SIZES.md`; wider ones keep a plain
+  sticky header. The gotcha if you port this: **two** code paths write the transform.
+  The scroll handler is the obvious one, but `correctHeaderPosition()` — a 150ms
+  debounced correction that runs after scrolling stops — writes it directly too, so
+  gating only the handler leaves a desktop header that sits still while you scroll and
+  then slides away a beat after you stop. Crossing the breakpoint upward must also
+  clear any transform the narrow layout left behind, or a resize strands the header
+  off-screen. Note the existing directive specs had to start stubbing
+  `window.innerWidth`; without it they silently depend on the Karma browser's actual
+  window size and would flip behaviour on a different runner.
+
 ## 21.6.1 — 2026-08-08
 
 - [ ] **[client] Offer sign-in immediately when the app drops a session** (`86d3630`)
